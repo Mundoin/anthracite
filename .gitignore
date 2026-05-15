@@ -47,3 +47,27 @@ graphify-out/
 build/
 out/
 coverage/
+
+# --- Operator Python venv (tooling only, NOT product runtime) ---
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# AgentOps session artifacts
+
+# AgentOps session artifacts
+
+# Local Claude runtime settings
+.claude/
+
+# --- AgentOps churn / runtime / auto-generated state ---
+.agents/ao/
+.agents/knowledge/
+.agents/pool/
+.agents/defrag/
+.agents/signals/
+.agents/handoff/stop-*.md
+.agents/handoff/auto-*.json
+.agents/learnings/2026-*.md
+.agents/**/*.jsonl

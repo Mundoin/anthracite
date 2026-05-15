@@ -1,0 +1,121 @@
+{
+  "folders": [
+    {
+      "name": "Anthracite V1",
+      "path": "D:\\Repos\\anthracite"
+    }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "D:\\Repos\\anthracite\\.venv\\Scripts\\python.exe",
+    "python.terminal.activateEnvironment": true,
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.cwd": "D:\\Repos\\anthracite",
+    "git.autofetch": true,
+    "restoreTerminals.runOnStartup": true,
+    "restoreTerminals.keepExistingTerminalsOpen": false,
+    "restoreTerminals.artificialDelayMilliseconds": 1000,
+    "files.exclude": {
+      "**/.venv": true,
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/src-tauri/target": true,
+      "**/graphify-out": true,
+      "**/.pytest_cache": true,
+      "**/__pycache__": true,
+      "**/*.pyc": true
+    },
+    "search.exclude": {
+      "**/.venv": true,
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/src-tauri/target": true,
+      "**/graphify-out": true,
+      "**/.pytest_cache": true,
+      "**/__pycache__": true,
+      "**/*.pyc": true
+    },
+    "restoreTerminals.terminals": [
+      {
+        "splitTerminals": [
+          {
+            "name": "Anthracite — APP RUNNER",
+            "commands": [
+              "Set-Location 'D:\\Repos\\anthracite'",
+              "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
+              "powershell -ExecutionPolicy Bypass -File .\\tools\\workspace-status.ps1",
+              "powershell -ExecutionPolicy Bypass -File .\\tools\\graphify-freshness.ps1",
+              "Write-Host 'Run app with: pnpm tauri:dev'"
+            ]
+          }
+        ]
+      },
+      {
+        "splitTerminals": [
+          {
+            "name": "Anthracite — CLAUDE CODE",
+            "commands": [
+              "Set-Location 'D:\\Repos\\anthracite'",
+              "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
+              "powershell -ExecutionPolicy Bypass -File .\\tools\\workspace-status.ps1",
+              "claude"
+            ]
+          }
+        ]
+      },
+      {
+        "splitTerminals": [
+          {
+            "name": "Anthracite — CODEX ADMIN",
+            "commands": [
+              "Set-Location 'D:\\Repos\\anthracite'",
+              "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
+              "powershell -ExecutionPolicy Bypass -File .\\tools\\workspace-status.ps1",
+              "codex"
+            ]
+          }
+        ]
+      },
+      {
+        "splitTerminals": [
+          {
+            "name": "Anthracite — DEEPSEEK CLI",
+            "commands": [
+              "Set-Location 'D:\\Repos\\anthracite'",
+              "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
+              "powershell -ExecutionPolicy Bypass -File .\\tools\\workspace-status.ps1",
+              "Write-Host 'DeepSeek terminal ready. If your DeepSeek command differs, run it here.'"
+            ]
+          }
+        ]
+      },
+      {
+        "splitTerminals": [
+          {
+            "name": "Anthracite — GITHUB / GIT ADMIN",
+            "commands": [
+              "Set-Location 'D:\\Repos\\anthracite'",
+              "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
+              "git status --short",
+              "gh --version"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.powershell",
+      "rust-lang.rust-analyzer",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "eamodio.gitlens",
+      "github.vscode-github-actions",
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ericsia.restoreterminals"
+    ]
+  }
+}
