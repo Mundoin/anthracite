@@ -52,6 +52,40 @@
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+/* NOC Dark — alternate serious workstation scheme. Not the default.
+   Activate by setting <html data-scheme="noc-dark"> when explicitly chosen
+   by the operator. Typography scale is shared with NOC Light — readable
+   sizes preserved, no microtext regression. */
+[data-scheme="noc-dark"] {
+  /* Surfaces — deep cold-space stack. */
+  --bg-0: #0A0E17;   /* Deep Obsidian Navy */
+  --bg-1: #121824;   /* Slate Carbon */
+  --bg-2: #1F293D;   /* Low-contrast Steel inset */
+
+  /* Borders — low-contrast steel + inactive edge. */
+  --line:        #1F293D;
+  --line-bright: #2E3D52;
+
+  /* Text — off-white readable header stack. */
+  --text-0: #E2E8F0;   /* Primary Text Header */
+  --text-1: #B6C2D2;
+  --text-2: #2E3D52;   /* Inactive Edge — muted blue-grey */
+
+  /* Accent — Electric Cyan for discovery / data emphasis (nav/action). */
+  --accent:     #00E5FF;
+  --accent-dim: #16384a;
+
+  /* Operator selection accent — High-Visibility Amber for eyebrow /
+     active-record indicator. Mirrors the amber/warning role visually. */
+  --copper: #FFD000;
+
+  /* Signal — true status only. */
+  --signal-healthy:  #00FF9D;   /* Cyber Mint */
+  --signal-degraded: #FFD000;   /* High-Visibility Amber */
+  --signal-offline:  #FF3366;   /* Crimson Alert */
+  --signal-unknown:  #2E3D52;   /* Inactive Edge */
+}
+
 * {
   box-sizing: border-box;
 }
