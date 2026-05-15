@@ -1,5 +1,5 @@
 /**
- * HOME / Environment Command Centre.
+ * HOME / Environment Centre.
  *
  * The front door of Anthracite. Per
  * `docs/architecture/ANTHRACITE_V1_SOURCE_OF_TRUTH.md` §5, the operator
@@ -21,7 +21,7 @@ import {
   listEnvironments,
   setActiveEnvironment,
 } from "../api/environment";
-import "./HomeCommandCentre.css";
+import "./HomeEnvironmentCentre.css";
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -47,7 +47,7 @@ const STATUS_LABEL: Record<EnvironmentStatus, string> = {
   unknown: "UNKNOWN",
 };
 
-export function HomeCommandCentre(): JSX.Element {
+export function HomeEnvironmentCentre(): JSX.Element {
   const [state, setState] = useState<LoadState>("loading");
   const [error, setError] = useState<string | null>(null);
   const [envs, setEnvs] = useState<Environment[]>([]);
@@ -129,10 +129,10 @@ export function HomeCommandCentre(): JSX.Element {
   }
 
   return (
-    <section className="home-centre" aria-label="Home Environment Command Centre">
+    <section className="home-centre" aria-label="Home Environment Centre">
       <header className="home-centre__header">
         <div className="home-centre__heading">
-          <span className="home-centre__eyebrow">HOME / ENVIRONMENT COMMAND CENTRE</span>
+          <span className="home-centre__eyebrow">HOME / ENVIRONMENT CENTRE</span>
           <h2 className="home-centre__title">
             {activeEnv ? activeEnv.name : "NO ENVIRONMENT SELECTED"}
           </h2>

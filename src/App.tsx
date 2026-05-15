@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { HomeCommandCentre } from "./components/HomeCommandCentre";
+import { HomeEnvironmentCentre } from "./components/HomeEnvironmentCentre";
 
 export default function App(): JSX.Element {
   return (
@@ -15,8 +15,8 @@ export default function App(): JSX.Element {
           <p className="panel-placeholder">Mode rail surfaces in V1D.</p>
         </aside>
 
-        <main className="panel panel-center" aria-label="Home Environment Command Centre">
-          <HomeCommandCentre />
+        <main className="panel panel-center" aria-label="Home Environment Centre">
+          <HomeEnvironmentCentre />
         </main>
 
         <aside className="panel panel-right" aria-label="Inspector panel">

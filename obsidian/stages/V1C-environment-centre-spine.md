@@ -7,7 +7,7 @@
 ## Goal
 
 Build the first product spine: a deterministic Environment Engine in Rust,
-a typed Tauri command surface, and a HOME / Environment Command Centre
+a typed Tauri command surface, and a HOME / Environment Centre
 React surface that consumes them. Smallest viable, real, reusable.
 
 ## What landed
@@ -34,15 +34,15 @@ React surface that consumes them. Smallest viable, real, reusable.
   enum.
 - `src/api/environment.ts` — `invoke<T>` wrappers, one per command. No
   fire-and-forget; all returns are awaited and typed.
-- `src/components/HomeCommandCentre.tsx` — HOME surface. Loads env list +
+- `src/components/HomeEnvironmentCentre.tsx` — HOME surface. Loads env list +
   active selection on mount, switches via `set_active_environment`,
   surfaces typed errors. No domain logic; everything goes through the
   Environment API.
-- `src/components/HomeCommandCentre.css` — industrial dense styling.
+- `src/components/HomeEnvironmentCentre.css` — industrial dense styling.
   Hairline borders, monospace IDs/numbers, signal-grade status colours,
   copper eyebrow accent, no drop-shadow cards.
 - `src/App.tsx` updated: stage label V1C, center panel hosts
-  `HomeCommandCentre`. Babylon canvas removed from the front door (its
+  `HomeEnvironmentCentre`. Babylon canvas removed from the front door (its
   module file is retained for a later topology stage).
 
 ## Visual law check
@@ -66,7 +66,7 @@ React surface that consumes them. Smallest viable, real, reusable.
 ## Notes for future agents
 
 - HOME is the front door. Topology never becomes the landing surface.
-- Modes added to `MODES` in `HomeCommandCentre.tsx` must already exist in
+- Modes added to `MODES` in `HomeEnvironmentCentre.tsx` must already exist in
   `ANTHRACITE_V1_SOURCE_OF_TRUTH.md` §5.
 - New commands live next to their engine module under
   `src-tauri/src/commands/<engine>.rs`, wired through `lib.rs`.
