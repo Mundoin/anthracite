@@ -1,11 +1,9 @@
-/* HOME / Environment Command Centre — industrial dense workstation styling.
-   Obeys docs/design/INDUSTRIAL_VISUAL_LAW.md: dense rows, hairline borders,
-   strong contrast, monospace IDs/numbers, signal-grade status colours, no
-   drop-shadow cards. */
+/* HOME / Environment Command Centre — NOC Light readable layout.
+   Palette tokens (--copper, --signal-*, --accent, --bg-*, --text-*) come
+   from the active scheme (src/App.css). Typography scale comes from the
+   scheme as well — components consume, never define. */
 
 .home-centre {
-  /* Palette tokens (--copper, --signal-*) come from the active scheme.
-     Graphite Light defines them in src/App.css :root. */
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -13,6 +11,7 @@
   background: var(--bg-0);
   color: var(--text-0);
   font-family: var(--font-ui);
+  font-size: var(--fs-body);
   overflow: auto;
 }
 
@@ -24,9 +23,9 @@
 
 .home-centre__placeholder {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   letter-spacing: 0.14em;
-  color: var(--text-2);
+  color: var(--text-1);
 }
 
 .home-centre__header {
@@ -34,18 +33,18 @@
   align-items: stretch;
   border-bottom: 1px solid var(--line-bright);
   background: var(--bg-1);
-  padding: 14px 18px 12px;
+  padding: 16px 20px 14px;
 }
 
 .home-centre__heading {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .home-centre__eyebrow {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.22em;
   color: var(--copper);
 }
@@ -53,8 +52,8 @@
 .home-centre__title {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 18px;
-  letter-spacing: 0.08em;
+  font-size: var(--fs-title);
+  letter-spacing: 0.06em;
   margin: 0;
   color: var(--text-0);
 }
@@ -62,10 +61,10 @@
 .home-centre__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  margin: 2px 0 0;
+  gap: 16px;
+  margin: 4px 0 0;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   color: var(--text-1);
 }
 
@@ -76,10 +75,10 @@
 }
 
 .kv__k {
-  color: var(--text-2);
+  color: var(--text-1);
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
 }
 
 .kv__v { color: var(--text-0); }
@@ -87,17 +86,17 @@
 /* ---- Readiness band (V1E) ---- */
 .readiness-band {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) 1fr;
+  grid-template-columns: minmax(240px, 320px) 1fr;
   grid-template-rows: auto auto;
   grid-template-areas:
     "head    grid"
     "message grid";
-  gap: 4px 18px;
+  gap: 6px 20px;
   align-items: center;
-  padding: 8px 18px;
+  padding: 12px 20px;
   background: var(--bg-1);
   border-bottom: 1px solid var(--line-bright);
-  border-left: 2px solid var(--signal-unknown);
+  border-left: 3px solid var(--signal-unknown);
 }
 
 .readiness-band[data-state="ready"]      { border-left-color: var(--signal-healthy); }
@@ -109,12 +108,12 @@
   grid-area: head;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .readiness-band__eyebrow {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.22em;
   color: var(--copper);
 }
@@ -123,23 +122,23 @@
   grid-area: message;
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-1);
+  font-size: var(--fs-meta);
+  color: var(--text-0);
 }
 
 .readiness-band__grid {
   grid-area: grid;
   display: grid;
-  grid-template-columns: repeat(6, minmax(64px, 1fr));
+  grid-template-columns: repeat(6, minmax(72px, 1fr));
   gap: 1px;
   margin: 0;
   background: var(--line);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-bright);
 }
 
 .readiness-band__cell {
-  background: var(--bg-2);
-  padding: 4px 8px;
+  background: var(--bg-0);
+  padding: 6px 10px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -148,23 +147,23 @@
 
 .readiness-band__cell dt {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.16em;
-  color: var(--text-2);
+  color: var(--text-1);
 }
 
 .readiness-band__cell dd {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-0);
   font-variant-numeric: tabular-nums;
 }
 
 .home-centre__body {
   display: grid;
-  grid-template-columns: minmax(260px, 320px) 1fr;
+  grid-template-columns: minmax(280px, 340px) 1fr;
   grid-template-rows: auto 1fr;
   grid-template-areas:
     "scope envs"
@@ -177,7 +176,7 @@
 
 .centre-block {
   background: var(--bg-1);
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -189,12 +188,13 @@
 
 .centre-block__title {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-section);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--text-1);
-  margin: 0 0 10px;
-  padding-bottom: 6px;
+  color: var(--text-0);
+  font-weight: 700;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--line-bright);
 }
 
@@ -205,12 +205,12 @@
   gap: 1px;
   margin: 0;
   background: var(--line);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-bright);
 }
 
 .scope-grid__cell {
-  background: var(--bg-2);
-  padding: 8px 10px;
+  background: var(--bg-0);
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -218,17 +218,18 @@
 
 .scope-grid__cell dt {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
   letter-spacing: 0.16em;
-  color: var(--text-2);
+  color: var(--text-1);
 }
 
 .scope-grid__cell dd {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--fs-metric);
+  font-weight: 700;
   color: var(--text-0);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---- Environment table ---- */
@@ -236,23 +237,23 @@
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-table);
   border: 1px solid var(--line-bright);
 }
 
 .env-table thead th {
   background: var(--bg-2);
   text-align: left;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.14em;
-  font-size: 10px;
-  color: var(--text-1);
+  font-size: 12px;
+  color: var(--text-0);
   border-bottom: 1px solid var(--line-bright);
-  padding: 6px 8px;
+  padding: 8px 10px;
 }
 
 .env-table tbody td {
-  padding: 6px 8px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--line);
   color: var(--text-0);
 }
@@ -273,24 +274,25 @@
 
 .env-table__id  { color: var(--text-1); }
 .env-table__num { text-align: right; font-variant-numeric: tabular-nums; }
-.env-table__sel { width: 36px; text-align: center; color: var(--accent); }
+.env-table__sel { width: 40px; text-align: center; color: var(--accent); font-weight: 700; }
 
 .env-summary {
-  margin: 10px 0 0;
+  margin: 12px 0 0;
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-1);
-  border-left: 2px solid var(--copper);
-  padding-left: 8px;
+  font-size: var(--fs-meta);
+  color: var(--text-0);
+  border-left: 3px solid var(--copper);
+  padding-left: 10px;
 }
 
 /* ---- Status pills ---- */
 .status {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.14em;
-  padding: 1px 6px;
+  padding: 2px 8px;
   border: 1px solid currentColor;
 }
 
@@ -308,7 +310,7 @@
   flex-direction: column;
   gap: 1px;
   background: var(--line);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-bright);
 }
 
 .mode-rail__item { display: flex; }
@@ -316,18 +318,19 @@
 .mode-rail__btn {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 110px 1fr auto;
+  grid-template-columns: 130px 1fr auto;
   align-items: center;
-  gap: 12px;
-  background: var(--bg-2);
+  gap: 14px;
+  background: var(--bg-0);
   border: none;
-  border-left: 2px solid var(--line-bright);
+  border-left: 3px solid var(--line-bright);
   color: var(--text-0);
   font-family: var(--font-ui);
+  font-size: var(--fs-body);
   text-align: left;
-  padding: 8px 10px;
+  padding: 10px 12px;
   cursor: not-allowed;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .mode-rail__btn:hover:not(:disabled) {
@@ -337,21 +340,22 @@
 
 .mode-rail__label {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 700;
   letter-spacing: 0.2em;
   color: var(--accent);
 }
 
 .mode-rail__hint {
-  font-size: 11px;
+  font-size: var(--fs-meta);
   color: var(--text-1);
 }
 
 .mode-rail__state {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 11px;
   letter-spacing: 0.18em;
-  color: var(--text-2);
+  color: var(--text-1);
   border: 1px solid var(--line-bright);
-  padding: 1px 6px;
+  padding: 2px 8px;
 }

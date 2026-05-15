@@ -1,38 +1,52 @@
-/* Anthracite — Graphite Light opening scheme.
-   "Anthracite" is the application name only. The default visual scheme is
-   "Graphite Light": warm off-white / stone surfaces, graphite text, steel
-   hairline borders, muted grey-blue panels, copper/amber selection accent,
-   signal-blue navigation/action emphasis. Status colours (healthy / degraded
-   / offline / unknown) are reserved for true status, never decoration. */
+/* Anthracite — NOC Light opening scheme.
+   "Anthracite" is the application name only. Default visual scheme is
+   "NOC Light" — Bujar's network operations centre palette: white / blue-grey
+   base, dark authoritative text, steel grid lines, signal blue for
+   navigation/action emphasis, and green/amber/red reserved for true status.
+   Typography is sized for normal monitor distance — no micro-text. */
 
 :root,
-[data-scheme="graphite-light"] {
-  /* Surfaces — stone / porcelain stack. */
-  --bg-0: #ece8e1;   /* warm off-white workstation base */
-  --bg-1: #e2ddd4;   /* primary panel — slightly cooler stone */
-  --bg-2: #d2d6dc;   /* muted grey-blue panel inset */
+[data-scheme="noc-light"] {
+  /* Surfaces — NOC console stack. */
+  --bg-0: #F8FAFC;   /* Console Base White */
+  --bg-1: #E1E8F0;   /* Analytics Hub Gray */
+  --bg-2: #D1D9E6;   /* Network Grid Steel — used as inset panel */
 
-  /* Borders — steel hairlines. */
-  --line:        #b6b1a6;
-  --line-bright: #8c8e93;
+  /* Borders — Network Grid Steel + Receding Metadata Gray. */
+  --line:        #D1D9E6;
+  --line-bright: #B0BCCB;
 
-  /* Text — graphite stack. */
-  --text-0: #1c1f24;
-  --text-1: #4a4f57;
-  --text-2: #6f7480;
+  /* Text — Authority Text Dark stack. */
+  --text-0: #1A202C;   /* Authority Text Dark */
+  --text-1: #3a4252;
+  --text-2: #B0BCCB;   /* Receding Metadata Gray */
 
-  /* Accent — signal blue for navigation/action emphasis. */
-  --accent:     #2b6cb0;
-  --accent-dim: #c9d5e3;
+  /* Accent — Trace Analysis Blue for navigation/action emphasis. */
+  --accent:     #3182CE;
+  --accent-dim: #c9dcef;
 
-  /* Copper/amber — operator selection + eyebrow accents. */
-  --copper: #b86a2b;
+  /* Operator selection accent — SLA Amber Alert tone (also used for
+     eyebrow / active-record indicator). Status amber draws from the
+     same swatch deliberately — NOC operators recognise it instantly. */
+  --copper: #D69E2E;
 
-  /* Signal — reserved for true status only. */
-  --signal-healthy:  #2f7a44;
-  --signal-degraded: #b67a14;
-  --signal-offline:  #b1392f;
-  --signal-unknown:  #5a6271;
+  /* Signal — true status only. Exact NOC palette. */
+  --signal-healthy:  #38A169;   /* Peak Fabric Green */
+  --signal-degraded: #D69E2E;   /* SLA Amber Alert */
+  --signal-offline:  #E53E3E;   /* Total Fault Red */
+  --signal-unknown:  #B0BCCB;   /* Receding Metadata Gray */
+
+  /* Typography scale — readable from normal monitor distance. */
+  --fs-body:       15px;
+  --fs-mono:       14px;
+  --fs-table:      14px;
+  --fs-meta:       13px;
+  --fs-eyebrow:    12px;
+  --fs-panel-title:13px;
+  --fs-section:    14px;
+  --fs-brand:      15px;
+  --fs-title:      22px;
+  --fs-metric:     22px;
 
   --font-mono: "JetBrains Mono", "Cascadia Mono", "Consolas", ui-monospace, monospace;
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -50,6 +64,8 @@ html, body, #root {
   background: var(--bg-0);
   color: var(--text-0);
   font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  line-height: 1.45;
   overflow: hidden;
   user-select: none;
 }
@@ -62,13 +78,13 @@ html, body, #root {
 }
 
 .app-titlebar {
-  height: 36px;
+  height: 44px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 0 14px;
+  gap: 16px;
+  padding: 0 16px;
   background: var(--bg-1);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-bright);
   flex: 0 0 auto;
 }
 
@@ -76,21 +92,21 @@ html, body, #root {
   font-family: var(--font-mono);
   font-weight: 700;
   letter-spacing: 0.22em;
-  font-size: 12px;
+  font-size: var(--fs-brand);
   color: var(--accent);
 }
 
 .brand-sub {
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-2);
+  font-size: var(--fs-meta);
+  color: var(--text-1);
 }
 
 .app-grid {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 280px 1fr 320px;
-  grid-template-rows: 1fr 180px;
+  grid-template-columns: 300px 1fr 340px;
+  grid-template-rows: 1fr 200px;
   grid-template-areas:
     "left center right"
     "bottom bottom bottom";
@@ -102,7 +118,7 @@ html, body, #root {
 .panel {
   background: var(--bg-1);
   overflow: auto;
-  padding: 12px 14px;
+  padding: 14px 16px;
 }
 
 .panel-left   { grid-area: left; }
@@ -118,20 +134,20 @@ html, body, #root {
 
 .panel-title {
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--fs-panel-title);
+  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--text-1);
-  margin: 0 0 10px;
-  padding-bottom: 6px;
+  color: var(--text-0);
+  margin: 0 0 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--line-bright);
 }
 
 .panel-placeholder {
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-2);
+  font-size: var(--fs-meta);
+  color: var(--text-1);
   margin: 0;
 }
 

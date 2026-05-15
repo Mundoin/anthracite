@@ -27,7 +27,7 @@ struct Pong {
 fn ping() -> Pong {
     Pong {
         name: "anthracite",
-        stage: "V1E-B",
+        stage: "V1E-C",
         version: env!("CARGO_PKG_VERSION"),
     }
 }

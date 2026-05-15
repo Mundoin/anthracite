@@ -6,7 +6,7 @@ export default function App(): JSX.Element {
     <div className="app-shell">
       <header className="app-titlebar">
         <span className="brand-mark">ANTHRACITE</span>
-        <span className="brand-sub">network intelligence workstation · v0.1.0 · stage V1E-B · scheme Graphite Light</span>
+        <span className="brand-sub">network intelligence workstation · v0.1.0 · stage V1E-C · scheme NOC Light</span>
       </header>
 
       <div className="app-grid">
