@@ -1,15 +1,19 @@
 //! Anthracite — Tauri v2 backend.
 //!
-//! Stage V1C: Environment Engine spine. The legacy `ping` command stays as
-//! a bridge sanity check; the Environment Engine is the first real domain
-//! engine exposed through a typed command surface.
+//! Stage V1D: Environment Engine spine + selection persistence. The legacy
+//! `ping` command stays as a bridge sanity check; the Environment Engine
+//! hydrates from a small JSON store in the app data directory on boot and
+//! writes back on every successful selection change.
+
+use std::sync::Arc;
 
 use serde::Serialize;
+use tauri::Manager;
 
 pub mod commands;
 pub mod engines;
 
-use engines::environment::EnvironmentEngine;
+use engines::environment::{EnvironmentEngine, JsonFileStore};
 
 #[derive(Serialize)]
 struct Pong {
@@ -22,7 +26,7 @@ struct Pong {
 fn ping() -> Pong {
     Pong {
         name: "anthracite",
-        stage: "V1C",
+        stage: "V1D",
         version: env!("CARGO_PKG_VERSION"),
     }
 }
@@ -31,7 +35,17 @@ fn ping() -> Pong {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .manage(EnvironmentEngine::new())
+        .setup(|app| {
+            let data_dir = app
+                .path()
+                .app_data_dir()
+                .expect("app data directory must resolve on supported platforms");
+            // Best-effort: create the directory now so the first save has a home.
+            let _ = std::fs::create_dir_all(&data_dir);
+            let store = JsonFileStore::new(data_dir.join("environment.json"));
+            app.manage(EnvironmentEngine::with_store(Arc::new(store)));
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             ping,
             commands::environment::list_environments,

@@ -1,16 +1,19 @@
-//! Environment Engine — V1C spine.
+//! Environment Engine — V1C spine, V1D persistence.
 //!
 //! Owns the operator's set of *environments* (production estates), the
-//! active selection, and a deterministic view over them. No I/O in V1C —
-//! the catalogue is a static demo set so the typed API and the HOME
-//! surface can be exercised end-to-end before persistence lands.
+//! active selection, and a deterministic view over them. The catalogue is
+//! still the V1C static demo set; V1D adds **selection persistence**:
+//! the active environment id is hydrated from a small JSON store on
+//! construction and written back through that store on every successful
+//! `set_active`.
 //!
 //! Boundary (per `ENGINE_AND_API_BOUNDARIES.md`):
-//!   - Owns:    environment records + active selection.
+//!   - Owns:    environment records + active selection + selection persistence.
 //!   - Does NOT own: inventory, devices, vendor model, topology, live state.
 
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
 /// Operator-facing environment record. Mirrored in TS as `Environment`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -33,22 +36,102 @@ pub enum EnvironmentStatus {
     Unknown,
 }
 
-/// Engine state. Static catalogue + Mutex-guarded active selection.
+/// Persisted shape on disk. Intentionally minimal so later fields can be
+/// added without breaking older state files (missing fields → defaults).
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct EnvironmentState {
+    pub active_environment_id: Option<String>,
+}
+
+/// Persistence boundary. Implementations may be a JSON file, in-memory
+/// test double, or a no-op. Stays narrow on purpose — selection only.
+pub trait EnvironmentStore: Send + Sync {
+    /// Load the persisted active environment id, if any.
+    fn load(&self) -> Option<String>;
+    /// Persist the active environment id.
+    fn save(&self, id: &str) -> Result<(), String>;
+}
+
+/// No-op store. Used by `EnvironmentEngine::new()` and by code paths that
+/// explicitly want non-persistent behaviour.
+pub struct NullStore;
+
+impl EnvironmentStore for NullStore {
+    fn load(&self) -> Option<String> {
+        None
+    }
+    fn save(&self, _id: &str) -> Result<(), String> {
+        Ok(())
+    }
+}
+
+/// JSON file persistence. Writes a `{ "active_environment_id": "..." }`
+/// document to a path inside the Tauri app data directory.
+pub struct JsonFileStore {
+    path: PathBuf,
+}
+
+impl JsonFileStore {
+    pub fn new(path: PathBuf) -> Self {
+        Self { path }
+    }
+
+    pub fn path(&self) -> &PathBuf {
+        &self.path
+    }
+}
+
+impl EnvironmentStore for JsonFileStore {
+    fn load(&self) -> Option<String> {
+        let bytes = std::fs::read(&self.path).ok()?;
+        let state: EnvironmentState = serde_json::from_slice(&bytes).ok()?;
+        state.active_environment_id
+    }
+
+    fn save(&self, id: &str) -> Result<(), String> {
+        if let Some(parent) = self.path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        let state = EnvironmentState {
+            active_environment_id: Some(id.to_string()),
+        };
+        let bytes = serde_json::to_vec_pretty(&state).map_err(|e| e.to_string())?;
+        std::fs::write(&self.path, bytes).map_err(|e| e.to_string())
+    }
+}
+
+/// Engine state. Static catalogue + Mutex-guarded active selection +
+/// pluggable persistence store.
 pub struct EnvironmentEngine {
     catalogue: Vec<Environment>,
     active: Mutex<String>,
+    store: Arc<dyn EnvironmentStore>,
 }
 
 impl EnvironmentEngine {
+    /// Non-persistent constructor. Equivalent to `with_store(NullStore)`.
     pub fn new() -> Self {
+        Self::with_store(Arc::new(NullStore))
+    }
+
+    /// Build the engine with a concrete persistence store. The store is
+    /// queried once at construction time to hydrate the active selection;
+    /// a stale, missing, or unreadable id falls back deterministically to
+    /// the first environment in the catalogue.
+    pub fn with_store(store: Arc<dyn EnvironmentStore>) -> Self {
         let catalogue = demo_catalogue();
-        let active = catalogue
+        let fallback = catalogue
             .first()
             .map(|e| e.id.clone())
             .unwrap_or_default();
+        let active = match store.load() {
+            Some(saved) if catalogue.iter().any(|e| e.id == saved) => saved,
+            _ => fallback,
+        };
         Self {
             catalogue,
             active: Mutex::new(active),
+            store,
         }
     }
 
@@ -63,8 +146,10 @@ impl EnvironmentEngine {
         self.catalogue.iter().find(|e| e.id == id).cloned()
     }
 
-    /// Set the active environment. Returns the new active record or an
-    /// error string if the id is not in the catalogue.
+    /// Set the active environment. Validates against the catalogue,
+    /// persists the new id through the configured store, and only then
+    /// updates in-memory state. If persistence fails, the previous active
+    /// id is left untouched.
     pub fn set_active(&self, id: &str) -> Result<Environment, String> {
         let found = self
             .catalogue
@@ -72,6 +157,7 @@ impl EnvironmentEngine {
             .find(|e| e.id == id)
             .cloned()
             .ok_or_else(|| format!("unknown environment id: {id}"))?;
+        self.store.save(&found.id)?;
         let mut guard = self
             .active
             .lock()
@@ -87,7 +173,7 @@ impl Default for EnvironmentEngine {
     }
 }
 
-/// Static V1C demo catalogue. Replaced by persistence in a later stage.
+/// Static V1C demo catalogue. Replaced by a real catalogue in a later stage.
 fn demo_catalogue() -> Vec<Environment> {
     vec![
         Environment {
@@ -133,6 +219,43 @@ fn demo_catalogue() -> Vec<Environment> {
 mod tests {
     use super::*;
 
+    /// In-memory test double. Records the last saved id so tests can
+    /// assert persistence happened (or didn't).
+    struct MemoryStore {
+        initial: Option<String>,
+        saved: Mutex<Option<String>>,
+    }
+
+    impl MemoryStore {
+        fn empty() -> Self {
+            Self {
+                initial: None,
+                saved: Mutex::new(None),
+            }
+        }
+        fn with(id: &str) -> Self {
+            Self {
+                initial: Some(id.to_string()),
+                saved: Mutex::new(None),
+            }
+        }
+        fn last_saved(&self) -> Option<String> {
+            self.saved.lock().unwrap().clone()
+        }
+    }
+
+    impl EnvironmentStore for MemoryStore {
+        fn load(&self) -> Option<String> {
+            self.initial.clone()
+        }
+        fn save(&self, id: &str) -> Result<(), String> {
+            *self.saved.lock().unwrap() = Some(id.to_string());
+            Ok(())
+        }
+    }
+
+    // --- V1C invariants (kept) ---------------------------------------
+
     #[test]
     fn list_is_deterministic() {
         let a = EnvironmentEngine::new().list();
@@ -170,7 +293,93 @@ mod tests {
     fn network_scope_totals_are_stable() {
         let engine = EnvironmentEngine::new();
         let total: u32 = engine.list().iter().map(|e| e.device_count).sum();
-        // Stable sum across runs — guards against accidental catalogue drift.
         assert_eq!(total, 412 + 88 + 24 + 1337);
+    }
+
+    // --- V1D persistence ---------------------------------------------
+
+    #[test]
+    fn hydrate_falls_back_to_first_when_no_saved_id() {
+        let store = Arc::new(MemoryStore::empty());
+        let engine = EnvironmentEngine::with_store(store);
+        assert_eq!(engine.active().unwrap().id, "env-core-eu1");
+    }
+
+    #[test]
+    fn hydrate_uses_valid_saved_id() {
+        let store = Arc::new(MemoryStore::with("env-lab-zrh"));
+        let engine = EnvironmentEngine::with_store(store);
+        assert_eq!(engine.active().unwrap().id, "env-lab-zrh");
+    }
+
+    #[test]
+    fn hydrate_stale_saved_id_falls_back_to_first() {
+        let store = Arc::new(MemoryStore::with("env-was-deleted"));
+        let engine = EnvironmentEngine::with_store(store);
+        assert_eq!(engine.active().unwrap().id, "env-core-eu1");
+    }
+
+    #[test]
+    fn set_active_persists_valid_id_through_store() {
+        let store = Arc::new(MemoryStore::empty());
+        let engine = EnvironmentEngine::with_store(store.clone());
+        engine.set_active("env-lab-zrh").expect("must succeed");
+        assert_eq!(store.last_saved().as_deref(), Some("env-lab-zrh"));
+        assert_eq!(engine.active().unwrap().id, "env-lab-zrh");
+    }
+
+    #[test]
+    fn invalid_set_active_does_not_persist_or_mutate_state() {
+        let store = Arc::new(MemoryStore::with("env-lab-zrh"));
+        let engine = EnvironmentEngine::with_store(store.clone());
+        assert_eq!(engine.active().unwrap().id, "env-lab-zrh");
+
+        let err = engine.set_active("env-bogus").unwrap_err();
+        assert!(err.contains("unknown environment id"));
+
+        assert_eq!(engine.active().unwrap().id, "env-lab-zrh");
+        assert_eq!(store.last_saved(), None);
+    }
+
+    // --- V1D file-backed round trip ----------------------------------
+
+    #[test]
+    fn json_file_store_round_trips_through_engine() {
+        let tmp = std::env::temp_dir().join(format!(
+            "anthracite-env-{}-{}.json",
+            std::process::id(),
+            // nanos give us a per-test-call unique suffix
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0),
+        ));
+        // Ensure clean slate.
+        let _ = std::fs::remove_file(&tmp);
+
+        // First boot: no file → fallback to first, then operator selects lab.
+        {
+            let store = Arc::new(JsonFileStore::new(tmp.clone()));
+            let engine = EnvironmentEngine::with_store(store);
+            assert_eq!(engine.active().unwrap().id, "env-core-eu1");
+            engine.set_active("env-lab-zrh").expect("set must succeed");
+        }
+
+        // Second boot: persisted id is hydrated.
+        {
+            let store = Arc::new(JsonFileStore::new(tmp.clone()));
+            let engine = EnvironmentEngine::with_store(store);
+            assert_eq!(engine.active().unwrap().id, "env-lab-zrh");
+        }
+
+        // Tamper: corrupt the file → fallback to first on next boot.
+        std::fs::write(&tmp, b"{not valid json").unwrap();
+        {
+            let store = Arc::new(JsonFileStore::new(tmp.clone()));
+            let engine = EnvironmentEngine::with_store(store);
+            assert_eq!(engine.active().unwrap().id, "env-core-eu1");
+        }
+
+        let _ = std::fs::remove_file(&tmp);
     }
 }

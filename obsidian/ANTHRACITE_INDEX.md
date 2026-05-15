@@ -19,12 +19,11 @@ and to `PRODUCT.md` / `GOALS.md`.
 
 | Stage | Status        | Note |
 |-------|---------------|------|
-| V1A   | in progress   | [stages/V1A-ground-zero.md](./stages/V1A-ground-zero.md) |
-| V1B   | planned       | Topology engine |
-| V1C   | planned       | Sentinel skeleton |
-| V1D   | planned       | Cortex skeleton |
-| V1E   | planned       | Forge skeleton |
-| V1F   | planned       | First vertical slice |
+| V1A   | complete      | [stages/V1A-ground-zero.md](./stages/V1A-ground-zero.md) |
+| V1B   | complete      | Source of truth + architecture map |
+| V1C   | complete      | [stages/V1C-environment-centre-spine.md](./stages/V1C-environment-centre-spine.md) |
+| V1D   | complete      | [stages/V1D-environment-persistence.md](./stages/V1D-environment-persistence.md) |
+| V1E   | planned       | Next engine (AAA / shared domain — TBD) |
 
 ## Conventions
 
