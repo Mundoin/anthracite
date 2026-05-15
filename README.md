@@ -1,9 +1,20 @@
 # Anthracite
 
-> Living network intelligence cockpit. Local-first desktop app for network engineers.
-> Topology is the crown jewel.
+> Local-first network intelligence **workstation** for network engineers.
+> Mode-based operator surface. Deterministic engines. Industrial Windows feel.
 
-Stage **V1A — Ground Zero Repo Factory**. Fresh build from scratch. Not a migration.
+Stage **V1B — Source of Truth and Architecture Map**. Fresh build from scratch.
+Not a migration.
+
+> **Doctrine.** Read `docs/architecture/ANTHRACITE_V1_SOURCE_OF_TRUTH.md` first.
+> It supersedes earlier framing in this README, `PRODUCT.md`, and `GOALS.md`
+> (notably the "topology-first" framing — Anthracite opens into HOME, not
+> topology). See also:
+> `docs/architecture/MODES_AND_ENGINES_MAP.md`,
+> `docs/architecture/ENGINE_AND_API_BOUNDARIES.md`,
+> `docs/architecture/BUILD_SEQUENCE.md`,
+> `docs/design/INDUSTRIAL_VISUAL_LAW.md`,
+> `docs/architecture/STACK_DECISION_TAURI_PROBATION.md`.
 
 ---
 

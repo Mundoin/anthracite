@@ -9,8 +9,31 @@ This is **Anthracite v1** — a fresh build at `D:\Repos\anthracite`.
 Not a migration. Not an extraction. The old PyQt repo at `D:\Repos\_NEXUS`
 and the `ObsidianAnthracite` vault are reference truth, never sources of code.
 
-Current stage: **V1A — Ground Zero Repo Factory** (amended with the Agent
-Operating Layer gate — see `docs/operations/AGENT_OPERATING_LAYER.md`).
+Current stage: **V1B — Source of Truth and Architecture Map**
+(V1A complete; Agent Operating Layer gate green —
+see `docs/operations/AGENT_OPERATING_LAYER.md`).
+
+## Source of Truth (read first)
+
+Before proposing any stage, plan, PR, or refactor, read:
+
+- `docs/architecture/ANTHRACITE_V1_SOURCE_OF_TRUTH.md` — doctrine.
+- `docs/architecture/MODES_AND_ENGINES_MAP.md` — modes ↔ engines.
+- `docs/architecture/ENGINE_AND_API_BOUNDARIES.md` — engine roster.
+- `docs/architecture/BUILD_SEQUENCE.md` — dependency order.
+- `docs/design/INDUSTRIAL_VISUAL_LAW.md` — visual law + screenshot gate.
+- `docs/architecture/STACK_DECISION_TAURI_PROBATION.md` — stack contract.
+
+Claude's rules under this doctrine:
+
+1. Read `ANTHRACITE_V1_SOURCE_OF_TRUTH.md` before proposing stages.
+2. Never invent modes — the mode set is fixed there.
+3. Never assume product structure beyond these docs.
+4. Never create Claude/Codex prompts unless Bujar asks.
+5. Every stage proposal must name the source-of-truth sections it obeys.
+6. Product logic must be deterministic (no LLM in V1 engines).
+7. Modes are surfaces over engines. No mode-private engine for shared
+   capability.
 
 ## Roles (Anthracite V1 Agent Operating Layer)
 

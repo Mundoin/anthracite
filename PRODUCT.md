@@ -1,5 +1,12 @@
 # PRODUCT.md — Anthracite
 
+> **Doctrine pointer.** Anthracite V1 doctrine lives in
+> `docs/architecture/ANTHRACITE_V1_SOURCE_OF_TRUTH.md`. Where this file
+> conflicts with the source of truth (notably the "topology is the crown
+> jewel" framing — Anthracite V1 opens into HOME / Environment Command
+> Centre, not topology), the source of truth wins. See also the
+> mode/engine map and the industrial visual law under `docs/`.
+
 ## Mission
 
 Anthracite is a **living network intelligence cockpit**. A local-first desktop

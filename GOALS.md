@@ -2,6 +2,13 @@
 
 > AgentOps v4 fitness spec. Validate with `ao goals validate --json`.
 > Measure with `ao goals measure` (Git Bash must win over WSL stub on PATH).
+>
+> **Doctrine pointer.** Product doctrine lives in
+> `docs/architecture/ANTHRACITE_V1_SOURCE_OF_TRUTH.md`. Where this fitness
+> spec's North Stars conflict with the source of truth (notably the
+> "topology is the crown jewel" framing — V1 opens into HOME, not
+> topology), the source of truth wins. Gates here remain authoritative
+> for CI/AO measurement.
 
 ## Mission
 
