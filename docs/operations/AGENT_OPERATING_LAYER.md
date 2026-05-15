@@ -343,3 +343,23 @@ tools/ops-readiness.ps1 → READY
 
 If `ops-readiness.ps1` reports `NOT READY`, agents work on the operating
 layer, not on product. No exceptions without an explicit Bujar override.
+
+## Git Policy for `.agents/`
+
+AgentOps/AO is active operational infrastructure, but `.agents/` is local runtime state in this repo.
+
+Anthracite tracks durable build truth in:
+- `docs/operations/`
+- `obsidian/`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `GOALS.md`
+- `PRODUCT.md`
+
+AO learnings, handoffs, findings, and run packets can be manually promoted into tracked docs or Obsidian notes when they are worth preserving.
+
+Default rule:
+- keep `.agents/` on disk
+- keep AO active
+- keep `.agents/` ignored by Git
+- commit only curated knowledge, not raw AO churn

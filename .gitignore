@@ -71,3 +71,9 @@ __pycache__/
 .agents/handoff/auto-*.json
 .agents/learnings/2026-*.md
 .agents/**/*.jsonl
+
+# AgentOps session artifacts
+/.agents/
+
+# AgentOps session artifacts
+.agents/
