@@ -1,0 +1,49 @@
+# --- Node / Vite / pnpm ---
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+.eslintcache
+.pnpm-store/
+
+# --- Tauri / Rust ---
+src-tauri/target/
+src-tauri/gen/
+**/*.rs.bk
+Cargo.lock.bak
+
+# --- Editor / OS ---
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# --- Logs / env ---
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.env
+.env.*.local
+
+# --- AgentOps (.agents/ is a tracked markdown wiki — ignore only runtime state) ---
+# Keep tracked: .agents/README.md, decisions/, findings/, learnings/, patterns/,
+#   planning-rules/, runs/, council/, handoff/ — these are version-controlled.
+# Ignore: daemon activation, caches, scratch, logs.
+.agents/daemon/
+.agents/cache/
+.agents/.cache/
+.agents/tmp/
+.agents/**/*.tmp
+.agents/**/*.log
+
+# --- Graphify generated artifacts ---
+graphify-out/
+
+# --- Build / scratch ---
+build/
+out/
+coverage/

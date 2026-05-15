@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Anthracite",
+  "version": "0.1.0",
+  "identifier": "systems.redline.anthracite",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Anthracite",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1100,
+        "minHeight": 700,
+        "decorations": true,
+        "resizable": true,
+        "fullscreen": false,
+        "transparent": false,
+        "backgroundColor": "#08090b"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "DeveloperTool",
+    "shortDescription": "Living network intelligence cockpit.",
+    "longDescription": "Anthracite is a local-first desktop cockpit for network engineers. Tauri + React + Babylon.js.",
+    "icon": [
+      "icons/icon.png"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+# .agents/ is a tracked markdown wiki for agents (decisions, findings,
+# learnings, patterns, planning-rules, runs, council, handoff, etc.).
+# Root .gitignore governs which runtime/scratch paths under .agents/ are
+# ignored. This local .gitignore only narrows further by ignoring known
+# session-runtime detritus that AO writes into specific subtrees.
+
+# Daemon runtime (activation, sockets, pidfiles).
+daemon/
+
+# Local caches and scratch.
+cache/
+.cache/
+tmp/
+
+# Hidden run-flags AO drops in ao/ (dotfiles, not knowledge).
+ao/.*-fired
+ao/.last-prompt
+ao/edit-audit.log
+ao/stop-events.log
+ao/pending.jsonl
+
+# Generic scratch by extension.
+*.tmp
+*.log
+
+# AO runtime/generated state
+ao/environment.json
+ao/factory-goal.txt
+ao/index/
+ao/last-session-outcome.json
+ao/metrics/
+ao/packets/
+ao/provenance/
+ao/sessions/*.jsonl
+defrag/
+handoff/*.json
+signals/
