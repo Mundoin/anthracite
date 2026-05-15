@@ -4,3 +4,4 @@
 //! over these engines (see `docs/architecture/ENGINE_AND_API_BOUNDARIES.md`).
 
 pub mod environment;
+pub mod vendor_registry;
