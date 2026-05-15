@@ -56,7 +56,23 @@ $sourceRoots = @(
   "docs",
   "obsidian"
 )
-$agentsGlob = ".agents"
+# Curated .agents subpaths considered source-of-truth for freshness.
+# AO runtime/churn paths are deliberately EXCLUDED to avoid forcing a
+# Graphify refresh every time AO writes a session/handoff/pool artifact:
+#   .agents/ao/, .agents/knowledge/, .agents/pool/, .agents/defrag/,
+#   .agents/signals/, .agents/handoff/stop-*.md, .agents/handoff/auto-*.json
+$agentsCuratedDirs = @(
+  ".agents/learnings",
+  ".agents/patterns",
+  ".agents/findings",
+  ".agents/decisions",
+  ".agents/planning-rules",
+  ".agents/council",
+  ".agents/runs"
+)
+$agentsCuratedFiles = @(
+  ".agents/README.md"
+)
 $sourceFiles = @(
   "package.json",
   "pnpm-lock.yaml",
@@ -82,12 +98,20 @@ function Get-NewestInput {
         if (-not $newest -or $_.LastWriteTime -gt $newest.LastWriteTime) { $newest = $_ }
       }
   }
-  $agentsPath = Join-Path $repo $agentsGlob
-  if (Test-Path $agentsPath) {
-    Get-ChildItem -Path $agentsPath -Recurse -File -Filter *.md -ErrorAction SilentlyContinue |
+  foreach ($d in $agentsCuratedDirs) {
+    $p = Join-Path $repo $d
+    if (-not (Test-Path $p)) { continue }
+    Get-ChildItem -Path $p -Recurse -File -Filter *.md -ErrorAction SilentlyContinue |
       ForEach-Object {
         if (-not $newest -or $_.LastWriteTime -gt $newest.LastWriteTime) { $newest = $_ }
       }
+  }
+  foreach ($f in $agentsCuratedFiles) {
+    $p = Join-Path $repo $f
+    if (Test-Path $p) {
+      $fi = Get-Item $p
+      if (-not $newest -or $fi.LastWriteTime -gt $newest.LastWriteTime) { $newest = $fi }
+    }
   }
   foreach ($f in $sourceFiles) {
     $p = Join-Path $repo $f
