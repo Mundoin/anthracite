@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Anthracite Master · Frame Preview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="src/styles/tokens.css" />
+  <link rel="stylesheet" href="src/styles/shell.css" />
+
+  <style>
+    html, body { margin: 0; height: 100%; background: #E1E8F0; }
+    body {
+      font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: #1A202C;
+      display: flex; flex-direction: column;
+    }
+    @keyframes blink { to { visibility: hidden; } }
+
+    /* Top picker bar */
+    .picker {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #D1D9E6;
+      box-shadow: 0 1px 0 rgba(26,32,44,0.03);
+      flex: 0 0 auto;
+    }
+    .picker .brand {
+      display: flex; align-items: center; gap: 8px;
+      padding-right: 12px; margin-right: 4px;
+      border-right: 1px solid #E1E8F0;
+      font-size: 13px; font-weight: 600;
+    }
+    .picker .frames {
+      display: flex; gap: 2px;
+      overflow-x: auto;
+      flex: 1;
+    }
+    .picker .frame {
+      padding: 5px 9px;
+      font: inherit; font-size: 11.5px;
+      border: 1px solid #E1E8F0;
+      border-radius: 3px;
+      background: #FFFFFF;
+      color: #4A5567;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .picker .frame:hover { background: #F1F5F9; }
+    .picker .frame.active { background: #1A202C; color: #F8FAFC; border-color: #1A202C; }
+    .picker .frame .id {
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 10.5px;
+      opacity: 0.6;
+      margin-right: 4px;
+    }
+    .picker .frame.active .id { opacity: 0.9; }
+    .picker .meta {
+      font-size: 11px; color: #6B7585;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      padding-left: 12px; border-left: 1px solid #E1E8F0;
+    }
+
+    /* Stage that scales the 1600×1000 frame */
+    .stage {
+      flex: 1; min-height: 0;
+      background: #E1E8F0;
+      overflow: auto;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 24px;
+    }
+    .stage-inner {
+      width: 1600px; height: 1000px;
+      background: #fff;
+      box-shadow: 0 8px 28px rgba(26,32,44,0.16), 0 0 0 1px #D1D9E6;
+      overflow: hidden;
+      flex: 0 0 auto;
+    }
+
+    /* Bare mode — for screenshots: stage-inner scaled to fit via JS (setBare) */
+    html.bare, body.bare {
+      margin: 0; padding: 0;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+      background: #FFFFFF;
+    }
+    body.bare .picker { display: none; }
+    body.bare .stage {
+      width: 100vw; height: 100vh;
+      padding: 0;
+      overflow: hidden;
+      display: block;
+      background: #FFFFFF;
+    }
+    body.bare .stage-inner {
+      width: 1600px; height: 1000px;
+      box-shadow: none; outline: none;
+      transform-origin: top left;
+      /* transform: scale(...) set imperatively by setBare() */
+    }
+  </style>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="src/vendor/tweaks-panel.jsx"></script>
+  <script type="text/babel" src="src/components/icons.jsx"></script>
+  <script type="text/babel" src="src/components/shell.jsx"></script>
+  <script type="text/babel" src="src/components/master.jsx"></script>
+  <script type="text/babel" src="src/directions/master-frames.jsx"></script>
+  <script type="text/babel" src="src/directions/master-frames-2.jsx"></script>
+  <script type="text/babel" src="src/directions/master-frames-3.jsx"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="env,react">
+    const FRAMES = [
+      { id: 'd1',  title: 'Env Centre · list',         render: (t) => <MasterD1 {...t} /> },
+      { id: 'd2',  title: 'Env Centre · detail',       render: (t) => <MasterD2 {...t} /> },
+      { id: 'd3',  title: 'Operate · live device',     render: (t) => <MasterD3 {...t} /> },
+      { id: 'd4',  title: 'Topology · L3 underlay',    render: (t) => <MasterD4 {...t} /> },
+      { id: 'd5',  title: 'Diagnose · path trace',     render: (t) => <MasterD5 {...t} /> },
+      { id: 'd6',  title: 'Build · config + diff',     render: (t) => <MasterD6 {...t} /> },
+      { id: 'd7',  title: 'Assess · readiness report', render: (t) => <MasterD7 {...t} /> },
+      { id: 'd8',  title: 'Empty — no environments',   render: (t) => <MasterD8 {...t} /> },
+      { id: 'd9',  title: 'Loading — discovery',       render: (t) => <MasterD9 {...t} /> },
+      { id: 'd10', title: 'Error — isolated env',      render: (t) => <MasterD10 {...t} /> },
+      { id: 'd11', title: 'Cortex behaviours',         render: (t) => <MasterD11 {...t} /> },
+      { id: 'd12', title: 'Inspector patterns',        render: (t) => <MasterD12 {...t} /> },
+    ];
+
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "density": "comfortable",
+      "railVariant": "labeled",
+      "inspectorDock": "right",
+      "secondaryOpen": true,
+      "opsExpanded": false
+    }/*EDITMODE-END*/;
+
+    function App() {
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+      const [frameId, setFrameId] = React.useState(() => {
+        const h = location.hash.replace('#', '');
+        return FRAMES.find(f => f.id === h) ? h : 'd1';
+      });
+
+      // Expose to screenshot harness
+      React.useEffect(() => {
+        window.setFrame = (id) => {
+          if (FRAMES.find(f => f.id === id)) setFrameId(id);
+        };
+        window.setBare = (on) => {
+          document.body.classList.toggle('bare', !!on);
+          document.documentElement.classList.toggle('bare', !!on);
+          const inner = document.querySelector('.stage-inner');
+          if (inner) {
+            if (on) {
+              const s = Math.min(window.innerWidth / 1600, window.innerHeight / 1000);
+              inner.style.transform = `scale(${s})`;
+            } else {
+              inner.style.transform = '';
+            }
+          }
+        };
+        window.__frameReady = true;
+      }, []);
+
+      React.useEffect(() => {
+        location.hash = frameId;
+      }, [frameId]);
+
+      const frame = FRAMES.find(f => f.id === frameId) || FRAMES[0];
+      const props = { density: t.density, railVariant: t.railVariant, opsExpanded: t.opsExpanded,
+                       secondaryOpen: t.secondaryOpen, inspectorDock: t.inspectorDock };
+
+      return (
+        <React.Fragment>
+          <div className="picker">
+            <span className="brand">
+              <AnthMark size={16} />
+              Anthracite Master
+            </span>
+            <div className="frames">
+              {FRAMES.map(f => (
+                <button key={f.id}
+                        className={`frame ${f.id === frameId ? 'active' : ''}`}
+                        onClick={() => setFrameId(f.id)}>
+                  <span className="id">{f.id.toUpperCase()}</span>{f.title}
+                </button>
+              ))}
+            </div>
+            <span className="meta">1600 × 1000 · NOC Light · v0.14</span>
+          </div>
+          <div className="stage">
+            <div className="stage-inner">
+              {frame.render(props)}
+            </div>
+          </div>
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection label="Workstation feel" />
+            <TweakRadio  label="Density"
+                          value={t.density} options={['compact','comfortable']}
+                          onChange={v => setTweak('density', v)} />
+            <TweakSelect label="Mode rail"
+                          value={t.railVariant}
+                          options={[
+                            { value: 'labeled', label: 'labeled (196 px)' },
+                            { value: 'icons',   label: 'icons-only (56 px)' },
+                          ]}
+                          onChange={v => setTweak('railVariant', v)} />
+            <TweakSelect label="Inspector dock"
+                          value={t.inspectorDock}
+                          options={[
+                            { value: 'right',  label: 'right-docked' },
+                            { value: 'bottom', label: 'bottom drawer' },
+                          ]}
+                          onChange={v => setTweak('inspectorDock', v)} />
+            <TweakToggle label="Secondary nav column"
+                          value={t.secondaryOpen}
+                          onChange={v => setTweak('secondaryOpen', v)} />
+            <TweakToggle label="Ops console expanded"
+                          value={t.opsExpanded}
+                          onChange={v => setTweak('opsExpanded', v)} />
+          </TweaksPanel>
+        </React.Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+/* Anthracite NOC Light tokens
+ * Fixed palette per brief. Status colors are semantic and never themed away.
+ */
+:root {
+  /* Surfaces */
+  --anth-bg-app: #F8FAFC;        /* canvas, mode rail bg */
+  --anth-bg-panel: #FFFFFF;      /* panels, tables, cards */
+  --anth-bg-sunken: #F1F5F9;     /* table headers, inset wells */
+  --anth-bg-hover: #EEF2F7;
+  --anth-bg-selected: #E6EEF8;
+  --anth-bg-titlebar: #FFFFFF;
+  --anth-bg-statusbar: #F1F5F9;
+
+  /* Borders */
+  --anth-border: #E1E8F0;
+  --anth-border-strong: #D1D9E6;
+  --anth-border-focus: #3182CE;
+
+  /* Text */
+  --anth-text: #1A202C;
+  --anth-text-2: #4A5567;
+  --anth-text-3: #6B7585;
+  --anth-text-muted: #B0BCCB;
+  --anth-text-inverse: #F8FAFC;
+
+  /* Status — fixed semantic colors */
+  --anth-ok: #38A169;
+  --anth-warn: #D69E2E;
+  --anth-err: #E53E3E;
+  --anth-info: #3182CE;
+
+  /* Status tints (12% mix on white-ish) */
+  --anth-ok-tint: #E7F4EC;
+  --anth-warn-tint: #FAF1DD;
+  --anth-err-tint: #FBE6E6;
+  --anth-info-tint: #E1ECF7;
+
+  /* Accent (brand) */
+  --anth-accent: #1A202C;        /* anthracite-black */
+  --anth-accent-ink: #F8FAFC;
+
+  /* Type */
+  --anth-font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --anth-font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --anth-font-mono: "Cascadia Mono", "Cascadia Code", "Consolas", ui-monospace, monospace;
+
+  /* Density */
+  --anth-row: 30px;
+  --anth-row-compact: 24px;
+  --anth-row-comfy: 36px;
+
+  /* Radii — workstation-flat */
+  --anth-r-sm: 3px;
+  --anth-r-md: 4px;
+  --anth-r-lg: 6px;
+
+  /* Elevation — subtle */
+  --anth-shadow-sm: 0 1px 0 rgba(26,32,44,0.04), 0 0 0 1px var(--anth-border);
+  --anth-shadow-md: 0 1px 2px rgba(26,32,44,0.04), 0 4px 14px rgba(26,32,44,0.06);
+  --anth-shadow-pop: 0 10px 28px rgba(26,32,44,0.14), 0 0 0 1px var(--anth-border-strong);
+}
+
+/* Scoped class — apply on every Anthracite artboard so it doesn't bleed onto
+ * the design-canvas chrome (which uses warm gray). */
+.anth {
+  font-family: var(--anth-font-ui);
+  color: var(--anth-text);
+  background: var(--anth-bg-app);
+  font-size: 12.5px;
+  line-height: 1.35;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11", "tnum";
+  letter-spacing: 0.005em;
+}
+.anth, .anth * { box-sizing: border-box; }
+
+/* Reusable atoms */
+.anth .mono   { font-family: var(--anth-font-mono); font-feature-settings: "zero", "ss01"; letter-spacing: 0; }
+.anth .num    { font-variant-numeric: tabular-nums; }
+.anth .muted  { color: var(--anth-text-3); }
+.anth .dim    { color: var(--anth-text-2); }
+.anth .micro  { font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--anth-text-3); font-weight: 600; }
+.anth .kbd    {
+  font-family: var(--anth-font-mono); font-size: 10.5px;
+  padding: 1px 5px; border: 1px solid var(--anth-border-strong);
+  border-bottom-width: 1.5px; border-radius: 3px;
+  background: var(--anth-bg-panel); color: var(--anth-text-2);
+}
+
+/* Status chip */
+.anth .chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 18px; padding: 0 7px;
+  border-radius: 2px;
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.anth .chip::before {
+  content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; opacity: .85;
+}
+.anth .chip.ok    { color: #1F6E3F; background: var(--anth-ok-tint);   }
+.anth .chip.warn  { color: #8A5A0A; background: var(--anth-warn-tint); }
+.anth .chip.err   { color: #9B1C1C; background: var(--anth-err-tint);  }
+.anth .chip.info  { color: #1E4A82; background: var(--anth-info-tint); }
+.anth .chip.idle  { color: var(--anth-text-3); background: var(--anth-bg-sunken); }
+.anth .chip.solid-ok   { color:#fff; background: var(--anth-ok);   }
+.anth .chip.solid-warn { color:#fff; background: var(--anth-warn); }
+.anth .chip.solid-err  { color:#fff; background: var(--anth-err);  }
+
+/* Dot — pure status indicator, no text */
+.anth .dot { width: 6px; height: 6px; border-radius: 999px; flex: 0 0 auto; }
+.anth .dot.ok   { background: var(--anth-ok);   }
+.anth .dot.warn { background: var(--anth-warn); }
+.anth .dot.err  { background: var(--anth-err);  }
+.anth .dot.info { background: var(--anth-info); }
+.anth .dot.idle { background: var(--anth-text-muted); }
+
+/* Generic button */
+.anth .btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 26px; padding: 0 10px;
+  background: var(--anth-bg-panel); color: var(--anth-text);
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-md);
+  font: inherit; font-size: 12px; font-weight: 500;
+  cursor: default; white-space: nowrap;
+}
+.anth .btn:hover { background: var(--anth-bg-hover); }
+.anth .btn.primary { background: var(--anth-accent); color: var(--anth-accent-ink); border-color: var(--anth-accent); }
+.anth .btn.ghost { background: transparent; border-color: transparent; }
+.anth .btn.ghost:hover { background: var(--anth-bg-hover); }
+.anth .btn.sm { height: 22px; padding: 0 8px; font-size: 11.5px; }
+
+/* Subtle separator line */
+.anth .hr { height: 1px; background: var(--anth-border); border: 0; }
+.anth .vr { width: 1px; background: var(--anth-border); align-self: stretch; }
+
+/* Scrollbar — workstation-thin, hidden by default inside artboards */
+.anth ::-webkit-scrollbar { width: 8px; height: 8px; }
+.anth ::-webkit-scrollbar-thumb { background: #C9D2DF; border-radius: 4px; }
+.anth ::-webkit-scrollbar-track { background: transparent; }
