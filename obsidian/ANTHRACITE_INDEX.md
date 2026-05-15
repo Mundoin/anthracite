@@ -23,7 +23,8 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1B   | complete      | Source of truth + architecture map |
 | V1C   | complete      | [stages/V1C-environment-centre-spine.md](./stages/V1C-environment-centre-spine.md) |
 | V1D   | complete      | [stages/V1D-environment-persistence.md](./stages/V1D-environment-persistence.md) |
-| V1E   | planned       | Next engine (AAA / shared domain — TBD) |
+| V1E   | complete      | [stages/V1E-environment-readiness.md](./stages/V1E-environment-readiness.md) |
+| V1F   | planned       | Next engine (AAA / shared domain — TBD) |
 
 ## Conventions
 

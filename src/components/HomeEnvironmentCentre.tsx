@@ -15,9 +15,14 @@
  */
 
 import { useCallback, useEffect, useMemo, useState, type JSX } from "react";
-import type { Environment, EnvironmentStatus } from "../types/environment";
+import type {
+  Environment,
+  EnvironmentReadiness,
+  EnvironmentStatus,
+} from "../types/environment";
 import {
   getActiveEnvironment,
+  getEnvironmentReadiness,
   listEnvironments,
   setActiveEnvironment,
 } from "../api/environment";
@@ -47,24 +52,44 @@ const STATUS_LABEL: Record<EnvironmentStatus, string> = {
   unknown: "UNKNOWN",
 };
 
+const LIFECYCLE_LABEL: Record<EnvironmentReadiness["lifecycle_state"], string> = {
+  ready: "READY",
+  degraded: "DEGRADED",
+  offline: "OFFLINE",
+  incomplete: "INCOMPLETE",
+};
+
+const LIFECYCLE_STATUS_CLASS: Record<
+  EnvironmentReadiness["lifecycle_state"],
+  EnvironmentStatus
+> = {
+  ready: "healthy",
+  degraded: "degraded",
+  offline: "offline",
+  incomplete: "unknown",
+};
+
 export function HomeEnvironmentCentre(): JSX.Element {
   const [state, setState] = useState<LoadState>("loading");
   const [error, setError] = useState<string | null>(null);
   const [envs, setEnvs] = useState<Environment[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [readiness, setReadiness] = useState<EnvironmentReadiness | null>(null);
   const [switching, setSwitching] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [list, active] = await Promise.all([
+        const [list, active, ready] = await Promise.all([
           listEnvironments(),
           getActiveEnvironment(),
+          getEnvironmentReadiness(),
         ]);
         if (cancelled) return;
         setEnvs(list);
         setActiveId(active?.id ?? list[0]?.id ?? null);
+        setReadiness(ready);
         setState("ready");
       } catch (err) {
         if (cancelled) return;
@@ -101,6 +126,8 @@ export function HomeEnvironmentCentre(): JSX.Element {
       try {
         const updated = await setActiveEnvironment(id);
         setActiveId(updated.id);
+        const next = await getEnvironmentReadiness();
+        setReadiness(next);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
         setState("error");
@@ -146,6 +173,50 @@ export function HomeEnvironmentCentre(): JSX.Element {
           )}
         </div>
       </header>
+
+      {readiness && (
+        <section
+          className="readiness-band"
+          aria-label="Environment readiness"
+          data-state={readiness.lifecycle_state}
+        >
+          <div className="readiness-band__head">
+            <span className="readiness-band__eyebrow">READINESS</span>
+            <span
+              className={`status status--${LIFECYCLE_STATUS_CLASS[readiness.lifecycle_state]}`}
+            >
+              {LIFECYCLE_LABEL[readiness.lifecycle_state]}
+            </span>
+          </div>
+          <p className="readiness-band__message">{readiness.message}</p>
+          <dl className="readiness-band__grid">
+            <div className="readiness-band__cell">
+              <dt>ENVS</dt>
+              <dd>{readiness.total_environments}</dd>
+            </div>
+            <div className="readiness-band__cell">
+              <dt>DEVICES</dt>
+              <dd>{readiness.total_devices.toLocaleString("en-US")}</dd>
+            </div>
+            <div className="readiness-band__cell">
+              <dt>HEALTHY</dt>
+              <dd className="status--healthy">{readiness.healthy_count}</dd>
+            </div>
+            <div className="readiness-band__cell">
+              <dt>DEGRADED</dt>
+              <dd className="status--degraded">{readiness.degraded_count}</dd>
+            </div>
+            <div className="readiness-band__cell">
+              <dt>OFFLINE</dt>
+              <dd className="status--offline">{readiness.offline_count}</dd>
+            </div>
+            <div className="readiness-band__cell">
+              <dt>UNKNOWN</dt>
+              <dd className="status--unknown">{readiness.unknown_count}</dd>
+            </div>
+          </dl>
+        </section>
+      )}
 
       <div className="home-centre__body">
         <section className="centre-block centre-block--scope" aria-label="Network scope summary">
