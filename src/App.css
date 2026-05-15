@@ -1,14 +1,39 @@
-:root {
-  --bg-0: #08090b;
-  --bg-1: #0d1014;
-  --bg-2: #141821;
-  --line: #1f2530;
-  --line-bright: #2a3142;
-  --text-0: #d6dbe4;
-  --text-1: #8c93a3;
-  --text-2: #5a6271;
-  --accent: #4ea7ff;
-  --accent-dim: #1a3550;
+/* Anthracite — Graphite Light opening scheme.
+   "Anthracite" is the application name only. The default visual scheme is
+   "Graphite Light": warm off-white / stone surfaces, graphite text, steel
+   hairline borders, muted grey-blue panels, copper/amber selection accent,
+   signal-blue navigation/action emphasis. Status colours (healthy / degraded
+   / offline / unknown) are reserved for true status, never decoration. */
+
+:root,
+[data-scheme="graphite-light"] {
+  /* Surfaces — stone / porcelain stack. */
+  --bg-0: #ece8e1;   /* warm off-white workstation base */
+  --bg-1: #e2ddd4;   /* primary panel — slightly cooler stone */
+  --bg-2: #d2d6dc;   /* muted grey-blue panel inset */
+
+  /* Borders — steel hairlines. */
+  --line:        #b6b1a6;
+  --line-bright: #8c8e93;
+
+  /* Text — graphite stack. */
+  --text-0: #1c1f24;
+  --text-1: #4a4f57;
+  --text-2: #6f7480;
+
+  /* Accent — signal blue for navigation/action emphasis. */
+  --accent:     #2b6cb0;
+  --accent-dim: #c9d5e3;
+
+  /* Copper/amber — operator selection + eyebrow accents. */
+  --copper: #b86a2b;
+
+  /* Signal — reserved for true status only. */
+  --signal-healthy:  #2f7a44;
+  --signal-degraded: #b67a14;
+  --signal-offline:  #b1392f;
+  --signal-unknown:  #5a6271;
+
   --font-mono: "JetBrains Mono", "Cascadia Mono", "Consolas", ui-monospace, monospace;
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }

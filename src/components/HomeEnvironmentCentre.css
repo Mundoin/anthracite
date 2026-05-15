@@ -4,12 +4,8 @@
    drop-shadow cards. */
 
 .home-centre {
-  --copper: #c47a3a;
-  --signal-healthy: #4eb86b;
-  --signal-degraded: #d99c2b;
-  --signal-offline: #d9534f;
-  --signal-unknown: #6c7280;
-
+  /* Palette tokens (--copper, --signal-*) come from the active scheme.
+     Graphite Light defines them in src/App.css :root. */
   display: flex;
   flex-direction: column;
   height: 100%;

@@ -6,13 +6,13 @@ export default function App(): JSX.Element {
     <div className="app-shell">
       <header className="app-titlebar">
         <span className="brand-mark">ANTHRACITE</span>
-        <span className="brand-sub">network intelligence workstation · v0.1.0 · stage V1C</span>
+        <span className="brand-sub">network intelligence workstation · v0.1.0 · stage V1E-B · scheme Graphite Light</span>
       </header>
 
       <div className="app-grid">
         <aside className="panel panel-left" aria-label="Mode rail panel">
           <h2 className="panel-title">Mode Rail</h2>
-          <p className="panel-placeholder">Mode rail surfaces in V1D.</p>
+          <p className="panel-placeholder">Mode rail surfaces in a later stage.</p>
         </aside>
 
         <main className="panel panel-center" aria-label="Home Environment Centre">
