@@ -1,9 +1,10 @@
 //! Anthracite — Tauri v2 backend.
 //!
-//! Stage V1D: Environment Engine spine + selection persistence. The legacy
-//! `ping` command stays as a bridge sanity check; the Environment Engine
-//! hydrates from a small JSON store in the app data directory on boot and
-//! writes back on every successful selection change.
+//! Stage V1E: Environment Engine spine + selection persistence + readiness
+//! projection. The legacy `ping` command stays as a bridge sanity check;
+//! the Environment Engine hydrates from a small JSON store in the app
+//! data directory on boot, writes back on every successful selection
+//! change, and exposes a deterministic readiness snapshot.
 
 use std::sync::Arc;
 
@@ -26,7 +27,7 @@ struct Pong {
 fn ping() -> Pong {
     Pong {
         name: "anthracite",
-        stage: "V1D",
+        stage: "V1E",
         version: env!("CARGO_PKG_VERSION"),
     }
 }
@@ -51,6 +52,7 @@ pub fn run() {
             commands::environment::list_environments,
             commands::environment::get_active_environment,
             commands::environment::set_active_environment,
+            commands::environment::get_environment_readiness,
         ])
         .run(tauri::generate_context!())
         .expect("error while running anthracite tauri application");

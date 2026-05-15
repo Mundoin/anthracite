@@ -5,7 +5,7 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
-import type { Environment } from "../types/environment";
+import type { Environment, EnvironmentReadiness } from "../types/environment";
 
 export async function listEnvironments(): Promise<Environment[]> {
   return invoke<Environment[]>("list_environments");
@@ -18,4 +18,8 @@ export async function getActiveEnvironment(): Promise<Environment | null> {
 
 export async function setActiveEnvironment(id: string): Promise<Environment> {
   return invoke<Environment>("set_active_environment", { id });
+}
+
+export async function getEnvironmentReadiness(): Promise<EnvironmentReadiness> {
+  return invoke<EnvironmentReadiness>("get_environment_readiness");
 }

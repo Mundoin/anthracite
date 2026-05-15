@@ -100,6 +100,33 @@ impl EnvironmentStore for JsonFileStore {
     }
 }
 
+/// Lifecycle reading over the operator's active environment + catalogue.
+/// Deterministic projection — no I/O, no clock, no probabilistic logic.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum EnvironmentLifecycleState {
+    Ready,
+    Degraded,
+    Offline,
+    Incomplete,
+}
+
+/// Compact readiness snapshot consumed by the HOME / Environment Centre.
+/// Pure function of the catalogue + active selection at call time.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct EnvironmentReadiness {
+    pub active_environment_id: Option<String>,
+    pub active_environment_name: Option<String>,
+    pub lifecycle_state: EnvironmentLifecycleState,
+    pub total_environments: u32,
+    pub total_devices: u32,
+    pub healthy_count: u32,
+    pub degraded_count: u32,
+    pub offline_count: u32,
+    pub unknown_count: u32,
+    pub message: String,
+}
+
 /// Engine state. Static catalogue + Mutex-guarded active selection +
 /// pluggable persistence store.
 pub struct EnvironmentEngine {
@@ -150,6 +177,65 @@ impl EnvironmentEngine {
     /// persists the new id through the configured store, and only then
     /// updates in-memory state. If persistence fails, the previous active
     /// id is left untouched.
+    /// Deterministic readiness projection over the catalogue + active
+    /// selection. Pure: same state → same output, no I/O, no clock.
+    pub fn readiness(&self) -> EnvironmentReadiness {
+        let total_environments = self.catalogue.len() as u32;
+        let total_devices: u32 = self.catalogue.iter().map(|e| e.device_count).sum();
+
+        let mut healthy_count = 0u32;
+        let mut degraded_count = 0u32;
+        let mut offline_count = 0u32;
+        let mut unknown_count = 0u32;
+        for e in &self.catalogue {
+            match e.status {
+                EnvironmentStatus::Healthy => healthy_count += 1,
+                EnvironmentStatus::Degraded => degraded_count += 1,
+                EnvironmentStatus::Offline => offline_count += 1,
+                EnvironmentStatus::Unknown => unknown_count += 1,
+            }
+        }
+
+        let active = self.active();
+        let (lifecycle_state, message) = match &active {
+            None => (
+                EnvironmentLifecycleState::Incomplete,
+                "no active environment selected".to_string(),
+            ),
+            Some(env) => match env.status {
+                EnvironmentStatus::Healthy => (
+                    EnvironmentLifecycleState::Ready,
+                    format!("{} ready · {} devices in scope", env.name, env.device_count),
+                ),
+                EnvironmentStatus::Degraded => (
+                    EnvironmentLifecycleState::Degraded,
+                    format!("{} degraded — review signals", env.name),
+                ),
+                EnvironmentStatus::Offline => (
+                    EnvironmentLifecycleState::Offline,
+                    format!("{} offline — operator action required", env.name),
+                ),
+                EnvironmentStatus::Unknown => (
+                    EnvironmentLifecycleState::Incomplete,
+                    format!("{} state unknown — discovery pending", env.name),
+                ),
+            },
+        };
+
+        EnvironmentReadiness {
+            active_environment_id: active.as_ref().map(|e| e.id.clone()),
+            active_environment_name: active.as_ref().map(|e| e.name.clone()),
+            lifecycle_state,
+            total_environments,
+            total_devices,
+            healthy_count,
+            degraded_count,
+            offline_count,
+            unknown_count,
+            message,
+        }
+    }
+
     pub fn set_active(&self, id: &str) -> Result<Environment, String> {
         let found = self
             .catalogue
@@ -339,6 +425,76 @@ mod tests {
 
         assert_eq!(engine.active().unwrap().id, "env-lab-zrh");
         assert_eq!(store.last_saved(), None);
+    }
+
+    // --- V1E readiness ------------------------------------------------
+
+    #[test]
+    fn readiness_for_default_active_environment_is_ready() {
+        let engine = EnvironmentEngine::new();
+        let r = engine.readiness();
+        assert_eq!(r.active_environment_id.as_deref(), Some("env-core-eu1"));
+        assert_eq!(r.active_environment_name.as_deref(), Some("Core EU-1"));
+        assert_eq!(r.lifecycle_state, EnvironmentLifecycleState::Ready);
+        assert_eq!(r.total_environments, 4);
+        assert_eq!(r.total_devices, 412 + 88 + 24 + 1337);
+        assert_eq!(r.healthy_count, 2);
+        assert_eq!(r.degraded_count, 1);
+        assert_eq!(r.offline_count, 0);
+        assert_eq!(r.unknown_count, 1);
+        assert!(r.message.contains("Core EU-1"));
+    }
+
+    #[test]
+    fn readiness_updates_after_active_environment_changes() {
+        let engine = EnvironmentEngine::new();
+        let before = engine.readiness();
+        assert_eq!(before.lifecycle_state, EnvironmentLifecycleState::Ready);
+
+        engine
+            .set_active("env-edge-us-east")
+            .expect("known id must succeed");
+        let after = engine.readiness();
+        assert_eq!(after.active_environment_id.as_deref(), Some("env-edge-us-east"));
+        assert_eq!(after.lifecycle_state, EnvironmentLifecycleState::Degraded);
+        assert!(after.message.contains("Edge US-East"));
+
+        engine
+            .set_active("env-branch-mesh")
+            .expect("known id must succeed");
+        let unknown = engine.readiness();
+        assert_eq!(unknown.lifecycle_state, EnvironmentLifecycleState::Incomplete);
+        assert!(unknown.message.contains("state unknown"));
+    }
+
+    #[test]
+    fn readiness_counts_remain_deterministic_across_calls() {
+        let engine = EnvironmentEngine::new();
+        let a = engine.readiness();
+        let b = engine.readiness();
+        assert_eq!(a, b);
+
+        engine.set_active("env-lab-zrh").unwrap();
+        let c = engine.readiness();
+        let d = engine.readiness();
+        assert_eq!(c, d);
+        // Catalogue-wide counts must not drift with active selection.
+        assert_eq!(a.total_environments, c.total_environments);
+        assert_eq!(a.total_devices, c.total_devices);
+        assert_eq!(a.healthy_count, c.healthy_count);
+        assert_eq!(a.degraded_count, c.degraded_count);
+        assert_eq!(a.offline_count, c.offline_count);
+        assert_eq!(a.unknown_count, c.unknown_count);
+    }
+
+    #[test]
+    fn stale_persistence_hydrates_fallback_and_readiness_follows_fallback() {
+        let store = Arc::new(MemoryStore::with("env-was-deleted"));
+        let engine = EnvironmentEngine::with_store(store);
+        let r = engine.readiness();
+        assert_eq!(r.active_environment_id.as_deref(), Some("env-core-eu1"));
+        assert_eq!(r.lifecycle_state, EnvironmentLifecycleState::Ready);
+        assert!(r.message.contains("Core EU-1"));
     }
 
     // --- V1D file-backed round trip ----------------------------------

@@ -17,3 +17,22 @@ export interface Environment {
   readonly updated_at: string;
   readonly summary: string;
 }
+
+export type EnvironmentLifecycleState =
+  | "ready"
+  | "degraded"
+  | "offline"
+  | "incomplete";
+
+export interface EnvironmentReadiness {
+  readonly active_environment_id: string | null;
+  readonly active_environment_name: string | null;
+  readonly lifecycle_state: EnvironmentLifecycleState;
+  readonly total_environments: number;
+  readonly total_devices: number;
+  readonly healthy_count: number;
+  readonly degraded_count: number;
+  readonly offline_count: number;
+  readonly unknown_count: number;
+  readonly message: string;
+}

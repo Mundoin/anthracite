@@ -1,6 +1,6 @@
 //! Tauri commands for the Environment Engine.
 
-use crate::engines::environment::{Environment, EnvironmentEngine};
+use crate::engines::environment::{Environment, EnvironmentEngine, EnvironmentReadiness};
 use tauri::State;
 
 #[tauri::command]
@@ -19,4 +19,11 @@ pub fn set_active_environment(
     id: String,
 ) -> Result<Environment, String> {
     engine.set_active(&id)
+}
+
+#[tauri::command]
+pub fn get_environment_readiness(
+    engine: State<'_, EnvironmentEngine>,
+) -> EnvironmentReadiness {
+    engine.readiness()
 }
