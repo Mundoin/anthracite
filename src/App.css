@@ -26,17 +26,17 @@
   --signal-offline:  #E53E3E;
   --signal-unknown:  #B0BCCB;
 
-  /* Typography (readable from normal monitor distance). */
-  --fs-body:       15px;
-  --fs-mono:       14px;
-  --fs-table:      14px;
-  --fs-meta:       13px;
-  --fs-eyebrow:    12px;
-  --fs-panel-title:13px;
-  --fs-section:    14px;
-  --fs-brand:      15px;
-  --fs-title:      22px;
-  --fs-metric:     22px;
+  /* Typography — V1E-G tuned 1 px down from V1E-F across practical UI. */
+  --fs-body:       14px;
+  --fs-mono:       13px;
+  --fs-table:      13px;
+  --fs-meta:       12px;
+  --fs-eyebrow:    11px;
+  --fs-panel-title:12px;
+  --fs-section:    13px;
+  --fs-brand:      14px;
+  --fs-title:      21px;
+  --fs-metric:     21px;
 
   /* Control vocabulary (V1E-F). Shared by both schemes. */
   --radius-0: 0;
@@ -137,7 +137,7 @@ html, body, #root {
 .brand-mark {
   font-family: var(--font-mono);
   font-weight: 700;
-  letter-spacing: 0.26em;
+  letter-spacing: 0.22em;
   font-size: var(--fs-brand);
   color: var(--text-0);
 }
@@ -212,7 +212,7 @@ html, body, #root {
   font-family: var(--font-mono);
   font-size: var(--fs-panel-title);
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-0);
   margin: 0 0 14px;
@@ -234,9 +234,9 @@ html, body, #root {
 
 .panel-empty__rule {
   font-family: var(--font-mono);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.26em;
   color: var(--line-bright);
 }
 

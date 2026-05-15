@@ -29,6 +29,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1E-D | complete      | [stages/V1E-D-noc-dark.md](./stages/V1E-D-noc-dark.md) |
 | V1E-E | complete      | [stages/V1E-E-noc-light-refinement.md](./stages/V1E-E-noc-light-refinement.md) |
 | V1E-F | complete      | [stages/V1E-F-enterprise-polish.md](./stages/V1E-F-enterprise-polish.md) |
+| V1E-G | complete      | [stages/V1E-G-typography-tune.md](./stages/V1E-G-typography-tune.md) |
 | V1F   | planned       | Next engine (AAA / shared domain — TBD) |
 
 ## Conventions
