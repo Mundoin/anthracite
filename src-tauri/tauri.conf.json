@@ -17,11 +17,11 @@
         "height": 900,
         "minWidth": 1100,
         "minHeight": 700,
-        "decorations": true,
+        "decorations": false,
         "resizable": true,
         "fullscreen": false,
         "transparent": false,
-        "backgroundColor": "#08090b"
+        "backgroundColor": "#F8FAFC"
       }
     ],
     "security": {
