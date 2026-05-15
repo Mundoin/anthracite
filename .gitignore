@@ -77,3 +77,6 @@ __pycache__/
 
 # AgentOps session artifacts
 .agents/
+
+# Local Obsidian workspace state
+obsidian/.obsidian/
