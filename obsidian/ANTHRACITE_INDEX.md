@@ -33,7 +33,8 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1F   | complete · landed visual baseline | [stages/V1F-anthracite-master-shell-environment-port.md](./stages/V1F-anthracite-master-shell-environment-port.md) |
 | V1G   | complete · engine buildout pivot (docs-only) | [stages/V1G-engine-buildout-pivot.md](./stages/V1G-engine-buildout-pivot.md) |
 | V1H   | complete · Vendor Registry Engine | [stages/V1H-vendor-registry-engine.md](./stages/V1H-vendor-registry-engine.md) |
-| V1I   | planned       | Canonical Network Model |
+| V1I   | complete · Canonical Network Model | [stages/V1I-canonical-network-model.md](./stages/V1I-canonical-network-model.md) |
+| V1J   | planned       | Config Detection Engine |
 
 ## V1G pivot
 
