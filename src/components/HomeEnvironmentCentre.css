@@ -1,4 +1,4 @@
-/* HOME / Environment Command Centre — NOC Light refined surface.
+/* HOME / Environment Command Centre — enterprise NOC Light polish.
    Tokens come from the active scheme (src/App.css). Components consume,
    schemes redefine. No hardcoded palette values, no microtext. */
 
@@ -7,7 +7,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background: transparent;            /* show the work-area grid plane */
+  background: transparent;
   color: var(--text-0);
   font-family: var(--font-ui);
   font-size: var(--fs-body);
@@ -27,15 +27,17 @@
   color: var(--text-1);
 }
 
-/* ---- Header ---- */
+/* ---- Header toolbar -------------------------------------------------- */
 .home-centre__header {
   display: flex;
   align-items: stretch;
   border-bottom: 1px solid var(--line-bright);
   background:
     linear-gradient(to bottom, var(--bg-1) 0%, var(--bg-1) 92%, var(--bg-2) 100%);
-  padding: 18px 22px 16px;
-  box-shadow: inset 0 -1px 0 0 color-mix(in srgb, var(--line-bright) 70%, transparent);
+  padding: 20px 24px 18px;
+  box-shadow:
+    inset 0 -1px 0 0 color-mix(in srgb, var(--line-bright) 75%, transparent),
+    inset 0  1px 0 0 color-mix(in srgb, var(--bg-0) 70%, transparent);
 }
 
 .home-centre__heading {
@@ -50,7 +52,7 @@
   gap: 8px;
   font-family: var(--font-mono);
   font-size: var(--fs-eyebrow);
-  letter-spacing: 0.24em;
+  letter-spacing: 0.26em;
   color: var(--copper);
   text-transform: uppercase;
 }
@@ -60,6 +62,7 @@
   width: 6px;
   height: 6px;
   background: var(--copper);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--copper) 18%, transparent);
 }
 
 .home-centre__title {
@@ -74,17 +77,18 @@
 .home-centre__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin: 6px 0 0;
-  font-family: var(--font-mono);
-  font-size: var(--fs-meta);
-  color: var(--text-1);
+  gap: 8px;
+  margin: 8px 0 0;
 }
 
+/* Each k/v becomes a small enterprise chip. */
 .kv {
   display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
+  align-items: stretch;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  background: var(--bg-0);
+  border: 1px solid var(--line-bright);
 }
 
 .kv__k {
@@ -92,11 +96,28 @@
   text-transform: uppercase;
   letter-spacing: 0.16em;
   font-size: var(--fs-eyebrow);
+  padding: 4px 8px;
+  background: var(--bg-2);
+  border-right: 1px solid var(--line-bright);
+  display: inline-flex;
+  align-items: center;
 }
 
-.kv__v { color: var(--text-0); font-weight: 600; }
+.kv__v {
+  color: var(--text-0);
+  font-weight: 600;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+}
 
-/* ---- Readiness band ---- */
+/* The header status pill keeps the pill vocabulary defined below. */
+.home-centre__meta .status {
+  align-self: center;
+  margin-left: 4px;
+}
+
+/* ---- Readiness band (module shell) ---------------------------------- */
 .readiness-band {
   display: grid;
   grid-template-columns: minmax(260px, 340px) 1fr;
@@ -104,12 +125,15 @@
   grid-template-areas:
     "head    grid"
     "message grid";
-  gap: 6px 22px;
+  gap: 8px 24px;
   align-items: center;
-  padding: 14px 22px;
+  padding: 16px 24px;
   background: var(--bg-1);
   border-bottom: 1px solid var(--line-bright);
   border-left: 4px solid var(--signal-unknown);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in srgb, var(--bg-0) 70%, transparent),
+    inset 0 -1px 0 0 color-mix(in srgb, var(--line-bright) 70%, transparent);
 }
 
 .readiness-band[data-state="ready"]      { border-left-color: var(--signal-healthy); }
@@ -127,7 +151,7 @@
 .readiness-band__eyebrow {
   font-family: var(--font-mono);
   font-size: var(--fs-eyebrow);
-  letter-spacing: 0.24em;
+  letter-spacing: 0.26em;
   color: var(--copper);
 }
 
@@ -142,7 +166,7 @@
 .readiness-band__grid {
   grid-area: grid;
   display: grid;
-  grid-template-columns: repeat(6, minmax(76px, 1fr));
+  grid-template-columns: repeat(6, minmax(78px, 1fr));
   gap: 1px;
   margin: 0;
   background: var(--line-bright);
@@ -151,7 +175,7 @@
 
 .readiness-band__cell {
   background: var(--bg-0);
-  padding: 8px 12px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -161,7 +185,7 @@
 .readiness-band__cell dt {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-1);
 }
@@ -175,43 +199,72 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Body grid ---- */
+/* ---- Body grid (modules with deliberate gutter) --------------------- */
 .home-centre__body {
   display: grid;
-  grid-template-columns: minmax(300px, 360px) 1fr;
+  grid-template-columns: minmax(320px, 380px) 1fr;
   grid-template-rows: auto 1fr;
   grid-template-areas:
     "scope envs"
     "modes envs";
-  gap: 1px;
-  background: var(--line-bright);
+  gap: 14px;
+  padding: 14px;
+  background: transparent;
   flex: 1 1 auto;
   min-height: 0;
 }
 
+/* Module shell — used by scope, mode rail, env table block. */
 .centre-block {
   background: var(--bg-1);
-  padding: 16px 18px;
+  border: 1px solid var(--line-bright);
+  box-shadow: var(--elev-inset);
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
 .centre-block--scope { grid-area: scope; }
-.centre-block--envs  { grid-area: envs; overflow: auto; background: var(--bg-0); }
+.centre-block--envs  {
+  grid-area: envs;
+  overflow: auto;
+  background: var(--bg-1);
+  padding: 0;
+}
 .centre-block--modes { grid-area: modes; }
 
 .centre-block__title {
   font-family: var(--font-mono);
   font-size: var(--fs-section);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-0);
   font-weight: 700;
   margin: 0 0 14px;
-  padding: 0 0 8px 10px;
+  padding: 0 0 10px 12px;
   border-bottom: 1px solid var(--line-bright);
   border-left: 3px solid var(--accent);
+}
+
+/* env block has its own module toolbar before the table */
+.centre-block--envs .centre-block__title {
+  margin: 0;
+  padding: 14px 16px 12px;
+  border-left: none;
+  border-bottom: 1px solid var(--line-bright);
+  background:
+    linear-gradient(to bottom, var(--bg-1) 0%, var(--bg-1) 92%, var(--bg-2) 100%);
+  display: flex;
+  align-items: center;
+}
+
+.centre-block--envs .centre-block__title::before {
+  content: "";
+  width: 4px;
+  height: 14px;
+  background: var(--accent);
+  margin-right: 10px;
 }
 
 /* ---- Scope grid ---- */
@@ -235,7 +288,7 @@
 .scope-grid__cell dt {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-1);
 }
@@ -249,14 +302,13 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Environment table ---- */
+/* ---- Environment table (high-trust enterprise treatment) ----------- */
 .env-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-family: var(--font-mono);
   font-size: var(--fs-table);
-  border: 1px solid var(--line-bright);
   background: var(--bg-0);
 }
 
@@ -264,22 +316,27 @@
   background: var(--bg-2);
   text-align: left;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   font-size: 12px;
   color: var(--text-0);
   border-bottom: 1px solid var(--line-bright);
-  padding: 10px 12px;
+  padding: 10px 14px;
   position: sticky;
   top: 0;
   z-index: 1;
 }
 
+.env-table thead th + th { border-left: 1px solid var(--line-bright); }
+
 .env-table tbody td {
-  padding: 10px 12px;
+  padding: 11px 14px;
   border-bottom: 1px solid var(--line);
   color: var(--text-0);
+  vertical-align: middle;
 }
+
+.env-table tbody td + td { border-left: 1px solid var(--line); }
 
 .env-table tbody tr:nth-child(even) td {
   background: color-mix(in srgb, var(--bg-1) 35%, var(--bg-0));
@@ -295,45 +352,49 @@
 .env-row--active td {
   background: var(--accent-dim);
   color: var(--text-0);
-  box-shadow: inset 3px 0 0 0 var(--accent);
+}
+.env-row--active td:first-child {
+  box-shadow: inset 4px 0 0 0 var(--accent);
 }
 .env-row--active:hover td { background: var(--accent-dim); }
 
 .env-table__id  { color: var(--text-1); }
 .env-table__num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
 .env-table__sel {
-  width: 42px;
+  width: 44px;
   text-align: center;
   color: var(--accent);
   font-weight: 700;
+  font-size: 14px;
 }
 
 .env-summary {
-  margin: 14px 0 0;
+  margin: 14px 16px 16px;
   font-family: var(--font-mono);
   font-size: var(--fs-meta);
   color: var(--text-0);
   border-left: 3px solid var(--copper);
-  padding: 4px 0 4px 12px;
+  padding: 8px 12px;
   background:
     linear-gradient(
       to right,
-      color-mix(in srgb, var(--copper) 8%, transparent),
-      transparent 60%
+      color-mix(in srgb, var(--copper) 10%, transparent),
+      transparent 70%
     );
 }
 
-/* ---- Status pills ---- */
+/* ---- Status pills (control vocabulary) ----------------------------- */
 .status {
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  padding: 2px 8px;
+  letter-spacing: 0.18em;
+  padding: 3px 9px;
   border: 1px solid currentColor;
   text-transform: uppercase;
-  background: color-mix(in srgb, currentColor 8%, transparent);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  line-height: 1.2;
 }
 
 .status--healthy  { color: var(--signal-healthy); }
@@ -341,7 +402,7 @@
 .status--offline  { color: var(--signal-offline); }
 .status--unknown  { color: var(--signal-unknown); }
 
-/* ---- Mode rail (pending modules) ---- */
+/* ---- Mode rail (disabled enterprise modules) ----------------------- */
 .mode-rail {
   list-style: none;
   margin: 0;
@@ -358,16 +419,16 @@
 .mode-rail__btn {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 140px 1fr auto;
+  grid-template-columns: 150px 1fr auto;
   align-items: center;
   gap: 14px;
   background:
     repeating-linear-gradient(
       135deg,
       var(--bg-0) 0,
-      var(--bg-0) 6px,
-      color-mix(in srgb, var(--line) 35%, var(--bg-0)) 6px,
-      color-mix(in srgb, var(--line) 35%, var(--bg-0)) 7px
+      var(--bg-0) 8px,
+      color-mix(in srgb, var(--line) 28%, var(--bg-0)) 8px,
+      color-mix(in srgb, var(--line) 28%, var(--bg-0)) 9px
     );
   border: none;
   border-left: 3px solid var(--line-bright);
@@ -388,7 +449,7 @@
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.24em;
   color: var(--text-1);
 }
 
@@ -401,7 +462,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
   color: var(--text-1);
   border: 1px solid var(--line-bright);
   padding: 3px 8px;

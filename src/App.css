@@ -1,11 +1,10 @@
-/* Anthracite — NOC Light (default) + NOC Dark (alternate) schemes.
-   "Anthracite" is the application name only. Schemes are activated via
+/* Anthracite — NOC Light (default) + NOC Dark (alternate).
+   "Anthracite" is the application name only. Schemes activate via
    <html data-scheme="...">. Components consume tokens; schemes redefine
-   them. Typography scale is shared across schemes — no microtext anywhere. */
+   them. Typography scale is shared across schemes — no microtext. */
 
 :root,
 [data-scheme="noc-light"] {
-  /* Surfaces — NOC console stack (exact, Bujar-supplied). */
   --bg-0: #F8FAFC;
   --bg-1: #E1E8F0;
   --bg-2: #D1D9E6;
@@ -27,7 +26,7 @@
   --signal-offline:  #E53E3E;
   --signal-unknown:  #B0BCCB;
 
-  /* Typography scale — readable from normal monitor distance. */
+  /* Typography (readable from normal monitor distance). */
   --fs-body:       15px;
   --fs-mono:       14px;
   --fs-table:      14px;
@@ -38,6 +37,21 @@
   --fs-brand:      15px;
   --fs-title:      22px;
   --fs-metric:     22px;
+
+  /* Control vocabulary (V1E-F). Shared by both schemes. */
+  --radius-0: 0;
+  --radius-1: 2px;
+  --pad-toolbar: 14px 18px;
+  --pad-module:  14px 18px;
+  --gap-module:  14px;
+
+  /* Subtle industrial elevation — single hairline + 1 px low shadow.
+     Never marketing-grade drop shadows. */
+  --elev-soft:
+    0 0 0 1px var(--line-bright),
+    0 1px 0 0 color-mix(in srgb, var(--line-bright) 80%, transparent);
+  --elev-inset:
+    inset 0 1px 0 0 color-mix(in srgb, var(--bg-0) 70%, transparent);
 
   --font-mono: "JetBrains Mono", "Cascadia Mono", "Consolas", ui-monospace, monospace;
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -93,34 +107,37 @@ html, body, #root {
   width: 100vw;
 }
 
-/* ---- Title strip ----------------------------------------------------- */
+/* ---- Title strip (premium toolbar tone) ---------------------------- */
 .app-titlebar {
-  height: 48px;
+  height: 52px;
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 0 18px;
+  padding: 0 20px;
   background:
-    linear-gradient(to bottom, var(--bg-1) 0%, var(--bg-1) 96%, var(--bg-2) 100%);
+    linear-gradient(to bottom, var(--bg-1) 0%, var(--bg-1) 92%, var(--bg-2) 100%);
   border-bottom: 1px solid var(--line-bright);
-  box-shadow: inset 0 -1px 0 0 color-mix(in srgb, var(--line-bright) 60%, transparent);
+  box-shadow:
+    inset 0 -1px 0 0 color-mix(in srgb, var(--line-bright) 65%, transparent),
+    inset 0  1px 0 0 color-mix(in srgb, var(--bg-0) 60%, transparent);
   flex: 0 0 auto;
   position: relative;
 }
 
 .app-titlebar::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   background: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
-  border-radius: 1px;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .brand-mark {
   font-family: var(--font-mono);
   font-weight: 700;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.26em;
   font-size: var(--fs-brand);
   color: var(--text-0);
 }
@@ -129,16 +146,16 @@ html, body, #root {
   font-family: var(--font-mono);
   font-size: var(--fs-meta);
   color: var(--text-1);
-  padding-left: 14px;
+  padding-left: 16px;
   border-left: 1px solid var(--line-bright);
 }
 
-/* ---- Grid shell ----------------------------------------------------- */
+/* ---- Workspace grid ------------------------------------------------- */
 .app-grid {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 300px 1fr 340px;
-  grid-template-rows: 1fr 200px;
+  grid-template-columns: 320px 1fr 360px;
+  grid-template-rows: 1fr 210px;
   grid-template-areas:
     "left center right"
     "bottom bottom bottom";
@@ -150,49 +167,84 @@ html, body, #root {
 .panel {
   background: var(--bg-1);
   overflow: auto;
-  padding: 14px 16px;
-  box-shadow: inset 0 1px 0 0 color-mix(in srgb, var(--bg-0) 60%, transparent);
+  padding: 16px 18px;
+  box-shadow: var(--elev-inset);
+  position: relative;
 }
 
 .panel-left   { grid-area: left; }
 .panel-center {
   grid-area: center;
   background:
-    /* fine NOC measurement plane — subtle grid lines at 32px */
+    /* Slight inner-fade vignette so the work area reads as a stage,
+       not a blank wall. Very soft — under 5% colour shift. */
+    radial-gradient(
+      120% 90% at 50% 0%,
+      color-mix(in srgb, var(--bg-1) 35%, transparent) 0%,
+      transparent 55%
+    ),
+    /* NOC measurement plane at 32 px spacing — subtle. */
     repeating-linear-gradient(
       0deg,
       transparent 0,
       transparent 31px,
-      color-mix(in srgb, var(--line-bright) 22%, transparent) 31px,
-      color-mix(in srgb, var(--line-bright) 22%, transparent) 32px
+      color-mix(in srgb, var(--line-bright) 20%, transparent) 31px,
+      color-mix(in srgb, var(--line-bright) 20%, transparent) 32px
     ),
     repeating-linear-gradient(
       90deg,
       transparent 0,
       transparent 31px,
-      color-mix(in srgb, var(--line-bright) 22%, transparent) 31px,
-      color-mix(in srgb, var(--line-bright) 22%, transparent) 32px
+      color-mix(in srgb, var(--line-bright) 20%, transparent) 31px,
+      color-mix(in srgb, var(--line-bright) 20%, transparent) 32px
     ),
     var(--bg-0);
   padding: 0;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line-bright) 40%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line-bright) 45%, transparent);
 }
 .panel-right  { grid-area: right; }
 .panel-bottom { grid-area: bottom; }
 
+/* Authoritative panel title — Trace Analysis Blue accent bar + rule. */
 .panel-title {
   font-family: var(--font-mono);
   font-size: var(--fs-panel-title);
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-0);
   margin: 0 0 14px;
-  padding: 0 0 8px 10px;
+  padding: 0 0 10px 12px;
   border-bottom: 1px solid var(--line-bright);
   border-left: 3px solid var(--accent);
+}
+
+/* Empty-state — intentional, not weak. */
+.panel-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 14px;
+  background: var(--bg-0);
+  border: 1px dashed var(--line-bright);
+  box-shadow: var(--elev-inset);
+}
+
+.panel-empty__rule {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--line-bright);
+}
+
+.panel-empty__caption {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-1);
+  margin: 0;
 }
 
 .panel-placeholder {
