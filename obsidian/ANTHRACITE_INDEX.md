@@ -27,6 +27,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1E-B | complete      | [stages/V1E-B-graphite-light.md](./stages/V1E-B-graphite-light.md) |
 | V1E-C | complete      | [stages/V1E-C-noc-light.md](./stages/V1E-C-noc-light.md) |
 | V1E-D | complete      | [stages/V1E-D-noc-dark.md](./stages/V1E-D-noc-dark.md) |
+| V1E-E | complete      | [stages/V1E-E-noc-light-refinement.md](./stages/V1E-E-noc-light-refinement.md) |
 | V1F   | planned       | Next engine (AAA / shared domain — TBD) |
 
 ## Conventions

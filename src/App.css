@@ -1,40 +1,31 @@
-/* Anthracite — NOC Light opening scheme.
-   "Anthracite" is the application name only. Default visual scheme is
-   "NOC Light" — Bujar's network operations centre palette: white / blue-grey
-   base, dark authoritative text, steel grid lines, signal blue for
-   navigation/action emphasis, and green/amber/red reserved for true status.
-   Typography is sized for normal monitor distance — no micro-text. */
+/* Anthracite — NOC Light (default) + NOC Dark (alternate) schemes.
+   "Anthracite" is the application name only. Schemes are activated via
+   <html data-scheme="...">. Components consume tokens; schemes redefine
+   them. Typography scale is shared across schemes — no microtext anywhere. */
 
 :root,
 [data-scheme="noc-light"] {
-  /* Surfaces — NOC console stack. */
-  --bg-0: #F8FAFC;   /* Console Base White */
-  --bg-1: #E1E8F0;   /* Analytics Hub Gray */
-  --bg-2: #D1D9E6;   /* Network Grid Steel — used as inset panel */
+  /* Surfaces — NOC console stack (exact, Bujar-supplied). */
+  --bg-0: #F8FAFC;
+  --bg-1: #E1E8F0;
+  --bg-2: #D1D9E6;
 
-  /* Borders — Network Grid Steel + Receding Metadata Gray. */
   --line:        #D1D9E6;
   --line-bright: #B0BCCB;
 
-  /* Text — Authority Text Dark stack. */
-  --text-0: #1A202C;   /* Authority Text Dark */
+  --text-0: #1A202C;
   --text-1: #3a4252;
-  --text-2: #B0BCCB;   /* Receding Metadata Gray */
+  --text-2: #B0BCCB;
 
-  /* Accent — Trace Analysis Blue for navigation/action emphasis. */
   --accent:     #3182CE;
   --accent-dim: #c9dcef;
 
-  /* Operator selection accent — SLA Amber Alert tone (also used for
-     eyebrow / active-record indicator). Status amber draws from the
-     same swatch deliberately — NOC operators recognise it instantly. */
   --copper: #D69E2E;
 
-  /* Signal — true status only. Exact NOC palette. */
-  --signal-healthy:  #38A169;   /* Peak Fabric Green */
-  --signal-degraded: #D69E2E;   /* SLA Amber Alert */
-  --signal-offline:  #E53E3E;   /* Total Fault Red */
-  --signal-unknown:  #B0BCCB;   /* Receding Metadata Gray */
+  --signal-healthy:  #38A169;
+  --signal-degraded: #D69E2E;
+  --signal-offline:  #E53E3E;
+  --signal-unknown:  #B0BCCB;
 
   /* Typography scale — readable from normal monitor distance. */
   --fs-body:       15px;
@@ -52,38 +43,28 @@
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* NOC Dark — alternate serious workstation scheme. Not the default.
-   Activate by setting <html data-scheme="noc-dark"> when explicitly chosen
-   by the operator. Typography scale is shared with NOC Light — readable
-   sizes preserved, no microtext regression. */
+/* NOC Dark — alternate serious workstation scheme. Not the default. */
 [data-scheme="noc-dark"] {
-  /* Surfaces — deep cold-space stack. */
-  --bg-0: #0A0E17;   /* Deep Obsidian Navy */
-  --bg-1: #121824;   /* Slate Carbon */
-  --bg-2: #1F293D;   /* Low-contrast Steel inset */
+  --bg-0: #0A0E17;
+  --bg-1: #121824;
+  --bg-2: #1F293D;
 
-  /* Borders — low-contrast steel + inactive edge. */
   --line:        #1F293D;
   --line-bright: #2E3D52;
 
-  /* Text — off-white readable header stack. */
-  --text-0: #E2E8F0;   /* Primary Text Header */
+  --text-0: #E2E8F0;
   --text-1: #B6C2D2;
-  --text-2: #2E3D52;   /* Inactive Edge — muted blue-grey */
+  --text-2: #2E3D52;
 
-  /* Accent — Electric Cyan for discovery / data emphasis (nav/action). */
   --accent:     #00E5FF;
   --accent-dim: #16384a;
 
-  /* Operator selection accent — High-Visibility Amber for eyebrow /
-     active-record indicator. Mirrors the amber/warning role visually. */
   --copper: #FFD000;
 
-  /* Signal — true status only. */
-  --signal-healthy:  #00FF9D;   /* Cyber Mint */
-  --signal-degraded: #FFD000;   /* High-Visibility Amber */
-  --signal-offline:  #FF3366;   /* Crimson Alert */
-  --signal-unknown:  #2E3D52;   /* Inactive Edge */
+  --signal-healthy:  #00FF9D;
+  --signal-degraded: #FFD000;
+  --signal-offline:  #FF3366;
+  --signal-unknown:  #2E3D52;
 }
 
 * {
@@ -102,6 +83,7 @@ html, body, #root {
   line-height: 1.45;
   overflow: hidden;
   user-select: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 .app-shell {
@@ -111,31 +93,47 @@ html, body, #root {
   width: 100vw;
 }
 
+/* ---- Title strip ----------------------------------------------------- */
 .app-titlebar {
-  height: 44px;
+  height: 48px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 16px;
-  background: var(--bg-1);
+  gap: 18px;
+  padding: 0 18px;
+  background:
+    linear-gradient(to bottom, var(--bg-1) 0%, var(--bg-1) 96%, var(--bg-2) 100%);
   border-bottom: 1px solid var(--line-bright);
+  box-shadow: inset 0 -1px 0 0 color-mix(in srgb, var(--line-bright) 60%, transparent);
   flex: 0 0 auto;
+  position: relative;
+}
+
+.app-titlebar::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: 1px;
 }
 
 .brand-mark {
   font-family: var(--font-mono);
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.24em;
   font-size: var(--fs-brand);
-  color: var(--accent);
+  color: var(--text-0);
 }
 
 .brand-sub {
   font-family: var(--font-mono);
   font-size: var(--fs-meta);
   color: var(--text-1);
+  padding-left: 14px;
+  border-left: 1px solid var(--line-bright);
 }
 
+/* ---- Grid shell ----------------------------------------------------- */
 .app-grid {
   flex: 1 1 auto;
   display: grid;
@@ -145,7 +143,7 @@ html, body, #root {
     "left center right"
     "bottom bottom bottom";
   gap: 1px;
-  background: var(--line);
+  background: var(--line-bright);
   overflow: hidden;
 }
 
@@ -153,15 +151,33 @@ html, body, #root {
   background: var(--bg-1);
   overflow: auto;
   padding: 14px 16px;
+  box-shadow: inset 0 1px 0 0 color-mix(in srgb, var(--bg-0) 60%, transparent);
 }
 
 .panel-left   { grid-area: left; }
 .panel-center {
   grid-area: center;
-  background: var(--bg-0);
+  background:
+    /* fine NOC measurement plane — subtle grid lines at 32px */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 31px,
+      color-mix(in srgb, var(--line-bright) 22%, transparent) 31px,
+      color-mix(in srgb, var(--line-bright) 22%, transparent) 32px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 31px,
+      color-mix(in srgb, var(--line-bright) 22%, transparent) 31px,
+      color-mix(in srgb, var(--line-bright) 22%, transparent) 32px
+    ),
+    var(--bg-0);
   padding: 0;
   position: relative;
   overflow: hidden;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line-bright) 40%, transparent);
 }
 .panel-right  { grid-area: right; }
 .panel-bottom { grid-area: bottom; }
@@ -170,12 +186,13 @@ html, body, #root {
   font-family: var(--font-mono);
   font-size: var(--fs-panel-title);
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-0);
-  margin: 0 0 12px;
-  padding-bottom: 8px;
+  margin: 0 0 14px;
+  padding: 0 0 8px 10px;
   border-bottom: 1px solid var(--line-bright);
+  border-left: 3px solid var(--accent);
 }
 
 .panel-placeholder {
