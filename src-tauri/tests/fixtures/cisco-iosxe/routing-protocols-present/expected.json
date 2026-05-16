@@ -18,7 +18,7 @@
     "source": null,
     "source_kind": "config_paste",
     "captured_at": null,
-    "parser_version": "2",
+    "parser_version": "3",
     "registry_version": null,
     "fixture_corpus_version": null,
     "byte_size": 763,
@@ -179,7 +179,7 @@
   "parse_confidence": {
     "maturity_observed": "l2topology",
     "score": 0.3077,
-    "parsed_line_count": 7,
+    "parsed_line_count": 9,
     "unknown_line_count": 10,
     "warnings": [
       "absent:lag_groups",
@@ -202,7 +202,6 @@
       "not_in_scope:qos_policies",
       "not_in_scope:route_maps",
       "not_in_scope:routing_protocols_bgp",
-      "not_in_scope:routing_protocols_block",
       "not_in_scope:routing_protocols_eigrp",
       "not_in_scope:routing_protocols_isis",
       "not_in_scope:routing_protocols_ospf",

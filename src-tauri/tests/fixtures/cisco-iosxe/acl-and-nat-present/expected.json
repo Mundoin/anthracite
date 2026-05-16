@@ -18,7 +18,7 @@
     "source": null,
     "source_kind": "config_paste",
     "captured_at": null,
-    "parser_version": "2",
+    "parser_version": "3",
     "registry_version": null,
     "fixture_corpus_version": null,
     "byte_size": 630,
@@ -110,63 +110,63 @@
       "line_number": 10,
       "raw": " ip nat outside",
       "context_path": "interface GigabitEthernet0/0/0",
-      "reason": "unsupported_keyword"
+      "reason": "out_of_scope"
     },
     {
       "source": null,
       "line_number": 16,
       "raw": " ip nat inside",
       "context_path": "interface GigabitEthernet0/0/1",
-      "reason": "unsupported_keyword"
+      "reason": "out_of_scope"
     },
     {
       "source": null,
       "line_number": 19,
       "raw": "ip access-list extended OUTSIDE-IN",
       "context_path": null,
-      "reason": "unsupported_keyword"
+      "reason": "out_of_scope"
     },
     {
       "source": null,
       "line_number": 20,
       "raw": " permit tcp any any eq 443",
-      "context_path": null,
-      "reason": "unsupported_keyword"
+      "context_path": "ip access-list extended OUTSIDE-IN",
+      "reason": "out_of_scope"
     },
     {
       "source": null,
       "line_number": 21,
       "raw": " permit tcp any any eq 22",
-      "context_path": null,
-      "reason": "unsupported_keyword"
+      "context_path": "ip access-list extended OUTSIDE-IN",
+      "reason": "out_of_scope"
     },
     {
       "source": null,
       "line_number": 22,
       "raw": " deny ip any any log",
-      "context_path": null,
-      "reason": "unsupported_keyword"
+      "context_path": "ip access-list extended OUTSIDE-IN",
+      "reason": "out_of_scope"
     },
     {
       "source": null,
       "line_number": 24,
       "raw": "ip nat inside source list NAT-ACL interface GigabitEthernet0/0/0 overload",
       "context_path": null,
-      "reason": "unsupported_keyword"
+      "reason": "out_of_scope"
     },
     {
       "source": null,
       "line_number": 26,
       "raw": "ip access-list standard NAT-ACL",
       "context_path": null,
-      "reason": "unsupported_keyword"
+      "reason": "out_of_scope"
     },
     {
       "source": null,
       "line_number": 27,
       "raw": " permit 10.0.0.0 0.0.0.255",
-      "context_path": null,
-      "reason": "unsupported_keyword"
+      "context_path": "ip access-list standard NAT-ACL",
+      "reason": "out_of_scope"
     }
   ],
   "parse_confidence": {

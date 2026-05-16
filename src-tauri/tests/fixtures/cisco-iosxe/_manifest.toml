@@ -24,7 +24,7 @@
 # enforces manifest/source/fixture consistency, but it cannot tell you
 # whether a diff *should* have required a version bump.
 
-parser_version = 2
+parser_version = 3
 
 fixtures = [
     "acl-and-nat-present",

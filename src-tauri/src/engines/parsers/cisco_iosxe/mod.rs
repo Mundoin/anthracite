@@ -37,7 +37,11 @@ use super::normalize;
 /// V1 — V1K initial L1/L2 parser.
 /// V2 — V1L: emits `UnknownReason::UnrecognizedInterfaceForm` for interface
 ///       names that classify to `InterfaceKind::Unknown`.
-pub const PARSER_VERSION: u32 = 2;
+/// V3 — V1N-A: ACL/NAT blocks now emit `UnknownReason::OutOfScope`
+///       (was `UnsupportedKeyword`); drops one-off
+///       `not_in_scope:routing_protocols_block` vocabulary marker in
+///       favour of documented per-protocol area markers.
+pub const PARSER_VERSION: u32 = 3;
 
 /// V1K coverage area list. Order matches
 /// [`PARSER_COVERAGE_AREAS.md`](../../../../../docs/architecture/PARSER_COVERAGE_AREAS.md).
@@ -418,10 +422,13 @@ fn dispatch_top_level(
         }
         "router" => {
             // Out-of-scope routing-protocol block. Push a sentinel frame
-            // so child lines fall through cleanly.
+            // so child lines fall through cleanly. The individual
+            // `not_in_scope:routing_protocols_{ospf,isis,eigrp,bgp}`
+            // markers are auto-emitted in finalize from OUT_OF_SCOPE_AREAS;
+            // V1N-A drops the one-off `routing_protocols_block` vocabulary
+            // outlier in favour of the documented area-level vocabulary.
             ctx.push(format!("router {args}"), 1);
-            st.warnings
-                .push(format!("not_in_scope:routing_protocols_block"));
+            st.parsed_line_count += 1;
         }
         _ => {
             st.unknown_lines.push(unknown::emit(
@@ -438,11 +445,33 @@ fn dispatch_top_level(
 fn dispatch_ip_top(
     line: &lexer::LexedLine,
     args: &str,
-    ctx: &ParserContext,
+    ctx: &mut ParserContext,
     st: &mut ParserState,
 ) {
     let (sub, rest) = lexer::split_command(args);
     match sub.to_ascii_lowercase().as_str() {
+        "access-list" => {
+            // `ip access-list extended NAME` opens an out-of-scope ACL
+            // block; push a frame so child `permit/deny/remark` lines
+            // emit OutOfScope with the right context_path.
+            ctx.push(format!("ip access-list {rest}"), 1);
+            st.unknown_lines.push(unknown::emit(
+                line.line_number,
+                &line.raw,
+                None,
+                UnknownReason::OutOfScope,
+            ));
+        }
+        "nat" => {
+            // `ip nat inside source list NAT-ACL …` and friends —
+            // out-of-scope NAT configuration.
+            st.unknown_lines.push(unknown::emit(
+                line.line_number,
+                &line.raw,
+                None,
+                UnknownReason::OutOfScope,
+            ));
+        }
         "route" => {
             if let Some(r) = static_routes::parse_ip_route(rest) {
                 st.static_routes.push(r);
@@ -680,6 +709,15 @@ fn dispatch_in_block(
         }
     } else if label.starts_with("line ") {
         handle_line_block(line, cmd, args, ctx, st);
+    } else if label.starts_with("ip access-list ") {
+        // V1N-A: ACL block contents land as OutOfScope with the
+        // access-list context, not the generic UnsupportedKeyword.
+        st.unknown_lines.push(unknown::emit(
+            line.line_number,
+            &line.raw,
+            Some(&label),
+            UnknownReason::OutOfScope,
+        ));
     } else if label.starts_with("router ") {
         // Out-of-scope routing-protocol block content.
         st.unknown_lines.push(unknown::emit(
@@ -841,6 +879,15 @@ fn handle_iface_ip(
 ) {
     let (sub, rest) = lexer::split_command(args);
     match sub.to_ascii_lowercase().as_str() {
+        "nat" => {
+            // `ip nat inside` / `ip nat outside` — V1N-A: out-of-scope.
+            st.unknown_lines.push(unknown::emit(
+                line.line_number,
+                &line.raw,
+                ctx.path().as_deref(),
+                UnknownReason::OutOfScope,
+            ));
+        }
         "address" => {
             let vrf = iface_vrf(st, iface_name);
             if let Some(ip) = ip_addressing::parse_ipv4_address_line(rest, vrf.as_deref()) {
