@@ -26,6 +26,7 @@ parser_version = 1
 
 fixtures = [
     "aggregate-ethernet-bundle",
+    "cross-vendor-equivalent-small",
     "dual-stack-edge",
     "irb-and-vlan-binding",
     "many-access-ports-l2-only",

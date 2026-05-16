@@ -29,6 +29,7 @@ parser_version = 2
 fixtures = [
     "acl-and-nat-present",
     "comments-and-banners",
+    "cross-vendor-equivalent-small",
     "dual-stack-edge",
     "duplicate-vlan-id",
     "large-interface-count",
