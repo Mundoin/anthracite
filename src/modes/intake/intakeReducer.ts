@@ -273,6 +273,9 @@ export function intakeReducer(
         splitResult: action.result,
         perSliceDetection: perSlice,
         drilledSliceId: null,
+        archiveInventory: null,
+        archiveProvenance: {},
+        archiveName: null,
       };
       return {
         ...state,
@@ -386,6 +389,108 @@ export function intakeReducer(
         batch: null,
         text: originalText,
         source: originalSource,
+        status: "input_ready",
+        detection: null,
+        selectedPlatform: null,
+        isManualOverride: false,
+        device: null,
+        receipt: null,
+        errorStage: null,
+        errorMessage: null,
+      };
+    }
+
+    // ---- V1O-B archive wrapper --------------------------------------
+
+    case "ArchiveOpenStart": {
+      if (state.status === "detecting" || state.status === "parsing") return state;
+      if (state.batchStatus === "splitting" || state.batchStatus === "archive_loading")
+        return state;
+      return {
+        ...initialIntakeState,
+        vendorPlatforms: state.vendorPlatforms,
+        vendorListError: state.vendorListError,
+        source: {
+          kind: "archive",
+          filename: action.filename,
+          byte_size: action.byte_size,
+        },
+        batchStatus: "archive_loading",
+      };
+    }
+
+    case "ArchiveOpenFailed": {
+      // Accept from any state — the async archive load can fail from
+      // any predecessor (loading, splitting, or an already-resolved
+      // intake mid-batch-assembly) and the error must always surface.
+      return {
+        ...state,
+        batchStatus: "archive_error",
+        batch: null,
+        status: "error",
+        errorStage: "archive",
+        errorMessage: action.message,
+      };
+    }
+
+    case "ArchiveIntakeSplittingStart": {
+      if (state.batchStatus !== "archive_loading") return state;
+      return { ...state, batchStatus: "archive_splitting" };
+    }
+
+    case "ArchiveSingleConfigPassthrough": {
+      if (
+        state.batchStatus !== "archive_loading" &&
+        state.batchStatus !== "archive_splitting"
+      ) {
+        return state;
+      }
+      // R11 regression lock: single archive → single entry → single
+      // config flows through the V1O single-config UX unchanged. The
+      // archive metadata is dropped to keep the render path
+      // byte-identical to V1O paste. The entry path travels as the
+      // source filename so the operator still sees provenance.
+      return {
+        ...initialIntakeState,
+        vendorPlatforms: state.vendorPlatforms,
+        vendorListError: state.vendorListError,
+        text: action.text,
+        source: {
+          kind: "archive",
+          filename: `${action.archive_name} / ${action.entry_path}`,
+          byte_size: action.text.length,
+        },
+        status: "detecting",
+        batchStatus: "none",
+        batch: null,
+      };
+    }
+
+    case "ArchiveBatchAssembled": {
+      if (
+        state.batchStatus !== "archive_loading" &&
+        state.batchStatus !== "archive_splitting"
+      ) {
+        return state;
+      }
+      const perSlice: Record<string, PerSliceDetection> = {};
+      for (const s of action.result.slices) {
+        perSlice[s.slice_id] = { status: "pending" };
+      }
+      const batch: BatchData = {
+        originalText: "",
+        originalSource: state.source,
+        splitResult: action.result,
+        perSliceDetection: perSlice,
+        drilledSliceId: null,
+        archiveInventory: action.inventory,
+        archiveProvenance: action.provenance,
+        archiveName: action.archive_name,
+      };
+      return {
+        ...state,
+        batchStatus: "split_complete",
+        batch,
         status: "input_ready",
         detection: null,
         selectedPlatform: null,

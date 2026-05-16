@@ -8,6 +8,10 @@
  * into per-slice receipts via the same V1O sub-state machine.
  */
 
+import type {
+  ArchiveEntryRef,
+  ArchiveIntakeResult,
+} from "../../types/archiveIntake";
 import type { ConfigBatchSplitResult, ConfigSlice } from "../../types/configBatch";
 import type { ConfigDetectionResult } from "../../types/configDetection";
 import type { DeviceModel, PlatformRef } from "../../types/networkModel";
@@ -29,9 +33,10 @@ export type IntakeErrorStage =
   | "parse"
   | "receipt"
   | "vendor_list"
-  | "split";
+  | "split"
+  | "archive";
 
-export type IntakeSourceKind = "paste" | "file";
+export type IntakeSourceKind = "paste" | "file" | "archive";
 
 export interface IntakeSource {
   readonly kind: IntakeSourceKind;
@@ -44,7 +49,13 @@ export type BatchStatus =
   | "none"
   | "splitting"
   | "split_complete"
-  | "split_error";
+  | "split_error"
+  // V1O-B — archive intake states. `archive_loading` covers the file
+  // read + archive_intake invoke; `archive_splitting` covers the
+  // per-entry splitter fan-out.
+  | "archive_loading"
+  | "archive_splitting"
+  | "archive_error";
 
 export type PerSliceDetection =
   | { readonly status: "pending" }
@@ -57,6 +68,11 @@ export interface BatchData {
   readonly splitResult: ConfigBatchSplitResult;
   readonly perSliceDetection: Readonly<Record<string, PerSliceDetection>>;
   readonly drilledSliceId: string | null;
+  // V1O-B — archive provenance, present only when the batch came from
+  // an archive. `null` when the batch came from a paste/file split.
+  readonly archiveInventory: ArchiveIntakeResult | null;
+  readonly archiveProvenance: Readonly<Record<string, ArchiveEntryRef>>;
+  readonly archiveName: string | null;
 }
 
 export interface IntakeState {
@@ -122,7 +138,29 @@ export type IntakeAction =
   | { readonly type: "PerSliceDetectionFailed"; readonly sliceId: string; readonly message: string }
   | { readonly type: "DrillIntoSlice"; readonly sliceId: string }
   | { readonly type: "BackToBatch" }
-  | { readonly type: "TreatAsSingleConfig" };
+  | { readonly type: "TreatAsSingleConfig" }
+  // V1O-B — archive actions.
+  | {
+      readonly type: "ArchiveOpenStart";
+      readonly filename: string;
+      readonly byte_size: number;
+    }
+  | { readonly type: "ArchiveOpenFailed"; readonly message: string }
+  | { readonly type: "ArchiveIntakeSplittingStart" }
+  | {
+      readonly type: "ArchiveSingleConfigPassthrough";
+      readonly text: string;
+      readonly entry_path: string;
+      readonly archive_name: string;
+      readonly inventory: ArchiveIntakeResult;
+    }
+  | {
+      readonly type: "ArchiveBatchAssembled";
+      readonly result: ConfigBatchSplitResult;
+      readonly inventory: ArchiveIntakeResult;
+      readonly provenance: Readonly<Record<string, ArchiveEntryRef>>;
+      readonly archive_name: string;
+    };
 
 /** Build a PlatformRef from a registry VendorPlatform for manual override. */
 export function platformRefFromVendor(vp: VendorPlatform): PlatformRef {
