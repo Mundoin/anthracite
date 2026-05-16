@@ -576,3 +576,86 @@
   border-bottom: 1px solid var(--anth-border);
   background: var(--anth-bg-panel);
 }
+
+/* ---- V1O-B archive intake -------------------------------------------- */
+.intake-archive-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.intake-archive-open {
+  display: inline-flex;
+}
+
+.intake-btn--archive {
+  /* Inherits .intake-btn shell; subtle differentiation only. */
+  font-variant-caps: small-caps;
+}
+
+.intake-archive-inventory {
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  padding: 8px 12px;
+}
+
+.intake-archive-inventory__summary {
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.intake-archive-inventory__filename {
+  font-family: var(--anth-font-mono);
+}
+
+.intake-archive-inventory__warnings {
+  margin: 8px 0;
+  padding-left: 16px;
+}
+
+.intake-archive-inventory__warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.intake-archive-inventory__entries {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.intake-archive-inventory__entries th,
+.intake-archive-inventory__entries td {
+  text-align: left;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.intake-archive-inventory__row--skipped {
+  opacity: 0.6;
+}
+
+.intake-archive-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border: 1px solid var(--anth-border);
+  border-radius: 2px;
+  font-size: 11px;
+  font-family: var(--anth-font-mono);
+  background: var(--anth-bg-sunken, transparent);
+}
+
+.intake-archive-source-badge__label {
+  font-variant-caps: small-caps;
+  color: var(--anth-text-muted);
+}

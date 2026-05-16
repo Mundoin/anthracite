@@ -4,12 +4,21 @@ import {
   useReducer,
   type JSX,
 } from "react";
+import { archiveIntake, archiveKindFromFilename } from "../../api/archiveIntake";
 import { detectConfigPlatform } from "../../api/configDetection";
 import { parseDeviceConfig } from "../../api/parser";
 import { projectDeviceReceipt } from "../../api/receipt";
 import { listVendorPlatforms } from "../../api/vendor";
 import { splitConfigBatch } from "../../api/configBatch";
+import type {
+  ArchiveEntry,
+  ArchiveEntryRef,
+} from "../../types/archiveIntake";
+import type { ConfigSlice } from "../../types/configBatch";
 import type { PlatformRef } from "../../types/networkModel";
+import { ArchiveInventoryPanel } from "./components/ArchiveInventoryPanel";
+import { ArchiveOpenButton } from "./components/ArchiveOpenButton";
+import { ArchiveSourceBadge } from "./components/ArchiveSourceBadge";
 import { BatchSummaryView } from "./components/BatchSummaryView";
 import { ConfigInputArea } from "./components/ConfigInputArea";
 import { DetectionResultView } from "./components/DetectionResultView";
@@ -37,6 +46,7 @@ export interface IntakeApi {
   readonly parseDeviceConfig: typeof parseDeviceConfig;
   readonly projectDeviceReceipt: typeof projectDeviceReceipt;
   readonly splitConfigBatch: typeof splitConfigBatch;
+  readonly archiveIntake: typeof archiveIntake;
 }
 
 const DEFAULT_API: IntakeApi = {
@@ -45,6 +55,7 @@ const DEFAULT_API: IntakeApi = {
   parseDeviceConfig,
   projectDeviceReceipt,
   splitConfigBatch,
+  archiveIntake,
 };
 
 export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.Element {
@@ -128,6 +139,138 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
     }
   }, []);
 
+  const onOpenArchive = useCallback(
+    async (file: File): Promise<void> => {
+      dispatch({
+        type: "ArchiveOpenStart",
+        filename: file.name,
+        byte_size: file.size,
+      });
+      const kindHint = archiveKindFromFilename(file.name);
+      if (!kindHint) {
+        dispatch({
+          type: "ArchiveOpenFailed",
+          message: `Unsupported archive extension on '${file.name}'. Accepted: .zip, .tar, .tar.gz, .tgz`,
+        });
+        return;
+      }
+      let bytes: Uint8Array;
+      try {
+        const ab = await file.arrayBuffer();
+        bytes = new Uint8Array(ab);
+      } catch (err) {
+        dispatch({
+          type: "ArchiveOpenFailed",
+          message: `Could not read archive bytes: ${describeError(err)}`,
+        });
+        return;
+      }
+      let intake;
+      try {
+        intake = await api.archiveIntake(bytes, kindHint);
+      } catch (err) {
+        dispatch({
+          type: "ArchiveOpenFailed",
+          message: describeError(err),
+        });
+        return;
+      }
+
+      const extracted: ReadonlyArray<ArchiveEntry> = intake.entries.filter(
+        (e) => e.status.kind === "extracted" && e.raw_text !== null,
+      );
+
+      // R11 regression lock: single extracted entry whose split yields
+      // a single_config slice falls straight through to the V1O
+      // single-config flow.
+      if (extracted.length === 1) {
+        const onlyEntry = extracted[0];
+        const entryText = onlyEntry.raw_text ?? "";
+        try {
+          const split = await api.splitConfigBatch(entryText);
+          if (isSingleConfigResult(split)) {
+            dispatch({
+              type: "ArchiveSingleConfigPassthrough",
+              text: entryText,
+              entry_path: onlyEntry.path,
+              archive_name: file.name,
+              inventory: intake,
+            });
+            try {
+              const det = await api.detectConfigPlatform(entryText);
+              dispatch({ type: "DetectSucceeded", result: det });
+            } catch (err) {
+              dispatch({
+                type: "DetectFailed",
+                message: describeError(err),
+              });
+            }
+            return;
+          }
+        } catch (err) {
+          dispatch({
+            type: "ArchiveOpenFailed",
+            message: `Split failed for archive entry '${onlyEntry.path}': ${describeError(err)}`,
+          });
+          return;
+        }
+      }
+
+      // Multi-entry OR single-entry-multi-config → flatten per-entry
+      // splits and build a synthesised batch result with provenance.
+      dispatch({ type: "ArchiveIntakeSplittingStart" });
+      const flatSlices: ConfigSlice[] = [];
+      const provenance: Record<string, ArchiveEntryRef> = {};
+      let totalLines = 0;
+      let scannedLines = 0;
+      let splitterVersion = "1";
+      for (const entry of extracted) {
+        const entryText = entry.raw_text ?? "";
+        let split;
+        try {
+          split = await api.splitConfigBatch(entryText);
+        } catch (err) {
+          dispatch({
+            type: "ArchiveOpenFailed",
+            message: `Split failed for archive entry '${entry.path}': ${describeError(err)}`,
+          });
+          return;
+        }
+        splitterVersion = split.splitter_version;
+        totalLines += split.total_line_count;
+        scannedLines += split.scanned_line_count;
+        for (const slice of split.slices) {
+          const namespacedId = `${entry.entry_id}/${slice.slice_id}`;
+          flatSlices.push({ ...slice, slice_id: namespacedId });
+          provenance[namespacedId] = {
+            entry_id: entry.entry_id,
+            entry_path: entry.path,
+            archive_name: file.name,
+          };
+        }
+      }
+      dispatch({
+        type: "ArchiveBatchAssembled",
+        result: {
+          slices: flatSlices,
+          // Synthesised — actual per-entry methods are visible via the
+          // archive inventory panel; the batch summary's `method`
+          // field is a single label so we pick `heuristic` as the
+          // honest catch-all when flattening across entries.
+          method: { kind: "heuristic" },
+          warnings: [],
+          total_line_count: totalLines,
+          scanned_line_count: scannedLines,
+          splitter_version: splitterVersion,
+        },
+        inventory: intake,
+        provenance,
+        archive_name: file.name,
+      });
+    },
+    [api],
+  );
+
   const onDetect = useCallback(async (): Promise<void> => {
     // V1O-A: always split first. SingleConfig → V1O detect path
     // (regression lock R4). Multi-slice → batch summary path.
@@ -203,6 +346,16 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
     state.batchStatus === "split_complete" &&
     state.batch !== null &&
     drilledSlice !== undefined;
+  const archiveInventory = state.batch?.archiveInventory ?? null;
+  const archiveProvenance = state.batch?.archiveProvenance ?? null;
+  const archiveName = state.batch?.archiveName ?? null;
+  const drilledProvenance =
+    drilledSlice && archiveProvenance
+      ? archiveProvenance[drilledSlice.slice_id]
+      : null;
+  const archiveBusy =
+    state.batchStatus === "archive_loading" ||
+    state.batchStatus === "archive_splitting";
 
   return (
     <div className="intake-root" aria-label="Config intake">
@@ -227,19 +380,63 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
                 <span className="intake-muted"> · {drilledSlice.hint.hostname}</span>
               )}
             </span>
+            {drilledProvenance && (
+              <ArchiveSourceBadge provenance={drilledProvenance} />
+            )}
           </div>
         </header>
       )}
 
       {!showDrilledHeader && (
-        <ConfigInputArea
-          text={state.text}
-          source={state.source}
-          status={state.status}
-          onTextChange={onTextChange}
-          onFile={(f) => void onFile(f)}
-          onClear={onClear}
-          onDetect={() => void onDetect()}
+        <>
+          <div className="intake-archive-bar" aria-label="Archive intake">
+            <ArchiveOpenButton
+              onArchive={(f) => void onOpenArchive(f)}
+              disabled={archiveBusy || state.status === "detecting" || state.status === "parsing"}
+            />
+            {state.batchStatus === "archive_loading" && (
+              <span className="intake-muted" role="status">
+                Reading archive…
+              </span>
+            )}
+            {state.batchStatus === "archive_splitting" && (
+              <span className="intake-muted" role="status">
+                Splitting archive entries…
+              </span>
+            )}
+          </div>
+          <ConfigInputArea
+            text={state.text}
+            source={state.source}
+            status={state.status}
+            onTextChange={onTextChange}
+            onFile={(f) => void onFile(f)}
+            onClear={onClear}
+            onDetect={() => void onDetect()}
+          />
+        </>
+      )}
+
+      {state.batchStatus === "archive_error" && state.errorMessage && (
+        <div className="intake-error" role="alert">
+          <div className="intake-error__head">
+            <span className="intake-tag intake-tag--err">ERROR · archive</span>
+            <button
+              type="button"
+              className="intake-btn intake-btn--tiny"
+              onClick={onDismissError}
+            >
+              Dismiss
+            </button>
+          </div>
+          <div className="intake-error__body">{state.errorMessage}</div>
+        </div>
+      )}
+
+      {showBatchSummary && archiveInventory && archiveName && (
+        <ArchiveInventoryPanel
+          inventory={archiveInventory}
+          archiveName={archiveName}
         />
       )}
 
@@ -268,6 +465,9 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
           onOpenSlice={onOpenSlice}
           onTreatAsSingleConfig={onTreatAsSingleConfig}
           disabled={false}
+          archiveProvenance={
+            archiveProvenance ?? undefined
+          }
         />
       )}
 

@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import type { ArchiveEntryRef } from "../../../types/archiveIntake";
 import type {
   BatchWarning,
   ConfigBatchSplitResult,
@@ -7,6 +8,7 @@ import type {
   SplitMethod,
 } from "../../../types/configBatch";
 import type { PerSliceDetection } from "../intakeTypes";
+import { ArchiveSourceBadge } from "./ArchiveSourceBadge";
 
 export interface BatchSummaryViewProps {
   readonly result: ConfigBatchSplitResult;
@@ -14,10 +16,23 @@ export interface BatchSummaryViewProps {
   readonly onOpenSlice: (sliceId: string) => void;
   readonly onTreatAsSingleConfig: () => void;
   readonly disabled: boolean;
+  /**
+   * V1O-B archive provenance map (slice_id → entry ref). Optional —
+   * absent for V1O-A paste/file splits. When present, each slice
+   * card is decorated with an `ArchiveSourceBadge`.
+   */
+  readonly archiveProvenance?: Readonly<Record<string, ArchiveEntryRef>>;
 }
 
 export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
-  const { result, perSliceDetection, onOpenSlice, onTreatAsSingleConfig, disabled } = props;
+  const {
+    result,
+    perSliceDetection,
+    onOpenSlice,
+    onTreatAsSingleConfig,
+    disabled,
+    archiveProvenance,
+  } = props;
   const ambiguousOrLow = result.warnings.some(
     (w) =>
       w.kind === "ambiguous_boundary" ||
@@ -62,6 +77,7 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
         perSliceDetection={perSliceDetection}
         onOpenSlice={onOpenSlice}
         disabled={disabled}
+        archiveProvenance={archiveProvenance}
       />
     </section>
   );
@@ -72,10 +88,11 @@ interface BatchSlicesListProps {
   readonly perSliceDetection: Readonly<Record<string, PerSliceDetection>>;
   readonly onOpenSlice: (sliceId: string) => void;
   readonly disabled: boolean;
+  readonly archiveProvenance?: Readonly<Record<string, ArchiveEntryRef>>;
 }
 
 function BatchSlicesList(props: BatchSlicesListProps): JSX.Element {
-  const { slices, perSliceDetection, onOpenSlice, disabled } = props;
+  const { slices, perSliceDetection, onOpenSlice, disabled, archiveProvenance } = props;
   return (
     <div className="intake-subblock">
       <div className="intake-subblock__title">SLICES ({slices.length})</div>
@@ -96,10 +113,19 @@ function BatchSlicesList(props: BatchSlicesListProps): JSX.Element {
           <tbody>
             {slices.map((slice) => {
               const det = perSliceDetection[slice.slice_id];
+              const provenance = archiveProvenance?.[slice.slice_id];
               return (
                 <tr key={slice.slice_id}>
                   <td>{slice.slice_id}</td>
-                  <td>{describeHint(slice.hint)}</td>
+                  <td>
+                    {describeHint(slice.hint)}
+                    {provenance && (
+                      <>
+                        {" "}
+                        <ArchiveSourceBadge provenance={provenance} />
+                      </>
+                    )}
+                  </td>
                   <td className="intake-num">
                     {slice.line_start === slice.line_end
                       ? slice.line_start
