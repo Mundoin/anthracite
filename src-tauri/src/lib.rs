@@ -56,6 +56,7 @@ pub fn run() {
             commands::vendor_registry::list_vendor_platforms,
             commands::vendor_registry::get_vendor_platform,
             commands::config_detection::detect_config_platform,
+            commands::config_splitter::split_config_batch,
             commands::parser::parse_device_config,
             commands::receipt::project_device_receipt,
         ])

@@ -4,6 +4,7 @@
 //! over these engines (see `docs/architecture/ENGINE_AND_API_BOUNDARIES.md`).
 
 pub mod config_detection;
+pub mod config_splitter;
 pub mod environment;
 pub mod network_model;
 pub mod parsers;

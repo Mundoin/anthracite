@@ -4,6 +4,7 @@
 //! command signatures are the typed contract between Rust and TypeScript.
 
 pub mod config_detection;
+pub mod config_splitter;
 pub mod environment;
 pub mod parser;
 pub mod receipt;
