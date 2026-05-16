@@ -5,6 +5,7 @@
 //! `platform_id`. Parsers are composable, not chained — detection is the
 //! caller's responsibility.
 
+pub mod arista_eos;
 pub mod cisco_iosxe;
 pub mod context;
 pub mod juniper_junos;
@@ -29,6 +30,7 @@ pub fn parse_device_config(
     match id {
         "cisco-iosxe" => Ok(cisco_iosxe::parse(platform_ref, config_text)),
         "juniper-junos" => Ok(juniper_junos::parse(platform_ref, config_text)),
+        "arista-eos" => Ok(arista_eos::parse(platform_ref, config_text)),
         other => Err(format!("unsupported platform: {other}")),
     }
 }
@@ -68,8 +70,11 @@ mod tests {
 
     #[test]
     fn unknown_platform_id_returns_err() {
-        let r = parse_device_config(pref(Some("arista-eos")), "x");
-        assert_eq!(r.unwrap_err(), "unsupported platform: arista-eos");
+        let r = parse_device_config(pref(Some("unknown-vendor-xyz")), "x");
+        assert_eq!(
+            r.unwrap_err(),
+            "unsupported platform: unknown-vendor-xyz"
+        );
     }
 
     #[test]
@@ -77,6 +82,16 @@ mod tests {
         let r = parse_device_config(pref(Some("juniper-junos")), "set system host-name r1\n");
         assert!(r.is_ok());
         assert_eq!(r.unwrap().identity.hostname.as_deref(), Some("r1"));
+    }
+
+    #[test]
+    fn arista_eos_platform_id_dispatches_ok() {
+        let r = parse_device_config(
+            pref(Some("arista-eos")),
+            "hostname eos-x\nend\n",
+        );
+        assert!(r.is_ok());
+        assert_eq!(r.unwrap().identity.hostname.as_deref(), Some("eos-x"));
     }
 
     #[test]

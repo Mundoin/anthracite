@@ -168,9 +168,12 @@ fn whitespace_only_input_returns_empty_shell_with_warning() {
 #[test]
 fn wrong_platform_ref_returns_err() {
     let mut pref = iosxe_platform_ref();
-    pref.platform_id = Some("arista-eos".to_string());
+    pref.platform_id = Some("unknown-vendor-xyz".to_string());
     let r = parsers::parse_device_config(pref, "hostname x\n");
-    assert_eq!(r.unwrap_err(), "unsupported platform: arista-eos");
+    assert_eq!(
+        r.unwrap_err(),
+        "unsupported platform: unknown-vendor-xyz"
+    );
 }
 
 #[test]
