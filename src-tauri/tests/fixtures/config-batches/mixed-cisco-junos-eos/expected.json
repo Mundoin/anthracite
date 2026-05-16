@@ -1,0 +1,44 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 1,
+      "line_end": 12,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r-cisco\nno ip domain lookup\ninterface GigabitEthernet0/0\n ip address 10.0.1.1 255.255.255.0\nip route 0.0.0.0 0.0.0.0 10.0.1.254\nline vty 0 4\n transport input ssh\nend\nsystem {\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r-cisco"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 13,
+      "line_end": 36,
+      "raw_text": "    host-name r-junos;\n    services {\n        ssh;\n    }\n}\ninterfaces {\n    ge-0/0/0 {\n        unit 0 {\n            family inet { address 10.0.2.1/30; }\n        }\n    }\n}\nprotocols {\n    ospf {\n        area 0.0.0.0 { interface ge-0/0/0.0; }\n    }\n}\nrouting-options {\n    router-id 10.0.2.1;\n}\ndaemon TerminAttr\n   exec /usr/bin/TerminAttr -ingestgrpcurl=127.0.0.1:9910\n   no shutdown\n!\n",
+      "confidence": 0.7,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r-junos"
+      }
+    },
+    {
+      "slice_id": "slice-2",
+      "line_start": 37,
+      "line_end": 47,
+      "raw_text": "hostname r-eos\ntransceiver qsfp default-mode 4x10G\nmlag configuration\n   domain-id leaf\n   local-interface Vlan4094\nip routing\ninterface Ethernet1\n   no switchport\n   ip address 10.0.3.1/30\nmanagement api http-commands\n   no shutdown\n",
+      "confidence": 0.7,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r-eos"
+      }
+    }
+  ],
+  "method": {
+    "kind": "heuristic"
+  },
+  "warnings": [],
+  "total_line_count": 47,
+  "scanned_line_count": 47,
+  "splitter_version": "1"
+}

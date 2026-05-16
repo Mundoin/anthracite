@@ -1,0 +1,33 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 1,
+      "line_end": 21,
+      "raw_text": "system {\n    host-name r-brace;\n    services {\n        ssh;\n    }\n}\ninterfaces {\n    ge-0/0/0 {\n        unit 0 {\n            family inet { address 10.0.1.1/30; }\n        }\n    }\n}\nprotocols {\n    ospf {\n        area 0.0.0.0 { interface ge-0/0/0.0; }\n    }\n}\nrouting-options {\n    router-id 10.0.1.1;\n}\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r-brace"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 22,
+      "line_end": 26,
+      "raw_text": "set system host-name r-set\nset interfaces ge-0/0/0 unit 0 family inet address 10.0.2.1/30\nset protocols ospf area 0.0.0.0 interface ge-0/0/0\nset routing-options router-id 10.0.2.1\nset policy-options policy-statement EXPORT term ACCEPT then accept\n",
+      "confidence": 0.7,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r-set"
+      }
+    }
+  ],
+  "method": {
+    "kind": "heuristic"
+  },
+  "warnings": [],
+  "total_line_count": 26,
+  "scanned_line_count": 26,
+  "splitter_version": "1"
+}

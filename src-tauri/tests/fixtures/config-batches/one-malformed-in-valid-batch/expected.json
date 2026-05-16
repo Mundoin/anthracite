@@ -1,0 +1,56 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 2,
+      "line_end": 8,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r1\ninterface GigabitEthernet0/0\n ip address 10.0.1.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r1"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 10,
+      "line_end": 16,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r2\ninterface GigabitEthernet0/0\n ip address 10.0.2.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r2"
+      }
+    },
+    {
+      "slice_id": "slice-2",
+      "line_start": 18,
+      "line_end": 24,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r3\ninterface GigabitEthernet0/0\n ip address 10.0.3.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r3"
+      }
+    },
+    {
+      "slice_id": "slice-3",
+      "line_start": 26,
+      "line_end": 31,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r4\ninterface GigabitEthernet0/0\n ip address 10.0\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r4"
+      }
+    }
+  ],
+  "method": {
+    "kind": "explicit_separator",
+    "pattern": "hash-device"
+  },
+  "warnings": [],
+  "total_line_count": 31,
+  "scanned_line_count": 31,
+  "splitter_version": "1"
+}

@@ -1,0 +1,42 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 1,
+      "line_end": 3,
+      "raw_text": "hostname r1\ninterface GigabitEthernet0/0\n ip address 10.0.1.1 255.255.255.0\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r1"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 4,
+      "line_end": 6,
+      "raw_text": "hostname r2\ninterface GigabitEthernet0/0\n ip address 10.0.2.1 255.255.255.0\n",
+      "confidence": 0.3,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r2"
+      }
+    }
+  ],
+  "method": {
+    "kind": "heuristic"
+  },
+  "warnings": [
+    {
+      "kind": "low_confidence_split",
+      "slice_id": "slice-1"
+    },
+    {
+      "kind": "ambiguous_boundary",
+      "near_line": 4
+    }
+  ],
+  "total_line_count": 6,
+  "scanned_line_count": 6,
+  "splitter_version": "1"
+}

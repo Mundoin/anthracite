@@ -1,0 +1,45 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 2,
+      "line_end": 12,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r1\nno ip domain lookup\ninterface GigabitEthernet0/0\n ip address 10.0.1.1 255.255.255.0\nip route 0.0.0.0 0.0.0.0 10.0.1.254\nline vty 0 4\n transport input ssh\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r1"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 14,
+      "line_end": 24,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r2\nno ip domain lookup\ninterface GigabitEthernet0/0\n ip address 10.0.2.1 255.255.255.0\nip route 0.0.0.0 0.0.0.0 10.0.2.254\nline vty 0 4\n transport input ssh\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r2"
+      }
+    },
+    {
+      "slice_id": "slice-2",
+      "line_start": 26,
+      "line_end": 36,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r3\nno ip domain lookup\ninterface GigabitEthernet0/0\n ip address 10.0.3.1 255.255.255.0\nip route 0.0.0.0 0.0.0.0 10.0.3.254\nline vty 0 4\n transport input ssh\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r3"
+      }
+    }
+  ],
+  "method": {
+    "kind": "explicit_separator",
+    "pattern": "hash-device"
+  },
+  "warnings": [],
+  "total_line_count": 36,
+  "scanned_line_count": 36,
+  "splitter_version": "1"
+}

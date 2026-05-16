@@ -1,0 +1,562 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 2,
+      "line_end": 8,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r1\ninterface GigabitEthernet0/0\n ip address 10.0.1.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r1"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 10,
+      "line_end": 16,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r2\ninterface GigabitEthernet0/0\n ip address 10.0.2.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r2"
+      }
+    },
+    {
+      "slice_id": "slice-2",
+      "line_start": 18,
+      "line_end": 24,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r3\ninterface GigabitEthernet0/0\n ip address 10.0.3.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r3"
+      }
+    },
+    {
+      "slice_id": "slice-3",
+      "line_start": 26,
+      "line_end": 32,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r4\ninterface GigabitEthernet0/0\n ip address 10.0.4.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r4"
+      }
+    },
+    {
+      "slice_id": "slice-4",
+      "line_start": 34,
+      "line_end": 40,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r5\ninterface GigabitEthernet0/0\n ip address 10.0.5.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r5"
+      }
+    },
+    {
+      "slice_id": "slice-5",
+      "line_start": 42,
+      "line_end": 48,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r6\ninterface GigabitEthernet0/0\n ip address 10.0.6.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r6"
+      }
+    },
+    {
+      "slice_id": "slice-6",
+      "line_start": 50,
+      "line_end": 56,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r7\ninterface GigabitEthernet0/0\n ip address 10.0.7.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r7"
+      }
+    },
+    {
+      "slice_id": "slice-7",
+      "line_start": 58,
+      "line_end": 64,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r8\ninterface GigabitEthernet0/0\n ip address 10.0.8.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r8"
+      }
+    },
+    {
+      "slice_id": "slice-8",
+      "line_start": 66,
+      "line_end": 72,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r9\ninterface GigabitEthernet0/0\n ip address 10.0.9.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r9"
+      }
+    },
+    {
+      "slice_id": "slice-9",
+      "line_start": 74,
+      "line_end": 80,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r10\ninterface GigabitEthernet0/0\n ip address 10.0.10.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r10"
+      }
+    },
+    {
+      "slice_id": "slice-10",
+      "line_start": 82,
+      "line_end": 88,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r11\ninterface GigabitEthernet0/0\n ip address 10.0.11.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r11"
+      }
+    },
+    {
+      "slice_id": "slice-11",
+      "line_start": 90,
+      "line_end": 96,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r12\ninterface GigabitEthernet0/0\n ip address 10.0.12.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r12"
+      }
+    },
+    {
+      "slice_id": "slice-12",
+      "line_start": 98,
+      "line_end": 104,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r13\ninterface GigabitEthernet0/0\n ip address 10.0.13.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r13"
+      }
+    },
+    {
+      "slice_id": "slice-13",
+      "line_start": 106,
+      "line_end": 112,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r14\ninterface GigabitEthernet0/0\n ip address 10.0.14.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r14"
+      }
+    },
+    {
+      "slice_id": "slice-14",
+      "line_start": 114,
+      "line_end": 120,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r15\ninterface GigabitEthernet0/0\n ip address 10.0.15.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r15"
+      }
+    },
+    {
+      "slice_id": "slice-15",
+      "line_start": 122,
+      "line_end": 128,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r16\ninterface GigabitEthernet0/0\n ip address 10.0.16.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r16"
+      }
+    },
+    {
+      "slice_id": "slice-16",
+      "line_start": 130,
+      "line_end": 136,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r17\ninterface GigabitEthernet0/0\n ip address 10.0.17.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r17"
+      }
+    },
+    {
+      "slice_id": "slice-17",
+      "line_start": 138,
+      "line_end": 144,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r18\ninterface GigabitEthernet0/0\n ip address 10.0.18.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r18"
+      }
+    },
+    {
+      "slice_id": "slice-18",
+      "line_start": 146,
+      "line_end": 152,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r19\ninterface GigabitEthernet0/0\n ip address 10.0.19.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r19"
+      }
+    },
+    {
+      "slice_id": "slice-19",
+      "line_start": 154,
+      "line_end": 160,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r20\ninterface GigabitEthernet0/0\n ip address 10.0.20.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r20"
+      }
+    },
+    {
+      "slice_id": "slice-20",
+      "line_start": 162,
+      "line_end": 168,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r21\ninterface GigabitEthernet0/0\n ip address 10.0.21.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r21"
+      }
+    },
+    {
+      "slice_id": "slice-21",
+      "line_start": 170,
+      "line_end": 176,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r22\ninterface GigabitEthernet0/0\n ip address 10.0.22.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r22"
+      }
+    },
+    {
+      "slice_id": "slice-22",
+      "line_start": 178,
+      "line_end": 184,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r23\ninterface GigabitEthernet0/0\n ip address 10.0.23.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r23"
+      }
+    },
+    {
+      "slice_id": "slice-23",
+      "line_start": 186,
+      "line_end": 192,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r24\ninterface GigabitEthernet0/0\n ip address 10.0.24.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r24"
+      }
+    },
+    {
+      "slice_id": "slice-24",
+      "line_start": 194,
+      "line_end": 200,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r25\ninterface GigabitEthernet0/0\n ip address 10.0.25.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r25"
+      }
+    },
+    {
+      "slice_id": "slice-25",
+      "line_start": 202,
+      "line_end": 208,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r26\ninterface GigabitEthernet0/0\n ip address 10.0.26.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r26"
+      }
+    },
+    {
+      "slice_id": "slice-26",
+      "line_start": 210,
+      "line_end": 216,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r27\ninterface GigabitEthernet0/0\n ip address 10.0.27.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r27"
+      }
+    },
+    {
+      "slice_id": "slice-27",
+      "line_start": 218,
+      "line_end": 224,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r28\ninterface GigabitEthernet0/0\n ip address 10.0.28.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r28"
+      }
+    },
+    {
+      "slice_id": "slice-28",
+      "line_start": 226,
+      "line_end": 232,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r29\ninterface GigabitEthernet0/0\n ip address 10.0.29.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r29"
+      }
+    },
+    {
+      "slice_id": "slice-29",
+      "line_start": 234,
+      "line_end": 240,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r30\ninterface GigabitEthernet0/0\n ip address 10.0.30.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r30"
+      }
+    },
+    {
+      "slice_id": "slice-30",
+      "line_start": 242,
+      "line_end": 248,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r31\ninterface GigabitEthernet0/0\n ip address 10.0.31.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r31"
+      }
+    },
+    {
+      "slice_id": "slice-31",
+      "line_start": 250,
+      "line_end": 256,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r32\ninterface GigabitEthernet0/0\n ip address 10.0.32.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r32"
+      }
+    },
+    {
+      "slice_id": "slice-32",
+      "line_start": 258,
+      "line_end": 264,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r33\ninterface GigabitEthernet0/0\n ip address 10.0.33.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r33"
+      }
+    },
+    {
+      "slice_id": "slice-33",
+      "line_start": 266,
+      "line_end": 272,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r34\ninterface GigabitEthernet0/0\n ip address 10.0.34.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r34"
+      }
+    },
+    {
+      "slice_id": "slice-34",
+      "line_start": 274,
+      "line_end": 280,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r35\ninterface GigabitEthernet0/0\n ip address 10.0.35.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r35"
+      }
+    },
+    {
+      "slice_id": "slice-35",
+      "line_start": 282,
+      "line_end": 288,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r36\ninterface GigabitEthernet0/0\n ip address 10.0.36.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r36"
+      }
+    },
+    {
+      "slice_id": "slice-36",
+      "line_start": 290,
+      "line_end": 296,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r37\ninterface GigabitEthernet0/0\n ip address 10.0.37.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r37"
+      }
+    },
+    {
+      "slice_id": "slice-37",
+      "line_start": 298,
+      "line_end": 304,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r38\ninterface GigabitEthernet0/0\n ip address 10.0.38.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r38"
+      }
+    },
+    {
+      "slice_id": "slice-38",
+      "line_start": 306,
+      "line_end": 312,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r39\ninterface GigabitEthernet0/0\n ip address 10.0.39.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r39"
+      }
+    },
+    {
+      "slice_id": "slice-39",
+      "line_start": 314,
+      "line_end": 320,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r40\ninterface GigabitEthernet0/0\n ip address 10.0.40.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r40"
+      }
+    },
+    {
+      "slice_id": "slice-40",
+      "line_start": 322,
+      "line_end": 328,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r41\ninterface GigabitEthernet0/0\n ip address 10.0.41.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r41"
+      }
+    },
+    {
+      "slice_id": "slice-41",
+      "line_start": 330,
+      "line_end": 336,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r42\ninterface GigabitEthernet0/0\n ip address 10.0.42.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r42"
+      }
+    },
+    {
+      "slice_id": "slice-42",
+      "line_start": 338,
+      "line_end": 344,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r43\ninterface GigabitEthernet0/0\n ip address 10.0.43.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r43"
+      }
+    },
+    {
+      "slice_id": "slice-43",
+      "line_start": 346,
+      "line_end": 352,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r44\ninterface GigabitEthernet0/0\n ip address 10.0.44.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r44"
+      }
+    },
+    {
+      "slice_id": "slice-44",
+      "line_start": 354,
+      "line_end": 360,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r45\ninterface GigabitEthernet0/0\n ip address 10.0.45.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r45"
+      }
+    },
+    {
+      "slice_id": "slice-45",
+      "line_start": 362,
+      "line_end": 368,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r46\ninterface GigabitEthernet0/0\n ip address 10.0.46.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r46"
+      }
+    },
+    {
+      "slice_id": "slice-46",
+      "line_start": 370,
+      "line_end": 376,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r47\ninterface GigabitEthernet0/0\n ip address 10.0.47.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r47"
+      }
+    },
+    {
+      "slice_id": "slice-47",
+      "line_start": 378,
+      "line_end": 384,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r48\ninterface GigabitEthernet0/0\n ip address 10.0.48.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r48"
+      }
+    },
+    {
+      "slice_id": "slice-48",
+      "line_start": 386,
+      "line_end": 392,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r49\ninterface GigabitEthernet0/0\n ip address 10.0.49.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r49"
+      }
+    },
+    {
+      "slice_id": "slice-49",
+      "line_start": 394,
+      "line_end": 400,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r50\ninterface GigabitEthernet0/0\n ip address 10.0.50.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r50"
+      }
+    }
+  ],
+  "method": {
+    "kind": "explicit_separator",
+    "pattern": "hash-device"
+  },
+  "warnings": [],
+  "total_line_count": 400,
+  "scanned_line_count": 400,
+  "splitter_version": "1"
+}

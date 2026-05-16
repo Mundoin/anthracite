@@ -1,0 +1,67 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 2,
+      "line_end": 5,
+      "raw_text": "set system host-name r1\nset interfaces ge-0/0/0 unit 0 family inet address 10.0.1.1/30\nset protocols ospf area 0.0.0.0 interface ge-0/0/0\nset routing-options router-id 10.0.1.1\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r1"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 7,
+      "line_end": 10,
+      "raw_text": "set system host-name r2\nset interfaces ge-0/0/0 unit 0 family inet address 10.0.2.1/30\nset protocols bgp group external type external\nset routing-options router-id 10.0.2.1\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r2"
+      }
+    },
+    {
+      "slice_id": "slice-2",
+      "line_start": 12,
+      "line_end": 15,
+      "raw_text": "set system host-name r3\nset interfaces ge-0/0/0 unit 0 family inet address 10.0.3.1/30\nset policy-options policy-statement EXPORT term ACCEPT then accept\nset routing-options router-id 10.0.3.1\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r3"
+      }
+    },
+    {
+      "slice_id": "slice-3",
+      "line_start": 17,
+      "line_end": 20,
+      "raw_text": "set system host-name r4\nset interfaces lo0 unit 0 family inet address 10.0.4.1/32\nset protocols isis interface ge-0/0/0\nset routing-options router-id 10.0.4.1\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r4"
+      }
+    },
+    {
+      "slice_id": "slice-4",
+      "line_start": 22,
+      "line_end": 25,
+      "raw_text": "set system host-name r5\nset interfaces ge-0/0/0 unit 0 family inet address 10.0.5.1/30\nset protocols ospf area 0.0.0.0 interface ge-0/0/0\nset routing-options router-id 10.0.5.1\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r5"
+      }
+    }
+  ],
+  "method": {
+    "kind": "explicit_separator",
+    "pattern": "script-hostname"
+  },
+  "warnings": [],
+  "total_line_count": 25,
+  "scanned_line_count": 25,
+  "splitter_version": "1"
+}

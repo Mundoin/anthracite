@@ -1,0 +1,50 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 2,
+      "line_end": 8,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r1\ninterface GigabitEthernet0/0\n ip address 10.0.1.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r1"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 9,
+      "line_end": 9,
+      "raw_text": "",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r2"
+      }
+    },
+    {
+      "slice_id": "slice-2",
+      "line_start": 11,
+      "line_end": 17,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r3\ninterface GigabitEthernet0/0\n ip address 10.0.3.1 255.255.255.0\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r3"
+      }
+    }
+  ],
+  "method": {
+    "kind": "explicit_separator",
+    "pattern": "hash-device"
+  },
+  "warnings": [
+    {
+      "kind": "empty_slice_produced",
+      "slice_id": "slice-1"
+    }
+  ],
+  "total_line_count": 17,
+  "scanned_line_count": 17,
+  "splitter_version": "1"
+}

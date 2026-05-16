@@ -1,0 +1,36 @@
+# V1O-A config-batch fixture corpus manifest.
+#
+# This file is the single source of truth for which fixtures the
+# splitter corpus harness walks. The `splitter_version` field must
+# match `config_splitter::SPLITTER_VERSION`; the
+# `config_splitter_version_guard` integration test enforces that
+# equality.
+#
+# `fixtures` is the deterministically-ordered (alphabetical) list of
+# fixture directory names under `tests/fixtures/config-batches/`.
+# Every directory under that path (with the exception of this manifest
+# file) must appear here, and every entry here must exist on disk. The
+# corpus harness asserts both directions.
+#
+# Bump policy mirrors the parsers: when splitter output diverges from
+# any committed `expected.json`, bump `splitter_version` here AND in
+# `config_splitter::SPLITTER_VERSION`, then regenerate. See
+# `docs/architecture/CONFIG_SPLITTER_CONTRACT.md` for the full policy.
+
+splitter_version = 1
+
+fixtures = [
+    "ambiguous-no-clear-boundary",
+    "concatenated-three-cisco",
+    "concatenated-two-junos",
+    "empty-sections-between-separators",
+    "explicit-banner-separators",
+    "explicit-hash-separators",
+    "explicit-script-headers",
+    "large-batch-50-devices",
+    "mixed-cisco-junos-eos",
+    "mixed-pair-with-blank-lines",
+    "one-malformed-in-valid-batch",
+    "oversize-paste-boundary",
+    "single-config-pass-through",
+]

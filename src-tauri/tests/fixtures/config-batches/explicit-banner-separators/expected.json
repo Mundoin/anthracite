@@ -1,0 +1,45 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 2,
+      "line_end": 11,
+      "raw_text": "service timestamps debug datetime msec\nboot-start-marker\nboot-end-marker\nhostname r-cisco\nno ip domain lookup\ninterface GigabitEthernet0/0\n ip address 10.0.1.1 255.255.255.0\nline vty 0 4\n transport input ssh\nend\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r-cisco"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 13,
+      "line_end": 17,
+      "raw_text": "set system host-name r-junos\nset interfaces ge-0/0/0 unit 0 family inet address 10.0.2.1/30\nset protocols ospf area 0.0.0.0 interface ge-0/0/0\nset routing-options router-id 10.0.2.1\nset policy-options policy-statement EXPORT term ACCEPT then accept\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r-junos"
+      }
+    },
+    {
+      "slice_id": "slice-2",
+      "line_start": 19,
+      "line_end": 31,
+      "raw_text": "daemon TerminAttr\n   no shutdown\n!\nhostname r-eos\ntransceiver qsfp default-mode 4x10G\nmlag configuration\n   domain-id leaf\nip routing\ninterface Ethernet1\n   no switchport\n   ip address 10.0.3.1/30\nmanagement api http-commands\n   no shutdown\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r-eos"
+      }
+    }
+  ],
+  "method": {
+    "kind": "explicit_separator",
+    "pattern": "banner-equals"
+  },
+  "warnings": [],
+  "total_line_count": 31,
+  "scanned_line_count": 31,
+  "splitter_version": "1"
+}

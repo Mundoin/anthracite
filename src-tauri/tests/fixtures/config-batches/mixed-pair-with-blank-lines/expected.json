@@ -1,0 +1,42 @@
+{
+  "slices": [
+    {
+      "slice_id": "slice-0",
+      "line_start": 1,
+      "line_end": 8,
+      "raw_text": "service timestamps debug datetime msec\nhostname r1\nno ip domain lookup\ninterface GigabitEthernet0/0\n ip address 10.0.1.1 255.255.255.0\nip route 0.0.0.0 0.0.0.0 10.0.1.254\n\nservice timestamps debug datetime msec\n",
+      "confidence": 1.0,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r1"
+      }
+    },
+    {
+      "slice_id": "slice-1",
+      "line_start": 9,
+      "line_end": 13,
+      "raw_text": "hostname r2\nno ip domain lookup\ninterface GigabitEthernet0/0\n ip address 10.0.2.1 255.255.255.0\nip route 0.0.0.0 0.0.0.0 10.0.2.254\n",
+      "confidence": 0.3,
+      "hint": {
+        "kind": "hostname_present",
+        "hostname": "r2"
+      }
+    }
+  ],
+  "method": {
+    "kind": "heuristic"
+  },
+  "warnings": [
+    {
+      "kind": "low_confidence_split",
+      "slice_id": "slice-1"
+    },
+    {
+      "kind": "ambiguous_boundary",
+      "near_line": 9
+    }
+  ],
+  "total_line_count": 13,
+  "scanned_line_count": 13,
+  "splitter_version": "1"
+}
