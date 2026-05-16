@@ -73,6 +73,38 @@ ladder. L3 policy adds the policy block; L4 intent adds the routing
 protocol block; L5 validation adds findings; L6 render flips the model
 direction.
 
+## cisco-iosxe — V1L fixture coverage matrix
+
+V1L expanded the committed corpus from 3 to 16 fixtures. The matrix
+below names the primary parser path each fixture exercises. Fixtures
+may exercise more than their headline area; the listed area is the one
+the fixture was added for.
+
+| Fixture                              | Exercises                                                  |
+|--------------------------------------|------------------------------------------------------------|
+| `acl-and-nat-present`                | out-of-scope ACL + NAT paths → `unknown_lines[]`           |
+| `comments-and-banners`               | banner/comment tolerance, chassis/serial markers           |
+| `dual-stack-edge`                    | IPv4 + IPv6 addresses on the same interface                |
+| `duplicate-vlan-id`                  | VlanBuilder merge under duplicate `vlan N` blocks          |
+| `large-interface-count`              | BTreeMap sort + LAG aggregation across many ports          |
+| `many-access-ports-l2-only`          | L2 switch posture, trunk allowed VLAN list                 |
+| `mixed-mask-formats`                 | IPv4 dotted-mask + IPv6 slash-prefix + secondary           |
+| `near-empty` (V1K)                   | minimal viable input, score floor                          |
+| `out-of-order-vrf-binding`           | interface `vrf forwarding` before `vrf definition` block   |
+| `routing-protocols-present`          | out-of-scope OSPF/BGP blocks → `unknown_lines[]`           |
+| `services-snmp-ntp-ssh-syslog`       | every `services_*` coverage area in one fixture            |
+| `small` (V1K)                        | baseline ~72-line config                                   |
+| `truncated` (V1K)                    | input without `end` marker → `truncated_input` warning     |
+| `unrecognised-interface-form`        | `UnknownReason::UnrecognizedInterfaceForm` (added V1L)     |
+| `vrf-heavy-aggregation`              | multiple VRFs with RD + route-target import/export         |
+| `wan-edge-with-subinterfaces`        | dot1q sub-interfaces + `parent_interface` cross-link       |
+
+The single source of truth for the corpus list is
+`src-tauri/tests/fixtures/cisco-iosxe/_manifest.toml`. The
+`parser_version_guard` and `cisco_iosxe_fixture_corpus` integration
+tests enforce that the manifest, the on-disk dirs, and the source
+constant all agree.
+
 ## Other parsers
 
 Extended per-vendor as each parser ships. Same area names are reused

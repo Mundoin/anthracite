@@ -37,7 +37,8 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1J   | complete · Config Detection Engine | [stages/V1J-config-detection-engine.md](./stages/V1J-config-detection-engine.md) |
 | V1J-A | complete · Motor Room Architecture Rules (docs-only) | [stages/V1J-A-motor-room-architecture-rules.md](./stages/V1J-A-motor-room-architecture-rules.md) |
 | V1K   | complete · Cisco IOS / IOS XE parser L1/L2 | [stages/V1K-cisco-iosxe-parser.md](./stages/V1K-cisco-iosxe-parser.md) |
-| V1L   | planned       | Golden fixture corpus expansion + receipt projection |
+| V1L   | complete · Fixture corpus + receipt projection | [stages/V1L-fixture-corpus-and-receipts.md](./stages/V1L-fixture-corpus-and-receipts.md) |
+| V1M   | planned       | Second parser — juniper-junos L1/L2 (waits on V1L corpus stability) |
 
 ## V1J-A adaptation
 

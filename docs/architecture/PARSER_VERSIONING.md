@@ -40,14 +40,41 @@ counters; they evolve on independent maturity ladders.
 - Normalization table extension that touches any existing fixture.
 - Signature change (rare; would be a major bump in spirit).
 
-## CI enforcement
+## CI enforcement (V1L)
 
-If `cargo test --lib` shows a fixture diff and the relevant
-`PARSER_VERSION` was not incremented in the same commit, the build
-fails. The fixture is the contract; the version is the receipt.
+Three artefacts must agree on the parser's version at all times:
 
-(V1L wires the CI check explicitly. V1K relies on developer discipline
-and the fixture byte-equal tests as a stand-in.)
+1. The Rust source constant `cisco_iosxe::PARSER_VERSION` (and the
+   per-parser equivalent for future parsers).
+2. The fixture manifest at
+   `src-tauri/tests/fixtures/cisco-iosxe/_manifest.toml`, field
+   `parser_version`.
+3. The on-disk fixture corpus (every directory listed in the manifest
+   must exist; every directory on disk must appear in the manifest).
+
+The integration test `tests/parser_version_guard.rs` enforces (1)↔(2)
+and (2)↔(3). The corpus harness `tests/cisco_iosxe_fixture_corpus.rs`
+additionally enforces that every fixture's committed `expected.json`
+matches what the current parser produces; any diff fails CI.
+
+### Honest limitation
+
+CI enforces consistency among the three artefacts. It **cannot** tell
+you whether a parser change *should* have required a bump in the first
+place. The workflow is therefore:
+
+- Make the parser change.
+- Run `ANTHRACITE_UPDATE_FIXTURES=1 cargo test --test cisco_iosxe_fixture_corpus`.
+- Look at the diff in every regenerated `expected.json`.
+- If any byte changed for any fixture that was already shipped, you
+  MUST bump `PARSER_VERSION` and the manifest `parser_version` in the
+  same commit. CI fails if you regenerate without bumping.
+- If no bytes changed, the bump was unnecessary; revert it.
+
+Human review at PR time is the final gate on bump correctness. CI is
+the gate that you didn't *forget* to bump.
+
+(V1K relied on developer discipline. V1L wires the explicit guards.)
 
 ## Rationale
 
