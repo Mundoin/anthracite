@@ -3,6 +3,7 @@
 //! Modes call engines through these commands. One module per engine; the
 //! command signatures are the typed contract between Rust and TypeScript.
 
+pub mod archive_intake;
 pub mod config_detection;
 pub mod config_splitter;
 pub mod environment;
