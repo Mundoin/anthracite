@@ -163,6 +163,75 @@ The single source of truth for the corpus list is
 tests enforce that the manifest, the on-disk dirs, and the source
 constant all agree.
 
+## arista-eos — L1 inventory + L2 topology (V1N)
+
+In-scope areas mirror the cisco-iosxe and juniper-junos sets exactly
+so receipt projection and cross-vendor consumers operate on one
+vocabulary:
+
+```
+identity
+platform
+interfaces
+ip_addressing
+vlans
+vrfs
+static_routes
+lag_groups
+services_ssh
+services_snmp
+services_ntp
+services_dns
+services_syslog
+```
+
+Out-of-scope at L1/L2 includes the V1K/V1M set **plus EOS-specific
+blocks** that emit dedicated `not_in_scope:*` markers and route
+contents through `unknown_lines[]`:
+
+- `mlag configuration` → `not_in_scope:mlag`
+- `management api http-commands` → `not_in_scope:management_api`
+- `event-handler …` → `not_in_scope:event_handlers`
+- `daemon …` → `not_in_scope:daemons`
+- `varp …` → `not_in_scope:varp`
+
+EOS-specific note: `switchport trunk group NAME` emits the warning
+`eos_trunk_group_out_of_scope` and lands the line in `unknown_lines[]`
+with `OutOfScope`.
+
+V1N fixture coverage matrix:
+
+| Fixture                              | Exercises                                                       |
+|--------------------------------------|-----------------------------------------------------------------|
+| `cross-vendor-equivalent-small`      | one of three fixtures the cross-vendor invariant test compares  |
+| `eos-divergence-from-iosxe`          | `vrf instance`, `management ssh`, EOS-style LACP — proves EOS ≠ IOS-XE |
+| `leaf-switch`                        | top-of-rack: many access ports, trunk uplink, mgmt SVI          |
+| `mlag-and-eapi-present`              | MLAG + `management api http-commands` → out-of-scope evidence   |
+| `near-empty`                         | hostname only                                                   |
+| `routing-protocols-present`          | `router bgp` / `router ospf` → out-of-scope evidence            |
+| `small`                              | full L1/L2 surface in one config                                |
+| `spine-router`                       | routed Ethernet, multiple loopbacks, no VLANs                   |
+| `truncated`                          | unclosed interface block → `truncated_input` warning            |
+| `vrf-segmentation`                   | multiple `vrf instance` blocks with per-VRF static routes       |
+
+The single source of truth for the corpus list is
+`src-tauri/tests/fixtures/arista-eos/_manifest.toml`. The
+`parser_version_guard` and `arista_eos_fixture_corpus` integration
+tests enforce that the manifest, the on-disk dirs, and the source
+constant all agree.
+
+## Cross-vendor consistency invariant (V1N)
+
+`tests/cross_vendor_consistency.rs` parses one logically-equivalent
+fixture for each of the three parsers and asserts a canonical
+projection over them is byte-identical. The projection deliberately
+strips vendor-specific surface (evidence, platform, warnings,
+unknowns, interface kind shape, interface names) and keeps the
+device-shape invariants: hostname, VRF set with RDs, VLAN set with
+names, set of IP addresses present, static-route set, set of
+populated service kinds, sorted service-server lists. See V1N stage
+note for the rationale.
+
 ## Other parsers
 
 Extended per-vendor as each parser ships. Same area names are reused

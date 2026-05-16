@@ -70,9 +70,32 @@ Cross-vendor comparison still works because consumers operate on the
 shared short-form vocabulary; Junos contributes its own short forms
 without colliding with Cisco's.
 
+### Arista EOS (V1N baseline)
+
+EOS interface naming overlaps significantly with Cisco IOS/XE — the
+short forms are shared canonical vocabulary, not Cisco-private.
+Aristas land in the same `Et`/`Lo`/`Po`/`Vl`/`Ma` short-form space
+the Cisco table established.
+
+| Vendor-native | Normalized |
+|---|---|
+| `Ethernet1` | `Et1` |
+| `Ethernet1/1` | `Et1/1` |
+| `Ethernet48` | `Et48` |
+| `Management1` | `Ma1` |
+| `Loopback0` | `Lo0` |
+| `Vlan100` | `Vl100` |
+| `Port-Channel10` | `Po10` |
+| `Vxlan1` | `Vxlan1` |
+
+EOS-specific notes:
+- `Port-Channel` (capital-P, hyphenated) is the EOS form; the
+  normalised short form is the same `Po<N>` as Cisco.
+- Sub-interface notation `.N` exists in EOS but is uncommon at L1/L2.
+
 ### Other vendors
 
-Arista EOS (V1N+), NX-OS, and the rest extend this table with their own
+NX-OS, SR Linux, and the rest extend this table with their own
 vendor-native → normalized mappings. The short-form vocabulary is
 shared across vendors so cross-vendor consumers compare on a single
 string space.
