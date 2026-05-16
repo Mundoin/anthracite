@@ -146,15 +146,22 @@ land in V1I.
 
 ## Receipts
 
-Every parse produces a receipt alongside the model:
-- platform detected + confidence
-- areas attempted, areas successfully populated
-- counts: parsed objects, skipped lines, unknown lines, unsupported blocks
-- parser version, registry version, fixture corpus version
-- duration
+A receipt is a **projection over `DeviceModel`**, not a parallel artifact.
+`DeviceModel` already carries everything a receipt needs:
+- `EvidenceMetadata` — source, parser version, registry version, byte size,
+  line count, captured-at marker.
+- `ParseConfidence` — parsed-line count, unknown-line count, score,
+  observed maturity, warnings (`empty_input`, `truncated_input`,
+  `not_in_scope:<area>`, `absent:<area>`, etc.).
+- `unknown_lines[]` — first-class evidence for every line the parser did
+  not understand, with full `context_path`.
 
-Receipts are evidence. Operators see them. Validators read them. CI gates on
-fixture-diff for both model and receipt.
+V1L will build a receipt projection — a flat view over `DeviceModel`
+shaped for UI display — but the truth lives in the model. Operators see
+the projection; validators read the model; CI gates on fixture-diff of
+the model (which carries the receipt-shaped fields above). Two artifacts
+mean two places to drift; one model with a view keeps evidence with the
+thing it explains.
 
 ## Cross-references
 
