@@ -78,6 +78,12 @@ the way it is:
 - Decision records under `obsidian/decisions/`.
 - Long-form narrative in `PRODUCT.md` and stage notes.
 
+## Local Helpers
+
+- Repo workflow, 
+- Repo-local validation / review / readiness agents live in `.claude/agents/`.
+- `graphify` writes `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md`; those outputs are ignored in `.gitignore`.
+
 When in doubt about setup / ops / pipelines → defer to `AGENTS.md`.
 When in doubt about intent / structure → `CLAUDE.md` wins.
 
@@ -148,3 +154,7 @@ Verify the flywheel any time:
 ao flywheel status    # escape velocity check
 ao status             # current knowledge inventory
 ```
+## graphify
+
+- **graphify** (`.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
+  When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.
