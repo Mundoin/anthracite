@@ -88,6 +88,22 @@ contract, not the parser interface.
 Per-vendor counters keep each parser's evolution legible. A bump on
 `cisco-iosxe` does not imply anything about `juniper-junos`.
 
+## Shared infrastructure changes (V1M clarification)
+
+When a change lives in **shared** parser infrastructure
+(`parsers/normalize.rs`, `parsers/context.rs`, the canonical model in
+`network_model.rs`, the receipt projection in `engines/receipt.rs`) and
+that change alters any per-vendor parser's output for any fixture, then
+**every affected parser's `PARSER_VERSION` must bump in the same
+commit**. The per-vendor counters are independent, but they must all
+move when a shared edit reaches them.
+
+The corpus harnesses make this enforceable: a shared change that
+shifts cisco fixture output and junos fixture output forces two
+expected.json regenerations, and the guard rejects the commit unless
+both `PARSER_VERSION` constants and both manifest values move
+together.
+
 ## Cross-references
 
 - [`INTERFACE_NAMING.md`](./INTERFACE_NAMING.md)

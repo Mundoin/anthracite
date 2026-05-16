@@ -105,6 +105,64 @@ The single source of truth for the corpus list is
 tests enforce that the manifest, the on-disk dirs, and the source
 constant all agree.
 
+## juniper-junos — L1 inventory + L2 topology (V1M)
+
+In-scope areas mirror the cisco-iosxe set exactly so receipt projection
+and cross-vendor consumers operate on one vocabulary:
+
+```
+identity
+platform
+interfaces
+ip_addressing
+vlans
+vrfs
+static_routes
+lag_groups
+services_ssh
+services_snmp
+services_ntp
+services_dns
+services_syslog
+```
+
+Out-of-scope at L1/L2 (marked `not_in_scope`) also mirror the cisco
+set. Junos-style path prefixes that fall into the out-of-scope bucket
+emit `unknown_lines[]` with `UnknownReason::OutOfScope`:
+
+- `protocols …` (OSPF, BGP, IS-IS, …)
+- `policy-options …`
+- `firewall …`
+- `security …` (SRX zones, NAT, IPS)
+- `class-of-service …`
+- `forwarding-options …`
+- `services …` (NAT, IDS, l2circuit, etc. — distinct from `system
+  services` which V1M parses)
+- `applications …`
+
+V1M fixture coverage matrix:
+
+| Fixture                          | Exercises                                                              |
+|----------------------------------|------------------------------------------------------------------------|
+| `aggregate-ethernet-bundle`      | `ae0`/`ae1` bundles + `gigether-options 802.3ad` member binding        |
+| `dual-stack-edge`                | inet + inet6 addresses on the same unit                                |
+| `irb-and-vlan-binding`           | IRB SVI + VLAN members via `family ethernet-switching`                 |
+| `many-access-ports-l2-only`      | L2 switch posture, trunk vlan member list expansion                    |
+| `near-empty`                     | minimal viable input, score floor                                      |
+| `protocols-and-policy-present`   | out-of-scope blocks land in `unknown_lines[]`                          |
+| `small-brace-style`              | full L1/L2 surface in brace style                                      |
+| `small-set-style`                | same semantics as `small-brace-style` in set style                     |
+| `truncated`                      | unclosed brace block → `truncated_input` warning                       |
+| `unit-zero-vs-higher`            | unit 0 + unit 10 + unit 20 on same physical, each addressed            |
+| `vrf-heavy-aggregation`          | multiple `routing-instances` with `vrf-target` and per-VRF statics     |
+| `wan-edge-with-units`            | one physical, multiple sub-interfaces with addresses                   |
+
+The single source of truth for the corpus list is
+`src-tauri/tests/fixtures/juniper-junos/_manifest.toml`. The
+`parser_version_guard` and `juniper_junos_fixture_corpus` integration
+tests enforce that the manifest, the on-disk dirs, and the source
+constant all agree.
+
 ## Other parsers
 
 Extended per-vendor as each parser ships. Same area names are reused

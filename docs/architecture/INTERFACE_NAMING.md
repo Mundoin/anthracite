@@ -44,12 +44,38 @@ preserved verbatim for evidence auditability.
 | `Management0` | `Mgmt0` |
 | `GigabitEthernet0/0/0.10` (sub-interface) | `Gi0/0/0.10` |
 
+### Juniper Junos (V1M baseline)
+
+Junos native short names are already canonical. V1M's rule is
+**verbatim preservation**: `name` and `normalized_name` are identical.
+No vocabulary translation is applied because Junos's native form
+already lives in the short-form space.
+
+| Vendor-native | Normalized |
+|---|---|
+| `ge-0/0/0` | `ge-0/0/0` |
+| `ge-0/0/0.0` (unit 0) | `ge-0/0/0.0` |
+| `ge-0/0/0.10` (unit 10 / sub-interface) | `ge-0/0/0.10` |
+| `xe-1/0/2` | `xe-1/0/2` |
+| `et-0/0/0` | `et-0/0/0` |
+| `fe-0/0/0` | `fe-0/0/0` |
+| `lo0` | `lo0` |
+| `ae0` (aggregated Ethernet bundle) | `ae0` |
+| `me0` (management) | `me0` |
+| `fxp0` (management) | `fxp0` |
+| `irb.100` (IRB SVI) | `irb.100` |
+| `vlan.100` (VLAN SVI, legacy) | `vlan.100` |
+
+Cross-vendor comparison still works because consumers operate on the
+shared short-form vocabulary; Junos contributes its own short forms
+without colliding with Cisco's.
+
 ### Other vendors
 
-Junos (V1M+), Arista EOS (V1N+), NX-OS, and the rest extend this table
-with their own vendor-native → normalized mappings. The short-form
-vocabulary (`Gi`, `Te`, `Lo`, `Po`, `Vl`, …) is shared across vendors so
-cross-vendor consumers compare on a single string space.
+Arista EOS (V1N+), NX-OS, and the rest extend this table with their own
+vendor-native → normalized mappings. The short-form vocabulary is
+shared across vendors so cross-vendor consumers compare on a single
+string space.
 
 ## Rationale
 
