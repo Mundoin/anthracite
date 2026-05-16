@@ -39,6 +39,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1K   | complete · Cisco IOS / IOS XE parser L1/L2 | [stages/V1K-cisco-iosxe-parser.md](./stages/V1K-cisco-iosxe-parser.md) |
 | V1L   | complete · Fixture corpus + receipt projection | [stages/V1L-fixture-corpus-and-receipts.md](./stages/V1L-fixture-corpus-and-receipts.md) |
 | V1M   | complete · Juniper Junos parser L1/L2 | [stages/V1M-juniper-junos-parser.md](./stages/V1M-juniper-junos-parser.md) |
+| V1N   | complete · Arista EOS parser L1/L2 + cross-vendor invariant | [stages/V1N-arista-eos-parser.md](./stages/V1N-arista-eos-parser.md) |
 
 ## V1J-A adaptation
 
