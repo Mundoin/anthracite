@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ConfigBatchSplitResult } from "../../../types/configBatch";
 import type { ConfigDetectionResult } from "../../../types/configDetection";
 import type { DeviceModel, PlatformRef } from "../../../types/networkModel";
 import type { ReceiptView } from "../../../types/receipt";
@@ -81,12 +82,35 @@ const RECEIPT = {
   unknowns_truncated: false,
 } as unknown as ReceiptView;
 
+function makeSingleConfigSplit(text: string): ConfigBatchSplitResult {
+  return {
+    slices: [
+      {
+        slice_id: "slice-0",
+        line_start: 1,
+        line_end: 1,
+        raw_text: text,
+        confidence: 1.0,
+        hint: { kind: "none" },
+      },
+    ],
+    method: { kind: "single_config" },
+    warnings: [],
+    total_line_count: 1,
+    scanned_line_count: 1,
+    splitter_version: "1",
+  };
+}
+
 function makeApi(overrides: Partial<IntakeApi> = {}): IntakeApi {
   return {
     listVendorPlatforms: vi.fn().mockResolvedValue(PLATFORMS),
     detectConfigPlatform: vi.fn().mockResolvedValue(DETECTION),
     parseDeviceConfig: vi.fn().mockResolvedValue(DEVICE),
     projectDeviceReceipt: vi.fn().mockResolvedValue(RECEIPT),
+    splitConfigBatch: vi.fn((text: string) =>
+      Promise.resolve(makeSingleConfigSplit(text)),
+    ),
     ...overrides,
   };
 }
