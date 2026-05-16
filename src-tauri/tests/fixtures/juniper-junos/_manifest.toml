@@ -1,0 +1,40 @@
+# Juniper Junos fixture corpus manifest (V1M).
+#
+# Single source of truth for which Junos fixtures the corpus harness
+# walks. `parser_version` must equal `juniper_junos::PARSER_VERSION`;
+# the `parser_version_guard` integration test enforces equality.
+#
+# Every directory under `tests/fixtures/juniper-junos/` (except this
+# manifest) must appear in `fixtures`, and every name here must exist
+# on disk. The corpus harness asserts both directions.
+#
+# To add a fixture:
+#   1. mkdir tests/fixtures/juniper-junos/<name>/
+#   2. drop config.cfg in
+#   3. add <name> to `fixtures` below, alphabetically
+#   4. ANTHRACITE_UPDATE_FIXTURES=1 cargo test --test juniper_junos_fixture_corpus
+#   5. hand-review expected.json before committing
+#
+# Fixture pair convention: small-brace-style and small-set-style are
+# semantically equivalent inputs in the two Junos styles. The dedicated
+# `brace_set_pair_produces_same_model` test asserts they produce the
+# same `DeviceModel` modulo `evidence.byte_size` and `evidence.line_count`
+# (those two fields are intrinsic to the textual form). See
+# JUNOS_CONFIG_STYLES.md for the rationale.
+
+parser_version = 1
+
+fixtures = [
+    "aggregate-ethernet-bundle",
+    "dual-stack-edge",
+    "irb-and-vlan-binding",
+    "many-access-ports-l2-only",
+    "near-empty",
+    "protocols-and-policy-present",
+    "small-brace-style",
+    "small-set-style",
+    "truncated",
+    "unit-zero-vs-higher",
+    "vrf-heavy-aggregation",
+    "wan-edge-with-units",
+]
