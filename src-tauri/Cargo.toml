@@ -18,6 +18,14 @@ tauri = { version = "2.1", features = [] }
 tauri-plugin-shell = "2.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# V1O-B Archive Intake Engine: container-format decoders.
+# These are NOT parsers / models / language definitions — they are
+# decoders for externally specified container formats (zip, tar, gzip).
+# Per `docs/architecture/ARCHIVE_INTAKE_CONTRACT.md`, this is a different
+# category from the motor-room rule against third-party parser crates.
+zip = { version = "0.6", default-features = false, features = ["deflate"] }
+tar = { version = "0.4", default-features = false }
+flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] }
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]
