@@ -31,7 +31,7 @@ Claude's rules under this doctrine:
 3. Never assume product structure beyond these docs.
 4. Never create Claude/Codex prompts unless Bujar asks.
 5. Every stage proposal must name the source-of-truth sections it obeys.
-6. Product logic must be deterministic (no LLM in V1 engines).
+6. Product logic must be deterministic.
 7. Modes are surfaces over engines. No mode-private engine for shared
    capability.
 
@@ -46,7 +46,7 @@ Claude's rules under this doctrine:
   sanity, low-risk docs/index upkeep, repo hygiene. Codex preserves Claude
   for higher-value coding.
 
-Hard gate: V1 product coding (V1B+) starts only when
+ Gate: V1 product coding (V1B+) starts only when
 `tools/ops-readiness.ps1` reports **READY**.
 
 ## Stack (locked)
@@ -58,22 +58,19 @@ Hard gate: V1 product coding (V1B+) starts only when
 - pnpm 11
 - Windows-first
 
-## Hard Rules (Claude)
+## Guidelines  (Claude)
 
-1. **No Python.** Anywhere. Ever.
-2. **No PyQt.** Anywhere. Ever.
+1. **No Python.**  without permission. 
+2. **No PyQt.** without permission 
 3. **No Three.js.** Babylon.js owns all scene rendering.
-4. **Do not copy code from `D:\Repos\_NEXUS`.** Not a single line.
-5. **Do not inspect `_NEXUS` for product discovery during V1A.** Product truth
-   lives in `ObsidianAnthracite` and in this repo's `PRODUCT.md`.
-6. **Never run the test suite to "verify".** Bujar runs tests.
-7. **Never `git push` without explicit instruction.**
-8. **No new dependencies without Bujar's approval.**
-9. **Always read `obsidian/ANTHRACITE_INDEX.md` before deep architectural work.**
+4. **Product truth lives in `ObsidianAnthracite` and in this repo's `PRODUCT.md`.
+5. **Never `git push` without explicit instruction.**
+6. **deps with Bujar approval.**
+7. **Always read `obsidian/ANTHRACITE_INDEX.md` before deep architectural work.**
 
 ## Operating Posture
 
-Claude = **Architect / Designer**. Source of truth for *why* this rig is built
+Source of truth for *why* this rig is built
 the way it is:
 - Panel composition, cockpit information architecture.
 - Topology semantics (information vs live; 2D vs 3D selectability).
