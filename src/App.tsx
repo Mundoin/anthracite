@@ -16,6 +16,7 @@ import {
   type SecondaryNavGroup,
 } from "./components/shell/SecondaryNav";
 import type { StatusCell, StatusSignal } from "./components/shell/StatusBar";
+import { IntakePanel } from "./modes/intake/IntakePanel";
 import {
   EnvironmentCentreD1,
   type EnvRow,
@@ -389,6 +390,25 @@ export default function App(): JSX.Element {
   ];
 
   const inListView = view === "list";
+
+  if (activeMode === "intake") {
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={["Foundation", "Intake"]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        statusLeft={statusLeft(readiness, rows)}
+        statusRight={[
+          { id: "note", label: "intake · stateless · single config" },
+          { id: "ver", label: "v0.1.0" },
+          { id: "core", label: "rust-core · ok", signal: "ok" },
+        ]}
+      >
+        <IntakePanel />
+      </AppShell>
+    );
+  }
 
   const crumbs = inListView
     ? ["Hierarchy", "Environments"]
