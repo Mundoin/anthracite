@@ -291,12 +291,130 @@ V1O's seven UI honesty rules apply per-slice and at the batch level:
 - No cross-device relationship inference. Topology is a separate,
   later stage.
 
+## Archive mode (V1O-B overlay)
+
+V1O-B layers archive intake onto the INTAKE surface without
+introducing a new mode. An "Open archive…" button sits beside the
+existing paste textarea + file-open button. Picked `.zip`, `.tar`,
+`.tar.gz`, and `.tgz` files are decoded via the deterministic Rust
+archive intake engine (see
+[`ARCHIVE_INTAKE_CONTRACT.md`](./ARCHIVE_INTAKE_CONTRACT.md)) and
+routed through the existing splitter → detect → parse → project
+chain.
+
+### Flow
+
+```
+operator clicks "Open archive…"
+  ↓
+file picker returns File (.zip / .tar / .tar.gz / .tgz)
+  ↓
+frontend reads bytes (Uint8Array) + derives kind hint from extension
+  ↓
+archiveIntake(bytes, kindHint)              ← V1O-B
+  ↓ (per Extracted entry, sequential)
+splitConfigBatch(entry.raw_text)            ← V1O-A
+  ↓
+if (extracted.length === 1 && split.method === "single_config")
+  ↓
+  → V1O single-config flow on entry.raw_text  ← R11 regression lock
+       (no batch chrome, identical to paste single-config UX)
+otherwise
+  ↓
+  → flatten slices across entries with `entry_id/slice_id` ids
+    and an ArchiveEntryRef per slice
+  ↓
+  → BatchSummaryView with ArchiveInventoryPanel above it and
+    ArchiveSourceBadge per card
+```
+
+### Byte-transport verification gate
+
+Before any archive engine logic runs, V1O-B verifies that
+`Uint8Array` survives the Tauri invoke boundary as `Vec<u8>` (Task 0
+of the V1O-B prompt). Verified at command-function + Rust unit-test
+level; runtime roundtrip in `pnpm tauri dev` is the recommended
+sanity check pre-release. A temporary `archive_intake_echo_bytes`
+command lives across implementation and is removed before release.
+
+### Byte-based kind validation
+
+The engine accepts an `ArchiveKind` hint from the frontend (derived
+from filename extension) but independently verifies the kind by
+inspecting the leading bytes. A `KindMismatch { supplied, detected }`
+warning surfaces in the inventory panel header; extraction proceeds
+with the detected kind, not the hint.
+
+### Source provenance threading
+
+Every extracted entry carries an `entry_id`, `entry_index`, and
+sanitised `path`. The frontend attaches an `ArchiveEntryRef` to
+every `ConfigSlice` produced from splitting that entry's content.
+Each per-slice card in `BatchSummaryView` renders an
+`ArchiveSourceBadge` (`from <entry_path>`). The drilled-in view
+repeats the badge in the slice header. Provenance flows: archive
+entry → splitter slice → device card → receipt header annotation.
+
+`ArchiveEntryRef` is a TypeScript-only type; the Rust splitter is
+not modified. Slice ids are namespaced as `<entry_id>/<slice_id>`
+on the frontend so multi-entry archives don't collide on the
+splitter's `slice-0` ids.
+
+### Inventory panel
+
+`ArchiveInventoryPanel` is **collapsed by default** (R12 of the
+V1O-B prompt). Expanded view shows per-entry rows: path, size,
+status, decode warning. Skipped entries de-emphasised but **never
+hidden**. Header row carries archive name, detected kind, entry
+count, extracted count, skipped count, and a top-line summary of
+any `ArchiveWarning`s. The single-clean-archive case
+(`extracted_count === 1 && warnings.length === 0`) falls through to
+the V1O single-config flow with no inventory rendered at all — R11
+keeps that path byte-identical to V1O.
+
+### Regression locks
+
+- **R11 single-archive-single-entry-single-config**: a single
+  extracted entry whose split yields `SplitMethod::SingleConfig`
+  routes through `ArchiveSingleConfigPassthrough` directly into the
+  V1O single-config flow. The reducer test
+  `intakeReducer.archive.test.ts::ArchiveSingleConfigPassthrough drops
+  batch wrapper and enters detecting` plus the panel test
+  `IntakePanel.archive.test.tsx::single-entry-single-config archive
+  renders V1O single-config flow with NO batch chrome (R11)` lock
+  the contract.
+- **V1O paste path unchanged** — covered by existing
+  `IntakePanel.test.tsx`.
+- **V1O-A multi-config paste path unchanged** — covered by existing
+  `IntakePanel.batch.test.tsx`.
+
+### Honesty rules carry forward
+
+V1O's seven UI honesty rules apply per-entry AND at the archive
+level:
+
+- render what the engine returned (no client-side invention of
+  entry status or vendor)
+- low confidence and skipped entries are visible, not hidden
+- archive kind (header-detected, not extension) shown in inventory
+- archive warnings rendered verbatim by `kind`
+- decode failures, skipped entries, capped entries all surface in
+  the inventory panel
+- splitter and archive_intake versions visible in inventory header
+- error path (`batchStatus === "archive_error"`) renders as a
+  first-class `intake-error` banner, not a silent failure
+
+### What V1O-B does NOT do
+
+See [`ARCHIVE_INTAKE_CONTRACT.md`](./ARCHIVE_INTAKE_CONTRACT.md)
+§"What V1O-B does NOT do" for the complete exclusion list. Headline:
+no nested-archive recursion, no symlink resolution, no password
+handling, no archive creation / export, no filesystem writes, no
+parser / splitter / model / receipt changes.
+
 ## Follow-ups owned by later stages
 
-- **V1O-B (tentative)** — archive intake (zip / tar) and per-device
-  receipt rollup / export. Defines how an archive of configs is
-  fed to the splitter and how a rollup composes.
-- **V1O-B (tentative)** — receipt export (JSON / Markdown), copy-out for
-  evidence packs. Out of V1O scope.
+- **V1O-C (tentative)** — receipt export (JSON / Markdown), copy-out
+  for evidence packs. Out of V1O / V1O-A / V1O-B scope.
 - **V1P** — first real Cortex consumption of `DeviceModel` for analysis.
   Defines how INTAKE feeds Cortex (handoff shape, not display).

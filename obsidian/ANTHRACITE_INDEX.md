@@ -43,6 +43,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1N-A | complete · Parser contract hardening + debt ledger cleanup | [stages/V1N-A-parser-contract-hardening.md](./stages/V1N-A-parser-contract-hardening.md) |
 | V1O   | complete · Config Intake operator surface (single config, stateless) | [stages/V1O-config-intake-surface.md](./stages/V1O-config-intake-surface.md) |
 | V1O-A | complete · Config splitter engine + multi-device intake (batch view, drill-down) | [stages/V1O-A-multi-device-intake.md](./stages/V1O-A-multi-device-intake.md) |
+| V1O-B | complete · Archive intake engine (zip / tar / tar.gz) + provenance + collapsed inventory | [stages/V1O-B-archive-intake.md](./stages/V1O-B-archive-intake.md) |
 
 ## V1J-A adaptation
 
