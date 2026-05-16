@@ -101,6 +101,13 @@ export const IcoBuild = (p: IcProps): JSX.Element => (
     <path d="M13 7l4 4" />
   </Ic>
 );
+export const IcoIntake = (p: IcProps): JSX.Element => (
+  <Ic {...p}>
+    <path d="M12 3v12" />
+    <path d="M7 10l5 5 5-5" />
+    <path d="M4 19h16" />
+  </Ic>
+);
 export const IcoSettings = (p: IcProps): JSX.Element => (
   <Ic {...p}>
     <circle cx="12" cy="12" r="3" />
