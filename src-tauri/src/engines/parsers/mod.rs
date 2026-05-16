@@ -7,6 +7,7 @@
 
 pub mod cisco_iosxe;
 pub mod context;
+pub mod juniper_junos;
 pub mod normalize;
 
 use crate::engines::network_model::DeviceModel;
@@ -27,6 +28,7 @@ pub fn parse_device_config(
 
     match id {
         "cisco-iosxe" => Ok(cisco_iosxe::parse(platform_ref, config_text)),
+        "juniper-junos" => Ok(juniper_junos::parse(platform_ref, config_text)),
         other => Err(format!("unsupported platform: {other}")),
     }
 }
@@ -66,8 +68,15 @@ mod tests {
 
     #[test]
     fn unknown_platform_id_returns_err() {
-        let r = parse_device_config(pref(Some("juniper-junos")), "x");
-        assert_eq!(r.unwrap_err(), "unsupported platform: juniper-junos");
+        let r = parse_device_config(pref(Some("arista-eos")), "x");
+        assert_eq!(r.unwrap_err(), "unsupported platform: arista-eos");
+    }
+
+    #[test]
+    fn juniper_junos_platform_id_dispatches_ok() {
+        let r = parse_device_config(pref(Some("juniper-junos")), "set system host-name r1\n");
+        assert!(r.is_ok());
+        assert_eq!(r.unwrap().identity.hostname.as_deref(), Some("r1"));
     }
 
     #[test]
