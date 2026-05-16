@@ -29,21 +29,36 @@ pub fn lex(text: &str) -> Vec<JunosLine> {
         }
         let trimmed = trimmed.trim_end_matches(';');
         let mut tokens = tokenise(trimmed);
-        if tokens.first().map(|s| s.as_str()) != Some("set") {
-            // V1M ignores `delete`, `deactivate`, and other non-set forms.
-            continue;
-        }
-        tokens.remove(0); // drop "set"
-        if tokens.is_empty() {
-            continue;
-        }
-        // Expand `... [ a b c ]` into multiple lines.
-        if let Some(expanded) = expand_bracket_list(&tokens) {
-            for variant in expanded {
-                out.push(JunosLine::new(variant, lineno, raw_line.to_string()));
+        let head = tokens.first().map(|s| s.as_str()).unwrap_or("");
+        match head {
+            "set" => {
+                tokens.remove(0); // drop "set"
+                if tokens.is_empty() {
+                    continue;
+                }
+                if let Some(expanded) = expand_bracket_list(&tokens) {
+                    for variant in expanded {
+                        out.push(JunosLine::new(variant, lineno, raw_line.to_string()));
+                    }
+                } else {
+                    out.push(JunosLine::new(tokens, lineno, raw_line.to_string()));
+                }
             }
-        } else {
-            out.push(JunosLine::new(tokens, lineno, raw_line.to_string()));
+            "deactivate" | "delete" => {
+                // V1N-A: keep these visible as evidence. Orchestrator
+                // dispatch classifies them as out-of-scope via
+                // `unknown::OUT_OF_SCOPE_PREFIXES`. V1N-A does not
+                // apply semantic delete/deactivate behaviour.
+                out.push(JunosLine::new(tokens, lineno, raw_line.to_string()));
+            }
+            _ => {
+                // Other non-set/non-deactivate/non-delete lines are
+                // unsupported but visible — emit a leaf so dispatch can
+                // surface them through the standard unknown path.
+                if !tokens.is_empty() {
+                    out.push(JunosLine::new(tokens, lineno, raw_line.to_string()));
+                }
+            }
         }
     }
     out
@@ -164,9 +179,13 @@ mod tests {
     }
 
     #[test]
-    fn delete_lines_are_ignored() {
-        let lines = lex("delete system host-name\nset system host-name h\n");
-        assert_eq!(lines.len(), 1);
-        assert_eq!(lines[0].path[0], "system");
+    fn delete_and_deactivate_preserved_as_evidence() {
+        // V1N-A: previously dropped; now surfaced so dispatch can
+        // classify them as out-of-scope rather than vanishing.
+        let lines = lex("delete system host-name\ndeactivate interfaces ge-0/0/0\nset system host-name h\n");
+        assert_eq!(lines.len(), 3);
+        assert_eq!(lines[0].path[0], "delete");
+        assert_eq!(lines[1].path[0], "deactivate");
+        assert_eq!(lines[2].path[0], "system");
     }
 }

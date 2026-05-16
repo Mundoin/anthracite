@@ -18,7 +18,7 @@
     "source": null,
     "source_kind": "config_paste",
     "captured_at": null,
-    "parser_version": "1",
+    "parser_version": "2",
     "registry_version": null,
     "fixture_corpus_version": null,
     "byte_size": 948,
@@ -213,7 +213,8 @@
       "state": "unknown",
       "interfaces": [
         "ge-0/0/0.0",
-        "ge-0/0/1.0"
+        "ge-0/0/1.0",
+        "irb.100"
       ]
     },
     {
@@ -221,7 +222,8 @@
       "name": "VOICE",
       "state": "unknown",
       "interfaces": [
-        "ge-0/0/1.0"
+        "ge-0/0/1.0",
+        "irb.200"
       ]
     }
   ],
@@ -245,20 +247,6 @@
   "unknown_lines": [
     {
       "source": null,
-      "line_number": 7,
-      "raw": "        l3-interface irb.100;",
-      "context_path": "vlans USERS l3-interface irb.100",
-      "reason": "unsupported_keyword"
-    },
-    {
-      "source": null,
-      "line_number": 11,
-      "raw": "        l3-interface irb.200;",
-      "context_path": "vlans VOICE l3-interface irb.200",
-      "reason": "unsupported_keyword"
-    },
-    {
-      "source": null,
       "line_number": 17,
       "raw": "            description users-svi;",
       "context_path": "interfaces irb unit 100 description users-svi",
@@ -268,8 +256,8 @@
   "parse_confidence": {
     "maturity_observed": "l2topology",
     "score": 0.3846,
-    "parsed_line_count": 12,
-    "unknown_line_count": 3,
+    "parsed_line_count": 14,
+    "unknown_line_count": 1,
     "warnings": [
       "absent:lag_groups",
       "absent:services_dns",

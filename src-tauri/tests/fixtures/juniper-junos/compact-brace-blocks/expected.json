@@ -1,6 +1,6 @@
 {
   "identity": {
-    "hostname": "j-protocols",
+    "hostname": "j-compact",
     "chassis": null,
     "serial_numbers": [],
     "management_ips": [],
@@ -21,8 +21,8 @@
     "parser_version": "2",
     "registry_version": null,
     "fixture_corpus_version": null,
-    "byte_size": 804,
-    "line_count": 49
+    "byte_size": 298,
+    "line_count": 7
   },
   "interfaces": [
     {
@@ -121,7 +121,7 @@
       "ipv4_addresses": [
         {
           "family": "v4",
-          "address": "192.0.2.30",
+          "address": "192.0.2.1",
           "prefix_length": 32,
           "secondary": false,
           "vrf": null
@@ -134,9 +134,28 @@
       "notes": null
     }
   ],
-  "vlans": [],
+  "vlans": [
+    {
+      "id": 100,
+      "name": "USERS",
+      "state": "unknown",
+      "interfaces": []
+    }
+  ],
   "vrfs": [],
-  "static_routes": [],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "10.0.0.2"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": null,
+      "name": null
+    }
+  ],
   "routing_protocols": {
     "ospf": [],
     "isis": [],
@@ -149,67 +168,30 @@
   "tunnels": [],
   "qos_policies": [],
   "lag_groups": [],
-  "services": [],
-  "topology_hints": [],
-  "findings": [],
-  "unknown_lines": [
+  "services": [
     {
-      "source": null,
-      "line_number": 23,
-      "raw": "            interface ge-0/0/0.0;",
-      "context_path": "protocols ospf area 0.0.0.0 interface ge-0/0/0.0",
-      "reason": "out_of_scope"
-    },
-    {
-      "source": null,
-      "line_number": 28,
-      "raw": "            type external;",
-      "context_path": "protocols bgp group EBGP type external",
-      "reason": "out_of_scope"
-    },
-    {
-      "source": null,
-      "line_number": 30,
-      "raw": "                peer-as 65002;",
-      "context_path": "protocols bgp group EBGP neighbor 10.0.0.2 peer-as 65002",
-      "reason": "out_of_scope"
-    },
-    {
-      "source": null,
-      "line_number": 37,
-      "raw": "        from protocol direct;",
-      "context_path": "policy-options policy-statement EXPORT-ALL from protocol direct",
-      "reason": "out_of_scope"
-    },
-    {
-      "source": null,
-      "line_number": 38,
-      "raw": "        then accept;",
-      "context_path": "policy-options policy-statement EXPORT-ALL then accept",
-      "reason": "out_of_scope"
-    },
-    {
-      "source": null,
-      "line_number": 45,
-      "raw": "                then accept;",
-      "context_path": "firewall family inet filter PROTECT-LO term default then accept",
-      "reason": "out_of_scope"
+      "kind": "dns",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "domains=example.test"
     }
   ],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [],
   "parse_confidence": {
     "maturity_observed": "l2topology",
-    "score": 0.3077,
-    "parsed_line_count": 3,
-    "unknown_line_count": 6,
+    "score": 0.5385,
+    "parsed_line_count": 6,
+    "unknown_line_count": 0,
     "warnings": [
       "absent:lag_groups",
-      "absent:services_dns",
       "absent:services_ntp",
       "absent:services_snmp",
       "absent:services_ssh",
       "absent:services_syslog",
-      "absent:static_routes",
-      "absent:vlans",
       "absent:vrfs",
       "not_in_scope:aaa_detail",
       "not_in_scope:acls",

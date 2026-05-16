@@ -40,50 +40,101 @@ pub fn lex(text: &str) -> LexResult {
         if trimmed.is_empty() {
             continue;
         }
-
-        // Handle close-brace lines (possibly several on one line).
-        if trimmed.chars().all(|c| c == '}' || c.is_whitespace()) {
-            for _ in trimmed.chars().filter(|c| *c == '}') {
-                prefix_stack.pop();
-            }
-            continue;
+        // V1N-A: expand compact `{ a; b; }` blocks into virtual lines
+        // so the brace-depth walker handles them like the conventional
+        // multi-line form. All virtual lines keep the original line
+        // number for evidence traceability.
+        for virtual_line in expand_compact_block(trimmed) {
+            process_brace_line(&virtual_line, lineno, raw_line, &mut prefix_stack, &mut out);
         }
+    }
+    let truncated = !prefix_stack.is_empty();
+    LexResult {
+        lines: out,
+        truncated,
+    }
+}
 
-        if let Some(body) = trimmed.strip_suffix('{') {
-            // Open-brace line. Tokens become a new stack frame.
-            let tokens = tokenise(body.trim());
-            prefix_stack.push(tokens);
-            continue;
-        }
-
-        if let Some(body) = trimmed.strip_suffix(';') {
-            // Leaf statement. Combine stack + line tokens.
-            let line_tokens = tokenise(body.trim());
-            if line_tokens.is_empty() {
-                continue;
-            }
-            let prefix_flat: Vec<String> =
-                prefix_stack.iter().flatten().cloned().collect();
-            let combined: Vec<String> = prefix_flat
-                .into_iter()
-                .chain(line_tokens.into_iter())
-                .collect();
-            if let Some(variants) = expand_bracket_list(&combined) {
-                for v in variants {
-                    out.push(JunosLine::new(v, lineno, raw_line.to_string()));
+/// Expand a single source line into one or more "virtual" lines so the
+/// brace walker can treat compact `{ a; b; }` blocks the same way as
+/// multi-line ones. Returns a `Vec<String>` of trimmed lines each
+/// ending in `{`, `;`, or being a single `}`. The simple cases (an
+/// already-clean line) return a single-element Vec.
+fn expand_compact_block(trimmed: &str) -> Vec<String> {
+    // Fast path: if there are no `{`, `}`, or `;` mixed mid-line, the
+    // line is already in canonical shape.
+    let has_brace = trimmed.contains('{') || trimmed.contains('}');
+    let has_semi_in_middle = trimmed.find(';').map(|i| i + 1 < trimmed.len()).unwrap_or(false);
+    if !has_brace && !has_semi_in_middle {
+        return vec![trimmed.to_string()];
+    }
+    // Split on `{`, `}`, and `;` boundaries while preserving the
+    // terminators on the preceding chunk. Quoted strings are not
+    // expected to contain these glyphs in V1N-A fixtures (Junos
+    // configs in our corpus avoid them).
+    let mut out: Vec<String> = Vec::new();
+    let mut current = String::new();
+    for ch in trimmed.chars() {
+        match ch {
+            '{' => {
+                current.push('{');
+                let s = current.trim().to_string();
+                if !s.is_empty() {
+                    out.push(s);
                 }
-            } else {
-                out.push(JunosLine::new(combined, lineno, raw_line.to_string()));
+                current.clear();
             }
-            continue;
+            ';' => {
+                current.push(';');
+                let s = current.trim().to_string();
+                if !s.is_empty() {
+                    out.push(s);
+                }
+                current.clear();
+            }
+            '}' => {
+                let s = current.trim().to_string();
+                if !s.is_empty() {
+                    out.push(s);
+                }
+                out.push("}".to_string());
+                current.clear();
+            }
+            _ => current.push(ch),
         }
+    }
+    let tail = current.trim();
+    if !tail.is_empty() {
+        out.push(tail.to_string());
+    }
+    out
+}
 
-        // A statement without `;` or `{` ending — Junos sometimes writes
-        // bare keywords (e.g. `inactive: foo`). Treat as a leaf with
-        // current tokens; survives malformed input without panic.
-        let line_tokens = tokenise(trimmed);
+fn process_brace_line(
+    trimmed: &str,
+    lineno: u64,
+    raw_line: &str,
+    prefix_stack: &mut Vec<Vec<String>>,
+    out: &mut Vec<JunosLine>,
+) {
+    // Handle close-brace lines (possibly several on one line).
+    if trimmed.chars().all(|c| c == '}' || c.is_whitespace()) {
+        for _ in trimmed.chars().filter(|c| *c == '}') {
+            prefix_stack.pop();
+        }
+        return;
+    }
+
+    if let Some(body) = trimmed.strip_suffix('{') {
+        let tokens = tokenise(body.trim());
+        prefix_stack.push(tokens);
+        return;
+    }
+
+    if let Some(body) = trimmed.strip_suffix(';') {
+        let line_tokens = tokenise(body.trim());
         if line_tokens.is_empty() {
-            continue;
+            return;
         }
         let prefix_flat: Vec<String> =
             prefix_stack.iter().flatten().cloned().collect();
@@ -91,13 +142,30 @@ pub fn lex(text: &str) -> LexResult {
             .into_iter()
             .chain(line_tokens.into_iter())
             .collect();
-        out.push(JunosLine::new(combined, lineno, raw_line.to_string()));
+        if let Some(variants) = expand_bracket_list(&combined) {
+            for v in variants {
+                out.push(JunosLine::new(v, lineno, raw_line.to_string()));
+            }
+        } else {
+            out.push(JunosLine::new(combined, lineno, raw_line.to_string()));
+        }
+        return;
     }
-    let truncated = !prefix_stack.is_empty();
-    LexResult {
-        lines: out,
-        truncated,
+
+    // A statement without `;` or `{` ending — Junos sometimes writes
+    // bare keywords (e.g. `inactive: foo`). Treat as a leaf with
+    // current tokens; survives malformed input without panic.
+    let line_tokens = tokenise(trimmed);
+    if line_tokens.is_empty() {
+        return;
     }
+    let prefix_flat: Vec<String> =
+        prefix_stack.iter().flatten().cloned().collect();
+    let combined: Vec<String> = prefix_flat
+        .into_iter()
+        .chain(line_tokens.into_iter())
+        .collect();
+    out.push(JunosLine::new(combined, lineno, raw_line.to_string()));
 }
 
 fn strip_block_comments(text: &str) -> String {
@@ -217,6 +285,38 @@ mod tests {
             .filter(|l| l.path.contains(&"members".to_string()))
             .collect();
         assert_eq!(leaves.len(), 2);
+    }
+
+    #[test]
+    fn compact_single_line_brace_block_expands() {
+        // V1N-A: compact `{ a; b; }` is now first-class.
+        let cfg = "system { host-name foo; domain-name bar.test; }\n";
+        let r = lex(cfg);
+        assert!(r
+            .lines
+            .iter()
+            .any(|l| l.path == vec!["system".to_string(), "host-name".to_string(), "foo".to_string()]));
+        assert!(r
+            .lines
+            .iter()
+            .any(|l| l.path
+                == vec![
+                    "system".to_string(),
+                    "domain-name".to_string(),
+                    "bar.test".to_string()
+                ]));
+    }
+
+    #[test]
+    fn compact_block_with_inline_brackets_expands_both() {
+        let cfg = "vlan { members [ v10 v20 ]; }\n";
+        let r = lex(cfg);
+        let members: Vec<&JunosLine> = r
+            .lines
+            .iter()
+            .filter(|l| l.path.first().map(|s| s.as_str()) == Some("vlan"))
+            .collect();
+        assert_eq!(members.len(), 2);
     }
 
     #[test]

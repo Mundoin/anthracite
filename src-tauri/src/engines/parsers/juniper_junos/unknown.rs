@@ -10,6 +10,8 @@ use crate::engines::network_model::{UnknownConfigLine, UnknownReason};
 use super::canonical::JunosLine;
 
 /// Path prefixes the V1M parser deliberately does not interpret.
+/// V1N-A: `deactivate` and `delete` set-style forms are also routed
+/// here so they surface as `OutOfScope` evidence rather than vanishing.
 pub const OUT_OF_SCOPE_PREFIXES: &[&[&str]] = &[
     &["protocols"],
     &["policy-options"],
@@ -19,6 +21,8 @@ pub const OUT_OF_SCOPE_PREFIXES: &[&[&str]] = &[
     &["forwarding-options"],
     &["services"],
     &["applications"],
+    &["deactivate"],
+    &["delete"],
 ];
 
 pub fn is_out_of_scope(line: &JunosLine) -> bool {

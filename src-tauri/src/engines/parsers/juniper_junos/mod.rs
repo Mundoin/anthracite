@@ -48,7 +48,14 @@ use crate::engines::network_model::{
 use canonical::JunosLine;
 
 /// Monotonic per-parser version. Bump per PARSER_VERSIONING.md.
-pub const PARSER_VERSION: u32 = 1;
+///
+/// V1 — V1M initial brace + set L1/L2 parser.
+/// V2 — V1N-A: compact `{ a; b; }` brace blocks first-class;
+///      `deactivate` / `delete` set-style forms surface as OutOfScope
+///      evidence (was silently dropped); LAG `aggregated-ether-options
+///      lacp <mode>` threads through `LagGroupModel.mode`; vlans
+///      `l3-interface irb.N` stamps SVI into `VlanModel.interfaces`.
+pub const PARSER_VERSION: u32 = 2;
 
 /// V1M in-scope coverage area list. Vocabulary matches the V1K Cisco
 /// list so receipt projection treats both parsers symmetrically.
@@ -101,6 +108,16 @@ struct State {
     vlan_by_name: BTreeMap<String, vlans::VlanBuilder>,
     vrfs: BTreeMap<String, routing_instances::VrfBuilder>,
     static_routes: Vec<static_routes::RouteBuilder>,
+    /// V1N-A: LACP mode per ae bundle (e.g. "ae0" → Active). Populated
+    /// when `aggregated-ether-options lacp <mode>` is parsed on the
+    /// bundle interface. Finalize threads this into
+    /// `LagGroupModel.mode` for the synthesised LAG group.
+    lag_modes: BTreeMap<String, LagMode>,
+    /// V1N-A: VLAN name → l3-interface name (e.g. "USERS" → "irb.100")
+    /// captured from `vlans { NAME { l3-interface irb.N; } }`. Finalize
+    /// stamps the SVI's name into the VLAN's interfaces list so the
+    /// IRB↔VLAN relationship is observable without a model edit.
+    vlan_l3_interface: BTreeMap<String, String>,
     ssh: services::SshAccum,
     snmp: services::SnmpAccum,
     ntp: services::NtpAccum,
@@ -392,6 +409,12 @@ fn handle_interface(line: &JunosLine, st: &mut State) {
         if let Some(e) = st.interfaces.get_mut(iface_name) {
             e.lag_mode = mode;
         }
+        // V1N-A: also record on the parser-level sidecar map so
+        // finalize can thread the mode into the synthesised
+        // LagGroupModel without an extra interface field.
+        if let Some(m) = mode {
+            st.lag_modes.insert(iface_name.to_string(), m);
+        }
         st.parsed_line_count += 1;
         return;
     }
@@ -544,6 +567,15 @@ fn handle_vlan(line: &JunosLine, st: &mut State) {
     }
     if p.len() == 4 && p[2] == "description" {
         // Captured by name lookup; no field on VlanModel, so ignore.
+        st.parsed_line_count += 1;
+        return;
+    }
+    if p.len() == 4 && p[2] == "l3-interface" {
+        // V1N-A: record the SVI binding so finalize can stamp the SVI
+        // name into VlanModel.interfaces — observable IRB↔VLAN link
+        // without a model edit.
+        st.vlan_l3_interface
+            .insert(name.clone(), p[3].clone());
         st.parsed_line_count += 1;
         return;
     }
@@ -890,12 +922,18 @@ fn finalize(mut st: State) -> DeviceModel {
     }
 
     // ---------- VLANs ---------------------------------------------------
+    // V1N-A: pre-build VLAN name → l3-interface lookup so we can stamp
+    // the IRB SVI into each VLAN's interfaces list.
+    let vlan_l3 = std::mem::take(&mut st.vlan_l3_interface);
     let mut vlans_out: Vec<VlanModel> = st
         .vlan_by_name
-        .into_values()
-        .map(|mut b| {
+        .into_iter()
+        .map(|(name, mut b)| {
             if let Some(ifs) = vlan_interface_map.get(&b.id) {
                 b.interfaces.extend(ifs.clone());
+            }
+            if let Some(svi) = vlan_l3.get(&name) {
+                b.interfaces.push(svi.clone());
             }
             b.build()
         })
@@ -940,18 +978,13 @@ fn finalize(mut st: State) -> DeviceModel {
             entry.members.push(iface.name.clone());
         }
     }
-    // Stamp LAG mode from the ae bundle interface entry.
-    for iface in &ifaces {
-        if matches!(iface.kind, InterfaceKind::Lag) {
-            if let Some(entry) = lag_map.get_mut(&iface.name) {
-                // mode is stored on the bundle's IfaceBuilder; we lost
-                // it after .into_iter() above. Use a second pass via
-                // iface.notes — but we never populated notes. Leave
-                // mode as `None` for V1M and accept the limitation;
-                // brace and set both have the same shortfall so the
-                // byte-equal contract holds.
-                let _ = entry;
-            }
+    // V1N-A: thread LACP mode from the parser-level sidecar map into
+    // every synthesised LagGroupModel. Mode propagates symmetrically
+    // for brace and set styles (both lexers route through the same
+    // dispatch path), so the byte-equal pair contract holds.
+    for (bundle_name, entry) in lag_map.iter_mut() {
+        if let Some(m) = st.lag_modes.get(bundle_name) {
+            entry.mode = Some(*m);
         }
     }
     let mut lag_groups: Vec<LagGroupModel> = lag_map.into_values().collect();

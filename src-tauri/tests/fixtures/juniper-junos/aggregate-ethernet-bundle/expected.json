@@ -18,7 +18,7 @@
     "source": null,
     "source_kind": "config_paste",
     "captured_at": null,
-    "parser_version": "1",
+    "parser_version": "2",
     "registry_version": null,
     "fixture_corpus_version": null,
     "byte_size": 840,
@@ -239,7 +239,7 @@
   "lag_groups": [
     {
       "name": "ae0",
-      "mode": null,
+      "mode": "active",
       "members": [
         "ge-0/0/0",
         "ge-0/0/1"
@@ -249,7 +249,7 @@
     },
     {
       "name": "ae1",
-      "mode": null,
+      "mode": "passive",
       "members": [
         "ge-0/0/2",
         "ge-0/0/3"

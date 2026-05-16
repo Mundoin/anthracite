@@ -22,11 +22,13 @@
 # (those two fields are intrinsic to the textual form). See
 # JUNOS_CONFIG_STYLES.md for the rationale.
 
-parser_version = 1
+parser_version = 2
 
 fixtures = [
     "aggregate-ethernet-bundle",
+    "compact-brace-blocks",
     "cross-vendor-equivalent-small",
+    "deactivate-and-delete-set-forms",
     "dual-stack-edge",
     "irb-and-vlan-binding",
     "many-access-ports-l2-only",
