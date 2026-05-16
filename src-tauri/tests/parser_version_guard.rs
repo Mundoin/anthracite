@@ -1,17 +1,20 @@
-//! V1L parser-version guard.
+//! V1L / V1M parser-version guard.
 //!
-//! This is a small, focused gate that fires CI red whenever the
-//! cisco-iosxe parser_version, the fixture manifest, and the on-disk
-//! fixture set drift apart from each other. It is intentionally separate
-//! from the full corpus harness (`cisco_iosxe_fixture_corpus.rs`) so that
-//! a single failure surface speaks to "did the contract drift?" rather
-//! than "did one fixture's output drift?".
+//! Per-parser focused gates that fire CI red whenever a parser's
+//! source `PARSER_VERSION`, its fixture manifest, and the on-disk
+//! fixture set drift apart. Intentionally separate from the corpus
+//! harnesses so the failure surface speaks to "did the contract
+//! drift?" rather than "did one fixture's output drift?".
 //!
-//! ## What this guards
+//! Covers both Anthracite parsers as of V1M:
+//!   - cisco-iosxe (V1K + V1L bump to v2)
+//!   - juniper-junos (V1M v1)
 //!
-//! - `_manifest.toml::parser_version` == `cisco_iosxe::PARSER_VERSION`
-//! - every directory under `tests/fixtures/cisco-iosxe/` is listed in
-//!   the manifest, and every name in the manifest exists on disk
+//! ## What this guards (per parser)
+//!
+//! - `_manifest.toml::parser_version` == `<parser>::PARSER_VERSION`
+//! - every directory under the parser's fixture root is listed in the
+//!   manifest, and every name in the manifest exists on disk
 //! - every listed fixture has a `config.cfg`
 //!
 //! ## Honest limitation
@@ -19,25 +22,26 @@
 //! This guard CANNOT tell you whether a parser change *should* have
 //! required a `PARSER_VERSION` bump. It only enforces that the three
 //! version-bearing artefacts (source constant, manifest, fixture list)
-//! agree with each other. Human review is still the authority on whether
-//! a behavioural change warranted a version bump in the first place.
-//! See `docs/architecture/PARSER_VERSIONING.md` for the full bump
-//! policy and the meaning of this limitation.
+//! agree with each other. Human review is still the authority on
+//! whether a behavioural change warranted a version bump in the first
+//! place. See `docs/architecture/PARSER_VERSIONING.md` for the full
+//! bump policy and the meaning of this limitation.
 
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
-const FIXTURE_ROOT: &str = "tests/fixtures/cisco-iosxe";
+const CISCO_FIXTURE_ROOT: &str = "tests/fixtures/cisco-iosxe";
+const JUNOS_FIXTURE_ROOT: &str = "tests/fixtures/juniper-junos";
 const MANIFEST_FILE: &str = "_manifest.toml";
 
-fn manifest_path() -> PathBuf {
-    PathBuf::from(FIXTURE_ROOT).join(MANIFEST_FILE)
+fn manifest_path(root: &str) -> PathBuf {
+    PathBuf::from(root).join(MANIFEST_FILE)
 }
 
-fn read_manifest_version_and_fixtures() -> (u32, Vec<String>) {
-    let raw = fs::read_to_string(manifest_path())
-        .expect("read _manifest.toml");
+fn read_manifest_version_and_fixtures(root: &str) -> (u32, Vec<String>) {
+    let raw = fs::read_to_string(manifest_path(root))
+        .unwrap_or_else(|e| panic!("read {root}/_manifest.toml: {e}"));
     let mut parser_version: Option<u32> = None;
     let mut fixtures: Vec<String> = Vec::new();
     let mut in_list = false;
@@ -82,23 +86,10 @@ fn extract_quoted(s: &str) -> Option<String> {
     }
 }
 
-#[test]
-fn manifest_parser_version_equals_source_constant() {
-    let (mv, _) = read_manifest_version_and_fixtures();
-    assert_eq!(
-        mv,
-        anthracite_lib::engines::parsers::cisco_iosxe::PARSER_VERSION,
-        "DRIFT: manifest parser_version != cisco_iosxe::PARSER_VERSION. \
-         Bump both or neither; never one without the other."
-    );
-}
-
-#[test]
-fn on_disk_fixture_set_equals_manifest_fixture_set() {
-    let (_, listed) = read_manifest_version_and_fixtures();
-    let listed: BTreeSet<String> = listed.into_iter().collect();
+fn assert_on_disk_matches_manifest(root: &str, listed: &[String]) {
+    let listed: BTreeSet<String> = listed.iter().cloned().collect();
     let mut on_disk: BTreeSet<String> = BTreeSet::new();
-    for entry in fs::read_dir(FIXTURE_ROOT).expect("read fixture root") {
+    for entry in fs::read_dir(root).expect("read fixture root") {
         let entry = entry.expect("dir entry");
         if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
             on_disk.insert(entry.file_name().to_string_lossy().into_owned());
@@ -108,23 +99,75 @@ fn on_disk_fixture_set_equals_manifest_fixture_set() {
     let extra: Vec<&String> = listed.difference(&on_disk).collect();
     assert!(
         missing.is_empty(),
-        "DRIFT: fixture dirs on disk but not in manifest: {missing:?}"
+        "DRIFT in {root}: fixture dirs on disk but not in manifest: {missing:?}"
     );
     assert!(
         extra.is_empty(),
-        "DRIFT: manifest names fixtures that do not exist on disk: {extra:?}"
+        "DRIFT in {root}: manifest names fixtures that do not exist on disk: {extra:?}"
+    );
+}
+
+fn assert_every_fixture_has_config(root: &str, listed: &[String]) {
+    for name in listed {
+        let cfg = PathBuf::from(root).join(name).join("config.cfg");
+        assert!(
+            cfg.exists(),
+            "{root}: fixture {name}: missing config.cfg at {}",
+            cfg.display()
+        );
+    }
+}
+
+// =====================================================================
+// cisco-iosxe
+// =====================================================================
+
+#[test]
+fn cisco_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(CISCO_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::cisco_iosxe::PARSER_VERSION,
+        "DRIFT: cisco manifest parser_version != cisco_iosxe::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
     );
 }
 
 #[test]
-fn every_listed_fixture_has_config_cfg() {
-    let (_, listed) = read_manifest_version_and_fixtures();
-    for name in &listed {
-        let cfg = PathBuf::from(FIXTURE_ROOT).join(name).join("config.cfg");
-        assert!(
-            cfg.exists(),
-            "fixture {name}: missing config.cfg at {}",
-            cfg.display()
-        );
-    }
+fn cisco_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(CISCO_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(CISCO_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn cisco_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(CISCO_FIXTURE_ROOT);
+    assert_every_fixture_has_config(CISCO_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
+// juniper-junos
+// =====================================================================
+
+#[test]
+fn junos_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(JUNOS_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::juniper_junos::PARSER_VERSION,
+        "DRIFT: junos manifest parser_version != juniper_junos::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn junos_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(JUNOS_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(JUNOS_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn junos_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(JUNOS_FIXTURE_ROOT);
+    assert_every_fixture_has_config(JUNOS_FIXTURE_ROOT, &listed);
 }
