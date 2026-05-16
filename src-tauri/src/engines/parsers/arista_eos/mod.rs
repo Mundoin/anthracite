@@ -39,7 +39,13 @@ use crate::engines::network_model::{
 use super::context::ParserContext;
 use super::normalize;
 
-pub const PARSER_VERSION: u32 = 1;
+/// Monotonic per-parser version. Bump per PARSER_VERSIONING.md.
+///
+/// V1 — V1N initial L1/L2 parser.
+/// V2 — V1N-A: `ip virtual-router …` (VARP) and `ip access-list …`
+///       blocks now emit `UnknownReason::OutOfScope` (was
+///       `UnsupportedKeyword`).
+pub const PARSER_VERSION: u32 = 2;
 
 const IN_SCOPE_AREAS: &[&str] = &[
     "identity",
@@ -445,6 +451,26 @@ fn dispatch_ip_top(
 ) {
     let (sub, rest) = lexer::split_command(args);
     match sub.to_ascii_lowercase().as_str() {
+        "virtual-router" => {
+            // V1N-A: EOS VARP — `ip virtual-router mac-address …` and
+            // friends. Classified as out-of-scope at L1/L2.
+            st.unknown_lines.push(unknown::emit(
+                line.line_number,
+                &line.raw,
+                ctx.path().as_deref(),
+                UnknownReason::OutOfScope,
+            ));
+        }
+        "access-list" => {
+            // EOS top-level `ip access-list NAME` ACL block opener.
+            // Out-of-scope; push a frame so child rules also classify.
+            st.unknown_lines.push(unknown::emit(
+                line.line_number,
+                &line.raw,
+                ctx.path().as_deref(),
+                UnknownReason::OutOfScope,
+            ));
+        }
         "route" => {
             if let Some(r) = static_routes::parse_ip_route(rest) {
                 st.static_routes.push(r);
@@ -805,6 +831,16 @@ fn handle_iface_ip(
 ) {
     let (sub, rest) = lexer::split_command(args);
     match sub.to_ascii_lowercase().as_str() {
+        "virtual-router" => {
+            // V1N-A: EOS VARP per-interface — `ip virtual-router
+            // address …` etc. Out-of-scope at L1/L2.
+            st.unknown_lines.push(unknown::emit(
+                line.line_number,
+                &line.raw,
+                ctx.path().as_deref(),
+                UnknownReason::OutOfScope,
+            ));
+        }
         "address" => {
             let vrf = iface_vrf(st, iface_name);
             if let Some(ip) = ip_addressing::parse_ipv4_address_line(rest, vrf.as_deref()) {

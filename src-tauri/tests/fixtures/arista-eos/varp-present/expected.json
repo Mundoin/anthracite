@@ -1,6 +1,6 @@
 {
   "identity": {
-    "hostname": "cross-vendor-eq",
+    "hostname": "eos-varp-01",
     "chassis": null,
     "serial_numbers": [],
     "management_ips": [],
@@ -21,44 +21,14 @@
     "parser_version": "2",
     "registry_version": null,
     "fixture_corpus_version": null,
-    "byte_size": 425,
-    "line_count": 33
+    "byte_size": 277,
+    "line_count": 18
   },
   "interfaces": [
     {
-      "name": "Ethernet1",
-      "normalized_name": "Et1",
-      "kind": "physical",
-      "admin_state": "up",
-      "oper_state": "unknown",
-      "description": null,
-      "mtu": null,
-      "speed_mbps": null,
-      "duplex": null,
-      "l2_mode": "routed",
-      "access_vlan": null,
-      "allowed_vlans": [],
-      "native_vlan": null,
-      "vrf": null,
-      "ipv4_addresses": [
-        {
-          "family": "v4",
-          "address": "10.0.0.1",
-          "prefix_length": 30,
-          "secondary": false,
-          "vrf": null
-        }
-      ],
-      "ipv6_addresses": [],
-      "parent_interface": null,
-      "child_interfaces": [],
-      "lag_membership": null,
-      "notes": null
-    },
-    {
-      "name": "Loopback0",
-      "normalized_name": "Lo0",
-      "kind": "loopback",
+      "name": "Vlan100",
+      "normalized_name": "Vl100",
+      "kind": "vlan",
       "admin_state": "unknown",
       "oper_state": "unknown",
       "description": null,
@@ -73,8 +43,38 @@
       "ipv4_addresses": [
         {
           "family": "v4",
-          "address": "192.0.2.99",
-          "prefix_length": 32,
+          "address": "10.100.0.2",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Vlan200",
+      "normalized_name": "Vl200",
+      "kind": "vlan",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.200.0.2",
+          "prefix_length": 24,
           "secondary": false,
           "vrf": null
         }
@@ -94,29 +94,8 @@
       "interfaces": []
     }
   ],
-  "vrfs": [
-    {
-      "name": "MGMT",
-      "route_distinguisher": "65000:1",
-      "route_targets_import": [],
-      "route_targets_export": [],
-      "interfaces": [],
-      "address_families": []
-    }
-  ],
-  "static_routes": [
-    {
-      "prefix": "0.0.0.0/0",
-      "next_hops": [
-        "10.0.0.2"
-      ],
-      "admin_distance": null,
-      "metric": null,
-      "tag": null,
-      "vrf": null,
-      "name": null
-    }
-  ],
+  "vrfs": [],
+  "static_routes": [],
   "routing_protocols": {
     "ospf": [],
     "isis": [],
@@ -129,64 +108,46 @@
   "tunnels": [],
   "qos_policies": [],
   "lag_groups": [],
-  "services": [
-    {
-      "kind": "dns",
-      "servers": [
-        "10.0.0.10"
-      ],
-      "source_interface": null,
-      "vrf": null,
-      "authentication_mode": null,
-      "notes": "domains=example.test"
-    },
-    {
-      "kind": "ntp",
-      "servers": [
-        "10.0.0.1"
-      ],
-      "source_interface": null,
-      "vrf": null,
-      "authentication_mode": null,
-      "notes": null
-    },
-    {
-      "kind": "snmp",
-      "servers": [],
-      "source_interface": null,
-      "vrf": null,
-      "authentication_mode": null,
-      "notes": "communities=PUBLIC"
-    },
-    {
-      "kind": "ssh",
-      "servers": [],
-      "source_interface": null,
-      "vrf": null,
-      "authentication_mode": null,
-      "notes": "idle_timeout_seconds=1800"
-    },
-    {
-      "kind": "syslog",
-      "servers": [
-        "10.0.0.100"
-      ],
-      "source_interface": null,
-      "vrf": null,
-      "authentication_mode": null,
-      "notes": null
-    }
-  ],
+  "services": [],
   "topology_hints": [],
   "findings": [],
-  "unknown_lines": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 9,
+      "raw": "   ip virtual-router address 10.100.0.1",
+      "context_path": "interface Vlan100",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 13,
+      "raw": "   ip virtual-router address 10.200.0.1",
+      "context_path": "interface Vlan200",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 15,
+      "raw": "ip virtual-router mac-address aaaa.bbbb.cccc",
+      "context_path": null,
+      "reason": "out_of_scope"
+    }
+  ],
   "parse_confidence": {
     "maturity_observed": "l2topology",
-    "score": 0.9231,
-    "parsed_line_count": 20,
-    "unknown_line_count": 0,
+    "score": 0.3846,
+    "parsed_line_count": 8,
+    "unknown_line_count": 3,
     "warnings": [
       "absent:lag_groups",
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_ssh",
+      "absent:services_syslog",
+      "absent:static_routes",
+      "absent:vrfs",
       "not_in_scope:aaa_detail",
       "not_in_scope:acls",
       "not_in_scope:community_lists",
