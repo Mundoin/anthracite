@@ -35,7 +35,23 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1H   | complete · Vendor Registry Engine | [stages/V1H-vendor-registry-engine.md](./stages/V1H-vendor-registry-engine.md) |
 | V1I   | complete · Canonical Network Model | [stages/V1I-canonical-network-model.md](./stages/V1I-canonical-network-model.md) |
 | V1J   | complete · Config Detection Engine | [stages/V1J-config-detection-engine.md](./stages/V1J-config-detection-engine.md) |
+| V1J-A | complete · Motor Room Architecture Rules (docs-only) | [stages/V1J-A-motor-room-architecture-rules.md](./stages/V1J-A-motor-room-architecture-rules.md) |
 | V1K   | planned       | Cisco IOS / IOS XE parser L1/L2 |
+
+## V1J-A adaptation
+
+V1G/V1H/V1I/V1J built the first engine spine. **V1J-A** imports and
+adapts the old Anthracite motor-room rules into compact V1 law before
+parser work proceeds. Forge / learning / drill / puzzle / journal /
+sound / protocol workshop families are explicitly quarantined.
+
+New architecture docs:
+
+- [`../docs/architecture/MOTOR_ROOM_ARCHITECTURE_RULES.md`](../docs/architecture/MOTOR_ROOM_ARCHITECTURE_RULES.md) — V1 engine law (layering, evidence, pipeline, vendor/parser, confidence, baseline, snapshot, Cortex).
+- [`../docs/architecture/ENGINE_PIPELINE_CONTRACT.md`](../docs/architecture/ENGINE_PIPELINE_CONTRACT.md) — nine-stage pipeline contract + old→V1 concept map.
+- [`../docs/architecture/OLD_ANTHRACITE_ADAPTATION_MAP.md`](../docs/architecture/OLD_ANTHRACITE_ADAPTATION_MAP.md) — active-now / activate-later / quarantined categories.
+
+Next stage: **V1K — Cisco IOS / IOS XE parser L1/L2.**
 
 ## V1G pivot
 
