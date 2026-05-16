@@ -207,11 +207,95 @@ These rules are locked at V1O. Any future intake surface inherits them.
 
 ---
 
+## Batch mode (V1O-A overlay)
+
+V1O-A extends INTAKE with a deterministic Rust config splitter (see
+[`CONFIG_SPLITTER_CONTRACT.md`](./CONFIG_SPLITTER_CONTRACT.md)) and
+a multi-device batch view. The V1O single-config flow is preserved
+verbatim — when the splitter returns one slice with
+`SplitMethod::SingleConfig`, the UI renders the original V1O surface
+with **no batch chrome**. This is a binding regression lock; see the
+`SingleConfig regression lock` test in
+`src/modes/intake/__tests__/IntakePanel.batch.test.tsx`.
+
+### Flow
+
+```
+paste / open file
+  ↓
+operator clicks Detect
+  ↓
+splitConfigBatch(configText)   ← always runs first
+  ├─ method = single_config (one slice)
+  │    → fall through to V1O flow on the original text
+  │      (no batch chrome, byte-identical to V1O)
+  └─ method = explicit_separator | heuristic (≥ 2 slices)
+       → BatchSummaryView
+         per-slice detectConfigPlatform runs on render (R3)
+         operator clicks a slice → drilled-in V1O sub-flow:
+           parseDeviceConfig(platform_ref, slice.raw_text)
+           projectDeviceReceipt(device_model)
+           render existing ReceiptDisplay component unchanged
+         "← Back to batch" returns to BatchSummaryView, state preserved
+```
+
+### Engine boundary
+
+V1O-A introduces exactly one new typed command — `split_config_batch`
+— and one new TS API wrapper — `splitConfigBatch`. The splitter
+output is consumed by the existing V1J / V1K / V1L commands per slice.
+No new parser, model, or receipt commands. No new wire types beyond
+the splitter's own.
+
+### Detect-all-slices, parse-selected-slice (R3)
+
+When `BatchSummaryView` renders with one or more `pending` per-slice
+detection entries, the panel kicks off `detectConfigPlatform` for
+each pending slice in parallel. Each completion dispatches
+`PerSliceDetectionSucceeded` / `PerSliceDetectionFailed`. Parse and
+receipt projection run ONLY when the operator drills into a slice.
+
+### Treat-as-single-config fallback (R7)
+
+When the splitter result includes any of
+`ambiguous_boundary`, `low_confidence_split`, or
+`unusually_large_batch`, BatchSummaryView renders a **Treat as single
+config** button. Clicking it dispatches `TreatAsSingleConfig`, which
+clears the batch wrapper and routes the operator into the V1O
+single-config flow with the original paste text.
+
+### Honesty rules carry forward
+
+V1O's seven UI honesty rules apply per-slice and at the batch level:
+
+- splitter warnings render verbatim by `kind`
+- per-slice detection state (`pending` / `detected` / `failed`)
+  renders without invented severity
+- per-slice low-confidence detection flags propagate
+- splitter version is visible in the batch summary header
+- candidates per slice are visible after drill-down (V1O contract)
+- error paths (split failure, per-slice detection failure) are
+  first-class UX, never hidden
+
+### What V1O-A does NOT do
+
+- No archive support (zip / tar / gz). V1O-A handles raw text only.
+- No batch-level statistics. Aggregate facts (total interfaces,
+  cross-device VLAN overlap, etc.) require a future engine — out
+  of V1O-A scope per `MOTOR_ROOM_ARCHITECTURE_RULES.md`.
+- No batch export, no batch persistence, no cross-session caching.
+- No UI-side re-splitting or re-merging. The splitter is the
+  authority; the UI consumes its output verbatim.
+- No manual boundary editor / drag-to-reorder. The only operator
+  override at batch boundary is "Treat as single config".
+- No cross-device relationship inference. Topology is a separate,
+  later stage.
+
 ## Follow-ups owned by later stages
 
-- **V1O-A** — multi-device intake, batch detection + parse, per-device
-  receipt rollup. Defines how a multi-config text or archive is split,
-  per-device evidence isolation, and how the rollup composes.
+- **V1O-B (tentative)** — archive intake (zip / tar) and per-device
+  receipt rollup / export. Defines how an archive of configs is
+  fed to the splitter and how a rollup composes.
 - **V1O-B (tentative)** — receipt export (JSON / Markdown), copy-out for
   evidence packs. Out of V1O scope.
 - **V1P** — first real Cortex consumption of `DeviceModel` for analysis.
