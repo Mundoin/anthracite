@@ -1,0 +1,257 @@
+{
+  "identity": {
+    "hostname": "eos-divergent-01",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [
+      {
+        "family": "v4",
+        "address": "10.1.0.20",
+        "prefix_length": 24,
+        "secondary": false,
+        "vrf": "MGMT"
+      }
+    ],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "arista-eos",
+    "vendor": "Arista",
+    "os_family": "EOS",
+    "os_version_raw": "specific",
+    "os_version_normalized": "specific",
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 817,
+    "line_count": 41
+  },
+  "interfaces": [
+    {
+      "name": "Ethernet1",
+      "normalized_name": "Et1",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.0.1",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Ethernet2",
+      "normalized_name": "Et2",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": "Port-Channel1",
+      "notes": null
+    },
+    {
+      "name": "Ethernet3",
+      "normalized_name": "Et3",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": "Port-Channel1",
+      "notes": null
+    },
+    {
+      "name": "Management1",
+      "normalized_name": "Mgmt1",
+      "kind": "management",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "MGMT",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.1.0.20",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": "MGMT"
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Port-Channel1",
+      "normalized_name": "Port-Channel1",
+      "kind": "lag",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "bundle-with-eos-style-lacp",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.10.1",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [],
+  "vrfs": [
+    {
+      "name": "MGMT",
+      "route_distinguisher": "65000:1",
+      "route_targets_import": [],
+      "route_targets_export": [],
+      "interfaces": [
+        "Mgmt1"
+      ],
+      "address_families": []
+    }
+  ],
+  "static_routes": [],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [
+    {
+      "name": "Port-Channel1",
+      "mode": null,
+      "members": [
+        "Et2",
+        "Et3"
+      ],
+      "hashing_mode": null,
+      "min_links": null
+    }
+  ],
+  "services": [
+    {
+      "kind": "ssh",
+      "servers": [],
+      "source_interface": null,
+      "vrf": "MGMT",
+      "authentication_mode": null,
+      "notes": "idle_timeout_seconds=3600"
+    }
+  ],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.5385,
+    "parsed_line_count": 26,
+    "unknown_line_count": 0,
+    "warnings": [
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_syslog",
+      "absent:static_routes",
+      "absent:vlans",
+      "not_in_scope:aaa_detail",
+      "not_in_scope:acls",
+      "not_in_scope:community_lists",
+      "not_in_scope:daemons",
+      "not_in_scope:event_handlers",
+      "not_in_scope:evpn",
+      "not_in_scope:firewall_zones",
+      "not_in_scope:management_api",
+      "not_in_scope:mlag",
+      "not_in_scope:mpls",
+      "not_in_scope:nat_rules",
+      "not_in_scope:prefix_lists",
+      "not_in_scope:qos_policies",
+      "not_in_scope:route_maps",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:segment_routing",
+      "not_in_scope:tunnels",
+      "not_in_scope:varp",
+      "not_in_scope:vxlan"
+    ]
+  }
+}

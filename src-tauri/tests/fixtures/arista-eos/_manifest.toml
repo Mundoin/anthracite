@@ -1,0 +1,37 @@
+# Arista EOS fixture corpus manifest (V1N).
+#
+# Single source of truth for which EOS fixtures the corpus harness
+# walks. `parser_version` must equal `arista_eos::PARSER_VERSION`;
+# the `parser_version_guard` integration test enforces equality.
+#
+# Every directory under `tests/fixtures/arista-eos/` (except this
+# manifest) must appear in `fixtures`, and every name here must exist
+# on disk. The corpus harness asserts both directions.
+#
+# To add a fixture:
+#   1. mkdir tests/fixtures/arista-eos/<name>/
+#   2. drop config.cfg in
+#   3. add <name> to `fixtures` below, alphabetically
+#   4. ANTHRACITE_UPDATE_FIXTURES=1 cargo test --test arista_eos_fixture_corpus
+#   5. hand-review expected.json before committing
+#
+# Cross-vendor convention: `cross-vendor-equivalent-small` is the
+# logical-equivalent companion to fixtures of the same name under
+# `cisco-iosxe/` and `juniper-junos/`. The
+# `cross_vendor_consistency` test asserts the canonical projection
+# across all three is byte-equal. See V1N stage note for the rules.
+
+parser_version = 1
+
+fixtures = [
+    "cross-vendor-equivalent-small",
+    "eos-divergence-from-iosxe",
+    "leaf-switch",
+    "mlag-and-eapi-present",
+    "near-empty",
+    "routing-protocols-present",
+    "small",
+    "spine-router",
+    "truncated",
+    "vrf-segmentation",
+]

@@ -1,0 +1,278 @@
+{
+  "identity": {
+    "hostname": "eos-spine-01",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "arista-eos",
+    "vendor": "Arista",
+    "os_family": "EOS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 641,
+    "line_count": 39
+  },
+  "interfaces": [
+    {
+      "name": "Ethernet1",
+      "normalized_name": "Et1",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "leaf-1-uplink",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.1.0",
+          "prefix_length": 31,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Ethernet2",
+      "normalized_name": "Et2",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "leaf-2-uplink",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.1.2",
+          "prefix_length": 31,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Ethernet3",
+      "normalized_name": "Et3",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "leaf-3-uplink",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.1.4",
+          "prefix_length": 31,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Ethernet4",
+      "normalized_name": "Et4",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "leaf-4-uplink",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.1.6",
+          "prefix_length": 31,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Loopback0",
+      "normalized_name": "Lo0",
+      "kind": "loopback",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": "router-id",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.0.2.1",
+          "prefix_length": 32,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Loopback1",
+      "normalized_name": "Lo1",
+      "kind": "loopback",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": "vtep",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.0.2.101",
+          "prefix_length": 32,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [],
+  "vrfs": [],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "10.0.1.1"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": null,
+      "name": null
+    }
+  ],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.3846,
+    "parsed_line_count": 29,
+    "unknown_line_count": 0,
+    "warnings": [
+      "absent:lag_groups",
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_ssh",
+      "absent:services_syslog",
+      "absent:vlans",
+      "absent:vrfs",
+      "not_in_scope:aaa_detail",
+      "not_in_scope:acls",
+      "not_in_scope:community_lists",
+      "not_in_scope:daemons",
+      "not_in_scope:event_handlers",
+      "not_in_scope:evpn",
+      "not_in_scope:firewall_zones",
+      "not_in_scope:management_api",
+      "not_in_scope:mlag",
+      "not_in_scope:mpls",
+      "not_in_scope:nat_rules",
+      "not_in_scope:prefix_lists",
+      "not_in_scope:qos_policies",
+      "not_in_scope:route_maps",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:segment_routing",
+      "not_in_scope:tunnels",
+      "not_in_scope:varp",
+      "not_in_scope:vxlan"
+    ]
+  }
+}
