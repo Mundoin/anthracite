@@ -33,7 +33,11 @@ use super::context::ParserContext;
 use super::normalize;
 
 /// Monotonic parser version. Bump per [`PARSER_VERSIONING.md`](../../../../../docs/architecture/PARSER_VERSIONING.md).
-pub const PARSER_VERSION: u32 = 1;
+///
+/// V1 — V1K initial L1/L2 parser.
+/// V2 — V1L: emits `UnknownReason::UnrecognizedInterfaceForm` for interface
+///       names that classify to `InterfaceKind::Unknown`.
+pub const PARSER_VERSION: u32 = 2;
 
 /// V1K coverage area list. Order matches
 /// [`PARSER_COVERAGE_AREAS.md`](../../../../../docs/architecture/PARSER_COVERAGE_AREAS.md).
@@ -344,6 +348,18 @@ fn dispatch_top_level(
             if !st.interfaces.contains_key(name) {
                 st.interfaces
                     .insert(name.to_string(), IfaceBuilder::new(name));
+            }
+            // V1L: if classifier did not recognise the interface form,
+            // emit a first-class UnknownConfigLine on the opener so the
+            // unrecognised form is surfaced as evidence. The block frame
+            // is still pushed so child lines parse normally.
+            if matches!(interfaces::classify(name), InterfaceKind::Unknown) {
+                st.unknown_lines.push(unknown::emit(
+                    line.line_number,
+                    &line.raw,
+                    None,
+                    UnknownReason::UnrecognizedInterfaceForm,
+                ));
             }
             ctx.push(format!("interface {name}"), 1);
             st.parsed_line_count += 1;

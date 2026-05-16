@@ -597,6 +597,9 @@ pub enum UnknownReason {
     ParseError,
     OutOfScope,
     VendorExtension,
+    /// Interface form did not match any known vendor pattern (e.g.
+    /// Cisco short-form normalization table). Added V1L.
+    UnrecognizedInterfaceForm,
     Other,
 }
 
@@ -778,6 +781,21 @@ mod tests {
         };
         assert_eq!(f.severity, FindingSeverity::High);
         assert_eq!(f.category, "weak-crypto");
+    }
+
+    #[test]
+    fn unrecognized_interface_form_round_trips() {
+        let u = UnknownConfigLine {
+            source: Some("startup-config".to_string()),
+            line_number: Some(42),
+            raw: "interface WeirdEthernet0/99".to_string(),
+            context_path: None,
+            reason: Some(UnknownReason::UnrecognizedInterfaceForm),
+        };
+        let json = serde_json::to_string(&u).unwrap();
+        assert!(json.contains("unrecognized_interface_form"));
+        let back: UnknownConfigLine = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, u);
     }
 
     #[test]

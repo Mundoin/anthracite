@@ -373,6 +373,7 @@ export type UnknownReason =
   | "parse_error"
   | "out_of_scope"
   | "vendor_extension"
+  | "unrecognized_interface_form"
   | "other";
 
 export interface UnknownConfigLine {
