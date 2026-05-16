@@ -57,6 +57,7 @@ pub fn run() {
             commands::vendor_registry::get_vendor_platform,
             commands::config_detection::detect_config_platform,
             commands::parser::parse_device_config,
+            commands::receipt::project_device_receipt,
         ])
         .run(tauri::generate_context!())
         .expect("error while running anthracite tauri application");
