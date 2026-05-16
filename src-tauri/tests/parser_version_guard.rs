@@ -1,4 +1,4 @@
-//! V1L / V1M parser-version guard.
+//! V1L / V1M / V1N parser-version guard.
 //!
 //! Per-parser focused gates that fire CI red whenever a parser's
 //! source `PARSER_VERSION`, its fixture manifest, and the on-disk
@@ -6,9 +6,10 @@
 //! harnesses so the failure surface speaks to "did the contract
 //! drift?" rather than "did one fixture's output drift?".
 //!
-//! Covers both Anthracite parsers as of V1M:
-//!   - cisco-iosxe (V1K + V1L bump to v2)
+//! Covers all three Anthracite parsers as of V1N:
+//!   - cisco-iosxe   (V1K + V1L bump to v2)
 //!   - juniper-junos (V1M v1)
+//!   - arista-eos    (V1N v1)
 //!
 //! ## What this guards (per parser)
 //!
@@ -33,6 +34,7 @@ use std::path::PathBuf;
 
 const CISCO_FIXTURE_ROOT: &str = "tests/fixtures/cisco-iosxe";
 const JUNOS_FIXTURE_ROOT: &str = "tests/fixtures/juniper-junos";
+const EOS_FIXTURE_ROOT: &str = "tests/fixtures/arista-eos";
 const MANIFEST_FILE: &str = "_manifest.toml";
 
 fn manifest_path(root: &str) -> PathBuf {
@@ -170,4 +172,31 @@ fn junos_on_disk_fixture_set_equals_manifest_fixture_set() {
 fn junos_every_listed_fixture_has_config_cfg() {
     let (_, listed) = read_manifest_version_and_fixtures(JUNOS_FIXTURE_ROOT);
     assert_every_fixture_has_config(JUNOS_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
+// arista-eos
+// =====================================================================
+
+#[test]
+fn eos_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(EOS_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::arista_eos::PARSER_VERSION,
+        "DRIFT: eos manifest parser_version != arista_eos::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn eos_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(EOS_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(EOS_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn eos_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(EOS_FIXTURE_ROOT);
+    assert_every_fixture_has_config(EOS_FIXTURE_ROOT, &listed);
 }
