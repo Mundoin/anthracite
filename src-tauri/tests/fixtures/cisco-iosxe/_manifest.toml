@@ -1,0 +1,46 @@
+# Cisco IOS-XE fixture corpus manifest (V1L).
+#
+# This file is the single source of truth for which fixtures the corpus
+# harness walks. The parser_version field must match
+# `cisco_iosxe::PARSER_VERSION`; the `parser_version_guard` integration
+# test enforces that equality.
+#
+# `fixtures` is the deterministically-ordered list of fixture directory
+# names under `tests/fixtures/cisco-iosxe/`. Every directory under that
+# path (with the exception of this manifest file) must appear here, and
+# every entry here must exist on disk. The corpus harness asserts both
+# directions.
+#
+# When adding a fixture:
+#   1. mkdir tests/fixtures/cisco-iosxe/<name>/
+#   2. drop config.cfg in
+#   3. add <name> to `fixtures` below, alphabetically
+#   4. ANTHRACITE_UPDATE_FIXTURES=1 cargo test --test cisco_iosxe_fixture_corpus
+#   5. hand-review expected.json before committing
+#
+# When parser output diverges from any committed expected.json, bump
+# parser_version here AND in `cisco_iosxe::PARSER_VERSION`, then
+# regenerate. See PARSER_VERSIONING.md for the honest limitation: CI
+# enforces manifest/source/fixture consistency, but it cannot tell you
+# whether a diff *should* have required a version bump.
+
+parser_version = 2
+
+fixtures = [
+    "acl-and-nat-present",
+    "comments-and-banners",
+    "dual-stack-edge",
+    "duplicate-vlan-id",
+    "large-interface-count",
+    "many-access-ports-l2-only",
+    "mixed-mask-formats",
+    "near-empty",
+    "out-of-order-vrf-binding",
+    "routing-protocols-present",
+    "services-snmp-ntp-ssh-syslog",
+    "small",
+    "truncated",
+    "unrecognised-interface-form",
+    "vrf-heavy-aggregation",
+    "wan-edge-with-subinterfaces",
+]

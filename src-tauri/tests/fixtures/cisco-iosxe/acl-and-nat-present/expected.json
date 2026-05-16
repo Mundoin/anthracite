@@ -1,0 +1,206 @@
+{
+  "identity": {
+    "hostname": "acl-nat-01",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "cisco-iosxe",
+    "vendor": "Cisco",
+    "os_family": "IOS / IOS XE",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "2",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 630,
+    "line_count": 30
+  },
+  "interfaces": [
+    {
+      "name": "GigabitEthernet0/0/0",
+      "normalized_name": "Gi0/0/0",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "outside",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "198.51.100.1",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "GigabitEthernet0/0/1",
+      "normalized_name": "Gi0/0/1",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "inside",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.0.1",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [],
+  "vrfs": [],
+  "static_routes": [],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 10,
+      "raw": " ip nat outside",
+      "context_path": "interface GigabitEthernet0/0/0",
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 16,
+      "raw": " ip nat inside",
+      "context_path": "interface GigabitEthernet0/0/1",
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 19,
+      "raw": "ip access-list extended OUTSIDE-IN",
+      "context_path": null,
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 20,
+      "raw": " permit tcp any any eq 443",
+      "context_path": null,
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 21,
+      "raw": " permit tcp any any eq 22",
+      "context_path": null,
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 22,
+      "raw": " deny ip any any log",
+      "context_path": null,
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 24,
+      "raw": "ip nat inside source list NAT-ACL interface GigabitEthernet0/0/0 overload",
+      "context_path": null,
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 26,
+      "raw": "ip access-list standard NAT-ACL",
+      "context_path": null,
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 27,
+      "raw": " permit 10.0.0.0 0.0.0.255",
+      "context_path": null,
+      "reason": "unsupported_keyword"
+    }
+  ],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.3077,
+    "parsed_line_count": 10,
+    "unknown_line_count": 9,
+    "warnings": [
+      "absent:lag_groups",
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_ssh",
+      "absent:services_syslog",
+      "absent:static_routes",
+      "absent:vlans",
+      "absent:vrfs",
+      "not_in_scope:aaa_detail",
+      "not_in_scope:acls",
+      "not_in_scope:community_lists",
+      "not_in_scope:evpn",
+      "not_in_scope:firewall_zones",
+      "not_in_scope:mpls",
+      "not_in_scope:nat_rules",
+      "not_in_scope:prefix_lists",
+      "not_in_scope:qos_policies",
+      "not_in_scope:route_maps",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:segment_routing",
+      "not_in_scope:tunnels",
+      "not_in_scope:vxlan"
+    ]
+  }
+}
