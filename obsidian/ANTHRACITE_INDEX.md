@@ -34,7 +34,8 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1G   | complete · engine buildout pivot (docs-only) | [stages/V1G-engine-buildout-pivot.md](./stages/V1G-engine-buildout-pivot.md) |
 | V1H   | complete · Vendor Registry Engine | [stages/V1H-vendor-registry-engine.md](./stages/V1H-vendor-registry-engine.md) |
 | V1I   | complete · Canonical Network Model | [stages/V1I-canonical-network-model.md](./stages/V1I-canonical-network-model.md) |
-| V1J   | planned       | Config Detection Engine |
+| V1J   | complete · Config Detection Engine | [stages/V1J-config-detection-engine.md](./stages/V1J-config-detection-engine.md) |
+| V1K   | planned       | Cisco IOS / IOS XE parser L1/L2 |
 
 ## V1G pivot
 
