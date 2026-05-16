@@ -1,0 +1,489 @@
+/* Intake mode — V1O (NOC Light surface, hierarchy pass).
+ * Aligned to docs/design/INDUSTRIAL_VISUAL_LAW.md and src/styles/tokens.css.
+ * No dark/black app slabs. Section headers carry the visual rank via
+ * sunken-tint background, a thin signal accent rail, and right-aligned
+ * meta pills. Buttons follow .anth .btn family; primary action is the
+ * info signal-blue, restrained but unambiguous.
+ */
+
+.intake-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  font-family: var(--anth-font-ui);
+  font-size: 12.5px;
+  color: var(--anth-text);
+  background: var(--anth-bg-app);
+  height: 100%;
+  overflow: auto;
+}
+
+/* ---- Section shells (match .anth-panel) ---------------------------- */
+.intake-input,
+.intake-detect,
+.intake-override,
+.intake-parse,
+.intake-receipt {
+  display: flex;
+  flex-direction: column;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-md);
+  overflow: hidden;
+  min-height: 0;
+  box-shadow: var(--anth-shadow-sm);
+}
+
+/* ---- Section header — strong light treatment ----------------------- */
+.intake-section__header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 12px 0 10px;
+  background:
+    linear-gradient(
+      to bottom,
+      #FAFCFE 0%,
+      var(--anth-bg-sunken) 100%
+    );
+  border-bottom: 1px solid var(--anth-border-strong);
+  border-left: 2px solid var(--anth-info);
+  flex: 0 0 auto;
+}
+
+.intake-section__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Right-aligned meta pill — looks like a controlled status capsule. */
+.intake-section__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 20px;
+  padding: 0 8px;
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  color: var(--anth-text-3);
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: 2px;
+  justify-self: end;
+  white-space: nowrap;
+}
+
+/* CONFIG INPUT header carries title + source pill + actions strip. */
+.intake-input__header {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 10px 0 10px;
+  background:
+    linear-gradient(
+      to bottom,
+      #FAFCFE 0%,
+      var(--anth-bg-sunken) 100%
+    );
+  border-bottom: 1px solid var(--anth-border-strong);
+  border-left: 2px solid var(--anth-info);
+}
+
+.intake-input__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text);
+}
+
+/* Source line rendered as a small status pill beside the title. */
+.intake-input__source {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  color: var(--anth-text-3);
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: 2px;
+  max-width: 480px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.intake-input__actions {
+  display: inline-flex;
+  gap: 6px;
+  justify-self: end;
+}
+
+.intake-input__file {
+  display: none;
+}
+
+.intake-input__textarea {
+  border: 0;
+  outline: 0;
+  resize: vertical;
+  min-height: 220px;
+  max-height: 420px;
+  padding: 10px 12px;
+  font-family: var(--anth-font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--anth-text);
+  background: var(--anth-bg-panel);
+  white-space: pre;
+}
+.intake-input__textarea:focus-visible {
+  outline: 2px solid var(--anth-border-focus);
+  outline-offset: -2px;
+}
+
+.intake-input__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 4px 12px;
+  background: var(--anth-bg-sunken);
+  border-top: 1px solid var(--anth-border);
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  color: var(--anth-text-3);
+  letter-spacing: 0.02em;
+}
+
+/* ---- Buttons (match .anth .btn family, with real primary) --------- */
+.intake-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 12px;
+  background: var(--anth-bg-panel);
+  color: var(--anth-text);
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-sm);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 80ms ease, border-color 80ms ease;
+}
+.intake-btn:hover:not(:disabled) {
+  background: var(--anth-bg-hover);
+  border-color: var(--anth-text-3);
+}
+.intake-btn:focus-visible {
+  outline: 2px solid var(--anth-border-focus);
+  outline-offset: 1px;
+}
+.intake-btn:disabled {
+  color: var(--anth-text-muted);
+  background: var(--anth-bg-sunken);
+  border-color: var(--anth-border);
+  cursor: not-allowed;
+}
+
+/* Primary action — info signal blue, solid when enabled, plainly grey
+ * when disabled so the operator never mistakes it for a live control. */
+.intake-btn--primary {
+  background: var(--anth-info);
+  color: #FFFFFF;
+  border-color: var(--anth-info);
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(26, 32, 44, 0.06);
+}
+.intake-btn--primary:hover:not(:disabled) {
+  background: #2A6FB8;
+  border-color: #2A6FB8;
+}
+.intake-btn--primary:disabled {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-muted);
+  border-color: var(--anth-border);
+  box-shadow: none;
+}
+
+.intake-btn--tiny {
+  height: 22px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ---- KV / summary grids ------------------------------------------- */
+.intake-detect__summary {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr);
+  gap: 16px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+}
+
+.intake-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.intake-kv__k {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--anth-text-3);
+  text-transform: uppercase;
+}
+
+.intake-kv__v {
+  font-family: var(--anth-font-mono);
+  font-size: 12px;
+  color: var(--anth-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.intake-muted { color: var(--anth-text-muted); }
+.intake-mono  { font-family: var(--anth-font-mono); font-size: 11.5px; }
+.intake-num   {
+  text-align: right;
+  font-family: var(--anth-font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.intake-confidence--low {
+  color: var(--anth-warn-ink);
+  font-weight: 700;
+}
+
+/* ---- Tags --------------------------------------------------------- */
+.intake-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 7px;
+  font-family: var(--anth-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 2px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.intake-tag--warn   { color: var(--anth-warn-ink); background: var(--anth-warn-tint); }
+.intake-tag--err    { color: var(--anth-err-ink);  background: var(--anth-err-tint); }
+.intake-tag--detect { color: var(--anth-ok-ink);   background: var(--anth-ok-tint); }
+.intake-tag--manual { color: var(--anth-info-ink); background: var(--anth-info-tint); }
+.intake-tag--cat    { color: var(--anth-text-3);   background: var(--anth-bg-sunken); }
+.intake-tag--area-populated    { color: var(--anth-ok-ink);   background: var(--anth-ok-tint); }
+.intake-tag--area-absent       { color: var(--anth-text-3);   background: var(--anth-bg-sunken); }
+.intake-tag--area-not_in_scope { color: var(--anth-text-3);   background: var(--anth-bg-sunken); }
+.intake-tag--area-warning      { color: var(--anth-warn-ink); background: var(--anth-warn-tint); }
+
+/* ---- Sub-blocks (caption strips inside panels) -------------------- */
+.intake-subblock {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--anth-border);
+}
+
+.intake-subblock__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+  background: var(--anth-bg-sunken);
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+/* ---- Tables ------------------------------------------------------- */
+.intake-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  table-layout: auto;
+}
+
+.intake-table th {
+  position: sticky;
+  top: 0;
+  text-align: left;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-2);
+  background: linear-gradient(to bottom, #F4F7FB 0%, var(--anth-bg-sunken) 100%);
+  border-bottom: 1px solid var(--anth-border-strong);
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.intake-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--anth-border);
+  color: var(--anth-text);
+  vertical-align: middle;
+  font-family: var(--anth-font-mono);
+  line-height: 1.4;
+}
+
+.intake-table tbody tr:hover td   { background: var(--anth-bg-hover); }
+.intake-table tbody tr.is-selected td {
+  background: var(--anth-bg-selected);
+  box-shadow: inset 2px 0 0 var(--anth-info);
+}
+
+/* ---- Manual Override table — registry density (V1O patch 2) ------ */
+.intake-override .intake-table { table-layout: fixed; }
+.intake-override .intake-table th:nth-child(1),
+.intake-override .intake-table td:nth-child(1) { width: 28%; }
+.intake-override .intake-table th:nth-child(2),
+.intake-override .intake-table td:nth-child(2) { width: 16%; }
+.intake-override .intake-table th:nth-child(3),
+.intake-override .intake-table td:nth-child(3) { width: 16%; }
+.intake-override .intake-table th:nth-child(4),
+.intake-override .intake-table td:nth-child(4) { width: 8%;  text-align: left; }
+.intake-override .intake-table th:nth-child(5),
+.intake-override .intake-table td:nth-child(5) { width: 18%; }
+.intake-override .intake-table th:nth-child(6),
+.intake-override .intake-table td:nth-child(6) {
+  width: 14%;
+  text-align: right;
+  padding-right: 12px;
+  white-space: nowrap;
+}
+
+/* ---- Empties / lists ---------------------------------------------- */
+.intake-empty {
+  padding: 8px 12px;
+  font-size: 11.5px;
+  color: var(--anth-text-3);
+  font-style: italic;
+  background: var(--anth-bg-panel);
+}
+
+.intake-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.intake-list__item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.intake-list__detail {
+  font-size: 11.5px;
+  color: var(--anth-text);
+}
+
+/* ---- Parse — controlled field group ------------------------------- */
+.intake-parse__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  background: var(--anth-bg-panel);
+}
+
+/* Wrap the WILL USE PLATFORM kv in a recessed field so it reads as a
+ * controlled status field, not stray text under the header. */
+.intake-parse__row > .intake-kv {
+  padding: 8px 12px;
+  background: var(--anth-bg-sunken);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-sm);
+  min-height: 38px;
+  justify-content: center;
+}
+
+/* ---- Error block --------------------------------------------------- */
+.intake-error {
+  border-top: 1px solid var(--anth-err);
+  background: var(--anth-err-tint);
+  padding: 8px 12px;
+  color: var(--anth-err-ink);
+}
+
+.intake-error__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.intake-error__body {
+  margin-top: 6px;
+  font-family: var(--anth-font-mono);
+  font-size: 11.5px;
+  white-space: pre-wrap;
+  color: var(--anth-err-ink);
+  line-height: 1.4;
+}
+
+/* ---- Status badge -------------------------------------------------- */
+.intake-status {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 9px;
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  border: 1px solid transparent;
+}
+.intake-status--idle        { color: var(--anth-text-3);   background: var(--anth-bg-sunken); border-color: var(--anth-border); }
+.intake-status--input_ready { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: rgba(49, 130, 206, 0.30); }
+.intake-status--detecting   { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: rgba(49, 130, 206, 0.30); }
+.intake-status--detected    { color: var(--anth-ok-ink);   background: var(--anth-ok-tint);   border-color: rgba(56, 161, 105, 0.30); }
+.intake-status--parsing     { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: rgba(49, 130, 206, 0.30); }
+.intake-status--parsed      { color: var(--anth-ok-ink);   background: var(--anth-ok-tint);   border-color: rgba(56, 161, 105, 0.30); }
+.intake-status--error       { color: var(--anth-err-ink);  background: var(--anth-err-tint);  border-color: rgba(229, 62, 62, 0.30); }
+
+/* ---- Receipt identity grid ----------------------------------------- */
+.intake-receipt__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 24px;
+  padding: 12px;
+  border-bottom: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+}
