@@ -1,1 +1,8 @@
 src-tauri/tests/fixtures/** text eol=lf
+
+# V1O-B archive intake binary fixtures: override the blanket text rule
+# above so LF normalisation never touches these binaries.
+src-tauri/tests/fixtures/archives/**/*.zip binary
+src-tauri/tests/fixtures/archives/**/*.tar binary
+src-tauri/tests/fixtures/archives/**/*.tar.gz binary
+src-tauri/tests/fixtures/archives/**/*.tgz binary

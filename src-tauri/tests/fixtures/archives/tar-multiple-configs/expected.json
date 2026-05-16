@@ -1,0 +1,56 @@
+{
+  "archive_kind_supplied": {
+    "kind": "tar"
+  },
+  "archive_kind_detected": {
+    "kind": "tar"
+  },
+  "entries": [
+    {
+      "entry_id": "entry-0",
+      "entry_index": 0,
+      "path": "r1.cfg",
+      "raw_path": null,
+      "size_bytes_compressed": 309,
+      "size_bytes_uncompressed": 309,
+      "status": {
+        "kind": "extracted"
+      },
+      "raw_text": "!\nhostname r1\n!\nvrf definition MGMT\n rd 65000:1\n!\nvlan 100\n name USERS\n!\ninterface Loopback0\n ip address 192.0.2.1 255.255.255.255\n!\ninterface GigabitEthernet0/0/0\n ip address 10.0.0.1 255.255.255.252\n no shutdown\n!\nip route 0.0.0.0 0.0.0.0 10.0.0.2\n!\nip ssh version 2\n!\nsnmp-server community PUBLIC RO\n!\nend\n",
+      "decode_warning": null
+    },
+    {
+      "entry_id": "entry-1",
+      "entry_index": 1,
+      "path": "r2.cfg",
+      "raw_path": null,
+      "size_bytes_compressed": 485,
+      "size_bytes_uncompressed": 485,
+      "status": {
+        "kind": "extracted"
+      },
+      "raw_text": "set system host-name r2\nset system services ssh\nset system ntp server 10.0.0.1\nset system name-server 10.0.0.10\nset system domain-name example.test\nset snmp community PUBLIC\nset interfaces lo0 unit 0 family inet address 192.0.2.2/32\nset interfaces ge-0/0/0 unit 0 family inet address 10.0.0.2/30\nset vlans USERS vlan-id 100\nset routing-instances MGMT instance-type vrf\nset routing-instances MGMT route-distinguisher 65000:1\nset routing-options static route 0.0.0.0/0 next-hop 10.0.0.1\n",
+      "decode_warning": null
+    },
+    {
+      "entry_id": "entry-2",
+      "entry_index": 2,
+      "path": "r3.cfg",
+      "raw_path": null,
+      "size_bytes_compressed": 460,
+      "size_bytes_uncompressed": 460,
+      "status": {
+        "kind": "extracted"
+      },
+      "raw_text": "!\ndaemon TerminAttr\n   exec /usr/bin/TerminAttr -ingestgrpcurl=apiserver.example.test:9910\n   no shutdown\n!\nhostname r3\n!\nmanagement api http-commands\n   no shutdown\n!\nvrf instance MGMT\n   rd 65000:1\n!\nvlan 100\n   name USERS\n!\ninterface Loopback0\n   ip address 192.0.2.3/32\n!\ninterface Ethernet1\n   no switchport\n   ip address 10.0.0.3/30\n   no shutdown\n!\nip route 0.0.0.0/0 10.0.0.3\n!\nmanagement ssh\n   idle-timeout 30\n!\nsnmp-server community PUBLIC ro\n!\nend\n",
+      "decode_warning": null
+    }
+  ],
+  "warnings": [],
+  "total_uncompressed_size": 1254,
+  "total_compressed_size": 4096,
+  "entry_count": 3,
+  "extracted_count": 3,
+  "skipped_count": 0,
+  "archive_intake_version": "1"
+}
