@@ -5,4 +5,5 @@
 
 pub mod config_detection;
 pub mod environment;
+pub mod parser;
 pub mod vendor_registry;
