@@ -65,6 +65,37 @@
   --anth-shadow-sm:  0 1px 0 rgba(26,32,44,0.04), 0 0 0 1px var(--anth-border);
   --anth-shadow-md:  0 1px 2px rgba(26,32,44,0.04), 0 4px 14px rgba(26,32,44,0.06);
   --anth-shadow-pop: 0 10px 28px rgba(26,32,44,0.14), 0 0 0 1px var(--anth-border-strong);
+
+  /* ============================================================
+     V1P-A semantic role tokens
+     Every consumer CSS rule MUST reference a --anth-role-*
+     token, never a raw --anth-{info,warn,err,ok,copper,...}.
+     This indirection lets future stages retune the palette
+     (more vendors, more rule packs, dark scheme work) by
+     editing this file alone, without touching components.
+     Adding a new role: alias an existing primitive. Do NOT
+     add a new hex value here — palette hex changes are a
+     TOKENS.md (doctrine) decision, not a stage decision.
+     ============================================================ */
+
+  /* Copper alias of amber/warn — NOC Light treats copper and
+     amber as one hue with two semantic slots (per V1E-C/E/F/G
+     stage notes). Dual name lets a future stage split the hex
+     if doctrine diverges the two slots, without touching
+     consumer CSS. */
+  --anth-copper: var(--anth-warn);
+
+  --anth-role-engine-analysis:  var(--anth-info);
+  --anth-role-operator-choice:  var(--anth-copper);
+  --anth-role-truth-projection: var(--anth-border-strong);
+  --anth-role-input-bytes:      var(--anth-border-strong);
+  --anth-role-severity-clean:   var(--anth-ok);
+  --anth-role-severity-warn:    var(--anth-warn);
+  --anth-role-severity-fault:   var(--anth-err);
+  --anth-role-status-running:   var(--anth-info);
+  --anth-role-status-idle:      var(--anth-border-strong);
+  --anth-role-provenance:       var(--anth-copper);
+  --anth-role-neutral-chrome:   var(--anth-border-strong);
 }
 
 /* Scoped class — every Anthracite surface roots under `.anth` so design-
