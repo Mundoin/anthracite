@@ -101,6 +101,12 @@ Adapted from `docs/old_anthracite/FINDING_CONFIDENCE_MODEL_v1.md`.
   suppressed visibility — preserved for audit + future re-evaluation.
 - Finding keys are deterministic. Same input + same engine version =
   byte-identical finding id. No timestamps, no UUIDs in the key.
+- **V1P intentionally defers `confidence` and `visibility / suppression`
+  axes.** The shipped Validator Engine emits only `severity` and
+  `signal` plus structured evidence. Confidence and visibility return
+  as additive fields in a later stage (bumping `VALIDATOR_VERSION`).
+  See [`VALIDATOR_ENGINE_CONTRACT.md`](./VALIDATOR_ENGINE_CONTRACT.md)
+  §"Non-goals (V1P)".
 
 ## 6. Baseline / ranking / risk rules
 
@@ -141,6 +147,7 @@ Adapted from `docs/old_anthracite/FINDING_CONFIDENCE_MODEL_v1.md`.
 ## Cross-references
 
 - [`ENGINE_PIPELINE_CONTRACT.md`](./ENGINE_PIPELINE_CONTRACT.md)
+- [`VALIDATOR_ENGINE_CONTRACT.md`](./VALIDATOR_ENGINE_CONTRACT.md)
 - [`OLD_ANTHRACITE_ADAPTATION_MAP.md`](./OLD_ANTHRACITE_ADAPTATION_MAP.md)
 - [`VENDOR_ENGINE_PLAN.md`](./VENDOR_ENGINE_PLAN.md)
 - [`CANONICAL_NETWORK_MODEL.md`](./CANONICAL_NETWORK_MODEL.md)

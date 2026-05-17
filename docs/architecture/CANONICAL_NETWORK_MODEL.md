@@ -163,7 +163,37 @@ the model (which carries the receipt-shaped fields above). Two artifacts
 mean two places to drift; one model with a view keeps evidence with the
 thing it explains.
 
+## C′ — `DeviceModel.findings` reservation (V1P)
+
+`DeviceModel.findings: Vec<FindingModel>` is reserved for
+**parser-emitted** findings. The Validator Engine (V1P+):
+
+- consumes `DeviceModel` by immutable reference (`&DeviceModel`)
+- never reads from `DeviceModel.findings`
+- never writes to `DeviceModel.findings`
+
+Validator findings live in a sibling projection,
+`ValidationReport`, returned by the
+`validate_device_model` Tauri command. Receipts (`ReceiptView`)
+and reports (`ValidationReport`) are two render-ready
+projections over the same underlying truth, each with its own
+lifecycle.
+
+Enforced at runtime by
+`src-tauri/tests/validator_does_not_mutate_device_model.rs`,
+which walks every committed parser fixture and asserts:
+
+1. `serde_json::to_string(&model)` is byte-identical before and
+   after `validate_device(&model, &ctx)`.
+2. `model.findings.len() == 0` both before and after.
+
+See [`VALIDATOR_ENGINE_CONTRACT.md`](./VALIDATOR_ENGINE_CONTRACT.md)
+§"C′ lock — DeviceModel.findings is reserved" for the full
+discipline.
+
 ## Cross-references
 
+- [`VALIDATOR_ENGINE_CONTRACT.md`](./VALIDATOR_ENGINE_CONTRACT.md)
+- [`RULE_PACK_MGMT_HYG_V1.md`](./RULE_PACK_MGMT_HYG_V1.md)
 - [`VENDOR_ENGINE_PLAN.md`](./VENDOR_ENGINE_PLAN.md)
 - [`VENDOR_PLATFORM_REGISTRY.md`](./VENDOR_PLATFORM_REGISTRY.md)

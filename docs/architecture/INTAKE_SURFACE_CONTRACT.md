@@ -412,9 +412,90 @@ no nested-archive recursion, no symlink resolution, no password
 handling, no archive creation / export, no filesystem writes, no
 parser / splitter / model / receipt changes.
 
+## Findings panel (V1P overlay)
+
+V1P adds a `FindingsPanel` to the single-device intake and the
+drilled-in slice views. It renders ABOVE `ReceiptDisplay`.
+
+### Flow
+
+```
+successful receipt projection (status === "parsed")
+  ↓
+useEffect detects (status === "parsed" && validationStatus === "idle")
+  ↓
+dispatch ValidatorStarted          ← validationStatus = "loading"
+  ↓
+validateDeviceModel(device, ctx)
+  ↓
+ValidatorSucceeded                 ← validationStatus = "ready"
+  ↓
+<FindingsPanel report={state.validationReport} />
+<ReceiptDisplay ... />             ← unchanged
+```
+
+The validator call is a side effect of a successful parse. The
+reducer owns the state transitions
+(`ValidatorStarted` / `ValidatorSucceeded` / `ValidatorFailed`);
+the panel's `useEffect` owns the async call. Mirrors the V1O-A
+per-slice detection pattern.
+
+### Render rules (binding)
+
+- **FindingsPanel renders ABOVE `ReceiptDisplay`** in both the
+  single-device view and the drilled-in slice view. Locked by
+  `IntakePanel.findings.test.tsx > FindingsPanel renders ABOVE
+  ReceiptDisplay in DOM order` via `compareDocumentPosition`.
+- **FindingsPanel is NOT rendered in `BatchSummaryView`.** Findings
+  are a per-device projection; the batch view shows splitter +
+  detection state only. Drill into a slice to see its findings.
+- **Loading state:** while `validationStatus === "loading"`, a
+  minimal "Validating…" line renders in the FindingsPanel slot.
+- **Failure state:** `validationStatus === "failed"` renders an
+  `intake-error` banner with the verbatim error message.
+- **Idle state:** no FindingsPanel rendered.
+
+### Honesty rules (binding)
+
+- Counts come from `report.findings.filter(...)` — never from
+  props, never memoised.
+- Severity strings render from `finding.severity` directly. No
+  conditional escalation.
+- No filter UI. No bulk actions. No acknowledge / dismiss.
+- Clean rules and skipped rules are visible-but-collapsed via
+  `<details>` in the footer; they are never hidden.
+- The panel's header carries `validator vN · pack vN` so a
+  staleness mismatch against the parsed `DeviceModel`'s
+  `parser_version` is debuggable.
+
+### State-machine extension
+
+Additive (no existing case changed):
+
+- new `validationStatus` field: `"idle" | "loading" | "ready" | "failed"`
+- new `validationReport: ValidationReport | null`
+- new `validationError: string | null`
+- new actions: `ValidatorStarted`, `ValidatorSucceeded { report }`,
+  `ValidatorFailed { error }`
+
+The validator call is fired once per parse; re-running parse
+(after edit, manual override, etc.) clears the previous report
+via the existing `SetConfigText` / `FileLoaded` reset paths
+(both now also reset `validationStatus` to `"idle"`).
+
+### What V1P findings DON'T do
+
+See
+[`VALIDATOR_ENGINE_CONTRACT.md`](./VALIDATOR_ENGINE_CONTRACT.md)
+§"Non-goals" — no baseline, no rank, no suppression, no export,
+no Cortex, no persistence.
+
 ## Follow-ups owned by later stages
 
-- **V1O-C (tentative)** — receipt export (JSON / Markdown), copy-out
-  for evidence packs. Out of V1O / V1O-A / V1O-B scope.
-- **V1P** — first real Cortex consumption of `DeviceModel` for analysis.
-  Defines how INTAKE feeds Cortex (handoff shape, not display).
+- **V1O-C (tentative)** — receipt + findings export
+  (JSON / Markdown), copy-out for evidence packs.
+- **V1Q (tentative)** — second rule pack (vendor-aware family,
+  or routing-protocol hygiene), or confidence/visibility axes
+  for findings.
+- **Cortex consumption of `DeviceModel`** — first analytic
+  surface beyond device-local validation.
