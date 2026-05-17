@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import type { ArchiveEntryRef } from "../../../types/archiveIntake";
+import type { BatchRun, BatchRunDevice } from "../../../types/batchRun";
 import type {
   BatchWarning,
   ConfigBatchSplitResult,
@@ -9,6 +10,9 @@ import type {
 } from "../../../types/configBatch";
 import type { PerSliceDetection } from "../intakeTypes";
 import { ArchiveSourceBadge } from "./ArchiveSourceBadge";
+import { BatchRunFindingsCell } from "./BatchRunFindingsCell";
+import { BatchRunStageCell } from "./BatchRunStageCell";
+import { RunSummaryStrip } from "./RunSummaryStrip";
 
 export interface BatchSummaryViewProps {
   readonly result: ConfigBatchSplitResult;
@@ -22,6 +26,15 @@ export interface BatchSummaryViewProps {
    * card is decorated with an `ArchiveSourceBadge`.
    */
   readonly archiveProvenance?: Readonly<Record<string, ArchiveEntryRef>>;
+  /**
+   * V1Q — BatchRun artifact and run controls. All three props are
+   * optional so V1O-A / V1O-B callers stay green; when present,
+   * the RunSummaryStrip renders above the table and per-row
+   * Stage + Findings columns surface per-device run state.
+   */
+  readonly batchRun?: BatchRun | null;
+  readonly onAnalyse?: () => void;
+  readonly onReRun?: () => void;
 }
 
 export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
@@ -32,6 +45,9 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
     onTreatAsSingleConfig,
     disabled,
     archiveProvenance,
+    batchRun,
+    onAnalyse,
+    onReRun,
   } = props;
   const ambiguousOrLow = result.warnings.some(
     (w) =>
@@ -39,6 +55,7 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
       w.kind === "low_confidence_split" ||
       w.kind === "unusually_large_batch",
   );
+  const runEnabled = onAnalyse != null;
   return (
     <section className="intake-batch" aria-label="Batch summary">
       <header className="intake-section__header">
@@ -51,6 +68,15 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
           method · {describeMethod(result.method)} · splitter v{result.splitter_version}
         </div>
       </header>
+
+      {runEnabled && (
+        <RunSummaryStrip
+          batchRun={batchRun ?? null}
+          onAnalyse={onAnalyse}
+          onReRun={onReRun ?? (() => undefined)}
+          disabled={disabled}
+        />
+      )}
 
       <div className="intake-batch__sub">
         <div className="intake-batch__meta">
@@ -78,6 +104,8 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
         onOpenSlice={onOpenSlice}
         disabled={disabled}
         archiveProvenance={archiveProvenance}
+        batchRun={batchRun ?? null}
+        showRunColumns={runEnabled}
       />
     </section>
   );
@@ -89,17 +117,33 @@ interface BatchSlicesListProps {
   readonly onOpenSlice: (sliceId: string) => void;
   readonly disabled: boolean;
   readonly archiveProvenance?: Readonly<Record<string, ArchiveEntryRef>>;
+  readonly batchRun: BatchRun | null;
+  readonly showRunColumns: boolean;
 }
 
 function BatchSlicesList(props: BatchSlicesListProps): JSX.Element {
-  const { slices, perSliceDetection, onOpenSlice, disabled, archiveProvenance } = props;
+  const {
+    slices,
+    perSliceDetection,
+    onOpenSlice,
+    disabled,
+    archiveProvenance,
+    batchRun,
+    showRunColumns,
+  } = props;
   return (
     <div className="intake-subblock">
       <div className="intake-subblock__title">SLICES ({slices.length})</div>
       {slices.length === 0 ? (
         <div className="intake-empty">(no slices)</div>
       ) : (
-        <table className="intake-table intake-batch__slices" aria-label="Batch slices">
+        <table
+          className={
+            "intake-table intake-batch__slices" +
+            (showRunColumns ? " intake-batch__slices--with-run-columns" : "")
+          }
+          aria-label="Batch slices"
+        >
           <thead>
             <tr>
               <th>Slice</th>
@@ -107,6 +151,8 @@ function BatchSlicesList(props: BatchSlicesListProps): JSX.Element {
               <th>Lines</th>
               <th>Splitter conf.</th>
               <th>Detection</th>
+              {showRunColumns && <th>Stage</th>}
+              {showRunColumns && <th>Findings</th>}
               <th>{""}</th>
             </tr>
           </thead>
@@ -114,6 +160,9 @@ function BatchSlicesList(props: BatchSlicesListProps): JSX.Element {
             {slices.map((slice) => {
               const det = perSliceDetection[slice.slice_id];
               const provenance = archiveProvenance?.[slice.slice_id];
+              const runDevice: BatchRunDevice | null =
+                batchRun?.devices.find((d) => d.slice_id === slice.slice_id) ??
+                null;
               return (
                 <tr key={slice.slice_id}>
                   <td>{slice.slice_id}</td>
@@ -137,6 +186,16 @@ function BatchSlicesList(props: BatchSlicesListProps): JSX.Element {
                   <td>
                     <DetectionCell entry={det} />
                   </td>
+                  {showRunColumns && (
+                    <td>
+                      <BatchRunStageCell device={runDevice} />
+                    </td>
+                  )}
+                  {showRunColumns && (
+                    <td>
+                      <BatchRunFindingsCell device={runDevice} />
+                    </td>
+                  )}
                   <td className="intake-batch__action">
                     <button
                       type="button"
