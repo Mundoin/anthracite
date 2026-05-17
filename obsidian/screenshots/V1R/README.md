@@ -1,5 +1,9 @@
 # V1R Screenshot Gate
 
+Status: runtime clipboard checks passed for JSON and Markdown.
+
+Pushed anchor: `c19baed stage-v1r: document batch run export contract`.
+
 Capture these manually in `pnpm tauri dev` before stage close or review-board
 handoff.
 

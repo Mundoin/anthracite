@@ -1,6 +1,9 @@
 # V1R — Batch Run Export
 
-Status: complete.
+Status: complete and pushed.
+
+Pushed anchor: `c19baed stage-v1r: document batch run export contract`.
+Remote: `origin/main`.
 
 V1R closes the first operator evidence loop for batch intake:
 
@@ -43,6 +46,8 @@ include a Tauri dialog/filesystem save API or clipboard plugin. Adding
 one would require dependency/capability churn, so V1R uses the WebView
 clipboard surface and leaves save-to-disk for a later stage.
 
+Runtime clipboard checks passed for both JSON and Markdown.
+
 ## Determinism
 
 The JSON core has no timestamp, UUID, random value, run id, exported_at,
@@ -83,3 +88,12 @@ override state, and per-device stage errors.
 ## Screenshot Gate
 
 See `obsidian/screenshots/V1R/README.md`.
+
+## Validation
+
+- `pnpm typecheck`: passed.
+- `pnpm build`: passed.
+- `pnpm test`: passed, `27` files / `192` tests.
+- Requested Rust validation block: passed after rerun outside the sandbox
+  offline restriction.
+- `tools/ops-readiness.ps1`: `READY`.
