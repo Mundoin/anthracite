@@ -54,6 +54,19 @@
       {
         "splitTerminals": [
           {
+            "name": "Anthracite — AO DAEMON",
+            "commands": [
+              "Set-Location 'D:\\Repos\\anthracite'",
+              "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
+              "Write-Host 'Starting AgentOps daemon at http://127.0.0.1:8765'",
+              "ao daemon run --addr 127.0.0.1:8765 --executor-policy fake"
+            ]
+          }
+        ]
+      },
+      {
+        "splitTerminals": [
+          {
             "name": "Anthracite — CLAUDE CODE",
             "commands": [
               "Set-Location 'D:\\Repos\\anthracite'",

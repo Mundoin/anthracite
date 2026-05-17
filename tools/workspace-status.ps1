@@ -72,6 +72,23 @@ if ($graphOk) {
 } else {
   Write-Host  "  graphify-out\graph.json     MISSING (run tools\graphify-freshness.ps1)" -ForegroundColor Yellow
 }
+$handoffRoot = ".agents\handoff"
+if (Test-Path $handoffRoot) {
+  $handoffs = @(Get-ChildItem -LiteralPath $handoffRoot -Force -File)
+  $stopCount = @($handoffs | Where-Object { $_.Name -like "stop-*.md" }).Count
+  $autoCount = @($handoffs | Where-Object { $_.Name -like "auto-*.json" }).Count
+  $namedCount = $handoffs.Count - $stopCount - $autoCount
+  $handoffLine = "  .agents\handoff             {0} files ({1} named, {2} stop, {3} auto)" -f $handoffs.Count, $namedCount, $stopCount, $autoCount
+  if ($handoffs.Count -gt 100) {
+    Write-Host $handoffLine -ForegroundColor Yellow
+    Write-Host "  handoff buffer high; dry-run: tools\handoff-maintenance.ps1" -ForegroundColor Yellow
+    Write-Host "  archive eligible runtime files: tools\handoff-maintenance.ps1 -Apply" -ForegroundColor Yellow
+  } else {
+    Write-Host $handoffLine -ForegroundColor Green
+  }
+} else {
+  Write-Host "  .agents\handoff             MISSING" -ForegroundColor Yellow
+}
 
 Write-Section "CLI versions"
 Show "node"      "node"     "-v"

@@ -36,13 +36,14 @@ in the workspace file) for the auto-restored terminals to fire on open.
 ## Terminals — all open idle
 
 Every terminal initialises the repo (`Set-Location`, activate `.venv`, status
-snapshot) and then **stops**. None of them auto-launches an agent, the app,
-or any interactive command. Bujar starts Claude / Codex / DeepSeek / the app
-manually when he chooses.
+snapshot) and then **stops**, except for the dedicated AO Daemon terminal.
+No terminal auto-launches an agent or the app. Bujar starts Claude / Codex /
+DeepSeek / the app manually when he chooses.
 
 | Terminal | Purpose | Idle behaviour |
 |----------|---------|----------------|
 | **Anthracite — APP RUNNER**         | Dev loop seat. Runs `workspace-status.ps1` then `graphify-freshness.ps1`. | Prints `App runner ready. Start manually with: pnpm tauri:dev`. Does **not** auto-run `pnpm tauri:dev`. |
+| **Anthracite — AO DAEMON**          | AgentOps daemon seat. Keeps the rig daemon ready for AO/OpenClaw consumers. | Auto-runs `ao daemon run --addr 127.0.0.1:8765 --executor-policy fake` and stays attached. |
 | **Anthracite — CLAUDE CODE**        | Main coding agent lane (Claude = architecture, Tauri/React/Rust, refactors, product shaping). | Prints `Claude terminal ready. Start manually with: claude`. Does **not** auto-run `claude`. |
 | **Anthracite — CODEX ADMIN**        | Admin/ops agent lane (Codex = status, graph refresh, AO health, validation, low-risk docs). | Prints `Codex terminal ready. Start manually with: codex`. Does **not** auto-run `codex`. |
 | **Anthracite — DEEPSEEK CLI**       | Optional builder/reviewer lane. Probed at init: `deepseek`, `deepseek-cli`, `ds`, `deepseek-v4`. | Prints `DeepSeek terminal ready. Start manually with your DeepSeek CLI command.` |
@@ -50,6 +51,9 @@ manually when he chooses.
 
 Only the App Runner runs `graphify-freshness.ps1`, on purpose — preventing
 several terminals from launching Graphify in parallel.
+
+Only the AO Daemon terminal auto-runs a long-lived service. It is separate
+from Claude / Codex / Git lanes so interactive work seats stay usable.
 
 ---
 
@@ -85,6 +89,38 @@ refresh on every workspace open): `.agents/ao/`, `.agents/knowledge/`,
 Runtime: ~90s timeout. Full output goes to a per-run log under `$env:TEMP\graphify-freshness-YYYYMMDD-HHMMSS.log`.
 
 `graphify-out/` remains gitignored.
+
+---
+
+## Handoff maintenance
+
+AgentOps handoffs are local runtime evidence. Named handoffs are preserved;
+high-volume `stop-*.md` and `auto-*.json` files are treated as a rolling
+runtime buffer.
+
+Dry run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\handoff-maintenance.ps1
+```
+
+Archive eligible runtime handoffs:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\handoff-maintenance.ps1 -Apply
+```
+
+Defaults:
+
+- keep all named handoffs
+- keep newest 20 `stop-*.md`
+- keep newest 10 `auto-*.json`
+- archive only files older than 48 hours
+- move files to `.agents\handoff-archive\YYYY-MM\`
+- delete nothing
+
+`workspace-status.ps1` warns when `.agents\handoff\` grows beyond 100 files
+and prints the maintenance commands. It does not auto-archive.
 
 ---
 
