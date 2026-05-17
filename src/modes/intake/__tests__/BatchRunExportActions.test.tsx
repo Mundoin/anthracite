@@ -135,4 +135,155 @@ describe("BatchRun export actions", () => {
       "failed Markdown: clipboard denied",
     );
   });
+
+  describe("save actions", () => {
+    it("are not rendered when save handlers are not provided", () => {
+      render(
+        <RunSummaryStrip
+          batchRun={run("complete")}
+          onAnalyse={vi.fn()}
+          onReRun={vi.fn()}
+          disabled={false}
+          onCopyJson={vi.fn()}
+          onCopyMarkdown={vi.fn()}
+          exportStatus={null}
+        />,
+      );
+      expect(screen.queryByRole("button", { name: "Save JSON" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Save Markdown" })).toBeNull();
+    });
+
+    it("are rendered when save handlers are provided on terminal run", () => {
+      const { rerender } = render(
+        <RunSummaryStrip
+          batchRun={run("complete")}
+          onAnalyse={vi.fn()}
+          onReRun={vi.fn()}
+          disabled={false}
+          onCopyJson={vi.fn()}
+          onCopyMarkdown={vi.fn()}
+          onSaveJson={vi.fn()}
+          onSaveMarkdown={vi.fn()}
+          exportStatus={null}
+        />,
+      );
+      expect(screen.getByRole("button", { name: "Save JSON" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Save Markdown" })).toBeInTheDocument();
+
+      rerender(
+        <RunSummaryStrip
+          batchRun={run("complete_with_failures")}
+          onAnalyse={vi.fn()}
+          onReRun={vi.fn()}
+          disabled={false}
+          onCopyJson={vi.fn()}
+          onCopyMarkdown={vi.fn()}
+          onSaveJson={vi.fn()}
+          onSaveMarkdown={vi.fn()}
+          exportStatus={null}
+        />,
+      );
+      expect(screen.getByRole("button", { name: "Save JSON" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Save Markdown" })).toBeInTheDocument();
+    });
+
+    it("are gated to terminal BatchRun only (not idle, not in_progress)", () => {
+      const { rerender } = render(
+        <RunSummaryStrip
+          batchRun={null}
+          onAnalyse={vi.fn()}
+          onReRun={vi.fn()}
+          disabled={false}
+          onCopyJson={vi.fn()}
+          onCopyMarkdown={vi.fn()}
+          onSaveJson={vi.fn()}
+          onSaveMarkdown={vi.fn()}
+          exportStatus={null}
+        />,
+      );
+      expect(screen.queryByRole("button", { name: "Save JSON" })).toBeNull();
+
+      rerender(
+        <RunSummaryStrip
+          batchRun={run("in_progress")}
+          onAnalyse={vi.fn()}
+          onReRun={vi.fn()}
+          disabled={false}
+          onCopyJson={vi.fn()}
+          onCopyMarkdown={vi.fn()}
+          onSaveJson={vi.fn()}
+          onSaveMarkdown={vi.fn()}
+          exportStatus={null}
+        />,
+      );
+      expect(screen.queryByRole("button", { name: "Save JSON" })).toBeNull();
+    });
+
+    it("fires save handlers on click", async () => {
+      const user = userEvent.setup();
+      const onSaveJson = vi.fn();
+      const onSaveMarkdown = vi.fn();
+      render(
+        <RunSummaryStrip
+          batchRun={run("complete")}
+          onAnalyse={vi.fn()}
+          onReRun={vi.fn()}
+          disabled={false}
+          onCopyJson={vi.fn()}
+          onCopyMarkdown={vi.fn()}
+          onSaveJson={onSaveJson}
+          onSaveMarkdown={onSaveMarkdown}
+          exportStatus={null}
+        />,
+      );
+
+      await user.click(screen.getByRole("button", { name: "Save JSON" }));
+      expect(onSaveJson).toHaveBeenCalledTimes(1);
+
+      await user.click(screen.getByRole("button", { name: "Save Markdown" }));
+      expect(onSaveMarkdown).toHaveBeenCalledTimes(1);
+    });
+
+    it("displays saved status", () => {
+      render(
+        <RunSummaryStrip
+          batchRun={run("complete")}
+          onAnalyse={vi.fn()}
+          onReRun={vi.fn()}
+          disabled={false}
+          onCopyJson={vi.fn()}
+          onCopyMarkdown={vi.fn()}
+          onSaveJson={vi.fn()}
+          onSaveMarkdown={vi.fn()}
+          exportStatus={{ kind: "saved", format: "json" }}
+        />,
+      );
+      expect(screen.getByRole("status", { name: "Export saved" })).toHaveTextContent(
+        "saved JSON",
+      );
+    });
+
+    it("displays save failure status", () => {
+      render(
+        <RunSummaryStrip
+          batchRun={run("complete")}
+          onAnalyse={vi.fn()}
+          onReRun={vi.fn()}
+          disabled={false}
+          onCopyJson={vi.fn()}
+          onCopyMarkdown={vi.fn()}
+          onSaveJson={vi.fn()}
+          onSaveMarkdown={vi.fn()}
+          exportStatus={{
+            kind: "failed",
+            format: "markdown",
+            message: "write denied",
+          }}
+        />,
+      );
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "failed Markdown: write denied",
+      );
+    });
+  });
 });
