@@ -141,10 +141,98 @@ this contract and `INTAKE_SURFACE_CONTRACT.md`.
 ## Out of scope (parked)
 
 - Multi-assessment compare / switch view.
-- ASSESS sort/filter UI.
 - Assessment Engine, AssessmentRun, AssessmentReport.
 - Top-bar status indicator.
 - HOME mode (deferred — see decision 0004).
 - Mode-rail keyboard shortcuts.
 - URL routing / deep-linking.
 - Re-export / save-as.
+
+---
+
+## V1X — operator triage layer (extends V1W-R)
+
+V1X upgrades ASSESS from "viewer" to "operator triage surface"
+without changing the underlying contract. The loaded artifact is
+still the V1R `BatchRunExport` JSON; ASSESS still produces no new
+artifacts and still does not persist anything. V1X adds view-only
+affordances: search, severity-chip filters, rule-id chip filters,
+per-device collapse/expand, and a by-device / by-severity view
+toggle.
+
+The following clauses bind V1X. They extend (do not relax) A1–A8.
+
+### X1. Triage is view-only
+
+Filtering, grouping, and collapse/expand state live in component
+state. They never persist (no `localStorage`, no `sessionStorage`,
+no `IndexedDB`, no URL query params, no cookies). Refreshing the
+app, switching modes, or closing the assessment clears all triage
+state — A4 still binds.
+
+### X2. The loaded artifact is immutable
+
+Triage helpers in `src/modes/assess/triage.ts` consume the loaded
+`BatchRunExport` as read-only input. They must not mutate any
+field of the artifact or any nested object. Tests assert this via
+`JSON.stringify` round-trip equivalence.
+
+### X3. Counts flow through tested pure helpers
+
+Every chip count, every visible-device count, and every visible-
+finding count derives from a helper in `triage.ts` that has unit
+tests. JSX must not introduce ad-hoc `.filter`/`.reduce`
+expressions to compute displayed numbers. Whole-artifact totals
+shown by `RunSummaryStrip` continue to come from
+`artifact.summary.*` directly (A2 unchanged).
+
+### X4. Filtering hides rows; it never transforms
+
+Visible findings are a subset (by identity) of the artifact's
+findings. The helper returns the same `BatchRunExportFinding`
+references the artifact already held. No re-keying, no rule-id
+rewrites, no severity recolouring, no recommendation rewrites,
+no synthetic merged rows.
+
+### X5. By-severity view is a regrouping, not a new assessment
+
+The by-severity view re-windows the same visible-findings list
+into severity buckets via `groupBySeverity(visible)`. Severities
+appear in canonical order (critical, high, medium, low, info);
+buckets with zero rows are omitted. No new totals are produced;
+per-bucket counts are the literal `rows.length` of each group.
+"By severity" does not invent an assessment score, a verdict, or
+any cross-severity narrative.
+
+### X6. Honest empty-filter and chip vocabulary
+
+When filters hide a device that has findings, the device is
+hidden. When filters hide every device, the view shows an
+explicit "No devices match the current filters." line — never a
+silent empty grid. When the operator activates the `Clean` chip,
+clean devices become visible per the chip's documented semantics:
+a clean device has `stage_status === "complete"`, a present
+`validation_report`, zero findings, and zero `skipped_rules`. The
+`Skipped` chip filters to devices that have at least one
+`skipped_rule` in their validation report. Search matches only
+JSON-backed identity strings (hostname / slice / platform /
+vendor / archive name / entry path) and finding strings
+(rule_id / title); it does not parse, fuzzy-match, or stem.
+
+### X7. INTAKE coupling does not increase in V1X
+
+V1X reuses `FindingsPanel` and `RunSummaryStrip` exactly the way
+V1W-R did (A8). It does not import additional intake internals
+beyond those two display components. The adapter that reshapes
+`BatchRunExportValidationReport` into `ValidationReport` now also
+restricts findings to the filtered subset, but the reshape rules
+are unchanged.
+
+### X8. Triage state is component-scoped
+
+ASSESS triage state lives inside `AssessLoadedView` (a small
+discriminated-action reducer for filters + view mode, a `useState`
+map for expand overrides). The reducer is pure; it never imports
+the loader or the artifact panel. It is intentionally not
+extracted to its own file — the surface area is small enough that
+co-location is honest.

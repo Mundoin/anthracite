@@ -1,13 +1,20 @@
-/* Assess mode — V1W-R viewer surface.
- * Reuses --anth-role-* tokens and intake-* button classes from the
- * intake module. No new color tokens.
+/* Assess mode — V1W-R / V1X / V1X-A / V1X-B.
+ *
+ * V1X-B tone-down: structure first, severity colour second. Whole-
+ * surface rails and tinted control bands removed. Severity colour
+ * remains where it earns its keep — severity pills, finding chips,
+ * by-severity heading pill. Cards, rails, and bands stay neutral
+ * (steel / graphite / white) so the operator's eye lands on real
+ * findings, not on decorative chrome.
+ *
+ * Reuses --anth-* tokens from src/styles/tokens.css. No new tokens.
  */
 
 .assess-root {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
+  gap: 14px;
+  padding: 14px;
   font-family: var(--anth-font-ui);
   font-size: 12.5px;
   color: var(--anth-text);
@@ -24,7 +31,7 @@
   align-items: flex-start;
   padding: 20px;
   background: var(--anth-bg-panel);
-  border: 1px solid var(--anth-border);
+  border: 1px solid var(--anth-border-strong);
   border-radius: var(--anth-r-md);
   box-shadow: var(--anth-shadow-sm);
 }
@@ -32,6 +39,7 @@
 .assess-empty__hint {
   margin: 0;
   font-size: 12px;
+  color: var(--anth-text-3);
 }
 
 /* ---- Error state -------------------------------------------------- */
@@ -56,44 +64,57 @@
   gap: 8px;
 }
 
-/* ---- Loaded state ------------------------------------------------- */
+/* ---- Loaded state — outer rhythm --------------------------------- */
 .assess-loaded {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
+/* Assessment page header — authoritative band.
+ * Gradient sunken background (same treatment as intake section
+ * headers) + 3px graphite accent rail. Reads as the page anchor
+ * without resorting to severity colour. */
 .assess-loaded__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
-  background: var(--anth-bg-panel);
-  border: 1px solid var(--anth-border);
+  padding: 12px 14px;
+  background:
+    linear-gradient(
+      to bottom,
+      #FAFCFE 0%,
+      var(--anth-bg-sunken) 100%
+    );
+  border: 1px solid var(--anth-border-strong);
+  border-left: 3px solid var(--anth-accent);
+  border-bottom: 1px solid var(--anth-accent);
   border-radius: var(--anth-r-md);
-  box-shadow: var(--anth-shadow-sm);
+  box-shadow: var(--anth-shadow-md);
 }
 
 .assess-loaded__title {
   display: inline-flex;
   align-items: baseline;
-  gap: 4px;
+  gap: 8px;
   min-width: 0;
 }
 
 .assess-loaded__heading {
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 12px;
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  color: var(--anth-accent);
 }
 
+/* Summary strip — neutral sunken band; metrics speak for themselves. */
 .assess-loaded__summary {
-  background: var(--anth-bg-panel);
-  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-sunken);
+  border: 1px solid var(--anth-border-strong);
   border-radius: var(--anth-r-md);
-  padding: 8px 10px;
+  padding: 8px 12px;
   box-shadow: var(--anth-shadow-sm);
 }
 
@@ -104,36 +125,437 @@
 }
 
 .assess-loaded__empty-devices {
-  padding: 12px;
+  padding: 16px;
   background: var(--anth-bg-panel);
-  border: 1px solid var(--anth-border);
+  border: 1px dashed var(--anth-border-strong);
   border-radius: var(--anth-r-md);
+  text-align: center;
+  font-size: 12px;
+  color: var(--anth-text-3);
 }
 
-/* ---- Per-device block -------------------------------------------- */
-.assess-device {
+/* ---- V1X triage header — light firm control band ---------------- */
+.assess-triage-header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: var(--anth-bg-panel);
-  border: 1px solid var(--anth-border);
+  gap: 6px;
+  padding: 8px 12px;
+  background:
+    linear-gradient(
+      to bottom,
+      #FBFCFE 0%,
+      var(--anth-bg-sunken) 100%
+    );
+  border: 1px solid var(--anth-border-strong);
   border-radius: var(--anth-r-md);
-  padding: 10px 12px;
   box-shadow: var(--anth-shadow-sm);
 }
 
+.assess-triage-header__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 28px;
+}
+
+.assess-triage-header__search {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 260px;
+}
+
+.assess-triage-header__search-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+}
+
+.assess-triage-header__search-input {
+  flex: 1 1 auto;
+  min-width: 160px;
+  height: 24px;
+  font-family: var(--anth-font-mono);
+  font-size: 12px;
+  padding: 0 8px;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border-strong);
+  border-radius: 2px;
+  color: var(--anth-text);
+}
+
+.assess-triage-header__search-input:focus {
+  outline: 2px solid var(--anth-border-focus);
+  outline-offset: -1px;
+}
+
+/* View toggle — smooth segmented control. */
+.assess-triage-header__view-toggle {
+  display: inline-flex;
+  height: 24px;
+  border: 1px solid var(--anth-border-strong);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--anth-bg-panel);
+  box-shadow: inset 0 1px 0 rgba(26, 32, 44, 0.03);
+}
+
+.assess-triage-header__view-toggle > .intake-btn {
+  height: 22px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  background: transparent;
+  color: var(--anth-text-2);
+}
+
+.assess-triage-header__view-toggle > .intake-btn:hover {
+  background: var(--anth-bg-hover);
+  color: var(--anth-text);
+}
+
+.assess-triage-header__view-toggle > .intake-btn + .intake-btn {
+  border-left: 1px solid var(--anth-border);
+}
+
+.assess-toggle--active {
+  background: var(--anth-info) !important;
+  color: var(--anth-text-inverse) !important;
+  font-weight: 700;
+}
+
+.assess-toggle--active:hover {
+  background: var(--anth-info) !important;
+  color: var(--anth-text-inverse) !important;
+}
+
+.assess-triage-header__visible-count {
+  font-size: 11px;
+  margin-left: auto;
+  color: var(--anth-text-3);
+}
+
+/* Chip rows — tighter rhythm, inline labels as compact tags. */
+.assess-triage-header__chips {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  min-height: 24px;
+}
+
+.assess-triage-header__chips-label {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-right: 4px;
+  color: var(--anth-text-3);
+  background: transparent;
+  border: none;
+}
+
+/* ---- V1X chip buttons — soft friendly pills --------------------
+ * Single light pill, label + small count side by side. No dark
+ * counter slate. Active state is a gentle tint. */
+.assess-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px;
+  font-family: var(--anth-font-mono);
+  font-size: 11px;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border-strong);
+  border-radius: 11px;
+  color: var(--anth-text-2);
+  cursor: pointer;
+  transition: none;
+}
+
+.assess-chip:hover {
+  background: var(--anth-bg-hover);
+}
+
+.assess-chip__label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.assess-chip__count {
+  font-size: 10.5px;
+  color: var(--anth-text-3);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Default active — soft info selection. */
+.assess-chip--active {
+  background: var(--anth-info-tint);
+  border-color: var(--anth-info);
+  color: var(--anth-info-ink);
+  font-weight: 700;
+}
+
+.assess-chip--active .assess-chip__count {
+  color: var(--anth-info-ink);
+}
+
+/* Severity-coloured active — gentle tint, no shouting. */
+.assess-chip--fault.assess-chip--active {
+  background: var(--anth-err-tint);
+  border-color: var(--anth-err);
+  color: var(--anth-err-ink);
+}
+
+.assess-chip--fault.assess-chip--active .assess-chip__count {
+  color: var(--anth-err-ink);
+}
+
+.assess-chip--warn.assess-chip--active {
+  background: var(--anth-warn-tint);
+  border-color: var(--anth-warn);
+  color: var(--anth-warn-ink);
+}
+
+.assess-chip--warn.assess-chip--active .assess-chip__count {
+  color: var(--anth-warn-ink);
+}
+
+/* ---- V1X severity pill (header marker) — soft tinted tag ------- */
+.assess-sev-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: 9px;
+  border: 1px solid var(--anth-border-strong);
+  background: var(--anth-bg-panel);
+  color: var(--anth-text-2);
+}
+
+.assess-sev-pill--critical,
+.assess-sev-pill--high {
+  background: var(--anth-err-tint);
+  border-color: var(--anth-err);
+  color: var(--anth-err-ink);
+}
+
+.assess-sev-pill--medium,
+.assess-sev-pill--low {
+  background: var(--anth-warn-tint);
+  border-color: var(--anth-warn);
+  color: var(--anth-warn-ink);
+}
+
+.assess-sev-pill--info {
+  background: var(--anth-info-tint);
+  border-color: var(--anth-info);
+  color: var(--anth-info-ink);
+}
+
+.assess-sev-pill--clean {
+  background: var(--anth-ok-tint);
+  border-color: var(--anth-ok);
+  color: var(--anth-ok-ink);
+}
+
+.assess-sev-pill--skipped {
+  background: var(--anth-bg-sunken);
+  border-color: var(--anth-border-strong);
+  color: var(--anth-text-3);
+}
+
+/* ---- V1X platform chip ------------------------------------------- */
+.assess-platform-chip {
+  display: inline-flex;
+  padding: 1px 6px;
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  background: var(--anth-bg-sunken);
+  border: 1px solid var(--anth-border-strong);
+  border-radius: 2px;
+  color: var(--anth-text-2);
+}
+
+/* ---- Per-device card — neutral structure, sev lives in the pill - */
+.assess-device {
+  display: flex;
+  flex-direction: column;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-md);
+  box-shadow: var(--anth-shadow-sm);
+  overflow: hidden;
+}
+
+.assess-device--expanded {
+  box-shadow: var(--anth-shadow-md);
+}
+
+/* No severity-coloured card rails. data-sev / data-clean / data-
+ * skipped attributes remain on the element for future hooks but
+ * carry no visual weight at the card level — severity belongs to
+ * the small pill inside the header. */
+
 .assess-device__header {
   display: flex;
-  align-items: baseline;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--anth-bg-panel);
+  border-bottom: 1px solid transparent;
+}
+
+.assess-device--expanded .assess-device__header {
+  border-bottom: 1px solid var(--anth-border);
+  background: var(--anth-bg-sunken);
+}
+
+.assess-device__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: var(--anth-font-mono);
+  color: var(--anth-text);
+  font-size: 12.5px;
+}
+
+.assess-device__toggle:hover {
+  background: var(--anth-bg-hover);
 }
 
 .assess-device__name {
+  font-weight: 700;
+}
+
+.assess-device__stage {
+  font-size: 11px;
+  font-family: var(--anth-font-mono);
+  padding: 1px 6px;
+  background: var(--anth-bg-sunken);
+  border: 1px solid var(--anth-border);
+  border-radius: 2px;
+  color: var(--anth-text-3);
+}
+
+.assess-device__counts {
+  font-size: 11px;
+  margin-left: auto;
+  color: var(--anth-text-2);
   font-weight: 600;
+}
+
+.assess-device__body {
+  padding: 10px 12px;
+  background: var(--anth-bg-panel);
+  border-top: none;
 }
 
 .assess-device__no-report {
   font-style: italic;
   font-size: 11.5px;
+  color: var(--anth-text-3);
+}
+
+/* ---- V1X by-severity grouping — neutral cards, pill says sev --- */
+.assess-loaded__severity-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assess-sev-group {
+  display: flex;
+  flex-direction: column;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-md);
+  box-shadow: var(--anth-shadow-sm);
+  overflow: hidden;
+}
+
+/* Group containers stay neutral; the severity badge inside the
+ * header is what tells the operator which bucket they're reading. */
+
+.assess-sev-group__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--anth-bg-sunken);
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.assess-sev-group__count {
+  font-size: 11px;
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--anth-text-2);
+}
+
+.assess-sev-group__rows {
+  list-style: none;
+  margin: 0;
+  padding: 4px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.assess-sev-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12px;
+  padding: 5px 4px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.assess-sev-row:nth-child(even) {
+  background: var(--anth-bg-sunken);
+}
+
+.assess-sev-row:last-child {
+  border-bottom: none;
+}
+
+.assess-sev-row__rule {
+  font-weight: 700;
+  min-width: 140px;
+  color: var(--anth-text);
+}
+
+.assess-sev-row__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--anth-text);
+}
+
+.assess-sev-row__device {
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--anth-text-3);
 }
