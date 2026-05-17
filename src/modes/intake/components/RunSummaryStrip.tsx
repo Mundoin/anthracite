@@ -1,22 +1,35 @@
 /**
  * V1Q RunSummaryStrip — horizontal aggregate-counts strip
- * rendered above the BatchSummaryView table.
+ * rendered above the BatchSummaryView table (INTAKE) and
+ * above the loaded artifact view (ASSESS).
+ *
+ * V1Y shared display contract — see
+ * docs/architecture/FINDINGS_DISPLAY_CONTRACT.md.
  *
  * Honesty rules (binding):
- *   - All counts render verbatim from `batchRun.summary.*`.
+ *   - All counts render verbatim from `display.summary.*`.
  *     No client-side counting in this component.
  *   - Severity chips with zero counts STILL render — same
  *     discipline as V1P's clean_rules list. Hiding zero
  *     counts would lose the "we looked and found nothing"
  *     signal.
- *   - Buttons disable while disabled prop OR while run is
- *     in_progress.
+ *   - mode="author": Analyse/Re-run/Copy/Save/ExportStatus
+ *     actions render under their existing conditionals.
+ *   - mode="viewer": all action buttons are suppressed;
+ *     counts render unchanged. `onAnalyse`, `onReRun`,
+ *     `disabled`, `exportStatus`, and the export callbacks
+ *     are ignored.
+ *   - Buttons disable while `disabled` prop OR while run is
+ *     in_progress (author mode only).
  *   - No assessment vocabulary anywhere.
  */
 
 import type { JSX } from "react";
 
-import type { BatchRun } from "../../../types/batchRun";
+import type {
+  FindingsDisplayMode,
+  FindingsDisplaySummary,
+} from "../../../types/findingsDisplay";
 
 export type BatchRunExportFormat = "json" | "markdown";
 
@@ -30,10 +43,11 @@ export type BatchRunExportStatus =
     };
 
 export interface RunSummaryStripProps {
-  readonly batchRun: BatchRun | null;
-  readonly onAnalyse: () => void;
-  readonly onReRun: () => void;
-  readonly disabled: boolean;
+  readonly display: FindingsDisplaySummary | null;
+  readonly mode: FindingsDisplayMode;
+  readonly onAnalyse?: () => void;
+  readonly onReRun?: () => void;
+  readonly disabled?: boolean;
   readonly onCopyJson?: () => void;
   readonly onCopyMarkdown?: () => void;
   readonly onSaveJson?: () => void;
@@ -43,7 +57,8 @@ export interface RunSummaryStripProps {
 
 export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
   const {
-    batchRun,
+    display,
+    mode,
     onAnalyse,
     onReRun,
     disabled,
@@ -54,14 +69,17 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
     exportStatus,
   } = props;
 
-  const inProgress = batchRun?.status === "in_progress";
+  const inProgress = display?.status === "in_progress";
   const isComplete =
-    batchRun?.status === "complete" ||
-    batchRun?.status === "complete_with_failures";
-  const isIdle = batchRun === null || batchRun.status === "idle";
-  const showAnalyse = isIdle;
-  const showReRun = isComplete;
-  const buttonsDisabled = disabled || inProgress;
+    display?.status === "complete" ||
+    display?.status === "complete_with_failures";
+  const isIdle = display === null || display.status === "idle";
+  const isAuthor = mode === "author";
+  const showAnalyse = isAuthor && isIdle && onAnalyse != null;
+  const showReRun = isAuthor && isComplete && onReRun != null;
+  const showExports =
+    isAuthor && isComplete && onCopyJson != null && onCopyMarkdown != null;
+  const buttonsDisabled = (disabled ?? false) || inProgress;
 
   return (
     <div
@@ -72,7 +90,7 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
       aria-label="Batch run summary"
     >
       <div className="intake-run-summary-strip__counts">
-        <CountsLine batchRun={batchRun} inProgress={inProgress} />
+        <CountsLine display={display} inProgress={inProgress} />
       </div>
       <div className="intake-run-summary-strip__actions">
         {showAnalyse && (
@@ -97,10 +115,10 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
             Re-run analysis
           </button>
         )}
-        {isComplete && onCopyJson && onCopyMarkdown && (
+        {showExports && (
           <BatchRunExportActions
-            onCopyJson={onCopyJson}
-            onCopyMarkdown={onCopyMarkdown}
+            onCopyJson={onCopyJson!}
+            onCopyMarkdown={onCopyMarkdown!}
             onSaveJson={onSaveJson}
             onSaveMarkdown={onSaveMarkdown}
             disabled={buttonsDisabled}
@@ -209,20 +227,20 @@ function ExportStatusView({
 }
 
 interface CountsLineProps {
-  readonly batchRun: BatchRun | null;
+  readonly display: FindingsDisplaySummary | null;
   readonly inProgress: boolean;
 }
 
-function CountsLine({ batchRun, inProgress }: CountsLineProps): JSX.Element {
-  if (batchRun === null) {
+function CountsLine({ display, inProgress }: CountsLineProps): JSX.Element {
+  if (display === null) {
     return (
       <span className="intake-mono intake-muted">
         0 devices · (not yet analysed)
       </span>
     );
   }
-  const s = batchRun.summary;
-  const isIdle = batchRun.status === "idle";
+  const s = display.summary;
+  const isIdle = display.status === "idle";
   if (isIdle) {
     return (
       <span className="intake-mono intake-muted">
@@ -245,7 +263,7 @@ function CountsLine({ batchRun, inProgress }: CountsLineProps): JSX.Element {
       <Chip label={`${s.with_findings_count} with findings`} />
       <Sep />
       <Chip label={`${s.clean_count} clean`} />
-      <SevChips batchRun={batchRun} />
+      <SevChips display={display} />
       {inProgress && (
         <>
           {" "}
@@ -262,8 +280,8 @@ function CountsLine({ batchRun, inProgress }: CountsLineProps): JSX.Element {
   );
 }
 
-function SevChips({ batchRun }: { readonly batchRun: BatchRun }): JSX.Element {
-  const c = batchRun.summary.severity_counts;
+function SevChips({ display }: { readonly display: FindingsDisplaySummary }): JSX.Element {
+  const c = display.summary.severity_counts;
   return (
     <span className="intake-run-summary-strip__sev-chips">
       <Sep />

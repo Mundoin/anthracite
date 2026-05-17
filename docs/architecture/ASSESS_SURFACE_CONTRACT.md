@@ -120,21 +120,25 @@ must explicitly retry or close. Cancellation of the picker is the
 one exception — it returns to the empty state silently because no
 load was attempted.
 
-### A8. ASSESS reuses FindingsPanel and RunSummaryStrip unchanged
+### A8. ASSESS reuses FindingsPanel and RunSummaryStrip under the shared display contract
 
-The viewer consumes the existing intake `FindingsPanel` and
-`RunSummaryStrip` components without modifying their props or
-behaviour. Adapters at the V1W-R boundary reshape
-`BatchRunExportValidationReport` into the canonical
-`ValidationReport` (adding `raw_excerpt: null` to evidence — the
-export contract omits raw excerpts by default) and reshape
-`BatchRunExport` summary fields into a synthetic `BatchRun` for
-`RunSummaryStrip` (the strip reads only `summary` and `status`).
-These are structural adapters, not aggregators — no values are
-computed; absent fields become `null`.
+The viewer consumes `FindingsPanel` and `RunSummaryStrip` from the
+intake module per `docs/architecture/FINDINGS_DISPLAY_CONTRACT.md`.
+`RunSummaryStrip` receives `mode="viewer"`, which suppresses all
+action buttons (Analyse, Re-run, Copy/Save JSON/Markdown,
+ExportStatusView). The wire-type adapter
+(`BatchRunExportValidationReport` → `ValidationReport`) lives in
+`src/modes/assess/displayAdapter.ts` per F6; it is pure,
+deterministic, and contract-driven (raw excerpts are null-filled
+because the V1R export omits them).
+
+The V1W-R synthetic-`BatchRun` adapter is retired by V1Y. ASSESS
+no longer constructs a synthetic `BatchRun`; it passes a
+`FindingsDisplaySummary` projection of the loaded artifact via
+`exportAsDisplaySummary`.
 
 A future change to either component's props must coordinate via
-this contract and `INTAKE_SURFACE_CONTRACT.md`.
+this contract and `FINDINGS_DISPLAY_CONTRACT.md`.
 
 ---
 

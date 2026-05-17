@@ -31,12 +31,13 @@ function makeRun(overrides: Partial<BatchRun> = {}): BatchRun {
   };
 }
 
-describe("RunSummaryStrip", () => {
-  it("batchRun null → '(not yet analysed)' visible, Analyse button enabled", () => {
+describe("RunSummaryStrip — mode='author'", () => {
+  it("display null → '(not yet analysed)' visible, Analyse button enabled", () => {
     const onAnalyse = vi.fn();
     render(
       <RunSummaryStrip
-        batchRun={null}
+        display={null}
+        mode="author"
         onAnalyse={onAnalyse}
         onReRun={vi.fn()}
         disabled={false}
@@ -50,7 +51,7 @@ describe("RunSummaryStrip", () => {
   it("status in_progress → Analysing… indicator visible; both buttons absent or disabled", () => {
     render(
       <RunSummaryStrip
-        batchRun={makeRun({
+        display={makeRun({
           status: "in_progress",
           summary: {
             total_count: 3,
@@ -69,13 +70,13 @@ describe("RunSummaryStrip", () => {
             },
           },
         })}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
       />,
     );
     expect(screen.getByRole("status", { name: "Analysing" })).toBeInTheDocument();
-    // Neither Analyse nor Re-run rendered while in_progress.
     expect(
       screen.queryByRole("button", { name: "Analyse batch" }),
     ).toBeNull();
@@ -87,7 +88,7 @@ describe("RunSummaryStrip", () => {
   it("status complete with mixed findings → counts render verbatim; Re-run visible", () => {
     render(
       <RunSummaryStrip
-        batchRun={makeRun({
+        display={makeRun({
           status: "complete",
           summary: {
             total_count: 5,
@@ -106,6 +107,7 @@ describe("RunSummaryStrip", () => {
             },
           },
         })}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
@@ -131,7 +133,7 @@ describe("RunSummaryStrip", () => {
   it("status complete_with_failures → failed_count surfaced; Re-run visible", () => {
     render(
       <RunSummaryStrip
-        batchRun={makeRun({
+        display={makeRun({
           status: "complete_with_failures",
           summary: {
             total_count: 3,
@@ -150,6 +152,7 @@ describe("RunSummaryStrip", () => {
             },
           },
         })}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
@@ -166,7 +169,8 @@ describe("RunSummaryStrip", () => {
     const onAnalyse = vi.fn();
     render(
       <RunSummaryStrip
-        batchRun={null}
+        display={null}
+        mode="author"
         onAnalyse={onAnalyse}
         onReRun={vi.fn()}
         disabled={false}
@@ -181,7 +185,7 @@ describe("RunSummaryStrip", () => {
     const onReRun = vi.fn();
     render(
       <RunSummaryStrip
-        batchRun={makeRun({
+        display={makeRun({
           status: "complete",
           summary: {
             total_count: 1,
@@ -200,6 +204,7 @@ describe("RunSummaryStrip", () => {
             },
           },
         })}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={onReRun}
         disabled={false}
@@ -212,7 +217,8 @@ describe("RunSummaryStrip", () => {
   it("disabled prop disables both buttons even when visible", () => {
     const { rerender } = render(
       <RunSummaryStrip
-        batchRun={null}
+        display={null}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={true}
@@ -223,7 +229,7 @@ describe("RunSummaryStrip", () => {
     ).toBeDisabled();
     rerender(
       <RunSummaryStrip
-        batchRun={makeRun({
+        display={makeRun({
           status: "complete",
           summary: {
             total_count: 1,
@@ -242,6 +248,7 @@ describe("RunSummaryStrip", () => {
             },
           },
         })}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={true}
@@ -252,10 +259,10 @@ describe("RunSummaryStrip", () => {
     ).toBeDisabled();
   });
 
-  it("severity counts render verbatim from batchRun.summary.severity_counts", () => {
+  it("severity counts render verbatim from display.summary.severity_counts", () => {
     render(
       <RunSummaryStrip
-        batchRun={makeRun({
+        display={makeRun({
           status: "complete",
           summary: {
             total_count: 1,
@@ -274,6 +281,7 @@ describe("RunSummaryStrip", () => {
             },
           },
         })}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
@@ -284,5 +292,158 @@ describe("RunSummaryStrip", () => {
     expect(screen.getByText("M 13")).toBeInTheDocument();
     expect(screen.getByText("L 17")).toBeInTheDocument();
     expect(screen.getByText("I 19")).toBeInTheDocument();
+  });
+});
+
+// -----------------------------------------------------------------------------
+// V1Y — viewer mode
+// -----------------------------------------------------------------------------
+
+function makeCompletedRun(): BatchRun {
+  return makeRun({
+    status: "complete",
+    summary: {
+      total_count: 4,
+      parsed_count: 4,
+      failed_count: 0,
+      skipped_count: 0,
+      pending_count: 0,
+      with_findings_count: 2,
+      clean_count: 2,
+      severity_counts: {
+        critical: 1,
+        high: 2,
+        medium: 3,
+        low: 4,
+        info: 5,
+      },
+    },
+  });
+}
+
+describe("RunSummaryStrip — mode='viewer' (V1Y)", () => {
+  it("renders counts but no Analyse button (idle)", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({ status: "idle" })}
+        mode="viewer"
+        onAnalyse={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/not yet analysed/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Analyse batch" }),
+    ).toBeNull();
+  });
+
+  it("renders counts but no Re-run button (complete)", () => {
+    render(
+      <RunSummaryStrip
+        display={makeCompletedRun()}
+        mode="viewer"
+        onReRun={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Re-run analysis" }),
+    ).toBeNull();
+  });
+
+  it("renders counts but no Copy JSON button (complete)", () => {
+    render(
+      <RunSummaryStrip
+        display={makeCompletedRun()}
+        mode="viewer"
+        onCopyJson={vi.fn()}
+        onCopyMarkdown={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Copy JSON" }),
+    ).toBeNull();
+  });
+
+  it("renders counts but no Copy Markdown button (complete)", () => {
+    render(
+      <RunSummaryStrip
+        display={makeCompletedRun()}
+        mode="viewer"
+        onCopyJson={vi.fn()}
+        onCopyMarkdown={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Copy Markdown" }),
+    ).toBeNull();
+  });
+
+  it("renders counts but no Save JSON button (complete)", () => {
+    render(
+      <RunSummaryStrip
+        display={makeCompletedRun()}
+        mode="viewer"
+        onCopyJson={vi.fn()}
+        onCopyMarkdown={vi.fn()}
+        onSaveJson={vi.fn()}
+        onSaveMarkdown={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Save JSON" }),
+    ).toBeNull();
+  });
+
+  it("renders counts but no Save Markdown button (complete)", () => {
+    render(
+      <RunSummaryStrip
+        display={makeCompletedRun()}
+        mode="viewer"
+        onCopyJson={vi.fn()}
+        onCopyMarkdown={vi.fn()}
+        onSaveJson={vi.fn()}
+        onSaveMarkdown={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Save Markdown" }),
+    ).toBeNull();
+  });
+
+  it("renders counts but no ExportStatusView even if status supplied", () => {
+    render(
+      <RunSummaryStrip
+        display={makeCompletedRun()}
+        mode="viewer"
+        onCopyJson={vi.fn()}
+        onCopyMarkdown={vi.fn()}
+        exportStatus={{ kind: "copied", format: "json" }}
+      />,
+    );
+    expect(
+      screen.queryByRole("status", { name: "Export copied" }),
+    ).toBeNull();
+  });
+
+  it("severity counts render verbatim in viewer mode", () => {
+    render(
+      <RunSummaryStrip display={makeCompletedRun()} mode="viewer" />,
+    );
+    expect(screen.getByText("C 1")).toBeInTheDocument();
+    expect(screen.getByText("H 2")).toBeInTheDocument();
+    expect(screen.getByText("M 3")).toBeInTheDocument();
+    expect(screen.getByText("L 4")).toBeInTheDocument();
+    expect(screen.getByText("I 5")).toBeInTheDocument();
+    expect(screen.getByText(/4 devices/)).toBeInTheDocument();
+    expect(screen.getByText("4 parsed")).toBeInTheDocument();
+    expect(screen.getByText("2 with findings")).toBeInTheDocument();
+    expect(screen.getByText("2 clean")).toBeInTheDocument();
+  });
+
+  it("renders '(not yet analysed)' when display is null", () => {
+    render(<RunSummaryStrip display={null} mode="viewer" />);
+    expect(screen.getByText(/not yet analysed/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Analyse batch" }),
+    ).toBeNull();
   });
 });

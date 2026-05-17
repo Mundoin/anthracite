@@ -16,6 +16,23 @@
  * `BatchSummaryView`.
  */
 
+/**
+ * V1Y shared display surface.
+ *
+ * As of V1Y, `FindingsPanel` is a shared display component consumed
+ * by both INTAKE (author mode) and ASSESS (viewer mode):
+ *
+ *   - INTAKE renders the live `ValidationReport` from a successful
+ *     parse.
+ *   - ASSESS renders a `ValidationReport` reshaped from
+ *     `BatchRunExportValidationReport` by the ASSESS-owned
+ *     `displayAdapter` (see `src/modes/assess/displayAdapter.ts`).
+ *
+ * The component itself remains mode-agnostic: it renders a
+ * `ValidationReport`. Any change to its props requires coordinated
+ * review per `docs/architecture/FINDINGS_DISPLAY_CONTRACT.md`.
+ */
+
 import type { JSX } from "react";
 
 import type {

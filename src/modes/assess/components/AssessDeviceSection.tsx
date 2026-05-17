@@ -4,6 +4,10 @@
  * Header always renders: hostname/slice/platform chips + finding
  * count + highest-severity pill. Body (FindingsPanel + filtered
  * report) renders only when expanded.
+ *
+ * V1Y: the wire-type-to-canonical adapter that previously lived
+ * inline was moved to `src/modes/assess/displayAdapter.ts` per
+ * `FINDINGS_DISPLAY_CONTRACT.md` F6.
  */
 
 import type { JSX } from "react";
@@ -12,14 +16,8 @@ import { FindingsPanel } from "../../intake/components/FindingsPanel";
 import type {
   BatchRunExportDevice,
   BatchRunExportFinding,
-  BatchRunExportValidationReport,
 } from "../../../types/batchRunExport";
-import type {
-  Evidence,
-  EvidenceKind,
-  Finding,
-  ValidationReport,
-} from "../../../types/validator";
+import { exportReportAsValidationReport } from "../displayAdapter";
 import type { DeviceIdentity } from "../triage";
 import { severityLabelShort } from "./AssessTriageHeader";
 
@@ -110,7 +108,7 @@ export function AssessDeviceSection(
         >
           {device.validation_report ? (
             <FindingsPanel
-              report={toValidationReport(
+              report={exportReportAsValidationReport(
                 device.validation_report,
                 visibleFindings,
               )}
@@ -124,46 +122,4 @@ export function AssessDeviceSection(
       )}
     </article>
   );
-}
-
-/**
- * Adapter: reshape `BatchRunExportValidationReport` into the
- * canonical `ValidationReport` for `FindingsPanel`, restricting
- * findings to the `visibleFindings` subset (already filtered by
- * triage helpers). Identical reshape rules as V1W-R (raw_excerpt
- * set to null because the export omits it by contract).
- */
-function toValidationReport(
-  r: BatchRunExportValidationReport,
-  visibleFindings: ReadonlyArray<BatchRunExportFinding>,
-): ValidationReport {
-  return {
-    validator_version: r.validator_version,
-    rule_pack_version: r.rule_pack_version,
-    context: r.context,
-    findings: visibleFindings.map((f) => toFinding(f)),
-    clean_rules: r.clean_rules,
-    skipped_rules: r.skipped_rules,
-  };
-}
-
-function toFinding(f: BatchRunExportFinding): Finding {
-  return {
-    finding_key: f.finding_key,
-    rule_id: f.rule_id,
-    rule_version: f.rule_version,
-    severity: f.severity,
-    signal: f.signal,
-    title: f.title,
-    evidence: f.evidence.map((e) => ({
-      kind: e.kind as EvidenceKind,
-      model_path: e.model_path,
-      line_start: e.line_start,
-      line_end: e.line_end,
-      raw_excerpt: null,
-      note: e.note,
-    } satisfies Evidence)),
-    affected_area: f.affected_area,
-    recommendation: f.recommendation,
-  };
 }

@@ -823,6 +823,16 @@ devices are first-class export entries.
 - no topology
 - no ASSESS mode
 
+## V1Y — Shared display contract
+
+As of V1Y, `RunSummaryStrip` and `FindingsPanel` are shared display
+components consumed by both INTAKE (`mode="author"`) and ASSESS
+(`mode="viewer"`). The contract is binding via
+`docs/architecture/FINDINGS_DISPLAY_CONTRACT.md`. INTAKE renders
+`mode="author"` and passes its live `BatchRun` as the `display`
+prop (structurally a `FindingsDisplaySummary`). Any prop change to
+either component requires coordinated review per the new contract.
+
 ## Follow-ups owned by later stages
 
 - **V1O-C (tentative)** — receipt + findings export

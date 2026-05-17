@@ -34,7 +34,8 @@ describe("BatchRun export actions", () => {
   it("are hidden before a terminal BatchRun exists", () => {
     const { rerender } = render(
       <RunSummaryStrip
-        batchRun={null}
+        display={null}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
@@ -48,7 +49,8 @@ describe("BatchRun export actions", () => {
 
     rerender(
       <RunSummaryStrip
-        batchRun={run("in_progress")}
+        display={run("in_progress")}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
@@ -64,7 +66,8 @@ describe("BatchRun export actions", () => {
   it("are visible after complete and complete_with_failures", () => {
     const { rerender } = render(
       <RunSummaryStrip
-        batchRun={run("complete")}
+        display={run("complete")}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
@@ -80,7 +83,8 @@ describe("BatchRun export actions", () => {
 
     rerender(
       <RunSummaryStrip
-        batchRun={run("complete_with_failures")}
+        display={run("complete_with_failures")}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
@@ -100,7 +104,8 @@ describe("BatchRun export actions", () => {
     const onCopyJson = vi.fn();
     const { rerender } = render(
       <RunSummaryStrip
-        batchRun={run("complete")}
+        display={run("complete")}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
@@ -118,7 +123,8 @@ describe("BatchRun export actions", () => {
 
     rerender(
       <RunSummaryStrip
-        batchRun={run("complete")}
+        display={run("complete")}
+        mode="author"
         onAnalyse={vi.fn()}
         onReRun={vi.fn()}
         disabled={false}
@@ -140,7 +146,8 @@ describe("BatchRun export actions", () => {
     it("are not rendered when save handlers are not provided", () => {
       render(
         <RunSummaryStrip
-          batchRun={run("complete")}
+          display={run("complete")}
+        mode="author"
           onAnalyse={vi.fn()}
           onReRun={vi.fn()}
           disabled={false}
@@ -156,7 +163,8 @@ describe("BatchRun export actions", () => {
     it("are rendered when save handlers are provided on terminal run", () => {
       const { rerender } = render(
         <RunSummaryStrip
-          batchRun={run("complete")}
+          display={run("complete")}
+        mode="author"
           onAnalyse={vi.fn()}
           onReRun={vi.fn()}
           disabled={false}
@@ -172,7 +180,8 @@ describe("BatchRun export actions", () => {
 
       rerender(
         <RunSummaryStrip
-          batchRun={run("complete_with_failures")}
+          display={run("complete_with_failures")}
+        mode="author"
           onAnalyse={vi.fn()}
           onReRun={vi.fn()}
           disabled={false}
@@ -190,7 +199,8 @@ describe("BatchRun export actions", () => {
     it("are gated to terminal BatchRun only (not idle, not in_progress)", () => {
       const { rerender } = render(
         <RunSummaryStrip
-          batchRun={null}
+          display={null}
+          mode="author"
           onAnalyse={vi.fn()}
           onReRun={vi.fn()}
           disabled={false}
@@ -205,7 +215,8 @@ describe("BatchRun export actions", () => {
 
       rerender(
         <RunSummaryStrip
-          batchRun={run("in_progress")}
+          display={run("in_progress")}
+        mode="author"
           onAnalyse={vi.fn()}
           onReRun={vi.fn()}
           disabled={false}
@@ -225,7 +236,8 @@ describe("BatchRun export actions", () => {
       const onSaveMarkdown = vi.fn();
       render(
         <RunSummaryStrip
-          batchRun={run("complete")}
+          display={run("complete")}
+        mode="author"
           onAnalyse={vi.fn()}
           onReRun={vi.fn()}
           disabled={false}
@@ -247,7 +259,8 @@ describe("BatchRun export actions", () => {
     it("displays saved status", () => {
       render(
         <RunSummaryStrip
-          batchRun={run("complete")}
+          display={run("complete")}
+        mode="author"
           onAnalyse={vi.fn()}
           onReRun={vi.fn()}
           disabled={false}
@@ -266,7 +279,8 @@ describe("BatchRun export actions", () => {
     it("displays save failure status", () => {
       render(
         <RunSummaryStrip
-          batchRun={run("complete")}
+          display={run("complete")}
+        mode="author"
           onAnalyse={vi.fn()}
           onReRun={vi.fn()}
           disabled={false}

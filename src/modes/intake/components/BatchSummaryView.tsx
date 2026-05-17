@@ -84,7 +84,8 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
 
       {runEnabled && (
         <RunSummaryStrip
-          batchRun={batchRun ?? null}
+          display={batchRun ?? null}
+          mode="author"
           onAnalyse={onAnalyse}
           onReRun={onReRun ?? (() => undefined)}
           disabled={disabled}

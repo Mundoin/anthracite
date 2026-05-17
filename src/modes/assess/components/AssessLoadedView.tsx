@@ -1,5 +1,5 @@
 /**
- * V1W-R + V1X — ASSESS loaded view.
+ * V1W-R + V1X + V1Y — ASSESS loaded view.
  *
  * V1W-R: render a successfully loaded `BatchRunExport` artifact
  * read-only via `FindingsPanel` + `RunSummaryStrip`.
@@ -10,8 +10,14 @@
  * affordances are view-only and stateless (A4 still binds: closing
  * the assessment forgets every filter and expansion state).
  *
- * Contract clauses A1–A8 (V1W-R) and X1–X6 (V1X) are enforced
- * here:
+ * V1Y: retire the synthetic-BatchRun adapter. `RunSummaryStrip` now
+ * accepts a `FindingsDisplayMode` and a `FindingsDisplaySummary`;
+ * ASSESS passes `mode="viewer"` and a `display` derived via
+ * `exportAsDisplaySummary`. All action buttons are suppressed by
+ * the contract, not by no-op callbacks.
+ *
+ * Contract clauses A1–A8 (V1W-R), X1–X6 (V1X), and F1–F8
+ * (V1Y `FINDINGS_DISPLAY_CONTRACT.md`) are enforced here:
  *   - Whole-artifact totals come from `artifact.summary.*` via
  *     `RunSummaryStrip`.
  *   - Per-chip counts, per-device counts, and grouping all flow
@@ -23,18 +29,11 @@
 import { useCallback, useMemo, useReducer, useState, type JSX } from "react";
 
 import { RunSummaryStrip } from "../../intake/components/RunSummaryStrip";
-import type {
-  BatchRun,
-  BatchRunDevice,
-} from "../../../types/batchRun";
-import type {
-  BatchRunExport,
-  BatchRunExportDevice,
-} from "../../../types/batchRunExport";
+import type { BatchRunExport } from "../../../types/batchRunExport";
+import { exportAsDisplaySummary } from "../displayAdapter";
 import {
   applyTriage,
   defaultExpandedSliceIds,
-  deviceIdentity,
   distinctRuleIds,
   EMPTY_FILTERS,
   filtersAreActive,
@@ -163,10 +162,10 @@ export function AssessLoadedView({
   const sevGroups = useMemo(() => groupBySeverity(visible), [visible]);
   const filtersActive = filtersAreActive(triage.filters);
 
-  const syntheticBatchRun = useMemo(() => toBatchRun(artifact), [artifact]);
-  const noop = useCallback((): void => {
-    /* viewer-only: no orchestration callbacks */
-  }, []);
+  const displaySummary = useMemo(
+    () => exportAsDisplaySummary(artifact),
+    [artifact],
+  );
 
   return (
     <section className="assess-loaded" aria-label="Loaded assessment">
@@ -189,12 +188,7 @@ export function AssessLoadedView({
       </header>
 
       <div className="assess-loaded__summary">
-        <RunSummaryStrip
-          batchRun={syntheticBatchRun}
-          onAnalyse={noop}
-          onReRun={noop}
-          disabled={true}
-        />
+        <RunSummaryStrip display={displaySummary} mode="viewer" />
       </div>
 
       <AssessTriageHeader
@@ -257,42 +251,4 @@ export function AssessLoadedView({
       )}
     </section>
   );
-}
-
-// -----------------------------------------------------------------------------
-// V1W-R adapter (preserved): BatchRunExport → synthetic BatchRun
-// -----------------------------------------------------------------------------
-
-function toBatchRun(artifact: BatchRunExport): BatchRun {
-  const devices: ReadonlyArray<BatchRunDevice> = artifact.devices.map((d) =>
-    toBatchRunDevice(d),
-  );
-  return {
-    source: artifact.source,
-    devices,
-    summary: artifact.summary,
-    status: artifact.batch_run_status,
-    epoch: 0,
-  };
-}
-
-function toBatchRunDevice(d: BatchRunExportDevice): BatchRunDevice {
-  // Identity-only fields are copied straight across; the strip only
-  // reads `summary` and `status`, but a stable per-device shape
-  // keeps any future strip consumers honest.
-  const _id = deviceIdentity(d);
-  void _id;
-  return {
-    slice_id: d.slice_id,
-    hostname_hint: d.hostname_hint,
-    source_provenance: d.source_provenance,
-    stage_status: d.stage_status,
-    detection_result: null,
-    selected_platform: d.selected_platform,
-    is_manual_override: d.is_manual_override,
-    device_model: null,
-    receipt: null,
-    validation_report: null,
-    stage_error: d.stage_error,
-  };
 }

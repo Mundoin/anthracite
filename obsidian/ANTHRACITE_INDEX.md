@@ -54,6 +54,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1W   | halted · premise contradicted repo state (no ModeRail / App-root edits attempted); see V1W-R | — |
 | V1W-R | complete · ASSESS artifact viewer — read-only viewer of V1R BatchRun export JSON, reuses FindingsPanel + RunSummaryStrip | [stages/V1W-R-assess-artifact-viewer.md](./stages/V1W-R-assess-artifact-viewer.md) |
 | V1X   | complete · ASSESS triage v1 — search, severity/rule chips, by-device/by-severity views, per-device collapse; pure helpers in triage.ts | [stages/V1X-assess-triage-v1.md](./stages/V1X-assess-triage-v1.md) |
+| V1Y   | complete · Shared display contract — RunSummaryStrip author/viewer modes, ASSESS displayAdapter, V1W-R synthetic-BatchRun adapter retired | [stages/V1Y-shared-display-contract.md](./stages/V1Y-shared-display-contract.md) |
 
 ## V1J-A adaptation
 
