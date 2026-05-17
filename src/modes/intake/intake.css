@@ -536,6 +536,35 @@
   white-space: nowrap;
 }
 
+.intake-batch__slices--with-run-columns th:nth-child(1),
+.intake-batch__slices--with-run-columns td:nth-child(1) { width: 10%; }
+.intake-batch__slices--with-run-columns th:nth-child(2),
+.intake-batch__slices--with-run-columns td:nth-child(2) { width: 18%; }
+.intake-batch__slices--with-run-columns th:nth-child(3),
+.intake-batch__slices--with-run-columns td:nth-child(3) { width: 9%; }
+.intake-batch__slices--with-run-columns th:nth-child(4),
+.intake-batch__slices--with-run-columns td:nth-child(4) { width: 12%; }
+.intake-batch__slices--with-run-columns th:nth-child(5),
+.intake-batch__slices--with-run-columns td:nth-child(5) { width: 23%; }
+.intake-batch__slices--with-run-columns th:nth-child(6),
+.intake-batch__slices--with-run-columns td:nth-child(6) {
+  width: 8%;
+  text-align: left;
+  padding-right: 10px;
+}
+.intake-batch__slices--with-run-columns th:nth-child(7),
+.intake-batch__slices--with-run-columns td:nth-child(7) {
+  width: 14%;
+  white-space: normal;
+}
+.intake-batch__slices--with-run-columns th:nth-child(8),
+.intake-batch__slices--with-run-columns td:nth-child(8) {
+  width: 6%;
+  text-align: right;
+  padding-right: 12px;
+  white-space: nowrap;
+}
+
 .intake-batch__action {
   text-align: right;
   white-space: nowrap;
@@ -1018,4 +1047,144 @@
 .intake-lane-item .intake-findings__footer {
   padding: 10px 14px;
   border-top: 1px solid var(--anth-border);
+}
+
+/* ============================================================
+   V1Q — Batch Run Workspace
+   Composition over V1O-A BatchSummaryView. All chrome uses
+   --anth-* primitives and --anth-role-* semantic aliases; no
+   new hex anywhere.
+   ============================================================ */
+
+.intake-run-summary-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--anth-bg-sunken);
+  border-bottom: 1px solid var(--anth-border-strong);
+  font-family: var(--anth-font-mono);
+  font-size: 11.5px;
+  color: var(--anth-text);
+}
+
+.intake-run-summary-strip--in-progress {
+  /* No visual change beyond a faint top accent — keeps the strip
+     calm while the run is mid-flight. Uses status-running role
+     token via the existing chip family. */
+}
+
+.intake-run-summary-strip__counts {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.intake-run-summary-strip__chip {
+  font-family: var(--anth-font-mono);
+  font-size: 11.5px;
+  padding: 0 4px;
+  color: var(--anth-text);
+}
+
+.intake-run-summary-strip__chip--fault {
+  color: var(--anth-role-severity-fault);
+  font-weight: 600;
+}
+
+.intake-run-summary-strip__chip--warn {
+  color: var(--anth-role-severity-warn);
+  font-weight: 600;
+}
+
+.intake-run-summary-strip__chip--clean {
+  color: var(--anth-role-severity-clean);
+}
+
+.intake-run-summary-strip__chip--neutral {
+  color: var(--anth-text-3);
+}
+
+.intake-run-summary-strip__chip--muted {
+  color: var(--anth-text-muted);
+}
+
+.intake-run-summary-strip__sev-chips {
+  display: inline;
+}
+
+.intake-run-summary-strip__actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 6px;
+}
+
+/* ---- Per-row Stage cell --------------------------------------- */
+.intake-run-stage {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  font-family: var(--anth-font-mono);
+  font-size: 11px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+}
+
+.intake-run-stage--running {
+  color: var(--anth-role-status-running);
+}
+
+.intake-run-stage--complete {
+  color: var(--anth-role-severity-clean);
+}
+
+.intake-run-stage--failed {
+  color: var(--anth-role-severity-fault);
+  font-weight: 600;
+}
+
+.intake-run-stage--skipped {
+  color: var(--anth-text-3);
+}
+
+/* ---- Per-row Findings cell ------------------------------------ */
+.intake-run-findings {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  font-family: var(--anth-font-mono);
+  font-size: 11px;
+}
+
+.intake-run-findings__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  font-family: var(--anth-font-mono);
+  font-size: 11px;
+}
+
+.intake-run-findings__chip--fault {
+  color: var(--anth-role-severity-fault);
+  font-weight: 600;
+}
+
+.intake-run-findings__chip--warn {
+  color: var(--anth-role-severity-warn);
+  font-weight: 600;
+}
+
+.intake-run-findings__chip--clean {
+  color: var(--anth-role-severity-clean);
+}
+
+.intake-run-findings__chip--neutral {
+  color: var(--anth-text-3);
 }
