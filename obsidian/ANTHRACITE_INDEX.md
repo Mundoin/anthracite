@@ -48,6 +48,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1P-A | complete · INTAKE two-lane workspace + semantic role tokens + lane-item accent rails | [stages/V1P-A-intake-visual-hierarchy.md](./stages/V1P-A-intake-visual-hierarchy.md) |
 | V1Q   | complete · Batch Run Workspace — Analyse batch, per-row Stage + Findings, RunSummaryStrip, drill-down stored results | [stages/V1Q-batch-run-workspace.md](./stages/V1Q-batch-run-workspace.md) |
 | V1R   | complete · Batch Run Export — deterministic JSON + Markdown copy actions, raw config omitted by default | [stages/V1R-batch-run-export.md](./stages/V1R-batch-run-export.md) |
+| V1S   | complete · Save Batch Run Export to Files — Save JSON / Save Markdown, zero-dep file save via File System Access API | [stages/V1S-save-batch-run-export-files.md](./stages/V1S-save-batch-run-export-files.md) |
 
 ## V1J-A adaptation
 
