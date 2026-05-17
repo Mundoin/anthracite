@@ -7,6 +7,7 @@
 
 pub mod arista_eos;
 pub mod cisco_iosxe;
+pub mod cisco_nxos;
 pub mod context;
 pub mod juniper_junos;
 pub mod normalize;
@@ -31,6 +32,7 @@ pub fn parse_device_config(
         "cisco-iosxe" => Ok(cisco_iosxe::parse(platform_ref, config_text)),
         "juniper-junos" => Ok(juniper_junos::parse(platform_ref, config_text)),
         "arista-eos" => Ok(arista_eos::parse(platform_ref, config_text)),
+        "cisco-nxos" => Ok(cisco_nxos::parse(platform_ref, config_text)),
         other => Err(format!("unsupported platform: {other}")),
     }
 }
@@ -92,6 +94,16 @@ mod tests {
         );
         assert!(r.is_ok());
         assert_eq!(r.unwrap().identity.hostname.as_deref(), Some("eos-x"));
+    }
+
+    #[test]
+    fn cisco_nxos_platform_id_dispatches_ok() {
+        let r = parse_device_config(
+            pref(Some("cisco-nxos")),
+            "hostname nxos-x\nend\n",
+        );
+        assert!(r.is_ok());
+        assert_eq!(r.unwrap().identity.hostname.as_deref(), Some("nxos-x"));
     }
 
     #[test]

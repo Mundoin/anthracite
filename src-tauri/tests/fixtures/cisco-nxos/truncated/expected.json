@@ -1,0 +1,118 @@
+{
+  "identity": {
+    "hostname": "nxos-truncated",
+    "chassis": "show running-config",
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "cisco-nxos",
+    "vendor": "Cisco",
+    "os_family": "NX-OS",
+    "os_version_raw": "9.3(8)",
+    "os_version_normalized": "9.3(8)",
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 118,
+    "line_count": 7
+  },
+  "interfaces": [
+    {
+      "name": "Ethernet1/1",
+      "normalized_name": "Et1/1",
+      "kind": "physical",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.0.1",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [],
+  "vrfs": [],
+  "static_routes": [],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.3077,
+    "parsed_line_count": 5,
+    "unknown_line_count": 0,
+    "warnings": [
+      "absent:lag_groups",
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_ssh",
+      "absent:services_syslog",
+      "absent:static_routes",
+      "absent:vlans",
+      "absent:vrfs",
+      "not_in_scope:aaa_detail",
+      "not_in_scope:acls",
+      "not_in_scope:community_lists",
+      "not_in_scope:copp",
+      "not_in_scope:event_manager",
+      "not_in_scope:evpn",
+      "not_in_scope:fabric_forwarding",
+      "not_in_scope:firewall_zones",
+      "not_in_scope:mpls",
+      "not_in_scope:nat_rules",
+      "not_in_scope:prefix_lists",
+      "not_in_scope:qos_policies",
+      "not_in_scope:route_maps",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:segment_routing",
+      "not_in_scope:tunnels",
+      "not_in_scope:vlan_configuration",
+      "not_in_scope:vpc",
+      "not_in_scope:vxlan",
+      "truncated_input"
+    ]
+  }
+}

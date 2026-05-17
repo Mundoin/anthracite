@@ -1,0 +1,309 @@
+{
+  "identity": {
+    "hostname": "nxos-access-sw-01",
+    "chassis": "show running-config",
+    "serial_numbers": [],
+    "management_ips": [
+      {
+        "family": "v4",
+        "address": "192.168.0.10",
+        "prefix_length": 24,
+        "secondary": false,
+        "vrf": null
+      }
+    ],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "cisco-nxos",
+    "vendor": "Cisco",
+    "os_family": "NX-OS",
+    "os_version_raw": "9.3(8)",
+    "os_version_normalized": "9.3(8)",
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 835,
+    "line_count": 54
+  },
+  "interfaces": [
+    {
+      "name": "Ethernet1/1",
+      "normalized_name": "Et1/1",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "access-users",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "access",
+      "access_vlan": 10,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Ethernet1/2",
+      "normalized_name": "Et1/2",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "access-voice",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "access",
+      "access_vlan": 20,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Ethernet1/3",
+      "normalized_name": "Et1/3",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "server-port",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "access",
+      "access_vlan": 30,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Ethernet1/4",
+      "normalized_name": "Et1/4",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "uplink-trunk",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "trunk",
+      "access_vlan": null,
+      "allowed_vlans": [
+        10,
+        20,
+        30,
+        100
+      ],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Vlan100",
+      "normalized_name": "Vl100",
+      "kind": "vlan",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.100.0.1",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "mgmt0",
+      "normalized_name": "mgmt0",
+      "kind": "management",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.168.0.10",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [
+    {
+      "id": 10,
+      "name": "USERS",
+      "state": "unknown",
+      "interfaces": [
+        "Et1/1",
+        "Et1/4"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "VOICE",
+      "state": "unknown",
+      "interfaces": [
+        "Et1/2",
+        "Et1/4"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "SERVERS",
+      "state": "unknown",
+      "interfaces": [
+        "Et1/3",
+        "Et1/4"
+      ]
+    },
+    {
+      "id": 100,
+      "name": "MGMT",
+      "state": "unknown",
+      "interfaces": [
+        "Et1/4"
+      ]
+    }
+  ],
+  "vrfs": [],
+  "static_routes": [],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [
+    {
+      "kind": "ntp",
+      "servers": [
+        "10.100.0.254"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "ssh",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "syslog",
+      "servers": [
+        "10.100.0.253"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    }
+  ],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.6154,
+    "parsed_line_count": 40,
+    "unknown_line_count": 0,
+    "warnings": [
+      "absent:lag_groups",
+      "absent:services_dns",
+      "absent:services_snmp",
+      "absent:static_routes",
+      "absent:vrfs",
+      "not_in_scope:aaa_detail",
+      "not_in_scope:acls",
+      "not_in_scope:community_lists",
+      "not_in_scope:copp",
+      "not_in_scope:event_manager",
+      "not_in_scope:evpn",
+      "not_in_scope:fabric_forwarding",
+      "not_in_scope:firewall_zones",
+      "not_in_scope:mpls",
+      "not_in_scope:nat_rules",
+      "not_in_scope:prefix_lists",
+      "not_in_scope:qos_policies",
+      "not_in_scope:route_maps",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:segment_routing",
+      "not_in_scope:tunnels",
+      "not_in_scope:vlan_configuration",
+      "not_in_scope:vpc",
+      "not_in_scope:vxlan"
+    ]
+  }
+}

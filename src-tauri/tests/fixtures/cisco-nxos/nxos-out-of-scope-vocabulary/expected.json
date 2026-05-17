@@ -1,0 +1,160 @@
+{
+  "identity": {
+    "hostname": "nxos-oos-coverage",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "cisco-nxos",
+    "vendor": "Cisco",
+    "os_family": "NX-OS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 348,
+    "line_count": 21
+  },
+  "interfaces": [
+    {
+      "name": "nve1",
+      "normalized_name": "nve1",
+      "kind": "unknown",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [],
+  "vrfs": [],
+  "static_routes": [],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 7,
+      "raw": "  peer-keepalive destination 10.0.0.1 source 10.0.0.2",
+      "context_path": "vpc domain 100",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 8,
+      "raw": "  peer-gateway",
+      "context_path": "vpc domain 100",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 10,
+      "raw": "interface nve1",
+      "context_path": null,
+      "reason": "unrecognized_interface_form"
+    },
+    {
+      "source": null,
+      "line_number": 12,
+      "raw": "  source-interface loopback0",
+      "context_path": "interface nve1",
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 13,
+      "raw": "  member vni 10100",
+      "context_path": "interface nve1",
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 15,
+      "raw": "vlan configuration 10",
+      "context_path": "vlan_configuration",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 16,
+      "raw": "  member evpn-instance 10100 vni 10100",
+      "context_path": "vlan_configuration",
+      "reason": "out_of_scope"
+    }
+  ],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.2308,
+    "parsed_line_count": 6,
+    "unknown_line_count": 7,
+    "warnings": [
+      "absent:ip_addressing",
+      "absent:lag_groups",
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_ssh",
+      "absent:services_syslog",
+      "absent:static_routes",
+      "absent:vlans",
+      "absent:vrfs",
+      "not_in_scope:aaa_detail",
+      "not_in_scope:acls",
+      "not_in_scope:community_lists",
+      "not_in_scope:copp",
+      "not_in_scope:event_manager",
+      "not_in_scope:evpn",
+      "not_in_scope:fabric_forwarding",
+      "not_in_scope:firewall_zones",
+      "not_in_scope:mpls",
+      "not_in_scope:nat_rules",
+      "not_in_scope:prefix_lists",
+      "not_in_scope:qos_policies",
+      "not_in_scope:route_maps",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:segment_routing",
+      "not_in_scope:tunnels",
+      "not_in_scope:vlan_configuration",
+      "not_in_scope:vpc",
+      "not_in_scope:vxlan"
+    ]
+  }
+}

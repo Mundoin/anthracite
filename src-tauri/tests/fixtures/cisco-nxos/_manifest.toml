@@ -1,0 +1,38 @@
+# Cisco NX-OS fixture corpus manifest (V1U).
+#
+# Single source of truth for which NX-OS fixtures the corpus harness
+# walks. `parser_version` must equal `cisco_nxos::PARSER_VERSION`;
+# the `parser_version_guard` integration test enforces equality.
+#
+# Every directory under `tests/fixtures/cisco-nxos/` (except this
+# manifest) must appear in `fixtures`, and every name here must exist
+# on disk. The corpus harness asserts both directions.
+#
+# To add a fixture:
+#   1. mkdir tests/fixtures/cisco-nxos/<name>/
+#   2. drop config.cfg in
+#   3. add <name> to `fixtures` below, alphabetically
+#   4. ANTHRACITE_UPDATE_FIXTURES=1 cargo test --test cisco_nxos_fixture_corpus
+#   5. hand-review expected.json before committing
+#
+# Cross-vendor convention: `cross-vendor-equivalent-small` is the
+# logical-equivalent companion to fixtures of the same name under
+# `cisco-iosxe/`, `juniper-junos/`, and `arista-eos/`. The
+# `cross_vendor_consistency` test asserts the canonical projection
+# across all four vendors is byte-equal.
+
+parser_version = 1
+
+fixtures = [
+    "cross-vendor-equivalent-small",
+    "feature-commands",
+    "large-interface-count",
+    "near-empty",
+    "nxos-out-of-scope-vocabulary",
+    "nxos-divergence-from-iosxe",
+    "services-ssh-ntp-syslog",
+    "small",
+    "truncated",
+    "vlan-database",
+    "vrf-segmentation",
+]

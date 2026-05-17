@@ -1,15 +1,16 @@
-//! V1N cross-vendor canonical-consistency invariant.
+//! V1N / V1U cross-vendor canonical-consistency invariant.
 //!
-//! This is V1N's central acceptance test. It parses three fixtures
-//! that describe the same logical device in three different vendor
-//! syntaxes, projects each parsed `DeviceModel` into a small canonical
-//! view that strips intrinsically vendor-specific information, and
-//! asserts the three canonical views serialise byte-identically.
+//! This is V1N's central acceptance test, extended in V1U to cover
+//! four vendors. It parses four fixtures that describe the same logical
+//! device in four different vendor syntaxes, projects each parsed
+//! `DeviceModel` into a small canonical view that strips intrinsically
+//! vendor-specific information, and asserts the four canonical views
+//! serialise byte-identically.
 //!
 //! ## What "logical device" means
 //!
 //! `<fixture-root>/cross-vendor-equivalent-small/config.cfg` for each
-//! of cisco-iosxe, juniper-junos, arista-eos describes:
+//! of cisco-iosxe, juniper-junos, arista-eos, cisco-nxos describes:
 //!   - hostname `cross-vendor-eq`
 //!   - one VRF `MGMT` with route-distinguisher `65000:1`
 //!   - one VLAN id `100` named `USERS`
@@ -327,14 +328,17 @@ fn cross_vendor_equivalent_models_match() {
     let cisco = parse_for("cisco-iosxe", "cisco-iosxe");
     let junos = parse_for("juniper-junos", "juniper-junos");
     let eos = parse_for("arista-eos", "arista-eos");
+    let nxos = parse_for("cisco-nxos", "cisco-nxos");
 
     let cv_cisco = project(&cisco);
     let cv_junos = project(&junos);
     let cv_eos = project(&eos);
+    let cv_nxos = project(&nxos);
 
     let cisco_json = serde_json::to_string_pretty(&cv_cisco).unwrap();
     let junos_json = serde_json::to_string_pretty(&cv_junos).unwrap();
     let eos_json = serde_json::to_string_pretty(&cv_eos).unwrap();
+    let nxos_json = serde_json::to_string_pretty(&cv_nxos).unwrap();
 
     if cisco_json != junos_json {
         panic!(
@@ -344,6 +348,11 @@ fn cross_vendor_equivalent_models_match() {
     if cisco_json != eos_json {
         panic!(
             "Cisco vs EOS canonical view diverged.\n--- cisco ---\n{cisco_json}\n--- eos ---\n{eos_json}"
+        );
+    }
+    if cisco_json != nxos_json {
+        panic!(
+            "Cisco vs NX-OS canonical view diverged.\n--- cisco ---\n{cisco_json}\n--- nxos ---\n{nxos_json}"
         );
     }
 }
