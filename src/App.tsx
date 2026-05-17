@@ -17,6 +17,7 @@ import {
 } from "./components/shell/SecondaryNav";
 import type { StatusCell, StatusSignal } from "./components/shell/StatusBar";
 import { IntakePanel } from "./modes/intake/IntakePanel";
+import { AssessPanel } from "./modes/assess/AssessPanel";
 import {
   EnvironmentCentreD1,
   type EnvRow,
@@ -406,6 +407,25 @@ export default function App(): JSX.Element {
         ]}
       >
         <IntakePanel />
+      </AppShell>
+    );
+  }
+
+  if (activeMode === "assess") {
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={["Governance", "Assess"]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        statusLeft={statusLeft(readiness, rows)}
+        statusRight={[
+          { id: "note", label: "assess · stateless · viewer" },
+          { id: "ver", label: "v0.1.0" },
+          { id: "core", label: "rust-core · ok", signal: "ok" },
+        ]}
+      >
+        <AssessPanel />
       </AppShell>
     );
   }

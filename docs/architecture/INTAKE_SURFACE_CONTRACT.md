@@ -4,6 +4,11 @@ Status: **Locked at V1O**. This document binds the operator-facing INTAKE
 surface to the existing Rust engine contract. Any change to the rules below
 requires its own revision stage.
 
+> **V1W-R consumer note (2026-05-17):** `FindingsPanel` and
+> `RunSummaryStrip` are now also consumed read-only by the `ASSESS` mode
+> (see `ASSESS_SURFACE_CONTRACT.md`). Any future change to their props
+> must coordinate across both surfaces.
+
 Pair docs:
 - `docs/architecture/PARSER_CONTRACT_INVARIANTS.md` — parser-side truth.
 - `docs/architecture/ENGINE_PIPELINE_CONTRACT.md` — pipeline boundaries.

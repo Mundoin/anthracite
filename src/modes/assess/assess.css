@@ -1,0 +1,139 @@
+/* Assess mode — V1W-R viewer surface.
+ * Reuses --anth-role-* tokens and intake-* button classes from the
+ * intake module. No new color tokens.
+ */
+
+.assess-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  font-family: var(--anth-font-ui);
+  font-size: 12.5px;
+  color: var(--anth-text);
+  background: var(--anth-bg-app);
+  height: 100%;
+  overflow: auto;
+}
+
+/* ---- Empty state -------------------------------------------------- */
+.assess-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 20px;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-md);
+  box-shadow: var(--anth-shadow-sm);
+}
+
+.assess-empty__hint {
+  margin: 0;
+  font-size: 12px;
+}
+
+/* ---- Error state -------------------------------------------------- */
+.assess-error {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assess-error__heading {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.assess-error__message {
+  font-family: var(--anth-font-mono);
+  font-size: 11.5px;
+}
+
+.assess-error__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---- Loaded state ------------------------------------------------- */
+.assess-loaded {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.assess-loaded__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-md);
+  box-shadow: var(--anth-shadow-sm);
+}
+
+.assess-loaded__title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.assess-loaded__heading {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+}
+
+.assess-loaded__summary {
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-md);
+  padding: 8px 10px;
+  box-shadow: var(--anth-shadow-sm);
+}
+
+.assess-loaded__devices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assess-loaded__empty-devices {
+  padding: 12px;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-md);
+}
+
+/* ---- Per-device block -------------------------------------------- */
+.assess-device {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-md);
+  padding: 10px 12px;
+  box-shadow: var(--anth-shadow-sm);
+}
+
+.assess-device__header {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.assess-device__name {
+  font-weight: 600;
+}
+
+.assess-device__no-report {
+  font-style: italic;
+  font-size: 11.5px;
+}
