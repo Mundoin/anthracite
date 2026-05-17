@@ -104,6 +104,17 @@ open** for a later decision; this document does not commit to that yet.
 
 See `ENGINE_AND_API_BOUNDARIES.md` for the engine roster and contracts.
 
+Operator-visible values on mode surfaces obey the
+**hierarchy honesty contract** —
+`docs/architecture/HIERARCHY_HONESTY_CONTRACT.md`
+(`HIERARCHY_HONESTY_CONTRACT_VERSION = 1`). Every visible
+operational value is classified as `real`, `demo`, `empty`,
+`unavailable`, or `not_connected` via
+`DataSourceState` (`src/types/dataSource.ts`), with an
+adjacent provenance marker for any non-`real` value. The
+contract is binding on the HONEST-HIERARCHY arc and on
+every future arc that surfaces operational state on a mode.
+
 ---
 
 ## 7. Old Anthracite Reality (Reference Truth)
