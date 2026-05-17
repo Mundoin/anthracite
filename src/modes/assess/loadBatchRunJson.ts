@@ -17,6 +17,7 @@ import type {
   BatchRunExportSummary,
 } from "../../types/batchRunExport";
 import type { LoadErrorReason } from "./assessTypes";
+import { SUPPORTED_EXPORT_VERSIONS, isExportVersionSupported } from "./metadata";
 
 export type LoadResult =
   | {
@@ -167,13 +168,15 @@ export function validateBatchRunExport(parsed: unknown): ValidationResult {
       message: "Missing required field 'export_version'.",
     };
   }
-  if (parsed.export_version !== 1) {
+  if (!isExportVersionSupported(parsed.export_version)) {
+    const expected = SUPPORTED_EXPORT_VERSIONS.map((v) => `v${v}`).join(", ");
     return {
       kind: "error",
       reason: "wrong_export_version",
-      message: `Unsupported export_version: ${JSON.stringify(
-        parsed.export_version,
-      )} (V1W-R consumes version 1 only).`,
+      message:
+        `Unsupported export_version: found ${JSON.stringify(parsed.export_version)}, ` +
+        `expected ${expected}. No migration path exists; ` +
+        `regenerate the export from the current Anthracite build.`,
     };
   }
 

@@ -76,7 +76,7 @@ describe("AssessPanel", () => {
       expect(loader).toHaveBeenCalled(),
     );
     await waitFor(() =>
-      expect(screen.getByText("happy.json")).toBeInTheDocument(),
+      expect(screen.getAllByText("happy.json").length).toBeGreaterThanOrEqual(1),
     );
     expect(
       screen.getByRole("button", { name: "Close assessment" }),
@@ -153,7 +153,7 @@ describe("AssessPanel", () => {
       screen.getByRole("button", { name: "Try another file" }),
     );
     await waitFor(() =>
-      expect(screen.getByText("retry.json")).toBeInTheDocument(),
+      expect(screen.getAllByText("retry.json").length).toBeGreaterThanOrEqual(1),
     );
   });
 });

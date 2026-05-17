@@ -99,7 +99,7 @@ function makeArtifact(overrides: Partial<BatchRunExport> = {}): BatchRunExport {
 }
 
 describe("AssessLoadedView", () => {
-  it("renders the filename sub-line", () => {
+  it("renders the filename sub-line (also in V1Z metadata header)", () => {
     render(
       <AssessLoadedView
         artifact={makeArtifact()}
@@ -107,9 +107,11 @@ describe("AssessLoadedView", () => {
         onClose={vi.fn()}
       />,
     );
+    // V1Z: filename appears in the page header sub-line AND in the
+    // metadata header's File row.
     expect(
-      screen.getByText("anthracite-batch-run.json"),
-    ).toBeInTheDocument();
+      screen.getAllByText("anthracite-batch-run.json").length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("renders one DeviceBlock per device in JSON order", () => {

@@ -31,6 +31,7 @@ import { useCallback, useMemo, useReducer, useState, type JSX } from "react";
 import { RunSummaryStrip } from "../../intake/components/RunSummaryStrip";
 import type { BatchRunExport } from "../../../types/batchRunExport";
 import { exportAsDisplaySummary } from "../displayAdapter";
+import { AssessMetadataHeader } from "./AssessMetadataHeader";
 import {
   applyTriage,
   defaultExpandedSliceIds,
@@ -186,6 +187,8 @@ export function AssessLoadedView({
           Close assessment
         </button>
       </header>
+
+      <AssessMetadataHeader artifact={artifact} filename={filename} />
 
       <div className="assess-loaded__summary">
         <RunSummaryStrip display={displaySummary} mode="viewer" />

@@ -240,3 +240,93 @@ map for expand overrides). The reducer is pure; it never imports
 the loader or the artifact panel. It is intentionally not
 extracted to its own file — the surface area is small enough that
 co-location is honest.
+
+---
+
+## V1Z — metadata + version-aware loading (extends V1W-R, X)
+
+V1Z adds an artifact metadata header and tightens export-version
+messaging. The loaded artifact is still the V1R `BatchRunExport`
+JSON; ASSESS still produces no new artifacts, still does not
+persist anything, and still does not migrate between export
+versions. V1Z surfaces JSON-backed metadata so the operator can
+answer: which file did I load, which export version, which
+validator / rule-pack / parser versions, which platforms.
+
+Clauses Z1–Z6 bind V1Z. They extend (do not relax) A1–A8 and
+X1–X8.
+
+### Z1. Metadata is JSON-backed and display-only
+
+Every metadata row surfaced by `AssessMetadataHeader` traces to a
+field on the loaded `BatchRunExport` (or to the loader-provided
+filename). Helpers in `src/modes/assess/metadata.ts` derive
+metadata rows and platform/parser groups; the helpers are pure
+and tested for input immutability (no mutation of the artifact).
+
+Banned in V1Z:
+
+- inferred network state
+- generated freshness, risk, or assessment scores
+- mocked or seeded metadata when the artifact lacks the field
+- inferring platform from filename
+
+### Z2. Missing metadata renders honestly
+
+When an optional metadata field is absent on the artifact (empty
+version array, no platform on a device, no parser version on a
+validation report), the metadata header renders the configured
+`MISSING_METADATA_LABEL` ("not recorded") or an equivalent
+explicit string ("parser version not recorded",
+"unknown platform"). The label is centralised so the operator
+sees absence consistently. Silent omission is permitted only
+when the contract says the field is normally absent — and even
+then must be documented here.
+
+### Z3. ASSESS rejects unsupported export versions
+
+`SUPPORTED_EXPORT_VERSIONS` is a frontend-local constant
+exported from `src/modes/assess/metadata.ts`. The loader
+(`loadBatchRunJson.ts`) consults it: a parsed `export_version`
+that is not a number, or not in the list, fails with
+`LoadErrorReason: "wrong_export_version"`. The operator-facing
+error message names the found version, the expected version(s),
+and the action ("regenerate the export from the current
+Anthracite build"). No silent coercion, no best-effort
+acceptance of future versions.
+
+Adding a new value to `SUPPORTED_EXPORT_VERSIONS` is an explicit
+V1-arc decision that requires updating this clause; ASSESS does
+not auto-accept higher versions.
+
+### Z4. ASSESS does not migrate export versions
+
+V1Z does not transform a non-supported export into a supported
+one. There is no migration path. The remedy is regeneration
+upstream (INTAKE produces V1R export; ASSESS consumes it).
+
+### Z5. Version comparison is literal-only
+
+The metadata header renders artifact-carried `validator_versions`,
+`rule_pack_versions`, `parser_versions`, and `registry_versions`
+verbatim. ASSESS does not call any of them "stale", "outdated",
+or "current" unless a frontend-local constant exists to support
+that literal comparison. At V1Z the only literal comparison is
+`export_version`; the loader applies the comparison and produces
+the unsupported-version error.
+
+Validator / rule-pack / parser versions are not compared because
+no reliable frontend constant exists for them. Surfacing them as
+artifact metadata is honest visibility, not freshness inference.
+
+### Z6. Metadata header is part of artifact trust
+
+`AssessMetadataHeader` sits between the assessment page header
+and the summary strip in `AssessLoadedView`. It is the
+operator's first read of what they just loaded. Adding new
+metadata rows requires:
+
+- the field exists on `BatchRunExport`,
+- the helper that derives the row is tested for the
+  present-and-absent cases,
+- this section is updated to enumerate the new row's source.

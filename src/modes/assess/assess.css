@@ -109,6 +109,89 @@
   color: var(--anth-accent);
 }
 
+/* ---- V1Z metadata header — neutral panel, JSON-backed rows ------ */
+.assess-loaded__metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-md);
+  box-shadow: var(--anth-shadow-sm);
+}
+
+.assess-loaded__metadata-header {
+  display: flex;
+  align-items: baseline;
+}
+
+.assess-loaded__metadata-heading {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+}
+
+.assess-loaded__metadata-rows {
+  display: grid;
+  grid-template-columns: minmax(140px, max-content) 1fr;
+  column-gap: 12px;
+  row-gap: 3px;
+  margin: 0;
+}
+
+.assess-loaded__metadata-row {
+  display: contents;
+}
+
+.assess-loaded__metadata-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--anth-text-3);
+  margin: 0;
+}
+
+.assess-loaded__metadata-value {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--anth-text);
+  word-break: break-all;
+}
+
+.assess-loaded__metadata-missing {
+  font-style: italic;
+  color: var(--anth-text-3);
+}
+
+.assess-loaded__metadata-platforms {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--anth-border);
+}
+
+.assess-loaded__metadata-platform-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.assess-loaded__metadata-platform-row {
+  font-size: 11.5px;
+  color: var(--anth-text);
+}
+
+.assess-loaded__metadata-platform-id {
+  font-weight: 700;
+}
+
 /* Summary strip — neutral sunken band; metrics speak for themselves. */
 .assess-loaded__summary {
   background: var(--anth-bg-sunken);

@@ -78,6 +78,30 @@ describe("validateBatchRunExport", () => {
     }
   });
 
+  it("wrong_export_version message mentions found and expected versions and regeneration guidance (V1Z)", () => {
+    const a = validMinimal();
+    a.export_version = 7;
+    const result = validateBatchRunExport(a);
+    expect(result.kind).toBe("error");
+    if (result.kind === "error") {
+      expect(result.reason).toBe("wrong_export_version");
+      expect(result.message).toContain("found 7");
+      expect(result.message).toContain("expected v1");
+      expect(result.message).toMatch(/regenerate the export/i);
+      expect(result.message).not.toContain("V1W-R");
+    }
+  });
+
+  it("rejects non-numeric export_version with wrong_export_version (V1Z)", () => {
+    const a = validMinimal();
+    a.export_version = "1" as unknown as 1;
+    const result = validateBatchRunExport(a);
+    expect(result.kind).toBe("error");
+    if (result.kind === "error") {
+      expect(result.reason).toBe("wrong_export_version");
+    }
+  });
+
   it("rejects kind === 'something_else' with wrong_kind", () => {
     const a = validMinimal();
     a.kind = "something_else";
