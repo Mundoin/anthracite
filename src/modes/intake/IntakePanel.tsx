@@ -30,9 +30,12 @@ import { BatchSummaryView } from "./components/BatchSummaryView";
 import { ConfigInputArea } from "./components/ConfigInputArea";
 import { DetectionResultView } from "./components/DetectionResultView";
 import { FindingsPanel } from "./components/FindingsPanel";
+import { IntakeWorkspace } from "./components/IntakeWorkspace";
 import { ParseStatusView } from "./components/ParseStatusView";
 import { PlatformOverrideSelect } from "./components/PlatformOverrideSelect";
 import { ReceiptDisplay } from "./components/ReceiptDisplay";
+import type { IntakeState } from "./intakeTypes";
+import type { ValidationReport } from "../../types/validator";
 import { describeError, readUtf8File } from "./fileText";
 import { intakeReducer } from "./intakeReducer";
 import {
@@ -446,6 +449,109 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
     state.batchStatus === "archive_loading" ||
     state.batchStatus === "archive_splitting";
 
+  // ---- V1P-A workspace composition ------------------------------
+  // The workspace renders the operator surface (left lane) and the
+  // engine-truth surface (right lane). Batch-summary, archive
+  // inventory, and split/archive errors are full-width chrome that
+  // pre-empts the workspace. The drilled-in header is a full-width
+  // strip ABOVE the workspace.
+  const showWorkspace =
+    !showBatchSummary && state.batchStatus !== "splitting";
+  const hasAnswerContent =
+    state.status === "parsed" && state.receipt !== null;
+
+  const workLane = (
+    <>
+      {!showDrilledHeader && (
+        <div className="intake-lane-item intake-lane-item--accent-input">
+          <ConfigInputArea
+            text={state.text}
+            source={state.source}
+            status={state.status}
+            onTextChange={onTextChange}
+            onFile={(f) => void onFile(f)}
+            onClear={onClear}
+            onDetect={() => void onDetect()}
+          />
+        </div>
+      )}
+
+      {state.detection && (
+        <div className="intake-lane-item intake-lane-item--accent-engine">
+          <DetectionResultView
+            result={state.detection}
+            isManualOverride={state.isManualOverride}
+            selectedPlatformId={selectedPlatformId}
+          />
+        </div>
+      )}
+
+      {state.batchStatus !== "split_error" && (
+        <div className={`intake-lane-item ${parseStatusAccentClass(state)}`}>
+          <ParseStatusView
+            status={state.status}
+            errorStage={state.errorStage}
+            errorMessage={state.errorMessage}
+            selectedPlatformId={selectedPlatformId}
+            isManualOverride={state.isManualOverride}
+            onParse={() => void onParse()}
+            onDismissError={onDismissError}
+          />
+        </div>
+      )}
+
+      {(state.detection || state.vendorPlatforms.length > 0) && (
+        <div className="intake-lane-item intake-lane-item--accent-operator">
+          <PlatformOverrideSelect
+            platforms={state.vendorPlatforms}
+            vendorListError={state.vendorListError}
+            selectedPlatformId={selectedPlatformId}
+            isManualOverride={state.isManualOverride}
+            disabled={state.status === "detecting" || state.status === "parsing"}
+            onSelect={onSelectPlatform}
+          />
+        </div>
+      )}
+    </>
+  );
+
+  const answerLane = hasAnswerContent && state.receipt ? (
+    <>
+      {state.validationStatus === "loading" && (
+        <div className="intake-lane-item intake-lane-item--accent-running">
+          <div className="intake-findings__loading" role="status">
+            Validating…
+          </div>
+        </div>
+      )}
+      {state.validationStatus === "failed" && state.validationError && (
+        <div className="intake-lane-item intake-lane-item--accent-fault">
+          <div className="intake-error" role="alert">
+            <div className="intake-error__head">
+              <span className="intake-tag intake-tag--err">
+                ERROR · validator
+              </span>
+            </div>
+            <div className="intake-error__body">{state.validationError}</div>
+          </div>
+        </div>
+      )}
+      {state.validationStatus === "ready" && state.validationReport && (
+        <div
+          className={`intake-lane-item ${findingsAccentClass(state.validationReport)}`}
+        >
+          <FindingsPanel report={state.validationReport} />
+        </div>
+      )}
+      <div className="intake-lane-item intake-lane-item--accent-truth">
+        <ReceiptDisplay
+          receipt={state.receipt}
+          isManualOverride={state.isManualOverride}
+        />
+      </div>
+    </>
+  ) : null;
+
   return (
     <div className="intake-root" aria-label="Config intake">
       {showDrilledHeader && state.batch && drilledSlice && (
@@ -477,33 +583,22 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
       )}
 
       {!showDrilledHeader && (
-        <>
-          <div className="intake-archive-bar" aria-label="Archive intake">
-            <ArchiveOpenButton
-              onArchive={(f) => void onOpenArchive(f)}
-              disabled={archiveBusy || state.status === "detecting" || state.status === "parsing"}
-            />
-            {state.batchStatus === "archive_loading" && (
-              <span className="intake-muted" role="status">
-                Reading archive…
-              </span>
-            )}
-            {state.batchStatus === "archive_splitting" && (
-              <span className="intake-muted" role="status">
-                Splitting archive entries…
-              </span>
-            )}
-          </div>
-          <ConfigInputArea
-            text={state.text}
-            source={state.source}
-            status={state.status}
-            onTextChange={onTextChange}
-            onFile={(f) => void onFile(f)}
-            onClear={onClear}
-            onDetect={() => void onDetect()}
+        <div className="intake-archive-bar" aria-label="Archive intake">
+          <ArchiveOpenButton
+            onArchive={(f) => void onOpenArchive(f)}
+            disabled={archiveBusy || state.status === "detecting" || state.status === "parsing"}
           />
-        </>
+          {state.batchStatus === "archive_loading" && (
+            <span className="intake-muted" role="status">
+              Reading archive…
+            </span>
+          )}
+          {state.batchStatus === "archive_splitting" && (
+            <span className="intake-muted" role="status">
+              Splitting archive entries…
+            </span>
+          )}
+        </div>
       )}
 
       {state.batchStatus === "archive_error" && state.errorMessage && (
@@ -560,65 +655,49 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
         />
       )}
 
-      {!showBatchSummary && state.batchStatus !== "splitting" && state.detection && (
-        <DetectionResultView
-          result={state.detection}
-          isManualOverride={state.isManualOverride}
-          selectedPlatformId={selectedPlatformId}
-        />
-      )}
-
-      {!showBatchSummary && state.batchStatus !== "splitting" && state.batchStatus !== "split_error" && (
-        <ParseStatusView
-          status={state.status}
-          errorStage={state.errorStage}
-          errorMessage={state.errorMessage}
-          selectedPlatformId={selectedPlatformId}
-          isManualOverride={state.isManualOverride}
-          onParse={() => void onParse()}
-          onDismissError={onDismissError}
-        />
-      )}
-
-      {!showBatchSummary &&
-        state.batchStatus !== "splitting" &&
-        (state.detection || state.vendorPlatforms.length > 0) && (
-          <PlatformOverrideSelect
-            platforms={state.vendorPlatforms}
-            vendorListError={state.vendorListError}
-            selectedPlatformId={selectedPlatformId}
-            isManualOverride={state.isManualOverride}
-            disabled={state.status === "detecting" || state.status === "parsing"}
-            onSelect={onSelectPlatform}
-          />
-        )}
-
-      {!showBatchSummary && state.status === "parsed" && state.receipt && (
-        <>
-          {state.validationStatus === "loading" && (
-            <div className="intake-findings__loading" role="status">
-              Validating…
-            </div>
-          )}
-          {state.validationStatus === "failed" && state.validationError && (
-            <div className="intake-error" role="alert">
-              <div className="intake-error__head">
-                <span className="intake-tag intake-tag--err">
-                  ERROR · validator
-                </span>
-              </div>
-              <div className="intake-error__body">{state.validationError}</div>
-            </div>
-          )}
-          {state.validationStatus === "ready" && state.validationReport && (
-            <FindingsPanel report={state.validationReport} />
-          )}
-          <ReceiptDisplay
-            receipt={state.receipt}
-            isManualOverride={state.isManualOverride}
-          />
-        </>
+      {showWorkspace && (
+        <IntakeWorkspace workLane={workLane} answerLane={answerLane} />
       )}
     </div>
   );
+}
+
+/**
+ * V1P-A — parse-status lane-item rail color, derived from
+ * IntakeState. Role tokens only; never raw --anth-* primitives.
+ */
+function parseStatusAccentClass(state: IntakeState): string {
+  switch (state.status) {
+    case "parsed":
+      return "intake-lane-item--accent-clean";
+    case "parsing":
+    case "detecting":
+      return "intake-lane-item--accent-running";
+    case "error":
+      return "intake-lane-item--accent-fault";
+    default:
+      return "intake-lane-item--accent-neutral";
+  }
+}
+
+/**
+ * V1P-A — findings lane-item rail color, derived from the report
+ * severity mix. Mapping is fixed in INTAKE_SURFACE_CONTRACT.md
+ * "Workspace layout (V1P-A overlay)".
+ */
+function findingsAccentClass(report: ValidationReport): string {
+  let hasFault = false;
+  let hasWarn = false;
+  for (const finding of report.findings) {
+    if (finding.severity === "critical" || finding.severity === "high") {
+      hasFault = true;
+      break;
+    }
+    if (finding.severity === "medium" || finding.severity === "low") {
+      hasWarn = true;
+    }
+  }
+  if (hasFault) return "intake-lane-item--accent-fault";
+  if (hasWarn) return "intake-lane-item--accent-warn";
+  return "intake-lane-item--accent-clean";
 }
