@@ -41,6 +41,7 @@ import type { ValidationReport } from "../../types/validator";
 import { runBatch } from "./orchestration/runBatch";
 import { buildBatchRunExport, stringifyBatchRunExport } from "./export/batchRunExport";
 import { renderBatchRunMarkdown } from "./export/batchRunMarkdown";
+import { saveToFile } from "./export/saveFile";
 import type {
   BatchRunExportFormat,
   BatchRunExportStatus,
@@ -561,6 +562,51 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
     void onCopyBatchExport("markdown");
   }, [onCopyBatchExport]);
 
+  const onSaveBatchExport = useCallback(
+    async (format: BatchRunExportFormat): Promise<void> => {
+      const run = stateRef.current.batch?.batchRun ?? null;
+      if (
+        !run ||
+        (run.status !== "complete" && run.status !== "complete_with_failures")
+      ) {
+        return;
+      }
+      const exported = buildBatchRunExport(run);
+      const text =
+        format === "json"
+          ? stringifyBatchRunExport(exported)
+          : renderBatchRunMarkdown(exported);
+      const ext = format === "json" ? "json" : "md";
+      const mime = format === "json" ? "application/json" : "text/markdown";
+      const outcome = await saveToFile(text, {
+        suggestedName: `anthracite-batch-run.${ext}`,
+        mimeType: mime,
+        extension: ext,
+      });
+      if ("cancelled" in outcome) {
+        return;
+      }
+      if ("error" in outcome) {
+        setExportStatus({
+          kind: "failed",
+          format,
+          message: outcome.message,
+        });
+        return;
+      }
+      setExportStatus({ kind: "saved", format });
+    },
+    [],
+  );
+
+  const onSaveJson = useCallback((): void => {
+    void onSaveBatchExport("json");
+  }, [onSaveBatchExport]);
+
+  const onSaveMarkdown = useCallback((): void => {
+    void onSaveBatchExport("markdown");
+  }, [onSaveBatchExport]);
+
   const onDismissError = useCallback((): void => {
     dispatch({ type: "DismissError" });
   }, []);
@@ -803,6 +849,8 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
           onReRun={onReRunBatch}
           onCopyJson={onCopyJson}
           onCopyMarkdown={onCopyMarkdown}
+          onSaveJson={onSaveJson}
+          onSaveMarkdown={onSaveMarkdown}
           exportStatus={exportStatus}
         />
       )}

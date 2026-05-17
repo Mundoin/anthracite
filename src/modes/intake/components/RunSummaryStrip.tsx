@@ -22,6 +22,7 @@ export type BatchRunExportFormat = "json" | "markdown";
 
 export type BatchRunExportStatus =
   | { readonly kind: "copied"; readonly format: BatchRunExportFormat }
+  | { readonly kind: "saved"; readonly format: BatchRunExportFormat }
   | {
       readonly kind: "failed";
       readonly format: BatchRunExportFormat;
@@ -35,6 +36,8 @@ export interface RunSummaryStripProps {
   readonly disabled: boolean;
   readonly onCopyJson?: () => void;
   readonly onCopyMarkdown?: () => void;
+  readonly onSaveJson?: () => void;
+  readonly onSaveMarkdown?: () => void;
   readonly exportStatus?: BatchRunExportStatus | null;
 }
 
@@ -46,6 +49,8 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
     disabled,
     onCopyJson,
     onCopyMarkdown,
+    onSaveJson,
+    onSaveMarkdown,
     exportStatus,
   } = props;
 
@@ -96,6 +101,8 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
           <BatchRunExportActions
             onCopyJson={onCopyJson}
             onCopyMarkdown={onCopyMarkdown}
+            onSaveJson={onSaveJson}
+            onSaveMarkdown={onSaveMarkdown}
             disabled={buttonsDisabled}
             status={exportStatus ?? null}
           />
@@ -108,12 +115,14 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
 interface BatchRunExportActionsProps {
   readonly onCopyJson: () => void;
   readonly onCopyMarkdown: () => void;
+  readonly onSaveJson?: () => void;
+  readonly onSaveMarkdown?: () => void;
   readonly disabled: boolean;
   readonly status: BatchRunExportStatus | null;
 }
 
 function BatchRunExportActions(props: BatchRunExportActionsProps): JSX.Element {
-  const { onCopyJson, onCopyMarkdown, disabled, status } = props;
+  const { onCopyJson, onCopyMarkdown, onSaveJson, onSaveMarkdown, disabled, status } = props;
   return (
     <>
       <button
@@ -134,6 +143,28 @@ function BatchRunExportActions(props: BatchRunExportActionsProps): JSX.Element {
       >
         Copy Markdown
       </button>
+      {onSaveJson && (
+        <button
+          type="button"
+          className="intake-btn intake-btn--tiny"
+          onClick={onSaveJson}
+          disabled={disabled}
+          aria-label="Save JSON"
+        >
+          Save JSON
+        </button>
+      )}
+      {onSaveMarkdown && (
+        <button
+          type="button"
+          className="intake-btn intake-btn--tiny"
+          onClick={onSaveMarkdown}
+          disabled={disabled}
+          aria-label="Save Markdown"
+        >
+          Save Markdown
+        </button>
+      )}
       {status && <ExportStatusView status={status} />}
     </>
   );
@@ -153,6 +184,17 @@ function ExportStatusView({
         aria-label="Export copied"
       >
         copied {label}
+      </span>
+    );
+  }
+  if (status.kind === "saved") {
+    return (
+      <span
+        className="intake-run-export-status intake-run-export-status--ok"
+        role="status"
+        aria-label="Export saved"
+      >
+        saved {label}
       </span>
     );
   }

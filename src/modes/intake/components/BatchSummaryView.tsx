@@ -40,6 +40,8 @@ export interface BatchSummaryViewProps {
   readonly onReRun?: () => void;
   readonly onCopyJson?: () => void;
   readonly onCopyMarkdown?: () => void;
+  readonly onSaveJson?: () => void;
+  readonly onSaveMarkdown?: () => void;
   readonly exportStatus?: BatchRunExportStatus | null;
 }
 
@@ -56,6 +58,8 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
     onReRun,
     onCopyJson,
     onCopyMarkdown,
+    onSaveJson,
+    onSaveMarkdown,
     exportStatus,
   } = props;
   const ambiguousOrLow = result.warnings.some(
@@ -86,6 +90,8 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
           disabled={disabled}
           onCopyJson={onCopyJson}
           onCopyMarkdown={onCopyMarkdown}
+          onSaveJson={onSaveJson}
+          onSaveMarkdown={onSaveMarkdown}
           exportStatus={exportStatus}
         />
       )}
