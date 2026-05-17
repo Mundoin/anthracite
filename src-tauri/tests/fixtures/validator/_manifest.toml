@@ -5,13 +5,21 @@
 # (Telnet enabled) is deferred — no current parser emits
 # ServiceKind::Telnet. See `obsidian/stages/V1P-validator-engine.md`
 # §"Halt-rule trip".
+#
+# V1U bumps rule_pack_version to 2, adding DIAG-HYG-001/002/003 rules
+# and 5 new fixtures. See `docs/architecture/RULE_PACK_DIAG_HYG_V1.md`.
 
 validator_version = 1
-rule_pack_version = 1
+rule_pack_version = 2
 
 fixtures = [
   "clean-baseline",
   "mgmt-hyg-001-default-community",
   "mgmt-hyg-002-snmp-communities",
   "mgmt-hyg-003-no-ssh",
+  "diag-hyg-001-no-ntp",
+  "diag-hyg-002-no-syslog",
+  "diag-hyg-003-no-dns",
+  "diag-hyg-all-three-absent",
+  "diag-hyg-mixed-clean",
 ]

@@ -1,9 +1,10 @@
 //! Validator rule trait + registration.
 //!
-//! V1P ships three MGMT-HYG rules (001/002/003). MGMT-HYG-004
-//! (Telnet enabled) is deferred to a follow-up stage because no
-//! current parser emits `ServiceKind::Telnet` — see V1P stage note
-//! §"Halt-rule trip" for the discovery.
+//! V1P ships three MGMT-HYG rules (001/002/003). V1U adds three
+//! DIAG-HYG rules (101/102/103), bumping RULE_PACK_VERSION to 2.
+//! MGMT-HYG-004 (Telnet enabled) remains deferred — no current parser
+//! emits `ServiceKind::Telnet`. DIAG-HYG-004 (NTP-without-server)
+//! deferred until NTP notes parity is pinned across four parsers.
 //!
 //! Rules are zero-sized unit structs implementing `Rule`. The
 //! registered slice is built statically at compile time so the
@@ -14,6 +15,9 @@ use crate::engines::network_model::DeviceModel;
 
 use super::types::{Finding, Severity, SignalCategory, SkipReason, ValidatorContext};
 
+pub mod diag_hyg_001;
+pub mod diag_hyg_002;
+pub mod diag_hyg_003;
 pub mod mgmt_hyg_001;
 pub mod mgmt_hyg_002;
 pub mod mgmt_hyg_003;
@@ -50,6 +54,9 @@ pub fn registered_rules() -> &'static [&'static dyn Rule] {
         &mgmt_hyg_001::Rule001,
         &mgmt_hyg_002::Rule002,
         &mgmt_hyg_003::Rule003,
+        &diag_hyg_001::Rule101,
+        &diag_hyg_002::Rule102,
+        &diag_hyg_003::Rule103,
     ];
     RULES
 }

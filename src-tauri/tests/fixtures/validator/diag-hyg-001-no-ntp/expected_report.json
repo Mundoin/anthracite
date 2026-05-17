@@ -3,39 +3,19 @@
   "rule_pack_version": 2,
   "context": {
     "platform_id": "cisco-iosxe",
-    "parser_id": "cisco-iosxe",
-    "parser_version": "3",
+    "parser_id": null,
+    "parser_version": null,
     "selection_mode": "manual_override",
     "detection_confidence": null,
     "detection_source": "manual_override",
     "source_context": {
       "kind": "file",
-      "label": "validator-fixture/mgmt-hyg-001-default-community/config.cfg",
+      "label": "validator-fixture/diag-hyg-001-no-ntp/config.cfg",
       "archive_name": null,
       "slice_id": null
     }
   },
   "findings": [
-    {
-      "finding_key": "MGMT-HYG-001:services_snmp:services[0]:community=public",
-      "rule_id": "MGMT-HYG-001",
-      "rule_version": 1,
-      "severity": "high",
-      "signal": "hard",
-      "title": "Default or well-known SNMP community present",
-      "evidence": [
-        {
-          "kind": "service_note_fact",
-          "model_path": "services[0]",
-          "line_start": null,
-          "line_end": null,
-          "raw_excerpt": null,
-          "note": "community=public"
-        }
-      ],
-      "affected_area": "services_snmp",
-      "recommendation": "Replace default community with a strong unique value."
-    },
     {
       "finding_key": "DIAG-HYG-001:services_ntp:absent",
       "rule_id": "DIAG-HYG-001",
@@ -77,26 +57,6 @@
       "recommendation": "Configure remote syslog for forensic timestamps and audit trail."
     },
     {
-      "finding_key": "MGMT-HYG-002:services_snmp:configured",
-      "rule_id": "MGMT-HYG-002",
-      "rule_version": 1,
-      "severity": "medium",
-      "signal": "hard",
-      "title": "SNMP community-based access configured",
-      "evidence": [
-        {
-          "kind": "model_path",
-          "model_path": "services[0]",
-          "line_start": null,
-          "line_end": null,
-          "raw_excerpt": null,
-          "note": "community_count=1"
-        }
-      ],
-      "affected_area": "services_snmp",
-      "recommendation": "Migrate to SNMPv3 with strong authentication and privacy."
-    },
-    {
       "finding_key": "DIAG-HYG-003:services_dns:absent",
       "rule_id": "DIAG-HYG-003",
       "rule_version": 1,
@@ -118,6 +78,8 @@
     }
   ],
   "clean_rules": [
+    "MGMT-HYG-001",
+    "MGMT-HYG-002",
     "MGMT-HYG-003"
   ],
   "skipped_rules": []

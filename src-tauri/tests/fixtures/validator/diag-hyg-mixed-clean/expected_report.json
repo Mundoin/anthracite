@@ -1,0 +1,28 @@
+{
+  "validator_version": 1,
+  "rule_pack_version": 2,
+  "context": {
+    "platform_id": "cisco-iosxe",
+    "parser_id": null,
+    "parser_version": null,
+    "selection_mode": "manual_override",
+    "detection_confidence": null,
+    "detection_source": "manual_override",
+    "source_context": {
+      "kind": "file",
+      "label": "validator-fixture/diag-hyg-mixed-clean/config.cfg",
+      "archive_name": null,
+      "slice_id": null
+    }
+  },
+  "findings": [],
+  "clean_rules": [
+    "DIAG-HYG-001",
+    "DIAG-HYG-002",
+    "DIAG-HYG-003",
+    "MGMT-HYG-001",
+    "MGMT-HYG-002",
+    "MGMT-HYG-003"
+  ],
+  "skipped_rules": []
+}

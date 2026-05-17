@@ -396,11 +396,15 @@ byte-equality.
 
 ```rust
 pub const VALIDATOR_VERSION: u32 = 1;
-pub const RULE_PACK_VERSION: u32 = 1;
+pub const RULE_PACK_VERSION: u32 = 2;  // bumped V1U
 ```
 
 Plus per-rule `rule_version: u32` declared on each `Rule` impl
-(currently 1 for MGMT-HYG-001..003).
+(currently 1 for MGMT-HYG-001..003 and DIAG-HYG-001..003).
+
+> **Pack composition at v2 (V1U):** MGMT-HYG-001..003 (V1P) +
+> DIAG-HYG-001..003 (V1U). DIAG-HYG-004 deferred until NTP notes
+> parity is pinned across all four parsers (post-V1U-B).
 
 ### Bump policy
 

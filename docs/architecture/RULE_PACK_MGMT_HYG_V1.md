@@ -1,5 +1,10 @@
 # Rule Pack — MGMT-HYG v1
 
+> **Pack version update:** As of V1U, `rule_pack_version` is **2**,
+> reflecting the addition of DIAG-HYG-001..003 in
+> [`RULE_PACK_DIAG_HYG_V1.md`](./RULE_PACK_DIAG_HYG_V1.md).
+> MGMT-HYG-004 (Telnet enabled) remains deferred.
+
 Status: **Locked at V1P.** The first rule pack shipped by the
 Validator Engine. Three rules; one is intentionally honest about
 a current parser limitation. MGMT-HYG-004 (Telnet enabled) is

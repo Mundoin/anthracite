@@ -29,7 +29,7 @@ use std::collections::BTreeSet;
 use crate::engines::network_model::DeviceModel;
 
 pub const VALIDATOR_VERSION: u32 = 1;
-pub const RULE_PACK_VERSION: u32 = 1;
+pub const RULE_PACK_VERSION: u32 = 2;
 
 pub mod rules;
 pub mod service_notes;

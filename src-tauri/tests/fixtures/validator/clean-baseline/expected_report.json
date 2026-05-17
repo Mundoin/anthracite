@@ -1,6 +1,6 @@
 {
   "validator_version": 1,
-  "rule_pack_version": 1,
+  "rule_pack_version": 2,
   "context": {
     "platform_id": "cisco-iosxe",
     "parser_id": "cisco-iosxe",
@@ -15,7 +15,68 @@
       "slice_id": null
     }
   },
-  "findings": [],
+  "findings": [
+    {
+      "finding_key": "DIAG-HYG-001:services_ntp:absent",
+      "rule_id": "DIAG-HYG-001",
+      "rule_version": 1,
+      "severity": "medium",
+      "signal": "hard",
+      "title": "NTP service not configured",
+      "evidence": [
+        {
+          "kind": "model_path",
+          "model_path": "services",
+          "line_start": null,
+          "line_end": null,
+          "raw_excerpt": null,
+          "note": "ntp_service=absent"
+        }
+      ],
+      "affected_area": "services_ntp",
+      "recommendation": "Configure NTP for time synchronisation and accurate audit logs."
+    },
+    {
+      "finding_key": "DIAG-HYG-002:services_syslog:absent",
+      "rule_id": "DIAG-HYG-002",
+      "rule_version": 1,
+      "severity": "medium",
+      "signal": "hard",
+      "title": "Syslog service not configured",
+      "evidence": [
+        {
+          "kind": "model_path",
+          "model_path": "services",
+          "line_start": null,
+          "line_end": null,
+          "raw_excerpt": null,
+          "note": "syslog_service=absent"
+        }
+      ],
+      "affected_area": "services_syslog",
+      "recommendation": "Configure remote syslog for forensic timestamps and audit trail."
+    },
+    {
+      "finding_key": "DIAG-HYG-003:services_dns:absent",
+      "rule_id": "DIAG-HYG-003",
+      "rule_version": 1,
+      "severity": "low",
+      "signal": "hard",
+      "title": "DNS resolution not configured",
+      "evidence": [
+        {
+          "kind": "model_path",
+          "model_path": "services",
+          "line_start": null,
+          "line_end": null,
+          "raw_excerpt": null,
+          "note": "dns_service=absent"
+        }
+      ],
+      "affected_area": "services_dns",
+      "recommendation": "Configure DNS resolvers for hostname-based operations."
+    }
+  ],
   "clean_rules": [
     "MGMT-HYG-001",
     "MGMT-HYG-002",
