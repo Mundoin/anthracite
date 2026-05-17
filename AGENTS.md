@@ -7,6 +7,8 @@
 
 This repo is **Anthracite v1**, a fresh build under `D:\Repos\anthracite`.
 It is **not** a port, not a migration, not an extraction of `D:\Repos\_NEXUS`.
+The old PyQt repo at `D:\Repos\_NEXUS` and the `ObsidianAnthracite`
+vault are reference truth, never sources of code.
 
 Stage: **V1B — Source of Truth and Architecture Map**
 (V1A complete; Agent Operating Layer gate green —
@@ -48,7 +50,7 @@ Codex's rules under this doctrine:
 Hard gate: Anthracite V1 product coding (V1B+) starts only when
 `tools/ops-readiness.ps1` reports **READY**.
 
-## Stack (locked for v1)
+## Stack (locked)
 
 - Tauri **2** (Rust, edition 2021, MSRV 1.77)
 - React 18 + TypeScript 5 + Vite 5
@@ -69,6 +71,10 @@ Hard gate: Anthracite V1 product coding (V1B+) starts only when
 6. **Never `git push` without explicit instruction.**
 7. **Never run pnpm/cargo install of system-wide tooling without warning.**
 8. **Do not run pytest. There is no pytest. There is no Python.**
+9. **Always read `obsidian/ANTHRACITE_INDEX.md` before deep architectural
+   work.**
+10. **Product truth lives in `ObsidianAnthracite` and this repo's
+    `PRODUCT.md`.**
 
 ## Operating Posture
 
@@ -78,8 +84,37 @@ Codex = **Admin / Ops**. Source of truth for *how* the rig is set up:
 - Long-running deterministic prep (codegen, asset prep, lockfile management).
 - `tools/*.ps1` automation.
 
+Codex also preserves the *why* without taking over Claude's product lane:
+- Panel composition, cockpit information architecture.
+- Topology semantics (information vs live; 2D vs 3D selectability).
+- Sentinel / Cortex / Forge boundaries.
+- Decision records under `obsidian/decisions/`.
+- Long-form narrative in `PRODUCT.md` and stage notes.
+
 When in doubt about architecture / intent / panel design / topology semantics →
 defer to `CLAUDE.md`. When in doubt about *setup* → `AGENTS.md` wins.
+
+## Local Helpers
+
+- Repo workflow lives here; setup friction belongs to Codex.
+- Repo-local validation / review / readiness agents live in `.claude/agents/`.
+- `graphify` writes `graphify-out/graph.json` and
+  `graphify-out/GRAPH_REPORT.md`; those outputs are ignored in `.gitignore`.
+
+When in doubt about setup / ops / pipelines → `AGENTS.md` wins.
+When in doubt about intent / structure → defer to `CLAUDE.md`.
+
+## V1A Acceptance (completed baseline)
+
+- App scaffold launches: title bar + 3 placeholder panels + center Babylon
+  canvas.
+- Dark cockpit theme baseline applied.
+- `pnpm typecheck`, `pnpm build`, `cargo check` (in `src-tauri/`) all green.
+- Docs present: `README.md`, `PRODUCT.md`, `GOALS.md`, `AGENTS.md`,
+  `CLAUDE.md`.
+- Obsidian vault skeleton present under `obsidian/`.
+- `.agents/` initialized but git-ignored.
+- No topology logic, no Sentinel logic, no Cortex logic, no Forge logic.
 
 ## AO (AgentOps) Usage
 
@@ -97,13 +132,28 @@ ao retro                      # after a surprise / fix / stage boundary
 ao handoff                    # session boundary
 ```
 
+Per-rig slash commands mirrored from `CLAUDE.md`:
+
+- `/status` — start meaningful sessions here.
+- `/inject` — pull relevant `.agents/` knowledge into context.
+- `/research <question>` — read-only investigation.
+- `/plan <scope>` — before multi-path or risky stages.
+- `/pre-mortem <scope>` — before topology / clean-room / parity-affecting
+  moves.
+- `/review` — before commit when diff carries risk.
+- `/retro` — after surprises or stage boundaries.
+- `/handoff` — at session boundaries.
+
 Heavy commands (`/rpi`, `/crank`, `/evolve`, `/autodev`, `/swarm`, `/codex-team`)
 require an explicit stage scope from Bujar. Do not self-invoke.
+
+When AO is used, report whether useful `.agents/` evidence was created or
+reused. AO should *reduce* operator tax, not become ceremony.
 
 Knowledge consolidation across rigs happens at parent via `ao harvest` →
 `~/.agentops/`. Codex does not write `.agents/` directly outside its current rig.
 
-## Obsidian Vault
+## Obsidian Vault Discipline
 
 The Obsidian vault under `obsidian/` is the long-form memory:
 
@@ -112,8 +162,11 @@ The Obsidian vault under `obsidian/` is the long-form memory:
 - `obsidian/decisions/` — ADR-style decisions, dated.
 - `obsidian/agents/` — agent-specific notes / playbooks.
 - `obsidian/build-log/` — chronological build log.
+- Every stage produces `obsidian/stages/V1<x>-<slug>.md`.
+- Every notable decision becomes `obsidian/decisions/YYYY-MM-DD-<slug>.md`.
 
 After any non-trivial change Codex authors, add or update the matching note.
+Update the vault as part of the work — never as a separate "doc pass".
 
 ## Validation
 
@@ -128,7 +181,7 @@ tools/validate.ps1
 
 Do not declare success without showing the commands' actual output.
 
-## File Layout (authoritative)
+## File Layout
 
 See [`README.md`](./README.md). Treat that diagram as canon. If Codex adds a
 new top-level folder, update the diagram in the same change.
@@ -139,3 +192,29 @@ new top-level folder, update the diagram in the same change.
 - Global Codex/Claude rules: `~/.codex/*`, `~/.claude/CLAUDE.md`.
 - Product truth: `PRODUCT.md`.
 - Fitness spec: `GOALS.md`.
+- Claude contract: `CLAUDE.md`.
+
+## AgentOps Knowledge Flywheel
+
+Knowledge compounds automatically across sessions:
+
+- **MEMORY.md** is auto-loaded by your AI coding tool every session.
+- **Session hooks** extract learnings, update MEMORY.md, and prune stale
+  knowledge.
+- **Skills** invoke flywheel commands at the right moments (no manual AO
+  commands needed).
+
+Verify the flywheel any time:
+
+```powershell
+ao flywheel status    # escape velocity check
+ao status             # current knowledge inventory
+```
+
+## graphify
+
+- **graphify** (`~/.Codex/skills/graphify/SKILL.md`) — any input to knowledge
+  graph. Trigger: `/graphify`.
+- Claude-side pair path: `.claude/skills/graphify/SKILL.md`.
+- When the user types `/graphify`, invoke the graphify skill before doing
+  anything else.
