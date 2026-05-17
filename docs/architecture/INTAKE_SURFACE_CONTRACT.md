@@ -490,6 +490,102 @@ See
 §"Non-goals" — no baseline, no rank, no suppression, no export,
 no Cortex, no persistence.
 
+## Workspace layout (V1P-A overlay)
+
+V1P-A reshapes the single-device and drilled-in INTAKE views
+into a two-lane workspace. Batch summary and archive inventory
+remain full-width.
+
+### Lanes
+
+- **Work lane** (left): operator-facing surface. Contains
+  Config Input (when not drilled-in), Detection, Parse Status,
+  Manual Override.
+- **Answer lane** (right): engine-truth surface. Contains
+  Validating banner, ValidatorFailed banner, FindingsPanel,
+  ReceiptDisplay. FindingsPanel renders **above** ReceiptDisplay
+  (V1P regression lock, carried into V1P-A).
+
+### Empty state
+
+Before a parse completes, the answer lane renders a workstation
+chrome empty-state with a `RESULT` eyebrow and `(awaiting
+parse)` muted body text. It does NOT collapse or hide. The lane
+chrome is present at all times so the workspace always reads as
+two surfaces.
+
+### Lane-item rail contract
+
+The 2px left-edge rail on each lane-item is owned by the V1P-A
+lane-item wrapper. The wrapper paints its rail via an
+absolutely-positioned `::before` at `left: 0` with `z-index: 1`,
+so where existing panel components paint their own left-edge
+rail (V1E-era chrome on `.intake-section__header` and
+`.intake-input__header`, intake.css L54/L100/L553), the wrapper
+rail takes visual precedence. Existing rules are NOT edited;
+they remain in place for panels rendered outside a lane-item
+context.
+
+The lane-item wrapper carries NO border of its own — inner
+panel components retain their existing hairline border, radius,
+and shadow chrome. Stacking another border on the wrapper would
+produce a visible double-border.
+
+### Accent rail mapping
+
+Each lane-item carries a 2px semantic rail using `--anth-role-*`
+tokens only. Mapping (V1P-A binding):
+
+| Lane-item        | Class                                  | Token                          | Meaning              |
+|------------------|----------------------------------------|--------------------------------|----------------------|
+| Config Input     | `intake-lane-item--accent-input`       | `--anth-role-input-bytes`      | Operator bytes       |
+| Detection        | `intake-lane-item--accent-engine`      | `--anth-role-engine-analysis`  | Engine analysis      |
+| Parse Status     | `intake-lane-item--accent-clean`       | `--anth-role-severity-clean`   | status `parsed`      |
+|                  | `intake-lane-item--accent-fault`       | `--anth-role-severity-fault`   | status `error`       |
+|                  | `intake-lane-item--accent-running`     | `--anth-role-status-running`   | `parsing`/`detecting`|
+|                  | `intake-lane-item--accent-neutral`     | `--anth-role-neutral-chrome`   | otherwise            |
+| Manual Override  | `intake-lane-item--accent-operator`    | `--anth-role-operator-choice`  | Operator decision    |
+| Validating       | `intake-lane-item--accent-running`     | `--anth-role-status-running`   | Validator busy       |
+| ValidatorFailed  | `intake-lane-item--accent-fault`       | `--anth-role-severity-fault`   | Validator error      |
+| Findings         | `intake-lane-item--accent-fault`       | `--anth-role-severity-fault`   | any critical/high    |
+|                  | `intake-lane-item--accent-warn`        | `--anth-role-severity-warn`    | any medium/low       |
+|                  | `intake-lane-item--accent-clean`       | `--anth-role-severity-clean`   | zero findings        |
+| Receipt          | `intake-lane-item--accent-truth`       | `--anth-role-truth-projection` | Truth projection     |
+
+### Token discipline
+
+Lane-item rails reference ONLY `--anth-role-*` semantic tokens,
+never raw `--anth-{info,warn,err,ok,copper}` primitives. Future
+stages adding new semantic roles SHALL add a new `--anth-role-*`
+alias in `src/styles/tokens.css`. New hex values require a
+TOKENS.md (design doctrine) decision, not a stage decision.
+
+### Narrow-width collapse
+
+Below ~1100px viewport (for example half-screen docking), the
+workspace collapses to a single vertical stack in the V1P order:
+work-lane panels followed by answer-lane panels. The collapse is
+pure CSS via media query against `.intake-workspace`; no JS
+layout logic. No content is hidden in any layout state.
+
+### Regression locks (V1P-A)
+
+- Batch summary renders full-width, no workspace.
+- Archive batch summary renders full-width, no workspace.
+- Drilled-in slice (batch or archive) renders workspace.
+- FindingsPanel renders above ReceiptDisplay in the answer lane
+  (V1P lock continuation).
+- No reducer behaviour change vs V1P; transitions byte-identical.
+- ArchiveSourceBadge provenance preserved in drilled-in chrome.
+
+### Honesty rules carry forward
+
+The seven UI honesty rules apply to V1P-A unchanged.
+Specifically: no severity recomputation in React, no client-side
+projection of engine facts, no hidden data, error paths
+first-class. The accent rails are information scent only; they
+do NOT replace or hide any existing chip, tag, or warning text.
+
 ## Follow-ups owned by later stages
 
 - **V1O-C (tentative)** — receipt + findings export

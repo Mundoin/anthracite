@@ -45,6 +45,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1O-A | complete · Config splitter engine + multi-device intake (batch view, drill-down) | [stages/V1O-A-multi-device-intake.md](./stages/V1O-A-multi-device-intake.md) |
 | V1O-B | complete · Archive intake engine (zip / tar / tar.gz) + provenance + collapsed inventory | [stages/V1O-B-archive-intake.md](./stages/V1O-B-archive-intake.md) |
 | V1P   | complete · Validator Engine + MGMT-HYG rule pack v1 + FindingsPanel above ReceiptDisplay | [stages/V1P-validator-engine.md](./stages/V1P-validator-engine.md) |
+| V1P-A | complete · INTAKE two-lane workspace + semantic role tokens + lane-item accent rails | [stages/V1P-A-intake-visual-hierarchy.md](./stages/V1P-A-intake-visual-hierarchy.md) |
 
 ## V1J-A adaptation
 
