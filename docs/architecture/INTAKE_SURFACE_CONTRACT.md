@@ -586,12 +586,171 @@ projection of engine facts, no hidden data, error paths
 first-class. The accent rails are information scent only; they
 do NOT replace or hide any existing chip, tag, or warning text.
 
+## Batch run (V1Q overlay)
+
+V1Q adds a frontend-only `BatchRun` artifact that aggregates
+per-device pipeline state across every slice in a batch.
+Composition over the existing five engines (splitter,
+detection, parser, receipt, validator). No new Tauri command,
+no new wire types beyond `src/types/batchRun.ts`.
+
+### Naming discipline (binding)
+
+- The artifact type is `BatchRun`. The operator-facing button
+  is **"Analyse batch"** (idle) / **"Re-run analysis"**
+  (complete).
+- The word "assessment" / "assess" / "Assessment Engine" is
+  RESERVED for the future ASSESS mode per
+  `MODES_AND_ENGINES_MAP.md`. Do NOT use that vocabulary in
+  any V1Q identifier, button label, comment, or doc.
+
+### Shape
+
+See `src/types/batchRun.ts`. Top-level fields:
+
+- `source: BatchRunSource` — `paste` / `file` / `archive`
+- `devices: ReadonlyArray<BatchRunDevice>` — sorted by
+  `slice_id` ASC always
+- `summary: BatchRunSummary` — pure verbatim aggregation
+  (see below)
+- `status: BatchRunStatus` — `idle` / `in_progress` /
+  `complete` / `complete_with_failures`
+- `epoch: number` — monotonically-increasing run counter
+  used by IntakePanel's orchestration useEffect to detect
+  fresh runs without re-triggering on per-device dispatches
+
+### Lifecycle
+
+```
+              BatchRunRequested              orchestrator
+   (none) ─────────────────────► (in_progress) ────────► (complete |
+              BatchRunCancelled          complete_with_failures)
+                                                │
+                          BatchRunReRunRequested │
+                                                ▼
+                                          (in_progress) ─► ...
+```
+
+### Per-device storage rule
+
+Drill-down from a completed batch reads `device_model`,
+`receipt`, and `validation_report` from the stored
+`BatchRunDevice`. It does NOT re-run parse / receipt /
+validate. The reducer's `DrillIntoSlice` case detects the
+stored device and populates the V1O + V1P sub-state in one
+transition.
+
+If the operator opens a slice BEFORE clicking Analyse batch,
+the legacy per-slice drill-down flow runs as today
+(parse / validate on demand). Both paths coexist.
+
+### Manual override
+
+Operator truth survives Re-run. `BatchRunOverrideSelected`
+updates the per-device `selected_platform` +
+`is_manual_override` and resets that device's stage to
+`pending` (clears stored model / receipt / report). The next
+Re-run picks it up.
+
+### Determinism rules (binding)
+
+- `devices` MUST be sorted by `slice_id` ascending always,
+  regardless of completion order.
+- `summary` MUST equal `deriveBatchRunSummary(devices)` after
+  every reducer transition.
+- No `run_id`, no `created_at`, no `completed_at`. Same
+  inputs → same artifact bytes.
+- `epoch` resets on panel re-mount; it is NEVER serialised
+  and never crosses IPC.
+
+### Aggregation rule (binding)
+
+`deriveBatchRunSummary` in
+`src/modes/intake/orchestration/batchRunSummary.ts` is the
+SINGLE counting surface. Every React component renders
+verbatim from `batchRun.summary.{field}`:
+
+- `parsed_count`     : `stage_status === "complete"`
+- `failed_count`     : `stage_status === "failed"`
+- `skipped_count`    : `stage_status === "skipped"`
+- `pending_count`    : pending / detecting / queued /
+                       parsing / validating
+- `with_findings_count` : complete AND
+                          `validation_report.findings.length > 0`
+- `clean_count`      : complete AND
+                       `validation_report.findings.length === 0`
+- `severity_counts.*`: sum across every device's findings,
+                       each counted by its `severity` field
+
+NO client-side severity recomputation, NO recoloring, NO
+interpretive transforms.
+
+### Concurrency policy
+
+Bounded `N=4` via `runWithBoundedConcurrency` in
+`src/modes/intake/orchestration/concurrencyPool.ts`. The
+pool collapses cleanly at `maxInFlight=1` so a fallback to
+deterministic sequential is a one-line constant change in
+`IntakePanel.tsx` (`BATCH_RUN_MAX_IN_FLIGHT`).
+
+Cancellation discipline (mirrors the V1P validator
+useEffect bugfix):
+- IntakePanel owns a `cancelRef.current = { cancelled }`
+  closure passed into `runBatch`.
+- The orchestrator checks `isCancelled()` between every
+  await boundary.
+- Cleanup of the run-orchestration useEffect flips the
+  closure; new runs install a fresh one. The useEffect deps
+  array contains only `[api, runEpoch]` — neither flips on
+  per-device dispatches, so the effect does NOT re-trigger
+  mid-run.
+
+### V1O-A R3 evolution
+
+Pre-V1Q: "detect all on render, parse selected on
+drill-down." V1Q extends this to:
+- detect all on render (unchanged)
+- parse + receipt + validate all on Analyse-batch click
+- drill-down uses stored results
+
+The pre-V1Q drill-down code path remains for the
+"Open-before-Analyse" case. Stored results take precedence
+when present.
+
+### Regression locks (V1Q)
+
+- V1O single-config: untouched.
+- V1O-A batch + drill-down: untouched.
+- V1O-B archive flow + provenance badge: untouched.
+- V1P validator: untouched (per-device validator call lives
+  unchanged inside `runBatch`).
+- V1P FindingsPanel-above-Receipt in drill-down: untouched.
+- V1P validator useEffect deps array in IntakePanel.tsx:
+  byte-identical. V1Q's orchestration effect is a SEPARATE
+  useEffect with its own deps array.
+- V1P-A two-lane workspace: untouched.
+- V1P-A role-token discipline: extended (no new hex; new
+  tokens only added as semantic aliases of existing
+  primitives, if needed).
+
+### Honesty rules carry forward
+
+- Severity chips with zero counts still render in the
+  RunSummaryStrip (same discipline as V1P's clean_rules).
+- Failed and skipped rows are first-class — no silent
+  zeros, no hiding.
+- Errors (parse / receipt / validate) surface per-row with
+  the offending stage named and the underlying message in
+  a tooltip.
+
 ## Follow-ups owned by later stages
 
 - **V1O-C (tentative)** — receipt + findings export
   (JSON / Markdown), copy-out for evidence packs.
-- **V1Q (tentative)** — second rule pack (vendor-aware family,
-  or routing-protocol hygiene), or confidence/visibility axes
-  for findings.
+- **V1R (tentative)** — `BatchRun` serialisation / export.
+  The shape is now stable and frontend-only, ready to be
+  the export artifact.
+- **V1Q-A (tentative)** — interactive column sort in the
+  batch summary (sort by severity / hostname / stage).
 - **Cortex consumption of `DeviceModel`** — first analytic
   surface beyond device-local validation.

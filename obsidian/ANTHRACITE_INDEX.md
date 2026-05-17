@@ -46,6 +46,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1O-B | complete · Archive intake engine (zip / tar / tar.gz) + provenance + collapsed inventory | [stages/V1O-B-archive-intake.md](./stages/V1O-B-archive-intake.md) |
 | V1P   | complete · Validator Engine + MGMT-HYG rule pack v1 + FindingsPanel above ReceiptDisplay | [stages/V1P-validator-engine.md](./stages/V1P-validator-engine.md) |
 | V1P-A | complete · INTAKE two-lane workspace + semantic role tokens + lane-item accent rails | [stages/V1P-A-intake-visual-hierarchy.md](./stages/V1P-A-intake-visual-hierarchy.md) |
+| V1Q   | complete · Batch Run Workspace — Analyse batch, per-row Stage + Findings, RunSummaryStrip, drill-down stored results | [stages/V1Q-batch-run-workspace.md](./stages/V1Q-batch-run-workspace.md) |
 
 ## V1J-A adaptation
 
