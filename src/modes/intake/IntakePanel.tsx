@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useReducer,
+  useRef,
   type JSX,
 } from "react";
 import { archiveIntake, archiveKindFromFilename } from "../../api/archiveIntake";
@@ -36,6 +37,14 @@ import { PlatformOverrideSelect } from "./components/PlatformOverrideSelect";
 import { ReceiptDisplay } from "./components/ReceiptDisplay";
 import type { IntakeState } from "./intakeTypes";
 import type { ValidationReport } from "../../types/validator";
+import { runBatch } from "./orchestration/runBatch";
+
+/**
+ * V1Q — default bounded concurrency for batch runs. The
+ * concurrencyPool collapses cleanly at maxInFlight=1 so this
+ * can be lowered to 1 as a fallback without code changes.
+ */
+export const BATCH_RUN_MAX_IN_FLIGHT = 4;
 import { describeError, readUtf8File } from "./fileText";
 import { intakeReducer } from "./intakeReducer";
 import {
@@ -316,6 +325,19 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
   const onSelectPlatform = useCallback(
     (platform: PlatformRef, isManualOverride: boolean): void => {
       dispatch({ type: "SelectPlatform", platform, isManualOverride });
+      // V1Q — if drilled-in within a batch with a BatchRun, store
+      // the operator's choice on the per-device entry too. Override
+      // is operator truth: it survives re-run.
+      const snap = stateRef.current;
+      const drilledId = snap.batch?.drilledSliceId ?? null;
+      if (drilledId && snap.batch?.batchRun) {
+        dispatch({
+          type: "BatchRunOverrideSelected",
+          sliceId: drilledId,
+          platform,
+          isManualOverride,
+        });
+      }
     },
     [],
   );
@@ -414,6 +436,83 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
     state.source,
     state.status,
   ]);
+
+  // ---- V1Q Batch Run orchestration --------------------------------
+  //
+  // SEPARATE useEffect from the V1P validator trigger (which remains
+  // byte-identical above). Deps array contains ONLY the run epoch +
+  // api — both are stable across per-device dispatches, so the effect
+  // does NOT re-fire when individual BatchRunDevice* actions land.
+  //
+  // The V1P validator-trigger bugfix discipline is replicated here:
+  // - Re-entrancy guarded by a ref-counted last-fired epoch.
+  // - Cancellation uses a mutable closure (`cancelRef.current`) so
+  //   the orchestrator's isCancelled() callback observes a flip
+  //   without depending on a fresh deps-array tick.
+  // - Cleanup flips the cancellation closure; new runs install a
+  //   fresh one before kicking off.
+  const batchRun = state.batch?.batchRun ?? null;
+  const runEpoch = batchRun?.epoch ?? 0;
+  const lastRunEpochRef = useRef<number>(0);
+  const cancelRef = useRef<{ cancelled: boolean }>({ cancelled: false });
+  const stateRef = useRef<IntakeState>(state);
+  stateRef.current = state;
+
+  useEffect(() => {
+    if (runEpoch === 0) return;
+    if (lastRunEpochRef.current === runEpoch) return;
+    lastRunEpochRef.current = runEpoch;
+    // Snapshot state at fire-time. The orchestrator dispatches per
+    // slice id; the reducer's applyDeviceUpdate guards against
+    // missing batchRun, so dispatches that arrive after cancellation
+    // are inert no-ops.
+    const snap = stateRef.current;
+    if (!snap.batch || !snap.batch.batchRun) return;
+    const slicesByID = new Map(
+      snap.batch.splitResult.slices.map((s) => [s.slice_id, s]),
+    );
+    const archiveName = snap.batch.archiveName;
+    const devices = snap.batch.batchRun.devices;
+
+    // Install a fresh cancel closure for this run. Cleanup flips
+    // it; the orchestrator checks it between every await.
+    const myCancel = { cancelled: false };
+    cancelRef.current = myCancel;
+
+    void runBatch({
+      api,
+      devices,
+      slicesByID,
+      dispatch,
+      maxInFlight: BATCH_RUN_MAX_IN_FLIGHT,
+      isCancelled: () => myCancel.cancelled,
+      archiveName,
+    });
+
+    return () => {
+      myCancel.cancelled = true;
+    };
+  }, [api, runEpoch]);
+
+  // Cancel any in-flight run as soon as the batchRun reference goes
+  // null (operator cleared input, opened a new file, etc.). The
+  // existing SetConfigText / FileLoaded / ArchiveOpenStart reducer
+  // cases clear state.batch entirely; this side-effect makes that
+  // teardown observable to the in-flight orchestrator.
+  const batchRunPresent = batchRun !== null;
+  useEffect(() => {
+    if (!batchRunPresent) {
+      cancelRef.current.cancelled = true;
+    }
+  }, [batchRunPresent]);
+
+  const onAnalyseBatch = useCallback((): void => {
+    dispatch({ type: "BatchRunRequested" });
+  }, []);
+
+  const onReRunBatch = useCallback((): void => {
+    dispatch({ type: "BatchRunReRunRequested" });
+  }, []);
 
   const onDismissError = useCallback((): void => {
     dispatch({ type: "DismissError" });
@@ -652,6 +751,9 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
           archiveProvenance={
             archiveProvenance ?? undefined
           }
+          batchRun={state.batch.batchRun}
+          onAnalyse={onAnalyseBatch}
+          onReRun={onReRunBatch}
         />
       )}
 
