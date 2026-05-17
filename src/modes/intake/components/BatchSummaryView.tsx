@@ -12,7 +12,10 @@ import type { PerSliceDetection } from "../intakeTypes";
 import { ArchiveSourceBadge } from "./ArchiveSourceBadge";
 import { BatchRunFindingsCell } from "./BatchRunFindingsCell";
 import { BatchRunStageCell } from "./BatchRunStageCell";
-import { RunSummaryStrip } from "./RunSummaryStrip";
+import {
+  RunSummaryStrip,
+  type BatchRunExportStatus,
+} from "./RunSummaryStrip";
 
 export interface BatchSummaryViewProps {
   readonly result: ConfigBatchSplitResult;
@@ -35,6 +38,9 @@ export interface BatchSummaryViewProps {
   readonly batchRun?: BatchRun | null;
   readonly onAnalyse?: () => void;
   readonly onReRun?: () => void;
+  readonly onCopyJson?: () => void;
+  readonly onCopyMarkdown?: () => void;
+  readonly exportStatus?: BatchRunExportStatus | null;
 }
 
 export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
@@ -48,6 +54,9 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
     batchRun,
     onAnalyse,
     onReRun,
+    onCopyJson,
+    onCopyMarkdown,
+    exportStatus,
   } = props;
   const ambiguousOrLow = result.warnings.some(
     (w) =>
@@ -75,6 +84,9 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
           onAnalyse={onAnalyse}
           onReRun={onReRun ?? (() => undefined)}
           disabled={disabled}
+          onCopyJson={onCopyJson}
+          onCopyMarkdown={onCopyMarkdown}
+          exportStatus={exportStatus}
         />
       )}
 

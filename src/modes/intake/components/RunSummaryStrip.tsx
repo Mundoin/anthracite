@@ -18,15 +18,36 @@ import type { JSX } from "react";
 
 import type { BatchRun } from "../../../types/batchRun";
 
+export type BatchRunExportFormat = "json" | "markdown";
+
+export type BatchRunExportStatus =
+  | { readonly kind: "copied"; readonly format: BatchRunExportFormat }
+  | {
+      readonly kind: "failed";
+      readonly format: BatchRunExportFormat;
+      readonly message: string;
+    };
+
 export interface RunSummaryStripProps {
   readonly batchRun: BatchRun | null;
   readonly onAnalyse: () => void;
   readonly onReRun: () => void;
   readonly disabled: boolean;
+  readonly onCopyJson?: () => void;
+  readonly onCopyMarkdown?: () => void;
+  readonly exportStatus?: BatchRunExportStatus | null;
 }
 
 export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
-  const { batchRun, onAnalyse, onReRun, disabled } = props;
+  const {
+    batchRun,
+    onAnalyse,
+    onReRun,
+    disabled,
+    onCopyJson,
+    onCopyMarkdown,
+    exportStatus,
+  } = props;
 
   const inProgress = batchRun?.status === "in_progress";
   const isComplete =
@@ -71,8 +92,77 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
             Re-run analysis
           </button>
         )}
+        {isComplete && onCopyJson && onCopyMarkdown && (
+          <BatchRunExportActions
+            onCopyJson={onCopyJson}
+            onCopyMarkdown={onCopyMarkdown}
+            disabled={buttonsDisabled}
+            status={exportStatus ?? null}
+          />
+        )}
       </div>
     </div>
+  );
+}
+
+interface BatchRunExportActionsProps {
+  readonly onCopyJson: () => void;
+  readonly onCopyMarkdown: () => void;
+  readonly disabled: boolean;
+  readonly status: BatchRunExportStatus | null;
+}
+
+function BatchRunExportActions(props: BatchRunExportActionsProps): JSX.Element {
+  const { onCopyJson, onCopyMarkdown, disabled, status } = props;
+  return (
+    <>
+      <button
+        type="button"
+        className="intake-btn intake-btn--tiny"
+        onClick={onCopyJson}
+        disabled={disabled}
+        aria-label="Copy JSON"
+      >
+        Copy JSON
+      </button>
+      <button
+        type="button"
+        className="intake-btn intake-btn--tiny"
+        onClick={onCopyMarkdown}
+        disabled={disabled}
+        aria-label="Copy Markdown"
+      >
+        Copy Markdown
+      </button>
+      {status && <ExportStatusView status={status} />}
+    </>
+  );
+}
+
+function ExportStatusView({
+  status,
+}: {
+  readonly status: BatchRunExportStatus;
+}): JSX.Element {
+  const label = status.format === "json" ? "JSON" : "Markdown";
+  if (status.kind === "copied") {
+    return (
+      <span
+        className="intake-run-export-status intake-run-export-status--ok"
+        role="status"
+        aria-label="Export copied"
+      >
+        copied {label}
+      </span>
+    );
+  }
+  return (
+    <span
+      className="intake-run-export-status intake-run-export-status--failed"
+      role="alert"
+    >
+      failed {label}: {status.message}
+    </span>
   );
 }
 

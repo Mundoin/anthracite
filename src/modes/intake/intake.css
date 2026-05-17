@@ -1119,7 +1119,22 @@
 .intake-run-summary-strip__actions {
   flex: 0 0 auto;
   display: inline-flex;
+  align-items: center;
   gap: 6px;
+}
+
+.intake-run-export-status {
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.intake-run-export-status--ok {
+  color: var(--anth-role-severity-clean);
+}
+
+.intake-run-export-status--failed {
+  color: var(--anth-role-severity-fault);
 }
 
 /* ---- Per-row Stage cell --------------------------------------- */

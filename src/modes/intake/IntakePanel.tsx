@@ -3,6 +3,7 @@ import {
   useEffect,
   useReducer,
   useRef,
+  useState,
   type JSX,
 } from "react";
 import { archiveIntake, archiveKindFromFilename } from "../../api/archiveIntake";
@@ -38,6 +39,12 @@ import { ReceiptDisplay } from "./components/ReceiptDisplay";
 import type { IntakeState } from "./intakeTypes";
 import type { ValidationReport } from "../../types/validator";
 import { runBatch } from "./orchestration/runBatch";
+import { buildBatchRunExport, stringifyBatchRunExport } from "./export/batchRunExport";
+import { renderBatchRunMarkdown } from "./export/batchRunMarkdown";
+import type {
+  BatchRunExportFormat,
+  BatchRunExportStatus,
+} from "./components/RunSummaryStrip";
 
 /**
  * V1Q — default bounded concurrency for batch runs. The
@@ -85,6 +92,8 @@ const DEFAULT_API: IntakeApi = {
 
 export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.Element {
   const [state, dispatch] = useReducer(intakeReducer, initialIntakeState);
+  const [exportStatus, setExportStatus] =
+    useState<BatchRunExportStatus | null>(null);
 
   // ---- Vendor registry load (once) -------------------------------
   useEffect(() => {
@@ -507,12 +516,50 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
   }, [batchRunPresent]);
 
   const onAnalyseBatch = useCallback((): void => {
+    setExportStatus(null);
     dispatch({ type: "BatchRunRequested" });
   }, []);
 
   const onReRunBatch = useCallback((): void => {
+    setExportStatus(null);
     dispatch({ type: "BatchRunReRunRequested" });
   }, []);
+
+  const onCopyBatchExport = useCallback(
+    async (format: BatchRunExportFormat): Promise<void> => {
+      const run = stateRef.current.batch?.batchRun ?? null;
+      if (
+        !run ||
+        (run.status !== "complete" && run.status !== "complete_with_failures")
+      ) {
+        return;
+      }
+      const exported = buildBatchRunExport(run);
+      const text =
+        format === "json"
+          ? stringifyBatchRunExport(exported)
+          : renderBatchRunMarkdown(exported);
+      try {
+        await writeClipboardText(text);
+        setExportStatus({ kind: "copied", format });
+      } catch (err) {
+        setExportStatus({
+          kind: "failed",
+          format,
+          message: describeError(err),
+        });
+      }
+    },
+    [],
+  );
+
+  const onCopyJson = useCallback((): void => {
+    void onCopyBatchExport("json");
+  }, [onCopyBatchExport]);
+
+  const onCopyMarkdown = useCallback((): void => {
+    void onCopyBatchExport("markdown");
+  }, [onCopyBatchExport]);
 
   const onDismissError = useCallback((): void => {
     dispatch({ type: "DismissError" });
@@ -754,6 +801,9 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
           batchRun={state.batch.batchRun}
           onAnalyse={onAnalyseBatch}
           onReRun={onReRunBatch}
+          onCopyJson={onCopyJson}
+          onCopyMarkdown={onCopyMarkdown}
+          exportStatus={exportStatus}
         />
       )}
 
@@ -762,6 +812,14 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
       )}
     </div>
   );
+}
+
+async function writeClipboardText(text: string): Promise<void> {
+  const clipboard = navigator.clipboard;
+  if (!clipboard?.writeText) {
+    throw new Error("clipboard unavailable");
+  }
+  await clipboard.writeText(text);
 }
 
 /**

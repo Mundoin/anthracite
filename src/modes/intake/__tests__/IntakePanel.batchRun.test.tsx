@@ -284,6 +284,64 @@ describe("IntakePanel × V1Q BatchRun", () => {
     expect(screen.getByLabelText("failed: parse")).toBeInTheDocument();
   });
 
+  it("Copy JSON writes deterministic export to clipboard and shows copied feedback", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    const api = makeApi();
+    render(<IntakePanel api={api} />);
+    await waitFor(() => expect(api.listVendorPlatforms).toHaveBeenCalled());
+
+    await gotoBatchSummary(user);
+    await user.click(screen.getByRole("button", { name: "Analyse batch" }));
+    await waitFor(() =>
+      expect(api.validateDeviceModel).toHaveBeenCalledTimes(2),
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Copy JSON" }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    const exported = String(writeText.mock.calls[0][0]);
+    expect(exported).toContain('"kind": "batch_run_export"');
+    expect(exported).not.toContain("hostname r1");
+    expect(screen.getByRole("status", { name: "Export copied" })).toHaveTextContent(
+      "copied JSON",
+    );
+  });
+
+  it("Copy Markdown reports clipboard failure without leaving the batch surface", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: vi.fn().mockRejectedValue(new Error("clipboard denied")),
+      },
+    });
+    const api = makeApi();
+    render(<IntakePanel api={api} />);
+    await waitFor(() => expect(api.listVendorPlatforms).toHaveBeenCalled());
+
+    await gotoBatchSummary(user);
+    await user.click(screen.getByRole("button", { name: "Analyse batch" }));
+    await waitFor(() =>
+      expect(api.validateDeviceModel).toHaveBeenCalledTimes(2),
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: "Copy Markdown" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "failed Markdown: clipboard denied",
+      ),
+    );
+    expect(screen.getByLabelText("Batch summary")).toBeInTheDocument();
+  });
+
   // ClearAll mid-run is covered at the reducer level in
   // intakeReducer.batchRun.test.ts "BatchRunCancelled removes
   // batchRun entirely". The integration path is intentionally not
