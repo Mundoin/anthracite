@@ -16,6 +16,7 @@ import type { ConfigBatchSplitResult, ConfigSlice } from "../../types/configBatc
 import type { ConfigDetectionResult } from "../../types/configDetection";
 import type { DeviceModel, PlatformRef } from "../../types/networkModel";
 import type { ReceiptView } from "../../types/receipt";
+import type { ValidationReport } from "../../types/validator";
 import type { VendorPlatform } from "../../types/vendor";
 
 export type IntakeStatus =
@@ -75,6 +76,9 @@ export interface BatchData {
   readonly archiveName: string | null;
 }
 
+// V1P — validator overlay.
+export type ValidationStatus = "idle" | "loading" | "ready" | "failed";
+
 export interface IntakeState {
   // V1O — per-config sub-state. When in batch mode and drilled into a
   // slice, these fields drive the per-slice view via the existing
@@ -94,6 +98,11 @@ export interface IntakeState {
   // V1O-A — batch wrapper.
   readonly batchStatus: BatchStatus;
   readonly batch: BatchData | null;
+  // V1P — validator overlay. Drives the FindingsPanel above
+  // ReceiptDisplay in the single-device and drilled-in branches.
+  readonly validationStatus: ValidationStatus;
+  readonly validationReport: ValidationReport | null;
+  readonly validationError: string | null;
 }
 
 export const initialIntakeState: IntakeState = {
@@ -111,6 +120,9 @@ export const initialIntakeState: IntakeState = {
   vendorListError: null,
   batchStatus: "none",
   batch: null,
+  validationStatus: "idle",
+  validationReport: null,
+  validationError: null,
 };
 
 export type IntakeAction =
@@ -160,7 +172,11 @@ export type IntakeAction =
       readonly inventory: ArchiveIntakeResult;
       readonly provenance: Readonly<Record<string, ArchiveEntryRef>>;
       readonly archive_name: string;
-    };
+    }
+  // V1P — validator actions.
+  | { readonly type: "ValidatorStarted" }
+  | { readonly type: "ValidatorSucceeded"; readonly report: ValidationReport }
+  | { readonly type: "ValidatorFailed"; readonly error: string };
 
 /** Build a PlatformRef from a registry VendorPlatform for manual override. */
 export function platformRefFromVendor(vp: VendorPlatform): PlatformRef {

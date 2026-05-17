@@ -8,6 +8,7 @@ import { archiveIntake, archiveKindFromFilename } from "../../api/archiveIntake"
 import { detectConfigPlatform } from "../../api/configDetection";
 import { parseDeviceConfig } from "../../api/parser";
 import { projectDeviceReceipt } from "../../api/receipt";
+import { validateDeviceModel } from "../../api/validator";
 import { listVendorPlatforms } from "../../api/vendor";
 import { splitConfigBatch } from "../../api/configBatch";
 import type {
@@ -16,12 +17,19 @@ import type {
 } from "../../types/archiveIntake";
 import type { ConfigSlice } from "../../types/configBatch";
 import type { PlatformRef } from "../../types/networkModel";
+import type {
+  DetectionSource,
+  SelectionMode,
+  SourceContext,
+  ValidatorContext,
+} from "../../types/validator";
 import { ArchiveInventoryPanel } from "./components/ArchiveInventoryPanel";
 import { ArchiveOpenButton } from "./components/ArchiveOpenButton";
 import { ArchiveSourceBadge } from "./components/ArchiveSourceBadge";
 import { BatchSummaryView } from "./components/BatchSummaryView";
 import { ConfigInputArea } from "./components/ConfigInputArea";
 import { DetectionResultView } from "./components/DetectionResultView";
+import { FindingsPanel } from "./components/FindingsPanel";
 import { ParseStatusView } from "./components/ParseStatusView";
 import { PlatformOverrideSelect } from "./components/PlatformOverrideSelect";
 import { ReceiptDisplay } from "./components/ReceiptDisplay";
@@ -47,6 +55,10 @@ export interface IntakeApi {
   readonly projectDeviceReceipt: typeof projectDeviceReceipt;
   readonly splitConfigBatch: typeof splitConfigBatch;
   readonly archiveIntake: typeof archiveIntake;
+  // Optional so pre-V1P tests can omit it. Production DEFAULT_API
+  // always includes the real wrapper. The trigger useEffect is a
+  // no-op when this is undefined.
+  readonly validateDeviceModel?: typeof validateDeviceModel;
 }
 
 const DEFAULT_API: IntakeApi = {
@@ -56,6 +68,7 @@ const DEFAULT_API: IntakeApi = {
   projectDeviceReceipt,
   splitConfigBatch,
   archiveIntake,
+  validateDeviceModel,
 };
 
 export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.Element {
@@ -323,6 +336,82 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
     }
   }, [api, state.selectedPlatform, state.text]);
 
+  // ---- V1P validator trigger ------------------------------------
+  // Fires once after a successful parse + receipt projection. Mirrors
+  // the V1O-A per-slice detection useEffect pattern: the reducer
+  // owns the state transitions; the effect owns the async call.
+  //
+  // BUG FIX (V1P-runtime): the effect must NOT depend on
+  // `state.validationStatus` AND must NOT cancel in-flight calls
+  // on re-render. The dispatch of `ValidatorStarted` flips
+  // `validationStatus` from "idle" to "loading"; if it were in
+  // deps, React would re-run the effect, fire the cleanup, set
+  // `cancelled = true`, and the in-flight Tauri response would
+  // silently drop. The reducer guards `ValidatorSucceeded` /
+  // `ValidatorFailed` against late dispatches instead.
+  useEffect(() => {
+    if (state.status !== "parsed") return;
+    if (state.validationStatus !== "idle") return;
+    const device = state.device;
+    const platform = state.selectedPlatform;
+    if (!device || !platform) return;
+    const validate = api.validateDeviceModel;
+    if (!validate) return;
+
+    dispatch({ type: "ValidatorStarted" });
+
+    const archiveName = state.batch?.archiveName ?? null;
+    const drilledSliceId = state.batch?.drilledSliceId ?? null;
+    const sourceKind: SourceContext["kind"] =
+      state.source?.kind === "archive"
+        ? archiveName
+          ? "archive_entry"
+          : "file"
+        : state.source?.kind === "file"
+          ? "file"
+          : state.source?.kind === "paste"
+            ? "paste"
+            : null;
+    const selectionMode: SelectionMode = state.isManualOverride
+      ? "manual_override"
+      : "from_detection";
+    const detectionSource: DetectionSource = state.isManualOverride
+      ? "manual_override"
+      : state.detection?.best_match
+        ? "best_match"
+        : "not_applicable";
+    const ctx: ValidatorContext = {
+      platform_id: platform.platform_id,
+      parser_id: platform.platform_id,
+      parser_version: device.evidence?.parser_version ?? null,
+      selection_mode: selectionMode,
+      detection_confidence: state.detection?.confidence ?? null,
+      detection_source: detectionSource,
+      source_context: {
+        kind: sourceKind,
+        label: state.source?.filename ?? null,
+        archive_name: archiveName,
+        slice_id: drilledSliceId,
+      },
+    };
+    validate(device, ctx)
+      .then((report) => {
+        dispatch({ type: "ValidatorSucceeded", report });
+      })
+      .catch((err: unknown) => {
+        dispatch({ type: "ValidatorFailed", error: describeError(err) });
+      });
+  }, [
+    api,
+    state.batch,
+    state.detection,
+    state.device,
+    state.isManualOverride,
+    state.selectedPlatform,
+    state.source,
+    state.status,
+  ]);
+
   const onDismissError = useCallback((): void => {
     dispatch({ type: "DismissError" });
   }, []);
@@ -505,7 +594,30 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
         )}
 
       {!showBatchSummary && state.status === "parsed" && state.receipt && (
-        <ReceiptDisplay receipt={state.receipt} isManualOverride={state.isManualOverride} />
+        <>
+          {state.validationStatus === "loading" && (
+            <div className="intake-findings__loading" role="status">
+              Validating…
+            </div>
+          )}
+          {state.validationStatus === "failed" && state.validationError && (
+            <div className="intake-error" role="alert">
+              <div className="intake-error__head">
+                <span className="intake-tag intake-tag--err">
+                  ERROR · validator
+                </span>
+              </div>
+              <div className="intake-error__body">{state.validationError}</div>
+            </div>
+          )}
+          {state.validationStatus === "ready" && state.validationReport && (
+            <FindingsPanel report={state.validationReport} />
+          )}
+          <ReceiptDisplay
+            receipt={state.receipt}
+            isManualOverride={state.isManualOverride}
+          />
+        </>
       )}
     </div>
   );

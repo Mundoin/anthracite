@@ -73,6 +73,9 @@ export function intakeReducer(
         vendorListError: state.vendorListError,
         batchStatus: "none",
         batch: null,
+        validationStatus: "idle",
+        validationReport: null,
+        validationError: null,
       };
     }
 
@@ -98,6 +101,9 @@ export function intakeReducer(
         vendorListError: state.vendorListError,
         batchStatus: "none",
         batch: null,
+        validationStatus: "idle",
+        validationReport: null,
+        validationError: null,
       };
     }
 
@@ -463,6 +469,40 @@ export function intakeReducer(
         status: "detecting",
         batchStatus: "none",
         batch: null,
+      };
+    }
+
+    // ---- V1P validator overlay ---------------------------------------
+
+    case "ValidatorStarted": {
+      return {
+        ...state,
+        validationStatus: "loading",
+        validationReport: null,
+        validationError: null,
+      };
+    }
+
+    case "ValidatorSucceeded": {
+      // Guard against late dispatches whose validation run was
+      // superseded by another (e.g. operator changed text mid-IPC).
+      // Only the current "loading" run is allowed to land its report.
+      if (state.validationStatus !== "loading") return state;
+      return {
+        ...state,
+        validationStatus: "ready",
+        validationReport: action.report,
+        validationError: null,
+      };
+    }
+
+    case "ValidatorFailed": {
+      if (state.validationStatus !== "loading") return state;
+      return {
+        ...state,
+        validationStatus: "failed",
+        validationReport: null,
+        validationError: action.error,
       };
     }
 
