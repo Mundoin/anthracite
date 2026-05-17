@@ -9,4 +9,5 @@ pub mod config_splitter;
 pub mod environment;
 pub mod parser;
 pub mod receipt;
+pub mod validator;
 pub mod vendor_registry;
