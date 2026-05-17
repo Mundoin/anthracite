@@ -80,3 +80,6 @@ __pycache__/
 
 # Local Obsidian workspace state
 obsidian/.obsidian/
+
+# claudestat auto-generated handoff (local tool, not repo artifact)
+HANDOFF.md
