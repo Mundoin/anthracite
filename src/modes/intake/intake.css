@@ -816,3 +816,206 @@
   font-style: italic;
   padding: 4px 12px;
 }
+
+/* ============================================================
+   V1P-A — Intake workspace (two-lane composition)
+   Industrial workstation, NOC Light, semantic role tokens only.
+   No raw --anth-{info,warn,err,ok,copper} below this line.
+   ============================================================ */
+
+.intake-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  gap: 0;
+  align-items: start;
+  width: 100%;
+}
+
+.intake-workspace__lane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.intake-workspace__lane--work {
+  padding-right: 12px;
+}
+
+.intake-workspace__lane--answer {
+  padding-left: 12px;
+}
+
+.intake-workspace__seam {
+  background: var(--anth-border-strong);
+  width: 1px;
+  align-self: stretch;
+}
+
+/* Empty-state skeleton in the answer lane.
+   Workstation chrome only — no icons, no marketing copy. */
+.intake-workspace__empty {
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 180px;
+}
+
+.intake-workspace__empty-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+  font-weight: 700;
+}
+
+.intake-workspace__empty-body {
+  font-size: 11.5px;
+  color: var(--anth-text-3);
+  font-family: var(--anth-font-mono);
+}
+
+/* ============================================================
+   V1P-A — Lane-item wrapper + accent rails
+   The wrapper rail is absolutely positioned with z-index so it
+   visually supersedes any existing per-panel left rail
+   (intake.css L54, L100, L553 are NOT edited; their rules
+   remain in place for panels rendered outside a lane-item).
+   Rails reference --anth-role-* tokens only.
+   ============================================================ */
+
+.intake-lane-item {
+  /* Rail-only wrapper. Inner panel components retain their own
+     hairline border + radius + shadow chrome from intake.css
+     L33-L36 (.intake-input/.intake-detect/.intake-override/
+     .intake-parse/.intake-receipt) and from .intake-findings
+     L666. Stacking another border here would produce a visible
+     double-border, so the wrapper contributes only the
+     absolute-positioned semantic rail below. */
+  position: relative;
+}
+
+.intake-lane-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: var(--anth-role-neutral-chrome);
+  z-index: 1;
+}
+
+.intake-lane-item--accent-input::before    { background: var(--anth-role-input-bytes); }
+.intake-lane-item--accent-engine::before   { background: var(--anth-role-engine-analysis); }
+.intake-lane-item--accent-operator::before { background: var(--anth-role-operator-choice); }
+.intake-lane-item--accent-clean::before    { background: var(--anth-role-severity-clean); }
+.intake-lane-item--accent-warn::before     { background: var(--anth-role-severity-warn); }
+.intake-lane-item--accent-fault::before    { background: var(--anth-role-severity-fault); }
+.intake-lane-item--accent-running::before  { background: var(--anth-role-status-running); }
+.intake-lane-item--accent-neutral::before  { background: var(--anth-role-neutral-chrome); }
+.intake-lane-item--accent-truth::before    { background: var(--anth-role-truth-projection); }
+
+/* ============================================================
+   V1P-A — Narrow-width collapse
+   Below ~1100px: stack lanes vertically, drop the seam.
+   No content hidden. Same DOM, different visual.
+   ============================================================ */
+
+@media (max-width: 1100px) {
+  .intake-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .intake-workspace__lane--work,
+  .intake-workspace__lane--answer {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .intake-workspace__seam {
+    display: none;
+  }
+}
+
+/* ============================================================
+   V1P-A polish — single-lane variant
+   When the answer lane has no content (idle: no parse, no
+   validation in-flight, no validation failure), the workspace
+   renders as a single full-width work lane. No empty-state
+   panel, no seam, no answer column. The right padding on the
+   work lane is also zeroed so the work-lane chrome sits flush
+   to the workspace edge instead of leaving a dead 12px gap.
+   ============================================================ */
+
+.intake-workspace--single-lane {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.intake-workspace--single-lane .intake-workspace__lane--work {
+  padding-right: 0;
+}
+
+/* ============================================================
+   V1P-A polish — Findings panel header chrome (in lane only)
+   Bring the findings header into line with the other intake
+   panels' shaded header treatment. The existing
+   `.intake-findings__header` rule (intake.css L673) is NOT
+   edited; this descendant-scoped override applies only when
+   the findings panel renders inside a V1P-A lane-item wrapper
+   (i.e. always, in V1P-A). Uses --anth-bg-sunken (existing
+   token) — no new hex, no gradient.
+   ============================================================ */
+
+.intake-lane-item .intake-findings {
+  /* Reset existing 10px 14px padding so the header chrome sits
+     flush to the panel edges. Body content paddings restored
+     below. */
+  padding: 0;
+}
+
+.intake-lane-item .intake-findings__header {
+  /* Match the height/padding of .intake-section__header
+     (intake.css L43-L52) without editing that rule. */
+  align-items: center;
+  height: 34px;
+  padding: 0 12px 0 14px;
+  background: var(--anth-bg-sunken);
+  border-bottom: 1px solid var(--anth-border-strong);
+}
+
+.intake-lane-item .intake-findings__title {
+  /* Promote the FINDINGS label to the same uppercase tracking
+     used by .intake-section__title (intake.css L57-L66) — but
+     scoped, additive, no edit. */
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text);
+}
+
+.intake-lane-item .intake-findings__version {
+  /* Right-side meta reads as the same controlled status pill
+     style as .intake-section__meta. */
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  color: var(--anth-text-3);
+}
+
+.intake-lane-item .intake-findings__counts,
+.intake-lane-item .intake-findings__list,
+.intake-lane-item .intake-findings__empty {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.intake-lane-item .intake-findings__counts {
+  padding-top: 10px;
+}
+
+.intake-lane-item .intake-findings__footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--anth-border);
+}
