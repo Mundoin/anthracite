@@ -1,0 +1,45 @@
+{
+  "validator_version": 1,
+  "rule_pack_version": 1,
+  "context": {
+    "platform_id": "cisco-iosxe",
+    "parser_id": "cisco-iosxe",
+    "parser_version": "3",
+    "selection_mode": "manual_override",
+    "detection_confidence": null,
+    "detection_source": "manual_override",
+    "source_context": {
+      "kind": "file",
+      "label": "validator-fixture/mgmt-hyg-003-no-ssh/config.cfg",
+      "archive_name": null,
+      "slice_id": null
+    }
+  },
+  "findings": [
+    {
+      "finding_key": "MGMT-HYG-003:services_ssh:absent",
+      "rule_id": "MGMT-HYG-003",
+      "rule_version": 1,
+      "severity": "medium",
+      "signal": "hard",
+      "title": "SSH service not configured",
+      "evidence": [
+        {
+          "kind": "model_path",
+          "model_path": "services",
+          "line_start": null,
+          "line_end": null,
+          "raw_excerpt": null,
+          "note": "ssh_service=absent"
+        }
+      ],
+      "affected_area": "services_ssh",
+      "recommendation": "Enable SSH for secure management access."
+    }
+  ],
+  "clean_rules": [
+    "MGMT-HYG-001",
+    "MGMT-HYG-002"
+  ],
+  "skipped_rules": []
+}
