@@ -743,13 +743,85 @@ when present.
   the offending stage named and the underlying message in
   a tooltip.
 
+## Batch Run Export (V1R overlay)
+
+V1R adds the first evidence/reporting layer for completed
+`BatchRun` artifacts. It exports the completed batch, not a
+single receipt and not an AssessmentReport. The vocabulary
+"assessment", "assess", and "Assessment Engine" remains reserved
+for the future ASSESS mode.
+
+### Export scope
+
+V1R exports terminal `BatchRun` states only:
+
+- `status === "complete"`
+- `status === "complete_with_failures"`
+
+The export actions live beside the `RunSummaryStrip` because the
+strip is the operator's visible handle for the whole `BatchRun`.
+Before Analyse batch produces a terminal run, export actions are
+absent. V1R ships copy actions (`Copy JSON`, `Copy Markdown`) rather
+than file-save because the app does not currently include a dialog/fs
+save surface or dependency.
+
+### Deterministic JSON
+
+`src/modes/intake/export/batchRunExport.ts` builds the deterministic
+JSON core:
+
+- top-level `export_version: 1`
+- `kind: "batch_run_export"`
+- `batch_run_status`
+- `source`
+- `summary`
+- `generated_by: { app_name: "Anthracite", stage: "V1R" }`
+- `versions`
+- `devices[]`
+- `omitted`
+
+Same `BatchRun` input produces the same pretty-printed JSON bytes
+with a trailing newline. There is no `Date.now()`, no UUID, no
+random value, no `created_at`, no `exported_at`, and no serialised
+`epoch`.
+
+### Markdown projection
+
+`src/modes/intake/export/batchRunMarkdown.ts` renders a stable
+human-readable projection of the deterministic export. Markdown is
+for operator review and handoff. It is not a second truth source.
+
+### Raw config exclusion
+
+Raw config text is excluded by default. V1R intentionally omits:
+
+- splitter slice `raw_text`
+- full `DeviceModel`
+- detection evidence `preview`
+- validator evidence `raw_excerpt`
+
+The export still carries findings, stage errors, receipt summaries,
+source/provenance, detection summary, selected platform, manual
+override state, and sanitized evidence metadata. Failed and skipped
+devices are first-class export entries.
+
+### What V1R does NOT do
+
+- no persistence or history
+- no save dialog / filesystem write
+- no cloud, upload, share, or email
+- no PDF
+- no zip evidence pack
+- no new validator rules
+- no parser, model, receipt, validator, splitter, archive, detection,
+  or vendor-registry changes
+- no topology
+- no ASSESS mode
+
 ## Follow-ups owned by later stages
 
 - **V1O-C (tentative)** — receipt + findings export
   (JSON / Markdown), copy-out for evidence packs.
-- **V1R (tentative)** — `BatchRun` serialisation / export.
-  The shape is now stable and frontend-only, ready to be
-  the export artifact.
 - **V1Q-A (tentative)** — interactive column sort in the
   batch summary (sort by severity / hostname / stage).
 - **Cortex consumption of `DeviceModel`** — first analytic
