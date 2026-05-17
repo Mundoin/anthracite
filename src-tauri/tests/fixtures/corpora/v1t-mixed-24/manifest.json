@@ -1,0 +1,237 @@
+{
+  "corpus_version": "v1t",
+  "description": "Mixed 24-device archive for V1T density proof. Three vendors, mixed directory layout, varied security hygiene.",
+  "archive": "archive.zip",
+  "archive_internal_layout": "flat (cisco), junos/ subdir (juniper), arista/ subdir (arista)",
+  "entry_count": 24,
+  "expected_extracted_count": 24,
+  "vendor_breakdown": {
+    "cisco_iosxe": 8,
+    "juniper_junos": 8,
+    "arista_eos": 8
+  },
+  "finding_class_breakdown": {
+    "none": 10,
+    "one": 7,
+    "multiple": 5,
+    "partial_or_ambiguous": 2
+  },
+  "devices": [
+    {
+      "entry": "cisco-r01.cfg",
+      "vendor": "cisco_iosxe",
+      "expected_hostname": "cisco-r01",
+      "expected_detection": "cisco_iosxe",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "clean edge router; SSH v2, NTP x2, no SNMP"
+    },
+    {
+      "entry": "cisco-r02.cfg",
+      "vendor": "cisco_iosxe",
+      "expected_hostname": "cisco-r02",
+      "expected_detection": "cisco_iosxe",
+      "expected_parse": "success",
+      "expected_findings_class": "one",
+      "notes": "public SNMP community RO; stresses single-finding path"
+    },
+    {
+      "entry": "cisco-r03.cfg",
+      "vendor": "cisco_iosxe",
+      "expected_hostname": "cisco-r03",
+      "expected_detection": "cisco_iosxe",
+      "expected_parse": "success",
+      "expected_findings_class": "multiple",
+      "notes": "telnet enabled on vty; no NTP; stresses multiple-finding path"
+    },
+    {
+      "entry": "cisco-r04.cfg",
+      "vendor": "cisco_iosxe",
+      "expected_hostname": "cisco-r04",
+      "expected_detection": "cisco_iosxe",
+      "expected_parse": "success",
+      "expected_findings_class": "multiple",
+      "notes": "public + private SNMP; no SSH version; WAN-edge posture"
+    },
+    {
+      "entry": "cisco-r05.cfg",
+      "vendor": "cisco_iosxe",
+      "expected_hostname": "cisco-r05",
+      "expected_detection": "cisco_iosxe",
+      "expected_parse": "success",
+      "expected_findings_class": "multiple",
+      "notes": "near-empty config; stresses minimal-content parse path"
+    },
+    {
+      "entry": "cisco-sw06.cfg",
+      "vendor": "cisco_iosxe",
+      "expected_hostname": "cisco-sw06",
+      "expected_detection": "cisco_iosxe",
+      "expected_parse": "success",
+      "expected_findings_class": "one",
+      "notes": "L2 switch with VLANs; public SNMP; SSH + NTP clean"
+    },
+    {
+      "entry": "cisco-r07.cfg",
+      "vendor": "cisco_iosxe",
+      "expected_hostname": null,
+      "expected_detection": "cisco_iosxe",
+      "expected_parse": "success",
+      "expected_findings_class": "partial_or_ambiguous",
+      "notes": "missing hostname line; stresses ambiguous detection confidence"
+    },
+    {
+      "entry": "cisco-r08.cfg",
+      "vendor": "cisco_iosxe",
+      "expected_hostname": "cisco-r08",
+      "expected_detection": "cisco_iosxe",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "clean distribution router; multi-interface; password-encryption"
+    },
+    {
+      "entry": "junos/junos-core01.conf",
+      "vendor": "juniper_junos",
+      "expected_hostname": "junos-core01",
+      "expected_detection": "juniper_junos",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "clean core router; SSH v2, NTP x2, no SNMP"
+    },
+    {
+      "entry": "junos/junos-core02.conf",
+      "vendor": "juniper_junos",
+      "expected_hostname": "junos-core02",
+      "expected_detection": "juniper_junos",
+      "expected_parse": "success",
+      "expected_findings_class": "one",
+      "notes": "public SNMP community; otherwise clean"
+    },
+    {
+      "entry": "junos/junos-edge01.conf",
+      "vendor": "juniper_junos",
+      "expected_hostname": "junos-edge01",
+      "expected_detection": "juniper_junos",
+      "expected_parse": "success",
+      "expected_findings_class": "multiple",
+      "notes": "public + private SNMP; no SSH services; stresses multi-finding Junos path"
+    },
+    {
+      "entry": "junos/junos-access01.conf",
+      "vendor": "juniper_junos",
+      "expected_hostname": "junos-access01",
+      "expected_detection": "juniper_junos",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "clean access switch; VLANs; SSH v2; NTP"
+    },
+    {
+      "entry": "junos/junos-leaf01.conf",
+      "vendor": "juniper_junos",
+      "expected_hostname": "junos-leaf01",
+      "expected_detection": "juniper_junos",
+      "expected_parse": "success",
+      "expected_findings_class": "one",
+      "notes": "public SNMP; SSH present; NTP present"
+    },
+    {
+      "entry": "junos/junos-border01.conf",
+      "vendor": "juniper_junos",
+      "expected_hostname": "junos-border01",
+      "expected_detection": "juniper_junos",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "BGP border router; clean; SSH v2; NTP; autonomous-system configured"
+    },
+    {
+      "entry": "junos/junos-dist01.conf",
+      "vendor": "juniper_junos",
+      "expected_hostname": "junos-dist01",
+      "expected_detection": "juniper_junos",
+      "expected_parse": "success",
+      "expected_findings_class": "one",
+      "notes": "distribution layer; public SNMP; SSH + NTP otherwise clean"
+    },
+    {
+      "entry": "junos/junos-fw01.conf",
+      "vendor": "juniper_junos",
+      "expected_hostname": "junos-fw01",
+      "expected_detection": "juniper_junos",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "firewall posture; default-policy deny-all; SSH v2; NTP; no SNMP"
+    },
+    {
+      "entry": "arista/arista-leaf01.cfg",
+      "vendor": "arista_eos",
+      "expected_hostname": "arista-leaf01",
+      "expected_detection": "arista_eos",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "clean ToR leaf; management ssh; NTP; no SNMP"
+    },
+    {
+      "entry": "arista/arista-leaf02.cfg",
+      "vendor": "arista_eos",
+      "expected_hostname": "arista-leaf02",
+      "expected_detection": "arista_eos",
+      "expected_parse": "success",
+      "expected_findings_class": "one",
+      "notes": "public SNMP community; management ssh; NTP otherwise clean"
+    },
+    {
+      "entry": "arista/arista-leaf03.cfg",
+      "vendor": "arista_eos",
+      "expected_hostname": "arista-leaf03",
+      "expected_detection": "arista_eos",
+      "expected_parse": "success",
+      "expected_findings_class": "multiple",
+      "notes": "public + private SNMP; management telnet enabled; no NTP"
+    },
+    {
+      "entry": "arista/arista-spine01.cfg",
+      "vendor": "arista_eos",
+      "expected_hostname": "arista-spine01",
+      "expected_detection": "arista_eos",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "clean spine; NTP x2; management ssh; no SNMP"
+    },
+    {
+      "entry": "arista/arista-spine02.cfg",
+      "vendor": "arista_eos",
+      "expected_hostname": "arista-spine02",
+      "expected_detection": "arista_eos",
+      "expected_parse": "success",
+      "expected_findings_class": "one",
+      "notes": "public SNMP; otherwise clean spine"
+    },
+    {
+      "entry": "arista/arista-border01.cfg",
+      "vendor": "arista_eos",
+      "expected_hostname": "arista-border01",
+      "expected_detection": "arista_eos",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "clean border leaf; management ssh; NTP; no SNMP"
+    },
+    {
+      "entry": "arista/arista-mgmt01.cfg",
+      "vendor": "arista_eos",
+      "expected_hostname": "arista-mgmt01",
+      "expected_detection": "arista_eos",
+      "expected_parse": "success",
+      "expected_findings_class": "none",
+      "notes": "management switch; VLAN 100 MANAGEMENT; management ssh; NTP; no SNMP"
+    },
+    {
+      "entry": "arista/arista-edge01.cfg",
+      "vendor": "arista_eos",
+      "expected_hostname": "arista-edge01",
+      "expected_detection": "arista_eos",
+      "expected_parse": "success",
+      "expected_findings_class": "multiple",
+      "notes": "public + private SNMP; management telnet; no NTP; worst-case Arista posture"
+    }
+  ]
+}
