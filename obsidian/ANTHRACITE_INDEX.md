@@ -50,6 +50,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1R   | complete · Batch Run Export — deterministic JSON + Markdown copy actions, raw config omitted by default | [stages/V1R-batch-run-export.md](./stages/V1R-batch-run-export.md) |
 | V1S   | complete · Save Batch Run Export to Files — Save JSON / Save Markdown, zero-dep file save via File System Access API | [stages/V1S-save-batch-run-export-files.md](./stages/V1S-save-batch-run-export-files.md) |
 | V1T   | complete · Mixed archive corpus + BatchRun density proof (24 devices, 3 vendors) before sort/filter UI | [stages/V1T-mixed-archive-density-proof.md](./stages/V1T-mixed-archive-density-proof.md) |
+| V1U   | complete · DIAG-HYG rule pack v1 + Cisco NX-OS parser L1/L2 (4th vendor, cross-vendor invariant) | [stages/V1U-diag-hyg-and-nxos.md](./stages/V1U-diag-hyg-and-nxos.md) |
 
 ## V1J-A adaptation
 

@@ -220,17 +220,83 @@ The single source of truth for the corpus list is
 tests enforce that the manifest, the on-disk dirs, and the source
 constant all agree.
 
-## Cross-vendor consistency invariant (V1N)
+## cisco-nxos — L1 inventory + L2 topology (V1U)
+
+In-scope areas mirror the other three parsers exactly:
+
+```
+identity
+platform
+interfaces
+ip_addressing
+vlans
+vrfs
+static_routes
+lag_groups
+services_ssh
+services_snmp
+services_ntp
+services_dns
+services_syslog
+```
+
+NX-OS-specific note: SSH is enabled via `feature ssh` (not `ip ssh
+version 2`). VRF blocks use `vrf context NAME` (not `vrf definition`
+or `vrf instance`). Static routes may appear inside `vrf context` blocks
+with the VRF binding implied by the enclosing block. Interface names use
+lowercase (`loopback0`, `port-channel1`). Management interface is `mgmt0`.
+NTP and DNS servers accept an optional `use-vrf NAME` qualifier before
+the address — the parser drains the qualifier and records the address.
+
+Out-of-scope at L1/L2 (marked `not_in_scope` or `unknown_lines[]`):
+
+```
+router bgp / ospf / isis / eigrp
+policy-map / class-map / route-map
+vpc configuration
+evpn / vxlan / segment-routing
+mpls
+copp / errdisable / spanning-tree
+event-manager / monitor / flow
+hardware / boot
+feature vpc / lacp / lldp (untracked features)
+```
+
+V1U fixture coverage matrix:
+
+| Fixture                              | Exercises                                                           |
+|--------------------------------------|---------------------------------------------------------------------|
+| `cross-vendor-equivalent-small`      | one of four fixtures the cross-vendor invariant test compares       |
+| `feature-commands`                   | multiple `feature` lines — only ssh/ntp/snmp tracked               |
+| `large-interface-count`              | 13 interfaces, port-channel10 LAG with 2 members                   |
+| `near-empty`                         | hostname only, no `end` in fixture                                  |
+| `nxos-divergence-from-iosxe`         | vrf context, loopback0, port-channel1, use-vrf NTP/DNS syntax      |
+| `services-ssh-ntp-syslog`            | multiple NTP/syslog/DNS servers, SNMP contacts                      |
+| `small`                              | full L1/L2 surface — baseline fixture used by receipt round-trip test |
+| `truncated`                          | no `end` line → `truncated_input` warning                           |
+| `vlan-database`                      | 4 VLANs with names, Vlan SVI, access/trunk Ethernet ports           |
+| `vrf-segmentation`                   | 3 VRF contexts with RDs, route-targets, ip routes inside contexts   |
+
+The single source of truth for the corpus list is
+`src-tauri/tests/fixtures/cisco-nxos/_manifest.toml`. The
+`parser_version_guard` and `cisco_nxos_fixture_corpus` integration
+tests enforce that the manifest, the on-disk dirs, and the source
+constant all agree.
+
+See [`NXOS_VS_IOSXE_DIVERGENCES.md`](./NXOS_VS_IOSXE_DIVERGENCES.md)
+for the full divergence catalogue.
+
+## Cross-vendor consistency invariant (V1N / V1U)
 
 `tests/cross_vendor_consistency.rs` parses one logically-equivalent
-fixture for each of the three parsers and asserts a canonical
+fixture for each of the four parsers and asserts a canonical
 projection over them is byte-identical. The projection deliberately
 strips vendor-specific surface (evidence, platform, warnings,
 unknowns, interface kind shape, interface names) and keeps the
 device-shape invariants: hostname, VRF set with RDs, VLAN set with
 names, set of IP addresses present, static-route set, set of
 populated service kinds, sorted service-server lists. See V1N stage
-note for the rationale.
+note for the rationale; V1U extended the test to include cisco-nxos.
 
 ## Other parsers
 

@@ -93,9 +93,32 @@ EOS-specific notes:
   normalised short form is the same `Po<N>` as Cisco.
 - Sub-interface notation `.N` exists in EOS but is uncommon at L1/L2.
 
+### cisco-nxos (V1U)
+
+NX-OS uses **lowercase** for loopback and port-channel interfaces, and
+uses `mgmt0` (not `Management0`) for the out-of-band management port.
+
+| Native form      | Kind          | Normalized short form |
+|------------------|---------------|-----------------------|
+| `Ethernet1/1`    | Physical      | `Et1/1`               |
+| `loopback0`      | Loopback      | `lo0`                 |
+| `port-channel1`  | Lag           | `Po1`                 |
+| `Vlan100`        | Vlan          | `Vl100`               |
+| `mgmt0`          | Management    | `mgmt0`               |
+| `Ethernet1/1.10` | SubInterface  | `Et1/1.10`            |
+| `tunnel0`        | Tunnel        | `tu0`                 |
+
+NX-OS-specific notes:
+- `loopback0` is all lowercase. A parser matching `Loopback` (titlecase)
+  via `starts_with` will miss all NX-OS loopback interfaces.
+- `port-channel1` is all lowercase. EOS uses `Port-Channel1` (titlecase).
+  Both normalize to `Po<N>`.
+- `mgmt0` has no IOS-XE or EOS equivalent. It is classified as
+  `InterfaceKind::Management` in the cisco-nxos parser.
+
 ### Other vendors
 
-NX-OS, SR Linux, and the rest extend this table with their own
+SR Linux and future vendors extend this table with their own
 vendor-native → normalized mappings. The short-form vocabulary is
 shared across vendors so cross-vendor consumers compare on a single
 string space.
