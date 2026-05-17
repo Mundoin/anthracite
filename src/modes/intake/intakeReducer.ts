@@ -20,6 +20,15 @@ import {
   type IntakeState,
   type PerSliceDetection,
 } from "./intakeTypes";
+import {
+  deriveBatchRunStatus,
+  deriveBatchRunSummary,
+} from "./orchestration/batchRunSummary";
+import type {
+  BatchRun,
+  BatchRunDevice,
+  BatchRunSource,
+} from "../../types/batchRun";
 
 export function intakeReducer(
   state: IntakeState,
@@ -282,6 +291,7 @@ export function intakeReducer(
         archiveInventory: null,
         archiveProvenance: {},
         archiveName: null,
+        batchRun: null,
       };
       return {
         ...state,
@@ -348,6 +358,33 @@ export function intakeReducer(
       const cached = state.batch.perSliceDetection[action.sliceId];
       const detection =
         cached && cached.status === "detected" ? cached.result : null;
+      // V1Q — if a BatchRun stored a completed result for this slice,
+      // populate the V1O + V1P sub-state from the stored device.
+      // Drill-down then reads stored results instead of re-running
+      // parse / receipt / validate.
+      const storedDevice =
+        state.batch.batchRun?.devices.find(
+          (d) => d.slice_id === action.sliceId,
+        ) ?? null;
+      if (storedDevice && storedDevice.stage_status === "complete") {
+        return {
+          ...state,
+          batch: { ...state.batch, drilledSliceId: action.sliceId },
+          text: slice.raw_text,
+          source: state.batch.originalSource,
+          status: "parsed",
+          detection: storedDevice.detection_result ?? detection,
+          selectedPlatform: storedDevice.selected_platform,
+          isManualOverride: storedDevice.is_manual_override,
+          device: storedDevice.device_model,
+          receipt: storedDevice.receipt,
+          errorStage: null,
+          errorMessage: null,
+          validationStatus: storedDevice.validation_report ? "ready" : "idle",
+          validationReport: storedDevice.validation_report,
+          validationError: null,
+        };
+      }
       return {
         ...state,
         batch: { ...state.batch, drilledSliceId: action.sliceId },
@@ -506,6 +543,128 @@ export function intakeReducer(
       };
     }
 
+    // ---- V1Q Batch Run Workspace ------------------------------------
+
+    case "BatchRunRequested": {
+      if (!state.batch) return state;
+      if (state.batchStatus !== "split_complete") return state;
+      if (state.batch.splitResult.slices.length === 0) return state;
+      const devices = buildInitialBatchRunDevices(state.batch);
+      const summary = deriveBatchRunSummary(devices);
+      const source = batchRunSourceFromState(state);
+      const epoch = (state.batch.batchRun?.epoch ?? 0) + 1;
+      const batchRun: BatchRun = {
+        source,
+        devices,
+        summary,
+        status: deriveBatchRunStatus(devices, true),
+        epoch,
+      };
+      return {
+        ...state,
+        batch: { ...state.batch, batchRun },
+      };
+    }
+
+    case "BatchRunReRunRequested": {
+      if (!state.batch || !state.batch.batchRun) return state;
+      const reset = state.batch.batchRun.devices.map((d) =>
+        resetDeviceForRerun(d),
+      );
+      const sorted = sortDevices(reset);
+      const summary = deriveBatchRunSummary(sorted);
+      const epoch = state.batch.batchRun.epoch + 1;
+      const batchRun: BatchRun = {
+        ...state.batch.batchRun,
+        devices: sorted,
+        summary,
+        status: deriveBatchRunStatus(sorted, true),
+        epoch,
+      };
+      return {
+        ...state,
+        batch: { ...state.batch, batchRun },
+      };
+    }
+
+    case "BatchRunCancelled": {
+      if (!state.batch || !state.batch.batchRun) return state;
+      return {
+        ...state,
+        batch: { ...state.batch, batchRun: null },
+      };
+    }
+
+    case "BatchRunDeviceQueued":
+      return applyDeviceUpdate(state, action.sliceId, (d) => ({
+        ...d,
+        stage_status: "queued",
+        stage_error: null,
+      }));
+
+    case "BatchRunDeviceParsing":
+      return applyDeviceUpdate(state, action.sliceId, (d) => ({
+        ...d,
+        stage_status: "parsing",
+        stage_error: null,
+      }));
+
+    case "BatchRunDeviceValidating": {
+      const sliceId = action.sliceId;
+      const deviceModel = action.deviceModel;
+      const receipt = action.receipt;
+      return applyDeviceUpdate(state, sliceId, (d) => ({
+        ...d,
+        stage_status: "validating",
+        device_model: deviceModel,
+        receipt,
+        stage_error: null,
+      }));
+    }
+
+    case "BatchRunDeviceCompleted": {
+      const report = action.report;
+      return applyDeviceUpdate(state, action.sliceId, (d) => ({
+        ...d,
+        stage_status: "complete",
+        validation_report: report,
+        stage_error: null,
+      }));
+    }
+
+    case "BatchRunDeviceFailed": {
+      const err = action.error;
+      return applyDeviceUpdate(state, action.sliceId, (d) => ({
+        ...d,
+        stage_status: "failed",
+        stage_error: err,
+      }));
+    }
+
+    case "BatchRunDeviceSkipped": {
+      const reason = action.reason;
+      return applyDeviceUpdate(state, action.sliceId, (d) => ({
+        ...d,
+        stage_status: "skipped",
+        stage_error: { stage: "detect", message: reason },
+      }));
+    }
+
+    case "BatchRunOverrideSelected": {
+      const platform = action.platform;
+      const isManual = action.isManualOverride;
+      return applyDeviceUpdate(state, action.sliceId, (d) => ({
+        ...d,
+        selected_platform: platform,
+        is_manual_override: isManual,
+        stage_status: "pending",
+        device_model: null,
+        receipt: null,
+        validation_report: null,
+        stage_error: null,
+      }));
+    }
+
     case "ArchiveBatchAssembled": {
       if (
         state.batchStatus !== "archive_loading" &&
@@ -526,6 +685,7 @@ export function intakeReducer(
         archiveInventory: action.inventory,
         archiveProvenance: action.provenance,
         archiveName: action.archive_name,
+        batchRun: null,
       };
       return {
         ...state,
@@ -543,3 +703,112 @@ export function intakeReducer(
     }
   }
 }
+
+// ===== V1Q helpers ==========================================================
+
+/**
+ * Build the initial per-device BatchRunDevice[] from the existing
+ * batch slices + per-slice detection results. Each device starts
+ * at stage_status "pending"; detection_result is copied from the
+ * already-resolved perSliceDetection map.
+ *
+ * The detection's best_match becomes the initial selected_platform.
+ * is_manual_override is false until BatchRunOverrideSelected fires.
+ */
+function buildInitialBatchRunDevices(
+  batch: BatchData,
+): ReadonlyArray<BatchRunDevice> {
+  const devices: BatchRunDevice[] = [];
+  for (const slice of batch.splitResult.slices) {
+    const det = batch.perSliceDetection[slice.slice_id];
+    const detection =
+      det && det.status === "detected" ? det.result : null;
+    const hostname =
+      slice.hint.kind === "hostname_present" ? slice.hint.hostname : null;
+    const provenance = batch.archiveProvenance?.[slice.slice_id] ?? null;
+    devices.push({
+      slice_id: slice.slice_id,
+      hostname_hint: hostname,
+      source_provenance: provenance,
+      stage_status: "pending",
+      detection_result: detection,
+      selected_platform: detection?.best_match ?? null,
+      is_manual_override: false,
+      device_model: null,
+      receipt: null,
+      validation_report: null,
+      stage_error: null,
+    });
+  }
+  return sortDevices(devices);
+}
+
+/**
+ * Reset a device for re-run. Operator truth (selected_platform +
+ * is_manual_override) and provenance are preserved; runtime
+ * artefacts (device_model, receipt, validation_report, errors) are
+ * cleared and stage_status returns to "pending".
+ */
+function resetDeviceForRerun(d: BatchRunDevice): BatchRunDevice {
+  return {
+    ...d,
+    stage_status: "pending",
+    device_model: null,
+    receipt: null,
+    validation_report: null,
+    stage_error: null,
+  };
+}
+
+/**
+ * Devices are sorted by slice_id ASC always (determinism rule from
+ * batchRun.ts). Sort is stable on the input ordering.
+ */
+function sortDevices(
+  devices: ReadonlyArray<BatchRunDevice>,
+): ReadonlyArray<BatchRunDevice> {
+  const copy = [...devices];
+  copy.sort((a, b) => (a.slice_id < b.slice_id ? -1 : a.slice_id > b.slice_id ? 1 : 0));
+  return copy;
+}
+
+/**
+ * Apply a per-device update by slice_id. Returns the prior state
+ * unchanged when no batchRun is present or the slice id is unknown.
+ * Recomputes summary + status after every update.
+ */
+function applyDeviceUpdate(
+  state: IntakeState,
+  sliceId: string,
+  update: (d: BatchRunDevice) => BatchRunDevice,
+): IntakeState {
+  if (!state.batch || !state.batch.batchRun) return state;
+  const idx = state.batch.batchRun.devices.findIndex(
+    (d) => d.slice_id === sliceId,
+  );
+  if (idx === -1) return state;
+  const nextDevice = update(state.batch.batchRun.devices[idx]);
+  if (nextDevice === state.batch.batchRun.devices[idx]) return state;
+  const nextDevices = sortDevices(
+    state.batch.batchRun.devices.map((d, i) => (i === idx ? nextDevice : d)),
+  );
+  const summary = deriveBatchRunSummary(nextDevices);
+  const status = deriveBatchRunStatus(nextDevices, true);
+  const batchRun: BatchRun = {
+    ...state.batch.batchRun,
+    devices: nextDevices,
+    summary,
+    status,
+  };
+  return { ...state, batch: { ...state.batch, batchRun } };
+}
+
+function batchRunSourceFromState(state: IntakeState): BatchRunSource {
+  const archiveName = state.batch?.archiveName ?? null;
+  if (archiveName) return { kind: "archive", archive_name: archiveName };
+  if (state.source?.kind === "file" && state.source.filename) {
+    return { kind: "file", filename: state.source.filename };
+  }
+  return { kind: "paste" };
+}
+

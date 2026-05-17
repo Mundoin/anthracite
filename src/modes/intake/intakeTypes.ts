@@ -12,6 +12,10 @@ import type {
   ArchiveEntryRef,
   ArchiveIntakeResult,
 } from "../../types/archiveIntake";
+import type {
+  BatchRun,
+  DeviceStageError,
+} from "../../types/batchRun";
 import type { ConfigBatchSplitResult, ConfigSlice } from "../../types/configBatch";
 import type { ConfigDetectionResult } from "../../types/configDetection";
 import type { DeviceModel, PlatformRef } from "../../types/networkModel";
@@ -74,6 +78,9 @@ export interface BatchData {
   readonly archiveInventory: ArchiveIntakeResult | null;
   readonly archiveProvenance: Readonly<Record<string, ArchiveEntryRef>>;
   readonly archiveName: string | null;
+  // V1Q — frontend-only Batch Run aggregation artifact. `null` until
+  // the operator clicks "Analyse batch". See `types/batchRun.ts`.
+  readonly batchRun: BatchRun | null;
 }
 
 // V1P — validator overlay.
@@ -176,7 +183,41 @@ export type IntakeAction =
   // V1P — validator actions.
   | { readonly type: "ValidatorStarted" }
   | { readonly type: "ValidatorSucceeded"; readonly report: ValidationReport }
-  | { readonly type: "ValidatorFailed"; readonly error: string };
+  | { readonly type: "ValidatorFailed"; readonly error: string }
+  // V1Q — Batch Run Workspace actions. All operate on
+  // `state.batch.batchRun`; ignored when no batch is present.
+  | { readonly type: "BatchRunRequested" }
+  | { readonly type: "BatchRunReRunRequested" }
+  | { readonly type: "BatchRunCancelled" }
+  | { readonly type: "BatchRunDeviceQueued"; readonly sliceId: string }
+  | { readonly type: "BatchRunDeviceParsing"; readonly sliceId: string }
+  | {
+      readonly type: "BatchRunDeviceValidating";
+      readonly sliceId: string;
+      readonly deviceModel: DeviceModel;
+      readonly receipt: ReceiptView;
+    }
+  | {
+      readonly type: "BatchRunDeviceCompleted";
+      readonly sliceId: string;
+      readonly report: ValidationReport;
+    }
+  | {
+      readonly type: "BatchRunDeviceFailed";
+      readonly sliceId: string;
+      readonly error: DeviceStageError;
+    }
+  | {
+      readonly type: "BatchRunDeviceSkipped";
+      readonly sliceId: string;
+      readonly reason: string;
+    }
+  | {
+      readonly type: "BatchRunOverrideSelected";
+      readonly sliceId: string;
+      readonly platform: PlatformRef;
+      readonly isManualOverride: boolean;
+    };
 
 /** Build a PlatformRef from a registry VendorPlatform for manual override. */
 export function platformRefFromVendor(vp: VendorPlatform): PlatformRef {
