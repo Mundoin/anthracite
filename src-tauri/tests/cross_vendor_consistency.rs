@@ -87,6 +87,11 @@ struct CanonicalView {
     dns_domains: Vec<String>,
     syslog_servers: Vec<String>,
     ssh_enabled: bool,
+    /// V1Z-A: Telnet enablement parity. Cross-vendor fixtures do
+    /// not enable Telnet, so this should be `false` for all four
+    /// vendors; if a parser starts emitting Telnet erroneously this
+    /// invariant will surface the drift.
+    telnet_enabled: bool,
 }
 
 #[derive(Debug, Serialize, PartialEq, Eq, Ord, PartialOrd, Clone)]
@@ -283,6 +288,7 @@ fn project(model: &DeviceModel) -> CanonicalView {
     syslog_servers.dedup();
 
     let ssh_enabled = model.services.iter().any(|s| s.kind == ServiceKind::Ssh);
+    let telnet_enabled = model.services.iter().any(|s| s.kind == ServiceKind::Telnet);
 
     CanonicalView {
         hostname: model.identity.hostname.clone(),
@@ -298,6 +304,7 @@ fn project(model: &DeviceModel) -> CanonicalView {
         dns_domains,
         syslog_servers,
         ssh_enabled,
+        telnet_enabled,
     }
 }
 

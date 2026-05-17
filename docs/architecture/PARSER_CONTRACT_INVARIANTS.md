@@ -5,18 +5,27 @@ consumer may assume, and the few invariants the project locks in
 writing so they cannot drift unnoticed. Anchored by V1N-A after the
 V1M / V1N cross-vendor work.
 
-## Four-parser state (as of V1U)
+## Four-parser state (as of V1Z-A)
 
 Anthracite ships four L1/L2 parsers:
 
-- `cisco-iosxe` (V1K + V1L + V1N-A; current `PARSER_VERSION = 3`)
-- `juniper-junos` (V1M + V1N-A; current `PARSER_VERSION = 2`)
-- `arista-eos` (V1N + V1N-A; current `PARSER_VERSION = 2`)
-- `cisco-nxos` (V1U; current `PARSER_VERSION = 1`)
+- `cisco-iosxe` (V1K + V1L + V1N-A + V1Z-A; current `PARSER_VERSION = 4`)
+- `juniper-junos` (V1M + V1N-A + V1Z-A; current `PARSER_VERSION = 3`)
+- `arista-eos` (V1N + V1N-A + V1Z-A; current `PARSER_VERSION = 3`)
+- `cisco-nxos` (V1U + V1Z-A; current `PARSER_VERSION = 2`)
+
+V1Z-A bumped every parser by one minor: all four families now emit
+`ServiceKind::Telnet` for their vendor-native enabling syntax
+(`transport input telnet|all` on IOS-XE, `feature telnet` on NX-OS,
+`set system services telnet` on Junos, top-level `management telnet`
+on EOS). The Junos `NtpAccum` also aligned with NX-OS / EOS so an
+NTP `source-address` alone now produces an NTP `ServiceModel` —
+parity required by DIAG-HYG-004.
 
 All four populate the same `DeviceModel` shape and emit the same
-13-area coverage vocabulary so receipt projection and cross-vendor
-consumers operate on one canonical space.
+14-area coverage vocabulary (`services_telnet` added at V1Z-A) so
+receipt projection and cross-vendor consumers operate on one
+canonical space.
 
 ## Truth object
 

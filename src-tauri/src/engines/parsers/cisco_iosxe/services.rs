@@ -162,6 +162,32 @@ impl NtpAccum {
     }
 }
 
+/// V1Z-A — Telnet service accumulator.
+///
+/// IOS-XE enables Telnet via `line vty …` → `transport input …` listing
+/// `telnet` (or `all`). Detection lives in `mod.rs` line-vty handling;
+/// this accumulator just records whether any vty block permits Telnet.
+#[derive(Debug, Default, Clone)]
+pub struct TelnetAccum {
+    pub enabled: bool,
+}
+
+impl TelnetAccum {
+    pub fn build(self) -> Option<ServiceModel> {
+        if !self.enabled {
+            return None;
+        }
+        Some(ServiceModel {
+            kind: ServiceKind::Telnet,
+            servers: Vec::new(),
+            source_interface: None,
+            vrf: None,
+            authentication_mode: None,
+            notes: None,
+        })
+    }
+}
+
 impl DnsAccum {
     pub fn touched(&self) -> bool {
         !self.servers.is_empty() || !self.domains.is_empty()

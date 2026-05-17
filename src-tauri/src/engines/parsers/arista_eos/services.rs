@@ -190,6 +190,31 @@ impl SyslogAccum {
     }
 }
 
+/// V1Z-A — Telnet service accumulator (EOS).
+///
+/// EOS enables Telnet via the top-level `management telnet` block (mirrors
+/// `management ssh`). Detection lives in `mod.rs` management-block dispatch.
+#[derive(Debug, Default, Clone)]
+pub struct TelnetAccum {
+    pub enabled: bool,
+}
+
+impl TelnetAccum {
+    pub fn build(self) -> Option<ServiceModel> {
+        if !self.enabled {
+            return None;
+        }
+        Some(ServiceModel {
+            kind: ServiceKind::Telnet,
+            servers: Vec::new(),
+            source_interface: None,
+            vrf: None,
+            authentication_mode: None,
+            notes: None,
+        })
+    }
+}
+
 /// Sort key for the services `Vec<ServiceModel>` output, mirroring the
 /// V1K/V1M convention.
 pub fn service_identifier(s: &ServiceModel) -> String {

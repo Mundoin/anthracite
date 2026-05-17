@@ -45,7 +45,9 @@ use super::normalize;
 /// V2 — V1N-A: `ip virtual-router …` (VARP) and `ip access-list …`
 ///       blocks now emit `UnknownReason::OutOfScope` (was
 ///       `UnsupportedKeyword`).
-pub const PARSER_VERSION: u32 = 2;
+/// V3 — V1Z-A: emits `ServiceKind::Telnet` when the top-level
+///      `management telnet` block is present.
+pub const PARSER_VERSION: u32 = 3;
 
 const IN_SCOPE_AREAS: &[&str] = &[
     "identity",
@@ -61,6 +63,7 @@ const IN_SCOPE_AREAS: &[&str] = &[
     "services_ntp",
     "services_dns",
     "services_syslog",
+    "services_telnet",
 ];
 
 const OUT_OF_SCOPE_AREAS: &[&str] = &[
@@ -106,6 +109,7 @@ struct State {
     ntp: services::NtpAccum,
     dns: services::DnsAccum,
     syslog: services::SyslogAccum,
+    telnet: services::TelnetAccum,
     unknown_lines: Vec<UnknownConfigLine>,
     parsed_line_count: u64,
     warnings: Vec<String>,
@@ -422,6 +426,12 @@ fn dispatch_management(
             ctx.push("management ssh".to_string(), 1);
             st.parsed_line_count += 1;
         }
+        "telnet" => {
+            // V1Z-A: `management telnet` enables Telnet management access.
+            st.telnet.enabled = true;
+            ctx.push("management telnet".to_string(), 1);
+            st.parsed_line_count += 1;
+        }
         "api" => {
             // `management api http-commands` and friends are out-of-scope.
             ctx.push(format!("management api {rest}").trim().to_string(), 1);
@@ -668,6 +678,12 @@ fn dispatch_in_block(
         handle_vrf_line(line, cmd, args, &vname, ctx, st);
     } else if label == "management ssh" {
         handle_management_ssh_line(line, cmd, args, ctx, st);
+    } else if label == "management telnet" {
+        // V1Z-A: Telnet sub-knobs (idle-timeout, vrf, ip access-group)
+        // are not modelled at L1/L2 maturity. Count the line as parsed
+        // so the block does not pollute unknown_lines.
+        let _ = (cmd, args);
+        st.parsed_line_count += 1;
     } else if label.starts_with("management api") {
         // Everything inside `management api …` is out of scope.
         st.unknown_lines.push(unknown::emit(
@@ -1245,6 +1261,9 @@ fn finalize(mut st: State) -> DeviceModel {
     if let Some(s) = st.syslog.build() {
         services_out.push(s);
     }
+    if let Some(s) = st.telnet.build() {
+        services_out.push(s);
+    }
     services_out.sort_by(|a, b| {
         format!("{:?}", a.kind)
             .cmp(&format!("{:?}", b.kind))
@@ -1330,6 +1349,7 @@ fn finalize(mut st: State) -> DeviceModel {
         ("services_ntp", ServiceKind::Ntp),
         ("services_dns", ServiceKind::Dns),
         ("services_syslog", ServiceKind::Syslog),
+        ("services_telnet", ServiceKind::Telnet),
     ] {
         if has(*kind) {
             populated += 1;

@@ -91,10 +91,13 @@ impl SnmpAccum {
 #[derive(Debug, Default, Clone)]
 pub struct NtpAccum {
     pub servers: Vec<String>,
+    /// V1Z-A — Junos NTP source-address parity. Mirrors NX-OS/EOS
+    /// (cross-vendor NTP service emission parity for DIAG-HYG-004).
+    pub source_interface: Option<String>,
 }
 impl NtpAccum {
     pub fn build(mut self) -> Option<ServiceModel> {
-        if self.servers.is_empty() {
+        if self.servers.is_empty() && self.source_interface.is_none() {
             return None;
         }
         self.servers.sort();
@@ -102,6 +105,32 @@ impl NtpAccum {
         Some(ServiceModel {
             kind: crate::engines::network_model::ServiceKind::Ntp,
             servers: self.servers,
+            source_interface: self.source_interface,
+            vrf: None,
+            authentication_mode: None,
+            notes: None,
+        })
+    }
+}
+
+/// V1Z-A — Telnet service accumulator (Junos).
+///
+/// Junos enables Telnet via `set system services telnet` or the brace-form
+/// equivalent `system { services { telnet; } }`. Both converge through the
+/// path-based dispatch in `mod.rs`.
+#[derive(Debug, Default, Clone)]
+pub struct TelnetAccum {
+    pub enabled: bool,
+}
+
+impl TelnetAccum {
+    pub fn build(self) -> Option<ServiceModel> {
+        if !self.enabled {
+            return None;
+        }
+        Some(ServiceModel {
+            kind: crate::engines::network_model::ServiceKind::Telnet,
+            servers: Vec::new(),
             source_interface: None,
             vrf: None,
             authentication_mode: None,

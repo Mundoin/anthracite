@@ -18,7 +18,7 @@
     "source": null,
     "source_kind": "config_paste",
     "captured_at": null,
-    "parser_version": "2",
+    "parser_version": "3",
     "registry_version": null,
     "fixture_corpus_version": null,
     "byte_size": 804,
@@ -198,7 +198,7 @@
   ],
   "parse_confidence": {
     "maturity_observed": "l2topology",
-    "score": 0.3077,
+    "score": 0.2857,
     "parsed_line_count": 3,
     "unknown_line_count": 6,
     "warnings": [
@@ -208,6 +208,7 @@
       "absent:services_snmp",
       "absent:services_ssh",
       "absent:services_syslog",
+      "absent:services_telnet",
       "absent:static_routes",
       "absent:vlans",
       "absent:vrfs",

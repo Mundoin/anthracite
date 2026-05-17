@@ -48,7 +48,9 @@ use super::normalize;
 /// Monotonic per-parser version. Bump per PARSER_VERSIONING.md.
 ///
 /// V1 — V1U initial L1/L2 parser for Cisco NX-OS.
-pub const PARSER_VERSION: u32 = 1;
+/// V2 — V1Z-A: emits `ServiceKind::Telnet` when `feature telnet` is
+///      enabled (and clears on `no feature telnet`).
+pub const PARSER_VERSION: u32 = 2;
 
 const IN_SCOPE_AREAS: &[&str] = &[
     "identity",
@@ -64,6 +66,7 @@ const IN_SCOPE_AREAS: &[&str] = &[
     "services_ntp",
     "services_dns",
     "services_syslog",
+    "services_telnet",
 ];
 
 const OUT_OF_SCOPE_AREAS: &[&str] = &[
@@ -109,6 +112,7 @@ struct State {
     ntp: services::NtpAccum,
     dns: services::DnsAccum,
     syslog: services::SyslogAccum,
+    telnet: services::TelnetAccum,
     unknown_lines: Vec<UnknownConfigLine>,
     parsed_line_count: u64,
     warnings: Vec<String>,
@@ -315,16 +319,22 @@ fn dispatch_top_level(
             if feat == "ssh" {
                 st.ssh.enabled = true;
             }
+            if feat == "telnet" {
+                st.telnet.enabled = true;
+            }
             // All `feature` commands count as parsed.
             st.parsed_line_count += 1;
         }
         "no" => {
-            // `no feature X` — track SSH removal.
+            // `no feature X` — track SSH/Telnet removal.
             let (sub, rest) = lexer::split_command(args);
             if sub.eq_ignore_ascii_case("feature") {
                 let feat = rest.trim().to_ascii_lowercase();
                 if feat == "ssh" {
                     st.ssh.enabled = false;
+                }
+                if feat == "telnet" {
+                    st.telnet.enabled = false;
                 }
             }
             st.parsed_line_count += 1;
@@ -1186,6 +1196,9 @@ fn finalize(mut st: State) -> DeviceModel {
     if let Some(s) = st.syslog.build() {
         services_out.push(s);
     }
+    if let Some(s) = st.telnet.build() {
+        services_out.push(s);
+    }
     services_out.sort_by(|a, b| {
         format!("{:?}", a.kind)
             .cmp(&format!("{:?}", b.kind))
@@ -1271,6 +1284,7 @@ fn finalize(mut st: State) -> DeviceModel {
         ("services_ntp", ServiceKind::Ntp),
         ("services_dns", ServiceKind::Dns),
         ("services_syslog", ServiceKind::Syslog),
+        ("services_telnet", ServiceKind::Telnet),
     ] {
         if has(*kind) {
             populated += 1;

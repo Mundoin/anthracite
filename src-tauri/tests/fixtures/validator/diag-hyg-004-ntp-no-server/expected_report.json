@@ -1,0 +1,69 @@
+{
+  "validator_version": 1,
+  "rule_pack_version": 3,
+  "context": {
+    "platform_id": "cisco-iosxe",
+    "parser_id": "cisco-iosxe",
+    "parser_version": "4",
+    "selection_mode": "manual_override",
+    "detection_confidence": null,
+    "detection_source": "manual_override",
+    "source_context": {
+      "kind": "file",
+      "label": "validator-fixture/diag-hyg-004-ntp-no-server/config.cfg",
+      "archive_name": null,
+      "slice_id": null
+    }
+  },
+  "findings": [
+    {
+      "finding_key": "DIAG-HYG-004:services_ntp:services[1]:server_list_empty",
+      "rule_id": "DIAG-HYG-004",
+      "rule_version": 1,
+      "severity": "medium",
+      "signal": "hard",
+      "title": "NTP service configured without server",
+      "evidence": [
+        {
+          "kind": "model_path",
+          "model_path": "services[1]",
+          "line_start": null,
+          "line_end": null,
+          "raw_excerpt": null,
+          "note": "ntp_servers=empty"
+        }
+      ],
+      "affected_area": "services_ntp",
+      "recommendation": "Add at least one NTP server or peer; without a peer the device cannot synchronise time."
+    },
+    {
+      "finding_key": "MGMT-HYG-002:services_snmp:configured",
+      "rule_id": "MGMT-HYG-002",
+      "rule_version": 1,
+      "severity": "medium",
+      "signal": "hard",
+      "title": "SNMP community-based access configured",
+      "evidence": [
+        {
+          "kind": "model_path",
+          "model_path": "services[2]",
+          "line_start": null,
+          "line_end": null,
+          "raw_excerpt": null,
+          "note": "community_count=1"
+        }
+      ],
+      "affected_area": "services_snmp",
+      "recommendation": "Migrate to SNMPv3 with strong authentication and privacy."
+    }
+  ],
+  "clean_rules": [
+    "DIAG-HYG-001",
+    "DIAG-HYG-002",
+    "DIAG-HYG-003",
+    "MGMT-HYG-001",
+    "MGMT-HYG-003",
+    "MGMT-HYG-004"
+  ],
+  "skipped_rules": []
+}

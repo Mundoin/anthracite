@@ -1,16 +1,18 @@
 # Rule Pack — DIAG-HYG v1
 
-Status: **Locked at V1U.** Second rule pack shipped by the Validator
-Engine. Three vendor-neutral diagnostic hygiene rules targeting
-services that every managed network device should configure.
-DIAG-HYG-004 (NTP-without-server) is deferred — see §"Deferred".
+Status: **Locked at V1U; extended at V1Z-A.** Second rule pack
+shipped by the Validator Engine. Four vendor-neutral diagnostic
+hygiene rules targeting services that every managed network device
+should configure. DIAG-HYG-004 (NTP service configured without
+server) lands at V1Z-A once the Junos `NtpAccum` is aligned with
+NX-OS / EOS — see clause below.
 
 Pair docs:
 - [`VALIDATOR_ENGINE_CONTRACT.md`](./VALIDATOR_ENGINE_CONTRACT.md)
 - [`RULE_PACK_MGMT_HYG_V1.md`](./RULE_PACK_MGMT_HYG_V1.md) — first pack (MGMT-HYG)
 - [`CANONICAL_NETWORK_MODEL.md`](./CANONICAL_NETWORK_MODEL.md)
 
-`rule_pack_version`: **2** (shared with MGMT-HYG; the pack version is
+`rule_pack_version`: **3** (shared with MGMT-HYG; the pack version is
 global to the engine, not per-rule-family)
 `validator_version`: **1** (unchanged — engine shape frozen)
 
@@ -97,27 +99,38 @@ functional but increases operational friction.
 
 ---
 
-## Deferred
+## DIAG-HYG-004 — NTP service configured without server (V1Z-A)
 
-### DIAG-HYG-004 — NTP server list not populated
+| | |
+|---|---|
+| ID | `DIAG-HYG-004` |
+| rule_version | 1 |
+| area | `services_ntp` |
+| severity | **Medium** |
+| signal | Hard |
+| title | NTP service configured without server |
+| recommendation | Add at least one NTP server or peer; without a peer the device cannot synchronise time. |
+| finding_key | `DIAG-HYG-004:services_ntp:services[{i}]:server_list_empty` |
 
-**Planned shape:** Triggered when `services_ntp` is in scope and an
-NTP service is present but the `servers` list is empty (i.e., the
-`ntp` stanza exists but no peer/server address is configured).
+Triggers when an NTP `ServiceModel` exists with an empty `servers`
+list. Clean when every NTP service has at least one server.
+**Skipped with `InsufficientData`** when no NTP service exists at
+all — DIAG-HYG-001 owns the absence case; DIAG-HYG-004 covers the
+"configured but unusable" case. Skipped with `AreaNotInScope` when
+the parser declared `services_ntp` out-of-scope.
 
-**Reason for deferral:** NTP notes encoding parity is not pinned across
-all four parsers. The V1P service-notes extractor was authored against
-SNMP and SSH note strings; NTP server-list encoding via `servers` vec
-(not notes string) requires verification that all four parsers (IOS-XE,
-Junos, EOS, NX-OS) emit a non-empty `servers` vec when an NTP server
-is configured and an empty vec when only the `ntp` keyword appears with
-no server address. Until NX-OS's `services.rs` (V1U-B) lands and the
-four-parser canonical consistency test covers NTP server lists, the
-rule risks false positives.
+**NTP server-list parity (verified before V1Z-A):** all four parsers
+populate `ServiceModel.servers` from `ntp server` (and equivalent)
+lines. PK during V1Z-A surfaced one divergence: Junos `NtpAccum.build`
+previously returned `None` when `servers` was empty, so a Junos config
+carrying only `set system services ntp source-address …` emitted no
+NTP service at all. V1Z-A aligned Junos with NX-OS / EOS — the
+`NtpAccum` now emits when either `servers` is non-empty OR
+`source_interface` is set — so DIAG-HYG-004 fires consistently across
+all four parsers.
 
-**Gating stage:** V1V or later — when `cisco_nxos::services::NtpAccum`
-is stable and the cross-vendor invariant test covers NTP server lists
-across all four parsers. Only then is DIAG-HYG-004 safe to author.
+Validator fixture:
+`src-tauri/tests/fixtures/validator/diag-hyg-004-ntp-no-server/`.
 
 ---
 

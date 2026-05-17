@@ -1,6 +1,6 @@
 {
   "validator_version": 1,
-  "rule_pack_version": 2,
+  "rule_pack_version": 3,
   "context": {
     "platform_id": "cisco-iosxe",
     "parser_id": null,
@@ -20,9 +20,11 @@
     "DIAG-HYG-001",
     "DIAG-HYG-002",
     "DIAG-HYG-003",
+    "DIAG-HYG-004",
     "MGMT-HYG-001",
     "MGMT-HYG-002",
-    "MGMT-HYG-003"
+    "MGMT-HYG-003",
+    "MGMT-HYG-004"
   ],
   "skipped_rules": []
 }

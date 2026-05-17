@@ -56,6 +56,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1X   | complete · ASSESS triage v1 — search, severity/rule chips, by-device/by-severity views, per-device collapse; pure helpers in triage.ts | [stages/V1X-assess-triage-v1.md](./stages/V1X-assess-triage-v1.md) |
 | V1Y   | complete · Shared display contract — RunSummaryStrip author/viewer modes, ASSESS displayAdapter, V1W-R synthetic-BatchRun adapter retired | [stages/V1Y-shared-display-contract.md](./stages/V1Y-shared-display-contract.md) |
 | V1Z   | complete · ASSESS metadata + version-aware loading — AssessMetadataHeader, SUPPORTED_EXPORT_VERSIONS constant, tightened wrong_export_version message | [stages/V1Z-assess-metadata-version-awareness.md](./stages/V1Z-assess-metadata-version-awareness.md) |
+| V1Z-A | complete · Telnet emission across 4 parsers + MGMT-HYG-004 + DIAG-HYG-004 land; RULE_PACK_VERSION 2→3, Junos NtpAccum parity fix; closes ASSESS-FORWARD arc | [stages/V1Z-A-telnet-and-parker-rule-retirement.md](./stages/V1Z-A-telnet-and-parker-rule-retirement.md) |
 
 ## V1J-A adaptation
 

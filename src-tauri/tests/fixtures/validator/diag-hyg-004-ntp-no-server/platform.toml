@@ -1,0 +1,4 @@
+platform_id = "cisco-iosxe"
+parser_id = "cisco-iosxe"
+parser_version = "4"
+selection_mode = "manual_override"

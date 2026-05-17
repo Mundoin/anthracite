@@ -24,7 +24,7 @@
 # enforces manifest/source/fixture consistency, but it cannot tell you
 # whether a diff *should* have required a version bump.
 
-parser_version = 3
+parser_version = 4
 
 fixtures = [
     "acl-and-nat-present",
@@ -39,6 +39,7 @@ fixtures = [
     "out-of-order-vrf-binding",
     "routing-protocols-present",
     "services-snmp-ntp-ssh-syslog",
+    "services-telnet-enabled",
     "small",
     "truncated",
     "unrecognised-interface-form",

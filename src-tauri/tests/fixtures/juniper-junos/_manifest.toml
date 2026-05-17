@@ -22,7 +22,7 @@
 # (those two fields are intrinsic to the textual form). See
 # JUNOS_CONFIG_STYLES.md for the rationale.
 
-parser_version = 2
+parser_version = 3
 
 fixtures = [
     "aggregate-ethernet-bundle",
@@ -34,6 +34,7 @@ fixtures = [
     "many-access-ports-l2-only",
     "near-empty",
     "protocols-and-policy-present",
+    "services-telnet-enabled-set",
     "small-brace-style",
     "small-set-style",
     "truncated",

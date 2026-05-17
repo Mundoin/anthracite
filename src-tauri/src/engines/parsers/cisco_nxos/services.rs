@@ -32,6 +32,31 @@ impl SshAccum {
     }
 }
 
+/// V1Z-A — Telnet service accumulator (NX-OS).
+///
+/// NX-OS enables Telnet via the feature-gate `feature telnet`; `no feature
+/// telnet` disables it. Detection lives in `mod.rs` feature dispatch.
+#[derive(Debug, Default, Clone)]
+pub struct TelnetAccum {
+    pub enabled: bool,
+}
+
+impl TelnetAccum {
+    pub fn build(self) -> Option<ServiceModel> {
+        if !self.enabled {
+            return None;
+        }
+        Some(ServiceModel {
+            kind: ServiceKind::Telnet,
+            servers: Vec::new(),
+            source_interface: None,
+            vrf: None,
+            authentication_mode: None,
+            notes: None,
+        })
+    }
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct SnmpAccum {
     pub communities: Vec<String>,

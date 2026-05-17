@@ -131,7 +131,8 @@ fn no_orphan_fixture_directories_on_disk() {
 fn versions_are_current() {
     // V1P: validator=1, rule_pack=1.
     // V1U: rule_pack bumped to 2 (DIAG-HYG-001/002/003 added).
+    // V1Z-A: rule_pack bumped to 3 (MGMT-HYG-004 + DIAG-HYG-004 land).
     // VALIDATOR_VERSION stays at 1 — engine shape unchanged.
     assert_eq!(VALIDATOR_VERSION, 1);
-    assert_eq!(RULE_PACK_VERSION, 2);
+    assert_eq!(RULE_PACK_VERSION, 3);
 }

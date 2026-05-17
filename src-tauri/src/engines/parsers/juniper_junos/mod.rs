@@ -55,7 +55,11 @@ use canonical::JunosLine;
 ///      evidence (was silently dropped); LAG `aggregated-ether-options
 ///      lacp <mode>` threads through `LagGroupModel.mode`; vlans
 ///      `l3-interface irb.N` stamps SVI into `VlanModel.interfaces`.
-pub const PARSER_VERSION: u32 = 2;
+/// V3 — V1Z-A: emits `ServiceKind::Telnet` for `set system services
+///      telnet` (set + brace converge); NTP `source-address` now also
+///      causes the NTP `ServiceModel` to emit (NtpAccum parity with
+///      NX-OS / EOS for DIAG-HYG-004).
+pub const PARSER_VERSION: u32 = 3;
 
 /// V1M in-scope coverage area list. Vocabulary matches the V1K Cisco
 /// list so receipt projection treats both parsers symmetrically.
@@ -73,6 +77,7 @@ const IN_SCOPE_AREAS: &[&str] = &[
     "services_ntp",
     "services_dns",
     "services_syslog",
+    "services_telnet",
 ];
 
 const OUT_OF_SCOPE_AREAS: &[&str] = &[
@@ -123,6 +128,7 @@ struct State {
     ntp: services::NtpAccum,
     dns: services::DnsAccum,
     syslog: services::SyslogAccum,
+    telnet: services::TelnetAccum,
     unknown_lines: Vec<UnknownConfigLine>,
     parsed_line_count: u64,
     warnings: Vec<String>,
@@ -757,9 +763,22 @@ fn handle_system(line: &JunosLine, st: &mut State) -> bool {
         st.parsed_line_count += 1;
         return true;
     }
+    // V1Z-A: system services telnet (set + brace converge through same path).
+    if p.len() >= 3 && p[1] == "services" && p[2] == "telnet" {
+        st.telnet.enabled = true;
+        st.parsed_line_count += 1;
+        return true;
+    }
     // system ntp server ADDR
     if p.len() == 4 && p[1] == "ntp" && p[2] == "server" {
         st.ntp.servers.push(p[3].clone());
+        st.parsed_line_count += 1;
+        return true;
+    }
+    // V1Z-A: system ntp source-address ADDR — causes NtpAccum to emit
+    // even when no `server` line is present (parity with NX-OS / EOS).
+    if p.len() == 4 && p[1] == "ntp" && p[2] == "source-address" {
+        st.ntp.source_interface = Some(p[3].clone());
         st.parsed_line_count += 1;
         return true;
     }
@@ -1021,6 +1040,9 @@ fn finalize(mut st: State) -> DeviceModel {
     if let Some(s) = st.syslog.build() {
         services.push(s);
     }
+    if let Some(s) = st.telnet.build() {
+        services.push(s);
+    }
     services.sort_by(|a, b| {
         format!("{:?}", a.kind)
             .cmp(&format!("{:?}", b.kind))
@@ -1110,6 +1132,7 @@ fn finalize(mut st: State) -> DeviceModel {
         ("services_ntp", ServiceKind::Ntp),
         ("services_dns", ServiceKind::Dns),
         ("services_syslog", ServiceKind::Syslog),
+        ("services_telnet", ServiceKind::Telnet),
     ] {
         if has(*kind) {
             populated += 1;

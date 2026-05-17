@@ -21,7 +21,7 @@
 # `cross_vendor_consistency` test asserts the canonical projection
 # across all three is byte-equal. See V1N stage note for the rules.
 
-parser_version = 2
+parser_version = 3
 
 fixtures = [
     "cross-vendor-equivalent-small",
@@ -30,6 +30,7 @@ fixtures = [
     "mlag-and-eapi-present",
     "near-empty",
     "routing-protocols-present",
+    "services-telnet-enabled",
     "small",
     "spine-router",
     "truncated",

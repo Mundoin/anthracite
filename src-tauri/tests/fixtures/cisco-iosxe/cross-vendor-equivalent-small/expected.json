@@ -18,7 +18,7 @@
     "source": null,
     "source_kind": "config_paste",
     "captured_at": null,
-    "parser_version": "3",
+    "parser_version": "4",
     "registry_version": null,
     "fixture_corpus_version": null,
     "byte_size": 426,
@@ -182,11 +182,12 @@
   "unknown_lines": [],
   "parse_confidence": {
     "maturity_observed": "l2topology",
-    "score": 0.9231,
+    "score": 0.8571,
     "parsed_line_count": 18,
     "unknown_line_count": 0,
     "warnings": [
       "absent:lag_groups",
+      "absent:services_telnet",
       "not_in_scope:aaa_detail",
       "not_in_scope:acls",
       "not_in_scope:community_lists",

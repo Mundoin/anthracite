@@ -1,14 +1,16 @@
 # Rule Pack — MGMT-HYG v1
 
-> **Pack version update:** As of V1U, `rule_pack_version` is **2**,
-> reflecting the addition of DIAG-HYG-001..003 in
-> [`RULE_PACK_DIAG_HYG_V1.md`](./RULE_PACK_DIAG_HYG_V1.md).
-> MGMT-HYG-004 (Telnet enabled) remains deferred.
+> **Pack version update:** As of V1Z-A, `rule_pack_version` is **3**.
+> V1U bumped to 2 (DIAG-HYG-001..003 in
+> [`RULE_PACK_DIAG_HYG_V1.md`](./RULE_PACK_DIAG_HYG_V1.md)). V1Z-A
+> bumps to 3 by landing MGMT-HYG-004 (Telnet enabled) — every parser
+> now emits `ServiceKind::Telnet` — and DIAG-HYG-004 (NTP service
+> without server).
 
-Status: **Locked at V1P.** The first rule pack shipped by the
-Validator Engine. Three rules; one is intentionally honest about
-a current parser limitation. MGMT-HYG-004 (Telnet enabled) is
-deferred to a follow-up stage — see §"Deferred" below.
+Status: **Locked at V1P; extended at V1Z-A.** The first rule pack
+shipped by the Validator Engine. Four rules; MGMT-HYG-004 lands at
+V1Z-A now that Telnet emission is uniform across cisco-iosxe,
+cisco-nxos, juniper-junos, and arista-eos.
 
 Pair docs:
 - [`VALIDATOR_ENGINE_CONTRACT.md`](./VALIDATOR_ENGINE_CONTRACT.md)
@@ -164,43 +166,50 @@ Telnet. Expected report: **0 findings**, all three rules in
 
 ---
 
-## Deferred
+## MGMT-HYG-004 — Telnet service enabled (V1Z-A)
 
-### MGMT-HYG-004 — Telnet service enabled
+| | |
+|---|---|
+| ID | `MGMT-HYG-004` |
+| rule_version | 1 |
+| area | `services_telnet` |
+| severity | **High** |
+| signal | Hard |
+| title | Telnet service enabled |
+| recommendation | Disable Telnet; enforce SSH-only management access. |
+| finding_key | `MGMT-HYG-004:services_telnet:services[{i}]:enabled` |
 
-**Status:** deferred (not in V1P). Discovery: no current parser
-(V1K cisco-iosxe, V1M juniper-junos, V1N arista-eos) emits
-`ServiceKind::Telnet`. Adding the rule today would either:
+Triggers when at least one `ServiceModel` with
+`kind == ServiceKind::Telnet` is present on the model. Clean when
+no Telnet service exists. Skipped when the parser declared
+`services_telnet` out-of-scope.
 
-- require a parser edit to emit `ServiceKind::Telnet` (forbidden
-  by the V1P prompt §4 HALT files), or
-- ship a rule that can never fire (dishonest UX).
+V1Z-A wired Telnet emission across all four parsers:
 
-V1P narrowed to three rules per the prompt's §6.5 fallback
-clause. MGMT-HYG-004 lands in a follow-up stage that bumps the
-relevant parser to emit Telnet, then adds the rule with
-`rule_version: 1` and bumps `RULE_PACK_VERSION` to 2.
+- **cisco-iosxe** — `line vty …` block with `transport input` listing
+  `telnet` or `all`.
+- **cisco-nxos** — `feature telnet` (cleared by `no feature telnet`).
+- **juniper-junos** — `set system services telnet` (and the
+  brace-form equivalent — both converge through the same path
+  dispatch).
+- **arista-eos** — top-level `management telnet` block.
 
-Planned shape:
+Severity is fixed at High; V1Z-A cannot prove reachability or ACL
+exposure, but Telnet is plaintext management access. The
+recommendation is unconditional: disable Telnet, enforce SSH-only.
 
-```
-ID:                MGMT-HYG-004
-area:              services_telnet  (validator-emitted; not a
-                                     parser in_scope area)
-severity:          High
-signal:            Hard
-title:             Telnet service enabled
-recommendation:    Disable Telnet. Use SSH for management access.
-finding_key:       MGMT-HYG-004:services_telnet:services[{i}]
-```
+Validator fixture:
+`src-tauri/tests/fixtures/validator/mgmt-hyg-004-telnet-enabled/`.
 
 ---
 
 ## Pack-level rules
 
-- Every rule version is currently **1**. Pack version is **1**.
-- Adding a new rule to v1 is **not** a patch — it bumps
-  `RULE_PACK_VERSION` to 2.
+- V1P shipped MGMT-HYG-001..003 at `rule_pack_version: 1`.
+  V1U added DIAG-HYG-001..003, bumping to `2`. V1Z-A lands
+  MGMT-HYG-004 + DIAG-HYG-004, bumping to `3`.
+- Every rule's `rule_version` is currently **1**.
+- Adding a new rule bumps `RULE_PACK_VERSION` only.
 - Changing any rule's evaluator behavior bumps that rule's
   `rule_version` AND `RULE_PACK_VERSION` together.
 - Removing a rule requires a stage that documents the removal

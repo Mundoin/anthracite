@@ -1,6 +1,6 @@
 {
   "validator_version": 1,
-  "rule_pack_version": 2,
+  "rule_pack_version": 3,
   "context": {
     "platform_id": "cisco-iosxe",
     "parser_id": "cisco-iosxe",
@@ -99,7 +99,14 @@
   ],
   "clean_rules": [
     "MGMT-HYG-001",
-    "MGMT-HYG-002"
+    "MGMT-HYG-002",
+    "MGMT-HYG-004"
   ],
-  "skipped_rules": []
+  "skipped_rules": [
+    {
+      "rule_id": "DIAG-HYG-004",
+      "reason": "insufficient_data",
+      "area": "services_ntp"
+    }
+  ]
 }

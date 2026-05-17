@@ -1,0 +1,69 @@
+{
+  "validator_version": 1,
+  "rule_pack_version": 3,
+  "context": {
+    "platform_id": "cisco-iosxe",
+    "parser_id": "cisco-iosxe",
+    "parser_version": "4",
+    "selection_mode": "manual_override",
+    "detection_confidence": null,
+    "detection_source": "manual_override",
+    "source_context": {
+      "kind": "file",
+      "label": "validator-fixture/mgmt-hyg-004-telnet-enabled/config.cfg",
+      "archive_name": null,
+      "slice_id": null
+    }
+  },
+  "findings": [
+    {
+      "finding_key": "MGMT-HYG-004:services_telnet:services[5]:enabled",
+      "rule_id": "MGMT-HYG-004",
+      "rule_version": 1,
+      "severity": "high",
+      "signal": "hard",
+      "title": "Telnet service enabled",
+      "evidence": [
+        {
+          "kind": "model_path",
+          "model_path": "services[5]",
+          "line_start": null,
+          "line_end": null,
+          "raw_excerpt": null,
+          "note": "telnet=enabled"
+        }
+      ],
+      "affected_area": "services_telnet",
+      "recommendation": "Disable Telnet; enforce SSH-only management access."
+    },
+    {
+      "finding_key": "MGMT-HYG-002:services_snmp:configured",
+      "rule_id": "MGMT-HYG-002",
+      "rule_version": 1,
+      "severity": "medium",
+      "signal": "hard",
+      "title": "SNMP community-based access configured",
+      "evidence": [
+        {
+          "kind": "model_path",
+          "model_path": "services[2]",
+          "line_start": null,
+          "line_end": null,
+          "raw_excerpt": null,
+          "note": "community_count=1"
+        }
+      ],
+      "affected_area": "services_snmp",
+      "recommendation": "Migrate to SNMPv3 with strong authentication and privacy."
+    }
+  ],
+  "clean_rules": [
+    "DIAG-HYG-001",
+    "DIAG-HYG-002",
+    "DIAG-HYG-003",
+    "DIAG-HYG-004",
+    "MGMT-HYG-001",
+    "MGMT-HYG-003"
+  ],
+  "skipped_rules": []
+}

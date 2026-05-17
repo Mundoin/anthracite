@@ -41,7 +41,9 @@ use super::normalize;
 ///       (was `UnsupportedKeyword`); drops one-off
 ///       `not_in_scope:routing_protocols_block` vocabulary marker in
 ///       favour of documented per-protocol area markers.
-pub const PARSER_VERSION: u32 = 3;
+/// V4 — V1Z-A: emits `ServiceKind::Telnet` when any `line vty …`
+///       block carries `transport input` listing `telnet` or `all`.
+pub const PARSER_VERSION: u32 = 4;
 
 /// V1K coverage area list. Order matches
 /// [`PARSER_COVERAGE_AREAS.md`](../../../../../docs/architecture/PARSER_COVERAGE_AREAS.md).
@@ -59,6 +61,7 @@ const IN_SCOPE_AREAS: &[&str] = &[
     "services_ntp",
     "services_dns",
     "services_syslog",
+    "services_telnet",
 ];
 
 const OUT_OF_SCOPE_AREAS: &[&str] = &[
@@ -99,6 +102,7 @@ struct ParserState {
     ntp: services::NtpAccum,
     dns: services::DnsAccum,
     syslog: services::SyslogAccum,
+    telnet: services::TelnetAccum,
     unknown_lines: Vec<UnknownConfigLine>,
     parsed_line_count: u64,
     warnings: Vec<String>,
@@ -1241,7 +1245,18 @@ fn handle_line_block(
             st.parsed_line_count += 1;
         }
         "transport" => {
-            // `transport input ssh` — informational only
+            // `transport input <list>` — V1Z-A: if list includes `telnet`
+            // or `all`, mark Telnet enabled. Other input methods stay
+            // informational-only at this maturity.
+            let (sub, rest) = lexer::split_command(args);
+            if sub.eq_ignore_ascii_case("input") {
+                for tok in rest.split_whitespace() {
+                    let t = tok.to_ascii_lowercase();
+                    if t == "telnet" || t == "all" {
+                        st.telnet.enabled = true;
+                    }
+                }
+            }
             st.parsed_line_count += 1;
         }
         "login" => {
@@ -1371,6 +1386,9 @@ fn finalize(mut st: ParserState) -> DeviceModel {
     if let Some(s) = st.syslog.build() {
         services.push(s);
     }
+    if let Some(s) = st.telnet.build() {
+        services.push(s);
+    }
     services.sort_by(|a, b| {
         format!("{:?}", a.kind)
             .cmp(&format!("{:?}", b.kind))
@@ -1461,6 +1479,7 @@ fn finalize(mut st: ParserState) -> DeviceModel {
         ("services_ntp", ServiceKind::Ntp),
         ("services_dns", ServiceKind::Dns),
         ("services_syslog", ServiceKind::Syslog),
+        ("services_telnet", ServiceKind::Telnet),
     ] {
         if has(*kind) {
             populated_areas += 1;
