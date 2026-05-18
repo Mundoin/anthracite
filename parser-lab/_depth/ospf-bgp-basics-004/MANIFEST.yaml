@@ -1,0 +1,72 @@
+pack_id: ospf-bgp-basics-004
+status: prep_ready
+fixtures:
+  - id: ospf-bgp-basics-004-iosxe
+    filename: snippets/cisco-iosxe/ospf-bgp-basics-004.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - routing_protocols_ospf
+      - routing_protocols_bgp
+      - router_id
+      - neighbors
+      - network_statements
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxe/ospf-bgp-basics-004.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: ospf-bgp-basics-004-iosxr
+    filename: snippets/cisco-iosxr/ospf-bgp-basics-004.cfg
+    vendor: Cisco
+    platform_family: iosxr
+    feature_tags:
+      - routing_protocols_ospf
+      - routing_protocols_bgp
+      - router_id
+      - neighbors
+      - address_family
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxr/ospf-bgp-basics-004.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: ospf-bgp-basics-004-huawei-vrp
+    filename: snippets/huawei-vrp/ospf-bgp-basics-004.cfg
+    vendor: Huawei
+    platform_family: vrp
+    feature_tags:
+      - routing_protocols_ospf
+      - routing_protocols_bgp
+      - router_id
+      - neighbors
+      - area
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/huawei-vrp/ospf-bgp-basics-004.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: ospf-bgp-basics-004-sros
+    filename: snippets/nokia-sros/ospf-bgp-basics-004.cfg
+    vendor: Nokia
+    platform_family: sros
+    feature_tags:
+      - routing_protocols_ospf
+      - routing_protocols_bgp
+      - router_id
+      - neighbors
+      - area
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/nokia-sros/ospf-bgp-basics-004.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+

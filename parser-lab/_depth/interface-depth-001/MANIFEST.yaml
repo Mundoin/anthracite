@@ -1,0 +1,106 @@
+pack_id: interface-depth-001
+status: prep_ready
+fixtures:
+  - id: interface-depth-001-iosxe
+    filename: snippets/cisco-iosxe/interface-depth-001.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - hostname
+      - loopback
+      - routed_interface
+      - ipv4
+      - ipv6
+      - mtu
+      - admin_state
+      - management_hint
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxe/interface-depth-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: interface-depth-001-iosxr
+    filename: snippets/cisco-iosxr/interface-depth-001.cfg
+    vendor: Cisco
+    platform_family: iosxr
+    feature_tags:
+      - hostname
+      - loopback
+      - routed_interface
+      - ipv4
+      - ipv6
+      - admin_state
+      - management_hint
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxr/interface-depth-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: interface-depth-001-huawei-vrp
+    filename: snippets/huawei-vrp/interface-depth-001.cfg
+    vendor: Huawei
+    platform_family: vrp
+    feature_tags:
+      - system_identity
+      - loopback
+      - routed_interface
+      - ipv4
+      - admin_state
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/huawei-vrp/interface-depth-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: interface-depth-001-routeros
+    filename: snippets/mikrotik-routeros/interface-depth-001.cfg
+    vendor: MikroTik
+    platform_family: routeros
+    feature_tags:
+      - system_identity
+      - bridge
+      - routed_interface
+      - ipv4
+      - management_hint
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/mikrotik-routeros/interface-depth-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: interface-depth-001-fortios
+    filename: snippets/fortinet-fortios/interface-depth-001.cfg
+    vendor: Fortinet
+    platform_family: fortios
+    feature_tags:
+      - system_global
+      - hostname
+      - interfaces
+      - routed_interface
+      - ipv4
+      - management_hint
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/fortinet-fortios/interface-depth-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: interface-depth-001-sros
+    filename: snippets/nokia-sros/interface-depth-001.cfg
+    vendor: Nokia
+    platform_family: sros
+    feature_tags:
+      - system_identity
+      - loopback
+      - routed_interface
+      - ipv4
+      - management_hint
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/nokia-sros/interface-depth-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+

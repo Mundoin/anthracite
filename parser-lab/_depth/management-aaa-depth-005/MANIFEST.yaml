@@ -1,0 +1,111 @@
+pack_id: management-aaa-depth-005
+status: prep_ready
+fixtures:
+  - id: management-aaa-depth-005-iosxe
+    filename: snippets/cisco-iosxe/management-aaa-depth-005.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - ssh
+      - snmp
+      - ntp
+      - logging
+      - aaa
+      - local_users
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxe/management-aaa-depth-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: management-aaa-depth-005-iosxr
+    filename: snippets/cisco-iosxr/management-aaa-depth-005.cfg
+    vendor: Cisco
+    platform_family: iosxr
+    feature_tags:
+      - ssh
+      - snmp
+      - ntp
+      - logging
+      - aaa
+      - local_users
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxr/management-aaa-depth-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: management-aaa-depth-005-huawei-vrp
+    filename: snippets/huawei-vrp/management-aaa-depth-005.cfg
+    vendor: Huawei
+    platform_family: vrp
+    feature_tags:
+      - ssh
+      - snmp
+      - ntp
+      - logging
+      - aaa
+      - local_users
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/huawei-vrp/management-aaa-depth-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: management-aaa-depth-005-routeros
+    filename: snippets/mikrotik-routeros/management-aaa-depth-005.cfg
+    vendor: MikroTik
+    platform_family: routeros
+    feature_tags:
+      - ssh
+      - snmp
+      - ntp
+      - logging
+      - aaa
+      - local_users
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/mikrotik-routeros/management-aaa-depth-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: management-aaa-depth-005-fortios
+    filename: snippets/fortinet-fortios/management-aaa-depth-005.cfg
+    vendor: Fortinet
+    platform_family: fortios
+    feature_tags:
+      - ssh
+      - snmp
+      - ntp
+      - logging
+      - aaa
+      - local_users
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/fortinet-fortios/management-aaa-depth-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: management-aaa-depth-005-sros
+    filename: snippets/nokia-sros/management-aaa-depth-005.cfg
+    vendor: Nokia
+    platform_family: sros
+    feature_tags:
+      - ssh
+      - snmp
+      - ntp
+      - logging
+      - aaa
+      - note_only_security
+      - note_only_routing
+    sanitised: true
+    source: synthetic
+    intent_file: intent/nokia-sros/management-aaa-depth-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+

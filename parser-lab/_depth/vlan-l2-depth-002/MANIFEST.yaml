@@ -1,0 +1,101 @@
+pack_id: vlan-l2-depth-002
+status: prep_ready
+fixtures:
+  - id: vlan-l2-depth-002-iosxe
+    filename: snippets/cisco-iosxe/vlan-l2-depth-002.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - vlan_database
+      - access_vlan
+      - voice_vlan
+      - trunk_native_vlan
+      - trunk_allowed_vlans
+      - svi
+      - spanning_tree_hint
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxe/vlan-l2-depth-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: vlan-l2-depth-002-iosxr
+    filename: snippets/cisco-iosxr/vlan-l2-depth-002.cfg
+    vendor: Cisco
+    platform_family: iosxr
+    feature_tags:
+      - l2transport
+      - dot1q
+      - native_vlan
+      - bridge_domain
+      - bvi
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxr/vlan-l2-depth-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: vlan-l2-depth-002-huawei-vrp
+    filename: snippets/huawei-vrp/vlan-l2-depth-002.cfg
+    vendor: Huawei
+    platform_family: vrp
+    feature_tags:
+      - vlan_batch
+      - access_vlan
+      - trunk_native_vlan
+      - trunk_allowed_vlans
+      - svi
+      - spanning_tree_hint
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/huawei-vrp/vlan-l2-depth-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: vlan-l2-depth-002-routeros
+    filename: snippets/mikrotik-routeros/vlan-l2-depth-002.cfg
+    vendor: MikroTik
+    platform_family: routeros
+    feature_tags:
+      - bridge_vlan_filtering
+      - pvid
+      - tagged_untagged
+      - vlan_interface
+      - routed_interface
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/mikrotik-routeros/vlan-l2-depth-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: vlan-l2-depth-002-fortios
+    filename: snippets/fortinet-fortios/vlan-l2-depth-002.cfg
+    vendor: Fortinet
+    platform_family: fortios
+    feature_tags:
+      - vlan_interface
+      - zone_membership
+      - access_vlan
+      - trunk_vlan
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/fortinet-fortios/vlan-l2-depth-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: vlan-l2-depth-002-sros
+    filename: snippets/nokia-sros/vlan-l2-depth-002.cfg
+    vendor: Nokia
+    platform_family: sros
+    feature_tags:
+      - service_vpls
+      - sap
+      - native_sap
+      - irb
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/nokia-sros/vlan-l2-depth-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+

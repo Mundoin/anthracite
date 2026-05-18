@@ -1,0 +1,94 @@
+pack_id: static-route-depth-003
+status: prep_ready
+fixtures:
+  - id: static-route-depth-003-iosxe
+    filename: snippets/cisco-iosxe/static-route-depth-003.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - static_routes
+      - vrf
+      - default_route
+      - prefix_route
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxe/static-route-depth-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: static-route-depth-003-iosxr
+    filename: snippets/cisco-iosxr/static-route-depth-003.cfg
+    vendor: Cisco
+    platform_family: iosxr
+    feature_tags:
+      - static_routes
+      - address_family
+      - default_route
+      - prefix_route
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/cisco-iosxr/static-route-depth-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: static-route-depth-003-huawei-vrp
+    filename: snippets/huawei-vrp/static-route-depth-003.cfg
+    vendor: Huawei
+    platform_family: vrp
+    feature_tags:
+      - static_routes
+      - default_route
+      - prefix_route
+      - preference
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/huawei-vrp/static-route-depth-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: static-route-depth-003-routeros
+    filename: snippets/mikrotik-routeros/static-route-depth-003.cfg
+    vendor: MikroTik
+    platform_family: routeros
+    feature_tags:
+      - static_routes
+      - default_route
+      - prefix_route
+      - distance
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/mikrotik-routeros/static-route-depth-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: static-route-depth-003-fortios
+    filename: snippets/fortinet-fortios/static-route-depth-003.cfg
+    vendor: Fortinet
+    platform_family: fortios
+    feature_tags:
+      - static_routes
+      - default_route
+      - prefix_route
+      - device_binding
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/fortinet-fortios/static-route-depth-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: static-route-depth-003-sros
+    filename: snippets/nokia-sros/static-route-depth-003.cfg
+    vendor: Nokia
+    platform_family: sros
+    feature_tags:
+      - static_routes
+      - default_route
+      - prefix_route
+      - preference
+      - note_only_security
+    sanitised: true
+    source: synthetic
+    intent_file: intent/nokia-sros/static-route-depth-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+
