@@ -21,7 +21,7 @@
 //! persisted after each successful import. Preview is advisory (reads store state).
 
 use serde::{Deserialize, Serialize};
-use crate::engines::network_model::{DeviceModel, DeviceIdentity, PlatformRef};
+use crate::engines::network_model::DeviceModel;
 use std::sync::Arc;
 
 /// Engine-local source state for the Discovery inventory.
@@ -531,6 +531,7 @@ impl DiscoveryEngine {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::engines::network_model::{DeviceIdentity, PlatformRef};
 
     // ===================================================================
     // V1AF/V1AI — Inventory View Tests

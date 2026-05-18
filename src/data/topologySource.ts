@@ -1,5 +1,9 @@
 import type { DataSourceState } from "../types/dataSource";
-import type { TopologyView } from "../types/topology";
+import type {
+  TopologyView,
+  ProjectionStats,
+  NeighborEvidenceMappingStats,
+} from "../types/topology";
 
 export interface TopologySourceView {
   readonly sourceState: DataSourceState;
@@ -9,6 +13,8 @@ export interface TopologySourceView {
   readonly sourceRecordCount: number;
   readonly message: string;
   readonly isEmpty: boolean;
+  readonly projectionStats: ProjectionStats | null;
+  readonly evidenceStats: NeighborEvidenceMappingStats | null;
   readonly view: TopologyView | null;
 }
 
@@ -27,6 +33,7 @@ export interface TopologySourceView {
  * isEmpty is true only when sourceState === "empty" AND nodeCount === 0.
  *
  * The original `view` is preserved so the mode body can render node cards.
+ * V1AO: projection_stats and evidence_stats are forwarded from the view.
  */
 export function toTopologySourceView(
   view: TopologyView | null,
@@ -43,6 +50,8 @@ export function toTopologySourceView(
         ? "Topology source unavailable"
         : "Topology engine not connected",
       isEmpty: false,
+      projectionStats: null,
+      evidenceStats: null,
       view: null,
     };
   }
@@ -55,6 +64,8 @@ export function toTopologySourceView(
     sourceRecordCount: view.summary.source_record_count,
     message: view.message,
     isEmpty: view.source_state === "empty" && view.summary.node_count === 0,
+    projectionStats: view.projection_stats,
+    evidenceStats: view.evidence_stats,
     view,
   };
 }
