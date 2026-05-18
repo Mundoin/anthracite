@@ -1,0 +1,16 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Map vendor platforms to the read-only commands that are safe to preview later.
+# feature coverage tags: live-collection, platform-map, command-allowlist, vendor-specific
+
+## Command map
+IOS-XE -> show lldp neighbors detail, show cdp neighbors detail
+NX-OS -> show lldp neighbors detail, show cdp neighbors detail
+EOS -> show lldp neighbors detail, show cdp neighbors detail
+Junos -> show lldp neighbors detail
+IOS-XR -> show lldp neighbors detail
+
+## Preview rule
+unknown_platform: defer
+no_store_mutation: true
+preview_before_store: true

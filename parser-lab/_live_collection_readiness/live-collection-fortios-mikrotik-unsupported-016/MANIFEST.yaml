@@ -1,0 +1,18 @@
+entries:
+  - id: live-collection-fortios-mikrotik-unsupported-016
+    snippet_file: snippets/live-collection-fortios-mikrotik-unsupported-016.txt
+    section: unsupported-platform
+    vendor: Mixed
+    platform: FortiOS / RouterOS
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - unsupported-platform
+      - fortios
+      - mikrotik
+      - lower-confidence-source
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-fortios-mikrotik-unsupported-016.intent.md
+    status: prep_ready
+    integration_status: not_integrated

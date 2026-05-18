@@ -1,0 +1,14 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Keep current evidence safe when live collection fails mid-session.
+# feature coverage tags: live-collection, failure-recovery, connection-failed, auth-failed
+
+## Failure state
+connection_failed: true
+auth_failed: false
+preserve_current_evidence: true
+
+## Recovery action
+recovery_action: operator_review
+no_store_mutation: true
+retry_allowed: operator_only

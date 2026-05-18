@@ -1,0 +1,14 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Preview the live-collection action without mutating the store.
+# feature coverage tags: live-collection, dry-run, preview, no-store-mutation
+
+## Preview result
+dry_run: true
+expected_delta: parsed=2 accepted=2 rejected=0
+no_store_mutation: true
+
+## Operator decision
+review_required: true
+action: proceed_or_cancel
+stored_after_review: false

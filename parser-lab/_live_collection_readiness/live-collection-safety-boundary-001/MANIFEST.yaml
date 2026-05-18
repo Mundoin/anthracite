@@ -1,0 +1,18 @@
+entries:
+  - id: live-collection-safety-boundary-001
+    snippet_file: snippets/live-collection-safety-boundary-001.txt
+    section: safety-boundary
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - safety-boundary
+      - read-only
+      - operator-initiated
+      - no-store-mutation
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-safety-boundary-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated

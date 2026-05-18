@@ -1,0 +1,17 @@
+entries:
+  - id: live-collection-audit-summary-022
+    snippet_file: snippets/live-collection-audit-summary-022.txt
+    section: audit-summary
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - audit
+      - history
+      - summary
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-audit-summary-022.intent.md
+    status: prep_ready
+    integration_status: not_integrated

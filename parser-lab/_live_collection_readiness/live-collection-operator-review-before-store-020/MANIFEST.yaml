@@ -1,0 +1,17 @@
+entries:
+  - id: live-collection-operator-review-before-store-020
+    snippet_file: snippets/live-collection-operator-review-before-store-020.txt
+    section: review-before-store
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - review
+      - store-gate
+      - operator-workflow
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-operator-review-before-store-020.intent.md
+    status: prep_ready
+    integration_status: not_integrated

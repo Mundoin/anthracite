@@ -1,0 +1,15 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Describe the safe lifecycle for a future device session from open to close.
+# feature coverage tags: live-collection, session, timeout, collecting
+
+## Lifecycle states
+state: ready
+state: collecting
+state: review
+state: stored
+
+## Close behaviour
+close_session: true
+release_resources: true
+preserve_current_evidence: true

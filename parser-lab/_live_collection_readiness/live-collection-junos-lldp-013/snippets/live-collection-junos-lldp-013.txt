@@ -1,0 +1,17 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Show Junos LLDP detail for later raw import and exact resolution.
+# feature coverage tags: live-collection, juniper, junos, lldp, raw-output
+
+## LLDP detail
+show lldp neighbors detail
+Local Interface: ge-0/0/1
+Parent Interface: ge-0/0/1
+Chassis ID: 00:11:22:aa:bb:cc
+Port ID: ge-0/0/48
+System Name: QFX-201
+
+## Terse form
+show lldp neighbors
+ge-0/0/1  QFX-201  ge-0/0/48  lldp
+ge-0/0/2  SRX-CORE  ge-0/0/16  lldp

@@ -1,0 +1,18 @@
+entries:
+  - id: live-collection-append-merge-interaction-019
+    snippet_file: snippets/live-collection-append-merge-interaction-019.txt
+    section: append-merge
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - append
+      - merge
+      - dedup
+      - conflict
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-append-merge-interaction-019.intent.md
+    status: prep_ready
+    integration_status: not_integrated

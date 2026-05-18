@@ -1,0 +1,14 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Keep FortiOS and MikroTik as unsupported or lower-confidence sources until a truthful live map exists.
+# feature coverage tags: live-collection, unsupported-platform, fortios, mikrotik, lower-confidence-source
+
+## FortiOS
+unsupported_platform: FortiOS
+status: unsupported
+no_store_mutation: true
+
+## MikroTik
+lower_confidence_source: MikroTik neighbor discovery
+status: report_only
+no_store_mutation: true

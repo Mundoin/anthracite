@@ -1,0 +1,15 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Keep sensitive lines out of stored notes while preserving the raw output path.
+# feature coverage tags: live-collection, redaction, raw-output, sensitive-data
+
+## Redaction examples
+raw: username admin password hunter2
+redacted: username <redacted> password <redacted>
+raw: snmp-server community public ro
+redacted: snmp-server community <redacted> ro
+
+## Raw handoff
+raw_output_preserved: true
+redaction_notes: stored separately
+parser_input: raw text only

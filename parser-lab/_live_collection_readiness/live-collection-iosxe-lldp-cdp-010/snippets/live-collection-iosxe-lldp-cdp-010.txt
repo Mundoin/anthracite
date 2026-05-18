@@ -1,0 +1,21 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Show truthful-style IOS-XE LLDP and CDP output for later raw import.
+# feature coverage tags: live-collection, cisco, iosxe, lldp, cdp, raw-output
+
+## LLDP detail
+show lldp neighbors detail
+Local Intf: GigabitEthernet1/0/1
+Chassis id: 001b.54aa.bbcc
+Port id: GigabitEthernet0/1
+System Name: SW-201
+Management Addresses: 192.0.2.21
+Enabled Capabilities: Bridge, Router
+
+## CDP detail
+show cdp neighbors detail
+Device ID: AP-01
+Interface: GigabitEthernet1/0/2
+Port ID (outgoing port): GigabitEthernet0
+IP address: 198.51.100.21
+Platform: Cisco AIR-AP

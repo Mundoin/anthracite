@@ -1,0 +1,14 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Show the handoff from raw live output into the existing V1AP raw import path.
+# feature coverage tags: live-collection, raw-output, handoff, v1ap
+
+## Raw capture
+collect_raw_output: true
+redacted: false
+raw_output: preserved verbatim
+
+## Handoff to V1AP
+import_target: parser-lab/_raw_neighbor_import/
+exact_resolver: enabled
+preview_before_store: true

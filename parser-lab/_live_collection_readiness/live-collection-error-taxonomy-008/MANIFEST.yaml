@@ -1,0 +1,18 @@
+entries:
+  - id: live-collection-error-taxonomy-008
+    snippet_file: snippets/live-collection-error-taxonomy-008.txt
+    section: error-taxonomy
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - error-taxonomy
+      - auth-failed
+      - connection-failed
+      - command-unsupported
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-error-taxonomy-008.intent.md
+    status: prep_ready
+    integration_status: not_integrated

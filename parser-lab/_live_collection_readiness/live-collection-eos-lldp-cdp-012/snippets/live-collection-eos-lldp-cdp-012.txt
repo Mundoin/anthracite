@@ -1,0 +1,18 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Show EOS LLDP as the strong source and CDP as a conservative source.
+# feature coverage tags: live-collection, arista, eos, lldp, cdp, raw-output
+
+## LLDP detail
+show lldp neighbors detail
+Port: Ethernet3
+Neighbor Device: LEAF-11
+Neighbor Port: Ethernet49
+Management Address: 192.0.2.41
+
+## CDP conservative note
+show cdp neighbors detail
+Device ID: EDGE-01
+Interface: Ethernet4
+Port ID: Ethernet1
+note: treat as conservative evidence only

@@ -1,0 +1,18 @@
+entries:
+  - id: live-collection-read-only-policy-002
+    snippet_file: snippets/live-collection-read-only-policy-002.txt
+    section: read-only-policy
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - read-only
+      - policy
+      - no-store-mutation
+      - operator-initiated
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-read-only-policy-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated

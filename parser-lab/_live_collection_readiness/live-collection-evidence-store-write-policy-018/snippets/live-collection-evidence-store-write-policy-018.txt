@@ -1,0 +1,15 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Define when live-collection evidence may enter the managed store.
+# feature coverage tags: live-collection, evidence-store, write-policy, review-required
+
+## Write policy
+evidence_store: managed
+write_mode: after_review_only
+accepted_count: 0
+rejected_count: 0
+
+## Summary note
+accepted: stored_after_review
+rejected: retained_in_history
+no_store_mutation: true

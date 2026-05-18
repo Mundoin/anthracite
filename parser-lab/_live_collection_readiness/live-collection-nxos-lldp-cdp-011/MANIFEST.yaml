@@ -1,0 +1,19 @@
+entries:
+  - id: live-collection-nxos-lldp-cdp-011
+    snippet_file: snippets/live-collection-nxos-lldp-cdp-011.txt
+    section: vendor-output
+    vendor: Cisco
+    platform: NX-OS
+    platform_family: nxos
+    feature_tags:
+      - live-collection
+      - cisco
+      - nxos
+      - lldp
+      - cdp
+      - raw-output
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-nxos-lldp-cdp-011.intent.md
+    status: prep_ready
+    integration_status: not_integrated

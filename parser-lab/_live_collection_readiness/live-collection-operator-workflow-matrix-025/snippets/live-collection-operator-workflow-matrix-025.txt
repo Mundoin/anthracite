@@ -1,0 +1,18 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Lay out the end-to-end operator workflow from device selection to stored evidence.
+# feature coverage tags: live-collection, workflow, operator, review, store
+
+## Workflow steps
+1. select device
+2. choose command allowlist
+3. dry-run preview
+4. collect raw output
+5. review evidence
+6. append or merge
+7. store after approval
+
+## Workflow result
+workflow_state: review_complete
+store_action: approved
+current_evidence: preserved

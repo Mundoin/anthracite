@@ -1,0 +1,17 @@
+entries:
+  - id: live-collection-session-lifecycle-005
+    snippet_file: snippets/live-collection-session-lifecycle-005.txt
+    section: session-lifecycle
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - session
+      - timeout
+      - collecting
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-session-lifecycle-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated

@@ -1,0 +1,17 @@
+entries:
+  - id: live-collection-timeout-policy-006
+    snippet_file: snippets/live-collection-timeout-policy-006.txt
+    section: timeout-policy
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - timeout
+      - failure-recovery
+      - no-store-mutation
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-timeout-policy-006.intent.md
+    status: prep_ready
+    integration_status: not_integrated

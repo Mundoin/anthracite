@@ -1,0 +1,16 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Define the live-collection error vocabulary while preserving existing evidence.
+# feature coverage tags: live-collection, error-taxonomy, auth-failed, connection-failed, command-unsupported
+
+## Error vocabulary
+auth_failed
+connection_failed
+timeout
+command_unsupported
+malformed_output
+
+## Failure behaviour
+preserve_current_evidence: true
+no_store_mutation: true
+operator_action_required: true

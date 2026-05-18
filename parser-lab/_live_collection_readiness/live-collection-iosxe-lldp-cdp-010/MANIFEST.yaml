@@ -1,0 +1,19 @@
+entries:
+  - id: live-collection-iosxe-lldp-cdp-010
+    snippet_file: snippets/live-collection-iosxe-lldp-cdp-010.txt
+    section: vendor-output
+    vendor: Cisco
+    platform: IOS-XE
+    platform_family: iosxe
+    feature_tags:
+      - live-collection
+      - cisco
+      - iosxe
+      - lldp
+      - cdp
+      - raw-output
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-iosxe-lldp-cdp-010.intent.md
+    status: prep_ready
+    integration_status: not_integrated

@@ -1,0 +1,16 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Show IOS-XR LLDP detail and brief forms for later raw import.
+# feature coverage tags: live-collection, cisco, iosxr, lldp, raw-output
+
+## LLDP detail
+show lldp neighbors detail
+Local Interface: Gi0/0/0/1
+Chassis ID: 00:11:22:33:44:66
+Port ID: Gi0/0/0/48
+System Name: XR-EDGE-01
+Management Address: 203.0.113.51
+
+## Brief form
+show lldp neighbors
+Gi0/0/0/1  XR-EDGE-01  Gi0/0/0/48

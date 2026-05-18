@@ -1,0 +1,19 @@
+entries:
+  - id: live-collection-eos-lldp-cdp-012
+    snippet_file: snippets/live-collection-eos-lldp-cdp-012.txt
+    section: vendor-output
+    vendor: Arista
+    platform: EOS
+    platform_family: eos
+    feature_tags:
+      - live-collection
+      - arista
+      - eos
+      - lldp
+      - cdp
+      - raw-output
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-eos-lldp-cdp-012.intent.md
+    status: prep_ready
+    integration_status: not_integrated

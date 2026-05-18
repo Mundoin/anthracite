@@ -1,0 +1,18 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Define the UI states the operator should see during live collection readiness.
+# feature coverage tags: live-collection, ui-state, matrix, ready, collecting, failed, parsed, review, stored
+
+## State list
+unavailable
+ready
+collecting
+failed
+parsed
+review
+stored
+
+## Transition note
+ready -> collecting
+collecting -> parsed or failed
+parsed -> review -> stored

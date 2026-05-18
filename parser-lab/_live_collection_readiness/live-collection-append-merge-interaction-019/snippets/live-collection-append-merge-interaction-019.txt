@@ -1,0 +1,14 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Describe how append and merge interact once live evidence starts arriving.
+# feature coverage tags: live-collection, append, merge, dedup, conflict
+
+## Append
+append: added evidence only
+ignored_duplicate: reported
+current_evidence: preserved
+
+## Merge
+merge: collapse duplicates
+conflicting_remote_endpoint: retained
+rejected: preserved in history

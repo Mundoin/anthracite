@@ -1,0 +1,18 @@
+entries:
+  - id: live-collection-junos-lldp-013
+    snippet_file: snippets/live-collection-junos-lldp-013.txt
+    section: vendor-output
+    vendor: Juniper
+    platform: Junos
+    platform_family: junos
+    feature_tags:
+      - live-collection
+      - juniper
+      - junos
+      - lldp
+      - raw-output
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-junos-lldp-013.intent.md
+    status: prep_ready
+    integration_status: not_integrated

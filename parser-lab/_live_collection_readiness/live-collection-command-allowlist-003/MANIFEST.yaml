@@ -1,0 +1,17 @@
+entries:
+  - id: live-collection-command-allowlist-003
+    snippet_file: snippets/live-collection-command-allowlist-003.txt
+    section: command-allowlist
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - command-allowlist
+      - dry-run
+      - read-only
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-command-allowlist-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated

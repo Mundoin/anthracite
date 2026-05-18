@@ -1,0 +1,15 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Provide a concise audit summary for each live-collection action.
+# feature coverage tags: live-collection, audit, history, summary
+
+## Audit counts
+parsed: 4
+accepted: 3
+rejected: 1
+stored: 3
+
+## History note
+source_label: operator-run-001
+imported_at: synthetic
+history_summary: preserved

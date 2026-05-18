@@ -1,0 +1,15 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Document the policy that only read-only commands may run during live collection.
+# feature coverage tags: live-collection, read-only, policy, no-store-mutation, operator-initiated
+
+## Read-only policy
+read_only: true
+operator_confirmation: required
+write_commands: denied
+live_access: future_only
+
+## Command example
+show lldp neighbors detail
+show cdp neighbors detail
+show interfaces status

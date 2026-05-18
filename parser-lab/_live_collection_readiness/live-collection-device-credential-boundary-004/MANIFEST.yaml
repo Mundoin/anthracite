@@ -1,0 +1,17 @@
+entries:
+  - id: live-collection-device-credential-boundary-004
+    snippet_file: snippets/live-collection-device-credential-boundary-004.txt
+    section: credential-boundary
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - credentials
+      - redaction
+      - auth-failed
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-device-credential-boundary-004.intent.md
+    status: prep_ready
+    integration_status: not_integrated

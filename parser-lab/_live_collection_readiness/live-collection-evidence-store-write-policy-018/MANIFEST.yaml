@@ -1,0 +1,17 @@
+entries:
+  - id: live-collection-evidence-store-write-policy-018
+    snippet_file: snippets/live-collection-evidence-store-write-policy-018.txt
+    section: evidence-store-write-policy
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - evidence-store
+      - write-policy
+      - review-required
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-evidence-store-write-policy-018.intent.md
+    status: prep_ready
+    integration_status: not_integrated

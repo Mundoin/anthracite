@@ -1,0 +1,17 @@
+entries:
+  - id: live-collection-output-to-raw-import-017
+    snippet_file: snippets/live-collection-output-to-raw-import-017.txt
+    section: output-to-raw-import
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - raw-output
+      - handoff
+      - v1ap
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-output-to-raw-import-017.intent.md
+    status: prep_ready
+    integration_status: not_integrated

@@ -1,0 +1,14 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Make review the hard gate before anything from live collection is stored.
+# feature coverage tags: live-collection, review, store-gate, operator-workflow
+
+## Review queue
+review_required: true
+selected_edge: pending
+approval_state: none
+
+## Approval outcome
+approval_state: accepted
+stored_after_review: true
+rejected_records: retained

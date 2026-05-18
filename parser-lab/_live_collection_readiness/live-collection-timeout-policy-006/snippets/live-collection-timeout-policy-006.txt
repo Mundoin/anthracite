@@ -1,0 +1,14 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Set timeout expectations for collecting raw output without losing existing evidence.
+# feature coverage tags: live-collection, timeout, failure-recovery, no-store-mutation
+
+## Timeout window
+timeout_seconds: 30
+retry_policy: operator_review_only
+on_timeout: preserve_current_evidence
+
+## Timeout result
+timeout: true
+connection_failed: false
+no_store_mutation: true

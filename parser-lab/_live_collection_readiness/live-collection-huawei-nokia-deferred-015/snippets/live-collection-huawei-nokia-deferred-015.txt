@@ -1,0 +1,14 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Mark Huawei VRP and Nokia SR OS live command handling as deferred until syntax is confirmed.
+# feature coverage tags: live-collection, deferred-platform, unsupported, huawei, nokia
+
+## Huawei VRP note
+deferred_platform: Huawei VRP
+illustrative_syntax: display lldp neighbor-information verbose
+status: deferred
+
+## Nokia SR OS note
+deferred_platform: Nokia SR OS
+illustrative_syntax: show system lldp neighbor
+status: deferred

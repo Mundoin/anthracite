@@ -1,0 +1,17 @@
+entries:
+  - id: live-collection-platform-command-map-009
+    snippet_file: snippets/live-collection-platform-command-map-009.txt
+    section: platform-command-map
+    vendor: Mixed
+    platform: topology-live-collection
+    platform_family: topology-live-collection
+    feature_tags:
+      - live-collection
+      - platform-map
+      - command-allowlist
+      - vendor-specific
+    sanitised: true
+    source: synthetic
+    intent_file: intent/live-collection-platform-command-map-009.intent.md
+    status: prep_ready
+    integration_status: not_integrated

@@ -1,0 +1,20 @@
+# synthetic readiness snippet
+# no customer data
+# purpose: Prepare a bounded allowlist for future live collection without executing anything now.
+# feature coverage tags: live-collection, command-allowlist, dry-run, read-only
+
+## Platform allowlist
+platform: IOS-XE
+allowed_commands:
+  - show lldp neighbors detail
+  - show cdp neighbors detail
+platform: NX-OS
+allowed_commands:
+  - show lldp neighbors detail
+  - show cdp neighbors detail
+
+## Dry-run preview
+dry_run: true
+collect_raw_output: false
+preview_only: true
+no_store_mutation: true
