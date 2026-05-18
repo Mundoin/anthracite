@@ -1,0 +1,56 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Cisco
+# platform: IOS-XR
+# style: iosxr-lldp
+# command: show lldp neighbors detail
+# note: illustrative synthetic evidence payload
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: none
+show lldp neighbors detail
+
+# note: synthetic raw output; some field shapes may be illustrative.
+Local Interface: GigabitEthernet0/0/0/0
+Chassis ID: 0011.2233.4408
+Port ID: GigabitEthernet0/0/0/1
+System Name: xr-core-01
+Management Address: 192.0.2.28
+Capabilities: Bridge Router
+
+Expected import behaviour: accepted; reason=none; exact inventory matching only.
+
+### section: unsupported
+# source: synthetic
+# expected outcome: unsupported_format
+# rejection reason: unsupported_format
+show lldp neighbors detail
+
+# note: synthetic raw output; some field shapes may be illustrative.
+Local Interface: GigabitEthernet0/0/0/0
+Chassis ID: 0011.2233.4408
+Port ID: GigabitEthernet0/0/0/1
+System Name: xr-core-01
+Management Address: 192.0.2.28
+Capabilities: Bridge Router
+
+Expected import behaviour: unsupported_format; reason=unsupported_format; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: malformed_output
+# rejection reason: malformed_output
+show lldp neighbors detail
+
+# note: synthetic raw output; some field shapes may be illustrative.
+Local Interface: GigabitEthernet0/0/0/0
+Chassis ID: 0011.2233.4408
+Port ID: GigabitEthernet0/0/0/1
+System Name: <<truncated>>
+Management Address: 192.0.2.28
+Capabilities: Bridge Router
+
+Expected import behaviour: malformed_output; reason=malformed_output; exact inventory matching only.
+

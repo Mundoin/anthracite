@@ -1,0 +1,50 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# style: summary
+# command: synthetic import summary bundle
+# note: synthetic import result summary
+
+### section: none_available
+# source: synthetic
+# expected outcome: none_available
+# rejection reason: none_available
+synthetic import summary bundle
+
+parsed=6
+accepted=3
+rejected=2
+stored=3
+duplicate_collapsed=1
+
+Expected import behaviour: none_available; reason=none_available; exact inventory matching only.
+
+### section: partial
+# source: synthetic
+# expected outcome: partial
+# rejection reason: partial
+synthetic import summary bundle
+
+parsed=6
+accepted=3
+rejected=2
+stored=3
+duplicate_collapsed=1
+
+Expected import behaviour: partial; reason=partial; exact inventory matching only.
+
+### section: ready
+# source: synthetic
+# expected outcome: ready
+# rejection reason: ready
+synthetic import summary bundle
+
+parsed=6
+accepted=3
+rejected=2
+stored=3
+duplicate_collapsed=1
+
+Expected import behaviour: ready; reason=ready; exact inventory matching only.
+

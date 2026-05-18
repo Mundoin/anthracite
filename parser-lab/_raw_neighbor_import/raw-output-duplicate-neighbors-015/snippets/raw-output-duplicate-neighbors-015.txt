@@ -1,0 +1,62 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# style: duplicate
+# command: synthetic raw output bundle
+# note: synthetic duplicate neighbour output
+
+### section: duplicate
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# rejection reason: duplicate_collapsed
+synthetic raw output bundle
+
+Local Interface: Ethernet1/1
+System Name: duplicate
+Port ID: Ethernet1/2
+Management Address: 192.0.2.35
+System Capabilities: Bridge Router
+--- repeated identical record follows ---
+Local Interface: Ethernet1/1
+System Name: duplicate
+Port ID: Ethernet1/2
+
+Expected import behaviour: duplicate_collapsed; reason=duplicate_collapsed; exact inventory matching only.
+
+### section: duplicate
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# rejection reason: duplicate_collapsed
+synthetic raw output bundle
+
+Local Interface: Ethernet1/1
+System Name: duplicate
+Port ID: Ethernet1/2
+Management Address: 192.0.2.35
+System Capabilities: Bridge Router
+--- repeated identical record follows ---
+Local Interface: Ethernet1/1
+System Name: duplicate
+Port ID: Ethernet1/2
+
+Expected import behaviour: duplicate_collapsed; reason=duplicate_collapsed; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: self_link
+# rejection reason: self_link
+synthetic raw output bundle
+
+Local Interface: Ethernet1/1
+System Name: duplicate
+Port ID: Ethernet1/2
+Management Address: 192.0.2.35
+System Capabilities: Bridge Router
+--- repeated identical record follows ---
+Local Interface: Ethernet1/1
+System Name: duplicate
+Port ID: Ethernet1/2
+
+Expected import behaviour: self_link; reason=self_link; exact inventory matching only.
+

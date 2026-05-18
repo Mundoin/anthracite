@@ -1,0 +1,50 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# style: unresolved
+# command: synthetic raw output bundle
+# note: synthetic unresolved node cases
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_local_node
+# rejection reason: unknown_local_node
+synthetic raw output bundle
+
+Local Interface: <unknown>
+Remote System Name: unknown
+Remote Port ID: Ethernet1/2
+Management Address: <absent>
+Note: exact inventory resolution failed safely.
+
+Expected import behaviour: unknown_local_node; reason=unknown_local_node; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_remote_node
+# rejection reason: unknown_remote_node
+synthetic raw output bundle
+
+Local Interface: <unknown>
+Remote System Name: unknown
+Remote Port ID: Ethernet1/2
+Management Address: <absent>
+Note: exact inventory resolution failed safely.
+
+Expected import behaviour: unknown_remote_node; reason=unknown_remote_node; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+synthetic raw output bundle
+
+Local Interface: <unknown>
+Remote System Name: unknown
+Remote Port ID: Ethernet1/2
+Management Address: <absent>
+Note: exact inventory resolution failed safely.
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+

@@ -1,0 +1,56 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Huawei
+# platform: VRP
+# style: vrp-lldp
+# command: display lldp neighbor-information verbose
+# note: illustrative synthetic evidence payload
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: none
+display lldp neighbor-information verbose
+
+# note: illustrative synthetic evidence payload; VRP syntax may need confirmation.
+Local Interface: GigabitEthernet0/0/1
+Chassis ID: 0011.2233.4409
+Port ID: GigabitEthernet0/0/24
+System Name: vrp-core-01
+Management Address: 192.0.2.29
+Capabilities: Bridge Router
+
+Expected import behaviour: accepted; reason=none; exact inventory matching only.
+
+### section: partial
+# source: synthetic
+# expected outcome: partial_fields
+# rejection reason: insufficient_evidence
+display lldp neighbor-information verbose
+
+# note: illustrative synthetic evidence payload; VRP syntax may need confirmation.
+Local Interface: GigabitEthernet0/0/1
+Chassis ID: 0011.2233.4409
+Port ID: GigabitEthernet0/0/24
+System Name: vrp-core-01
+Management Address: 192.0.2.29
+Capabilities: Bridge Router
+
+Expected import behaviour: partial_fields; reason=insufficient_evidence; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: self_link
+# rejection reason: self_link
+display lldp neighbor-information verbose
+
+# note: illustrative synthetic evidence payload; VRP syntax may need confirmation.
+Local Interface: GigabitEthernet0/0/1
+Chassis ID: 0011.2233.4409
+Port ID: GigabitEthernet0/0/24
+System Name: local-node
+Management Address: 192.0.2.29
+Capabilities: Bridge Router
+
+Expected import behaviour: self_link; reason=self_link; exact inventory matching only.
+

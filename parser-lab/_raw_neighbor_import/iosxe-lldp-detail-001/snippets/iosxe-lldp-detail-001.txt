@@ -1,0 +1,44 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Cisco
+# platform: IOS-XE
+# style: lldp-strong
+# command: show lldp neighbors detail
+# note: real-style
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: none
+show lldp neighbors detail
+
+Local Interface: GigabitEthernet1/0/1
+System Name: spine-01
+Port ID: Ethernet1/1
+
+Expected import behaviour: accepted; reason=none; exact inventory matching only.
+
+### section: partial
+# source: synthetic
+# expected outcome: partial_fields
+# rejection reason: insufficient_evidence
+show lldp neighbors detail
+
+Local Interface: GigabitEthernet1/0/1
+System Name: spine-01
+Port ID: Ethernet1/1
+
+Expected import behaviour: partial_fields; reason=insufficient_evidence; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: self_link
+# rejection reason: self_link
+show lldp neighbors detail
+
+Local Interface: GigabitEthernet1/0/1
+System Name: spine-01
+Port ID: Ethernet1/1
+
+Expected import behaviour: self_link; reason=self_link; exact inventory matching only.
+

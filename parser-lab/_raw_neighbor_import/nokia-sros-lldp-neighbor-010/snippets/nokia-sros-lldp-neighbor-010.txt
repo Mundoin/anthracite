@@ -1,0 +1,56 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Nokia
+# platform: SR OS
+# style: sros-lldp
+# command: show lldp neighbors detail
+# note: illustrative synthetic evidence payload
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: none
+show lldp neighbors detail
+
+# note: illustrative synthetic evidence payload; SR OS syntax may need confirmation.
+Local Interface: 1/1/1
+Chassis ID: 0011.2233.4410
+Port ID: 1/1/48
+System Name: sros-core-01
+Management Address: 192.0.2.30
+Holdtime: 3
+
+Expected import behaviour: accepted; reason=none; exact inventory matching only.
+
+### section: stale
+# source: synthetic
+# expected outcome: stale_evidence
+# rejection reason: stale_evidence
+show lldp neighbors detail
+
+# note: illustrative synthetic evidence payload; SR OS syntax may need confirmation.
+Local Interface: 1/1/1
+Chassis ID: 0011.2233.4410
+Port ID: 1/1/48
+System Name: sros-core-01
+Management Address: 192.0.2.30
+Holdtime: 3
+
+Expected import behaviour: stale_evidence; reason=stale_evidence; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: unsupported_format
+# rejection reason: unsupported_format
+show lldp neighbors detail
+
+# note: illustrative synthetic evidence payload; SR OS syntax may need confirmation.
+Local Interface: 1/1/1
+Chassis ID: 0011.2233.4410
+Port ID: 1/1/48
+System Name: sros-core-01
+Management Address: 192.0.2.30
+Holdtime: 3
+
+Expected import behaviour: unsupported_format; reason=unsupported_format; exact inventory matching only.
+

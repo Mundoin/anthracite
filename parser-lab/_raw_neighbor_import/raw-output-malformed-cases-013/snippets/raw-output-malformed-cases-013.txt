@@ -1,0 +1,50 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# style: malformed
+# command: synthetic raw output bundle
+# note: synthetic malformed raw output
+
+### section: malformed
+# source: synthetic
+# expected outcome: malformed_output
+# rejection reason: malformed_output
+synthetic raw output bundle
+
+Local Intf: Ethernet1/1
+System Name: malformed
+Port id: <<truncated
+Chassis id: 00:11:22:33
+--- garbled prompt contamination ---
+
+Expected import behaviour: malformed_output; reason=malformed_output; exact inventory matching only.
+
+### section: partial
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+synthetic raw output bundle
+
+Local Intf: Ethernet1/1
+System Name: malformed
+Port id: <<truncated
+Chassis id: 00:11:22:33
+--- garbled prompt contamination ---
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+
+### section: unsupported
+# source: synthetic
+# expected outcome: unsupported_format
+# rejection reason: unsupported_format
+synthetic raw output bundle
+
+Local Intf: Ethernet1/1
+System Name: malformed
+Port id: <<truncated
+Chassis id: 00:11:22:33
+--- garbled prompt contamination ---
+
+Expected import behaviour: unsupported_format; reason=unsupported_format; exact inventory matching only.
+

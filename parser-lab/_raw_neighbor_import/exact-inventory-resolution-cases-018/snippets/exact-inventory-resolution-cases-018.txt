@@ -1,0 +1,53 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# style: exact-resolution
+# command: synthetic raw output bundle
+# note: exact inventory resolution only
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted_exact
+# rejection reason: none
+synthetic raw output bundle
+
+Local Interface: Ethernet1/1
+Exact Inventory ID: inv-018
+Remote System Name: inventory-01
+Remote Port ID: Ethernet1/2
+Management Address: 192.0.2.38
+Note: whitespace/case normalisation only if OCC already supports it.
+
+Expected import behaviour: accepted_exact; reason=none; exact inventory matching only.
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted_trimmed_exact
+# rejection reason: none
+synthetic raw output bundle
+
+Local Interface: Ethernet1/1
+Exact Inventory ID: inv-018
+Remote System Name: inventory-01
+Remote Port ID: Ethernet1/2
+Management Address: 192.0.2.38
+Note: whitespace/case normalisation only if OCC already supports it.
+
+Expected import behaviour: accepted_trimmed_exact; reason=none; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+synthetic raw output bundle
+
+Local Interface: Ethernet1/1
+Exact Inventory ID: inv-018
+Remote System Name: inventory-01
+Remote Port ID: Ethernet1/2
+Management Address: 192.0.2.38
+Note: whitespace/case normalisation only if OCC already supports it.
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+

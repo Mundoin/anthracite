@@ -1,0 +1,53 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# style: stale
+# command: synthetic raw output bundle
+# note: synthetic stale neighbour evidence
+
+### section: stale
+# source: synthetic
+# expected outcome: stale_evidence
+# rejection reason: stale_evidence
+synthetic raw output bundle
+
+Local Interface: Ethernet1/1
+System Name: stale
+Port ID: Ethernet1/2
+Holdtime: 1
+Evidence Age Seconds: 86400
+Management Address: 192.0.2.36
+
+Expected import behaviour: stale_evidence; reason=stale_evidence; exact inventory matching only.
+
+### section: stale
+# source: synthetic
+# expected outcome: stale_evidence
+# rejection reason: stale_evidence
+synthetic raw output bundle
+
+Local Interface: Ethernet1/1
+System Name: stale
+Port ID: Ethernet1/2
+Holdtime: 1
+Evidence Age Seconds: 86400
+Management Address: 192.0.2.36
+
+Expected import behaviour: stale_evidence; reason=stale_evidence; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_remote_node
+# rejection reason: unknown_remote_node
+synthetic raw output bundle
+
+Local Interface: Ethernet1/1
+System Name: stale
+Port ID: Ethernet1/2
+Holdtime: 1
+Evidence Age Seconds: 86400
+Management Address: 192.0.2.36
+
+Expected import behaviour: unknown_remote_node; reason=unknown_remote_node; exact inventory matching only.
+

@@ -1,0 +1,56 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Cisco
+# platform: NX-OS
+# style: cdp-strong
+# command: show cdp neighbors detail
+# note: real-style
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: none
+show cdp neighbors detail
+
+Device ID: leaf-03
+Local Interface: Ethernet1/1
+Port ID (outgoing port): Ethernet1/2
+Address: 192.0.2.24
+Platform: Cisco synthetic platform
+Capabilities: Router Switch
+Holdtime: 120
+
+Expected import behaviour: accepted; reason=none; exact inventory matching only.
+
+### section: duplicate
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# rejection reason: duplicate_collapsed
+show cdp neighbors detail
+
+Device ID: leaf-03
+Local Interface: Ethernet1/1
+Port ID (outgoing port): Ethernet1/2
+Address: 192.0.2.24
+Platform: Cisco synthetic platform
+Capabilities: Router Switch
+Holdtime: 120
+
+Expected import behaviour: duplicate_collapsed; reason=duplicate_collapsed; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_remote_node
+# rejection reason: unknown_remote_node
+show cdp neighbors detail
+
+Device ID: unknown
+Local Interface: Ethernet1/1
+Port ID (outgoing port): Ethernet1/2
+Address: 192.0.2.24
+Platform: Cisco synthetic platform
+Capabilities: Router Switch
+Holdtime: 120
+
+Expected import behaviour: unknown_remote_node; reason=unknown_remote_node; exact inventory matching only.
+

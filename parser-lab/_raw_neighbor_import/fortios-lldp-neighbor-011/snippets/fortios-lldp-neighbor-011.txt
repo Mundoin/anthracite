@@ -1,0 +1,53 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Fortinet
+# platform: FortiOS
+# style: fortios-lldp
+# command: diagnose switch lldp neighbors
+# note: unsupported until V1AP confirms the real command shape
+
+### section: unsupported
+# source: synthetic
+# expected outcome: unsupported_format
+# rejection reason: unsupported_format
+diagnose switch lldp neighbors
+
+# note: unsupported until V1AP confirms the real command shape.
+Local Interface: port1
+Remote System: fortigate-01
+Remote Port: port2
+Management Address: 192.0.2.31
+Capabilities: Bridge Router
+
+Expected import behaviour: unsupported_format; reason=unsupported_format; exact inventory matching only.
+
+### section: partial
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+diagnose switch lldp neighbors
+
+# note: unsupported until V1AP confirms the real command shape.
+Local Interface: port1
+Remote System: fortigate-01
+Remote Port: port2
+Management Address: 192.0.2.31
+Capabilities: Bridge Router
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_remote_node
+# rejection reason: unknown_remote_node
+diagnose switch lldp neighbors
+
+# note: unsupported until V1AP confirms the real command shape.
+Local Interface: port1
+Remote System: fortigate-01
+Remote Port: port2
+Management Address: 192.0.2.31
+Capabilities: Bridge Router
+
+Expected import behaviour: unknown_remote_node; reason=unknown_remote_node; exact inventory matching only.
+
