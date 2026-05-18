@@ -50,6 +50,7 @@ import {
   type TopologySourceView,
 } from "./data/topologySource";
 import { TopologyMode } from "./modes/topology/TopologyMode";
+import { planLiveTopologyCollection } from "./api/liveCollection";
 import { InventoryBrowser } from "./modes/hierarchy/InventoryBrowser";
 import { getHierarchyView } from "./data/hierarchySource";
 import { ROW_SEEDS } from "./data/hierarchySeeds";
@@ -291,7 +292,10 @@ export default function App(): JSX.Element {
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
-        <TopologyMode topology={topology} />
+        <TopologyMode
+          topology={topology}
+          onPlanLiveCollection={planLiveTopologyCollection}
+        />
       </AppShell>
     );
   }

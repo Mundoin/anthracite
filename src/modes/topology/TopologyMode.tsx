@@ -14,6 +14,11 @@ import type {
   RawNeighborEvidenceImportResult,
   RawNeighborSourceKind,
 } from "../../types/topology";
+import type {
+  LiveCollectionDryRunPlan,
+  LiveCollectionDryRunRequest,
+} from "../../types/liveCollection";
+import { LiveCollectionDryRunPanel } from "./LiveCollectionDryRunPanel";
 import {
   DEFAULT_REVIEW_FILTERS,
   GRAPH_READY_DISPLAY_NOTE,
@@ -43,6 +48,10 @@ export interface TopologyModeProps {
   readonly onFetchEvidenceSummary?: (envId: string) => Promise<TopologyEvidenceSummary>;
   readonly evidenceSummary?: TopologyEvidenceSummary | null;
   readonly lastMutation?: TopologyEvidenceMutationResult | null;
+  /** V1AT — dry-run planner callback. No device contact performed. */
+  readonly onPlanLiveCollection?: (
+    request: LiveCollectionDryRunRequest,
+  ) => Promise<LiveCollectionDryRunPlan>;
 }
 
 interface AdjacencyReadinessSectionProps {
@@ -1119,6 +1128,7 @@ export function TopologyMode({
   onFetchEvidenceSummary,
   evidenceSummary,
   lastMutation,
+  onPlanLiveCollection,
 }: TopologyModeProps): JSX.Element {
   return (
     <div className="topology-mode">
@@ -1179,6 +1189,10 @@ export function TopologyMode({
             evidenceSummary={evidenceSummary}
             lastMutation={lastMutation}
           />
+          <LiveCollectionDryRunPanel
+            environmentId={topology.environmentId}
+            onPlan={onPlanLiveCollection}
+          />
           {topology.view && (
             <AdjacencyReadinessSection
               readiness={topology.view.adjacency_readiness}
@@ -1230,6 +1244,11 @@ export function TopologyMode({
             onFetchEvidenceSummary={onFetchEvidenceSummary}
             evidenceSummary={evidenceSummary}
             lastMutation={lastMutation}
+          />
+
+          <LiveCollectionDryRunPanel
+            environmentId={topology.environmentId}
+            onPlan={onPlanLiveCollection}
           />
 
           {topology.evidenceStats && topology.evidenceStats.evidence_total > 0 && (

@@ -76,6 +76,7 @@ pub fn run() {
             commands::topology::get_topology_evidence_summary,
             commands::topology::clear_topology_neighbor_evidence,
             commands::topology::import_topology_neighbor_output,
+            commands::live_collection::plan_live_topology_collection_cmd,
             commands::validator::validate_device_model,
             commands::discovery::get_discovery_inventory,
             commands::discovery::preview_discovery_import,

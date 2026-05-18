@@ -300,6 +300,19 @@ diagnostics. Remaining work in Stage Group 2:
   extractors. Call `TopologyEngine::project_with_neighbor_evidence(env, records, evidence)`.
   Flip `present: true` on relevant sources; state auto-transitions; edge count
   increments. No topology projection changes needed.
+- **COMPLETE (V1AT) — Live Collection Safety Gate + Dry-Run Plan.**
+  Pure Rust planning module (`live_collection_plan.rs`) +
+  `plan_live_topology_collection_cmd` Tauri command + TS wire mirror
+  and API wrapper + `LiveCollectionDryRunPanel` in TopologyMode.
+  Produces deterministic dry-run plan with read-only command set,
+  parser route metadata, planned import mode, closed warning set,
+  safety checklist, honesty note. Refuses to imply readiness for
+  unsupported platforms (FortiOS / MikroTik) and driver-deferred
+  platforms (Huawei VRP / Nokia SR OS). No SSH, no credentials, no
+  polling, no scheduler, no evidence-store mutation, no graph
+  renderer. Future drivers MUST consult this planner and only
+  proceed when `readiness == ready`; collected raw output is fed
+  through the V1AP/V1AQ import path and the V1AR store.
 - **COMPLETE (V1AS) — Topology Edge Review + Graph-Ready Surface.**
   Pure-frontend review surface inside TopologyMode. Adds
   `topologyReview.ts` adapter producing review rows, stats, aggregate

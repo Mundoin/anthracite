@@ -1212,6 +1212,105 @@ seam explicit.
 
 ---
 
+## V1AT — Live Collection Safety Gate + Dry-Run Plan
+
+V1AT adds the safety / control layer that every future live
+collection driver must consult before any device contact. V1AT does
+**not** open SSH sessions, does **not** poll, does **not** schedule
+anything, and does **not** mutate the evidence store. It produces a
+deterministic dry-run plan and a closed safety checklist for operator
+review.
+
+### What V1AT adds
+
+- **`src-tauri/src/engines/live_collection_plan.rs`** — pure Rust
+  planning module. Public surface:
+  - `plan_live_topology_collection(request) -> LiveCollectionDryRunPlan`
+  - Types: `LiveCollectionPlatform`, `LiveCollectionSourceKind`,
+    `LiveCollectionCommandPlan`, `LiveCollectionSafetyWarning`,
+    `LiveCollectionUnsupportedReason`, `LiveCollectionReadinessState`,
+    `LiveCollectionDryRunRequest`, `LiveCollectionDryRunPlan`.
+- **`src-tauri/src/commands/live_collection.rs`** — single Tauri
+  command `plan_live_topology_collection_cmd(request)`. Registered
+  in `lib.rs` invoke handler.
+- **`src/types/liveCollection.ts`** + **`src/api/liveCollection.ts`**
+  — TS wire mirror and `planLiveTopologyCollection` invoke wrapper.
+- **`src/modes/topology/LiveCollectionDryRunPanel.tsx`** —
+  pure-frontend panel. Platform hint selector, LLDP / CDP source
+  checkboxes, planned import-mode selector (default Merge), target
+  label, Plan button. Result render shows readiness, planned
+  commands with read-only badges, parser route, warnings,
+  unsupported reason, safety checklist, honesty note.
+- **`TopologyMode.tsx`** mounts the panel in empty and real
+  branches; accepts new optional `onPlanLiveCollection` prop.
+- **`App.tsx`** wires the prop to the API wrapper so the dry-run
+  button is functional out of the box.
+
+### What V1AT does NOT add
+
+- No SSH / NETCONF / RESTCONF / SNMP / gNMI library, code path, or
+  dependency.
+- No credentials. No host/IP plumbing. No credential storage.
+- No background tasks, scheduler, or polling daemon.
+- No real command execution. No raw output ingestion from a live
+  device.
+- No evidence-store mutation.
+- No graph renderer.
+- No parser changes.
+- No DeviceModel / validator / rule-pack changes.
+- No fuzzy matching, no hostname-substring matching, no chassis-ID
+  or management-IP fallback.
+
+### Honest wording
+
+- Dry-run collection plan · Read-only command set · Operator review
+  required · No device contact performed · Planned import mode ·
+  Unsupported platform · Platform hint · Collection source.
+- Avoid: live discovery · polling · auto discovery · smart topology
+  · autonomous collection · background scan · device sweep · push ·
+  remediation.
+
+### Plan determinism + safety contract
+
+Every emitted `LiveCollectionCommandPlan` carries `read_only: true`
+by construction (asserted in Rust tests). The planner output is
+deterministic — repeated calls with the same request return an
+identical plan (Eq / PartialEq enforced).
+
+Readiness:
+- `unsupported` — platform is FortiOS / MikroTik (`parser_unsupported`)
+  or Huawei VRP / Nokia SR OS (`driver_deferred`).
+- `not_ready` — empty plan, unknown platform hint, missing target
+  label, no source kinds selected, or no source kind matches the
+  selected platform.
+- `ready` — at least one read-only command planned and no blocking
+  warning.
+
+Future live drivers MUST refuse to execute unless `readiness == ready`.
+
+### Future driver hand-off
+
+When a future stage adds a real driver:
+
+1. Call `plan_live_topology_collection_cmd(request)` first.
+2. Refuse execution unless `readiness == ready`.
+3. On execution, hand raw output back into the existing V1AP /
+   V1AQ raw-output import path (`importTopologyNeighborOutput`).
+4. V1AR's managed evidence store performs the actual mutation
+   under the operator-chosen import mode (Merge / Append / Replace).
+5. No driver short-circuits the parser or the evidence store.
+
+### Cross-links
+
+- `src-tauri/src/engines/live_collection_plan.rs`
+- `src-tauri/src/commands/live_collection.rs`
+- `src/types/liveCollection.ts`
+- `src/api/liveCollection.ts`
+- `src/modes/topology/LiveCollectionDryRunPanel.tsx`
+- `obsidian/stages/V1AT-live-collection-safety-dry-run.md`
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine

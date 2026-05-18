@@ -453,6 +453,29 @@ summary contract, UI layout, and design decisions.
 
 ---
 
+## Live Collection Planning (V1AT)
+
+- **Responsibility.** Pure planning + safety gate for future
+  read-only live neighbour collection. Produces a deterministic
+  dry-run plan for operator review. No device contact.
+- **Owned data.** None at rest. Stateless transform from request to
+  plan.
+- **API surface.** `plan_live_topology_collection_cmd(request)` →
+  `LiveCollectionDryRunPlan`.
+- **Consumers.** Topology surface (`LiveCollectionDryRunPanel`);
+  future SSH/driver stages.
+- **Test requirement.** Same request → same plan. Every planned
+  command carries `read_only: true` by construction.
+- **Must NOT own.** Credentials, host/IP transport, SSH/NETCONF/
+  RESTCONF/SNMP/gNMI, schedulers, polling daemons, evidence-store
+  mutation, parser logic, raw output ingestion.
+- **Hand-off rule.** Future drivers refuse execution unless
+  `readiness == ready` and route collected raw output through the
+  existing V1AP/V1AQ import path then V1AR evidence store. No
+  driver short-circuits the parser or store.
+
+---
+
 ## Engine boundaries (rules of thumb)
 
 1. **Engines own data; modes own surface.** A mode never persists domain

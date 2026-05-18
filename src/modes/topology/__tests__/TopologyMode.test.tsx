@@ -365,10 +365,11 @@ describe("TopologyMode", () => {
     ).toBeInTheDocument();
   });
 
-  it("no interactive controls outside the evidence-import + V1AR clear panels", () => {
+  it("no interactive controls outside the evidence-import + V1AR clear + V1AT dry-run panels", () => {
     render(<TopologyMode topology={makeView()} />);
     // V1AO adds an evidence-import panel with a textarea + Import button.
     // V1AR adds a Clear button with confirmation checkbox.
+    // V1AT adds a dry-run Plan button + a display-only target-label input.
     // No interactive controls anywhere else on the surface.
     const buttons = screen.queryAllByRole("button");
     const testids = buttons.map((b) => b.getAttribute("data-testid")).sort();
@@ -376,13 +377,18 @@ describe("TopologyMode", () => {
       [
         "tm-clear-button",
         "tm-evidence-import-button",
+        "tm-live-collection-plan-button",
       ].sort()
     );
     const textboxes = screen.queryAllByRole("textbox");
-    expect(textboxes).toHaveLength(1);
-    expect(textboxes[0]).toHaveAttribute(
-      "data-testid",
-      "tm-evidence-import-textarea"
+    const textboxIds = textboxes
+      .map((t) => t.getAttribute("data-testid"))
+      .sort();
+    expect(textboxIds).toEqual(
+      [
+        "tm-evidence-import-textarea",
+        "tm-live-collection-target",
+      ].sort()
     );
     expect(screen.queryByRole("link")).toBeNull();
   });
@@ -2428,6 +2434,79 @@ describe("TopologyMode", () => {
       expect(
         screen.getByTestId("tm-edge-list"),
       ).toHaveTextContent(/No edges match the current filters/);
+    });
+  });
+
+  describe("V1AT — Live Collection dry-run panel integration", () => {
+    it("mounts dry-run panel in real branch alongside V1AS review surface", () => {
+      const view = makeView({
+        sourceState: "real",
+        nodeCount: 1,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "topo::router-a",
+              label: "router-a",
+              device_record_id: "rec-a",
+              hostname: "router-a",
+              platform_id: "ios-xe",
+              vendor: "cisco",
+              role_hint: "device" as const,
+              layer: "inventory" as const,
+              source_kind: "discovery_inventory" as const,
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 1,
+            edge_count: 0,
+            source_record_count: 1,
+          },
+          message: "ok",
+          adjacency_readiness: defaultReadiness(1),
+          projection_stats: DEFAULT_PROJECTION_STATS,
+          evidence_stats: DEFAULT_EVIDENCE_STATS,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      // V1AT panel + honesty note
+      expect(screen.getByTestId("tm-live-collection")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("tm-live-collection-honesty"),
+      ).toHaveTextContent(/No device contact is performed/);
+      // V1AS review surface still present
+      expect(screen.getByTestId("tm-review")).toBeInTheDocument();
+      // V1AR import panel still present
+      expect(screen.getByTestId("tm-evidence-import")).toBeInTheDocument();
+    });
+
+    it("mounts dry-run panel in empty branch as well", () => {
+      render(<TopologyMode topology={makeView()} />);
+      expect(screen.getByTestId("tm-live-collection")).toBeInTheDocument();
+    });
+
+    it("dry-run panel exposes no credential / host / IP fields", () => {
+      const { container } = render(<TopologyMode topology={makeView()} />);
+      const panel = container.querySelector(
+        '[data-testid="tm-live-collection"]',
+      );
+      expect(panel).not.toBeNull();
+      expect(panel?.querySelector('input[type="password"]')).toBeNull();
+      panel?.querySelectorAll("input, select, textarea").forEach((node) => {
+        const id = node.getAttribute("data-testid") ?? "";
+        expect(id).not.toMatch(/password|credential|username|host|ssh/i);
+      });
+    });
+
+    it("plan button is disabled when onPlanLiveCollection is not wired", () => {
+      render(<TopologyMode topology={makeView()} />);
+      expect(
+        screen.getByTestId("tm-live-collection-plan-button"),
+      ).toBeDisabled();
     });
   });
 });

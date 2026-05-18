@@ -8,6 +8,7 @@ pub mod config_detection;
 pub mod config_splitter;
 pub mod discovery;
 pub mod environment;
+pub mod live_collection;
 pub mod parser;
 pub mod receipt;
 pub mod topology;
