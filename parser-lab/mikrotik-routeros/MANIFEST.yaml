@@ -1,0 +1,77 @@
+vendor: MikroTik
+platform_family: routeros
+prep_batch: baseline
+fixtures:
+  - id: routeros-system-interface-001
+    filename: fixtures/routeros-system-interface-001.cfg
+    vendor: MikroTik
+    platform_family: routeros
+    feature_tags:
+      - system_identity
+      - hostname
+      - interfaces
+      - bridge
+      - vlan_interface
+      - routed_interface
+      - static_routes
+      - management_plane
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - security_note
+      - routing_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/routeros-system-interface-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: routeros-vlan-bridge-002
+    filename: fixtures/routeros-vlan-bridge-002.cfg
+    vendor: MikroTik
+    platform_family: routeros
+    feature_tags:
+      - system_identity
+      - bridge_vlan_filtering
+      - access
+      - trunk
+      - pvid
+      - tagged_untagged
+      - vlan_interface
+      - routed_interface
+      - static_routes
+      - management_plane
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - security_note
+      - routing_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/routeros-vlan-bridge-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: routeros-note-rich-003
+    filename: fixtures/routeros-note-rich-003.cfg
+    vendor: MikroTik
+    platform_family: routeros
+    feature_tags:
+      - system_identity
+      - bridge
+      - vlan_interface
+      - routed_interface
+      - static_routes
+      - management_plane
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - security_note
+      - routing_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/routeros-note-rich-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+

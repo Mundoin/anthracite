@@ -1,0 +1,70 @@
+vendor: Nokia
+platform_family: sros
+prep_batch: baseline
+fixtures:
+  - id: sros-system-routed-001
+    filename: fixtures/sros-system-routed-001.cfg
+    vendor: Nokia
+    platform_family: sros
+    feature_tags:
+      - system_identity
+      - hostname
+      - interface_basics
+      - loopback
+      - routed_interface
+      - static_routes
+      - management_plane
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - security_note
+      - routing_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/sros-system-routed-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: sros-vlan-l2-native-002
+    filename: fixtures/sros-vlan-l2-native-002.cfg
+    vendor: Nokia
+    platform_family: sros
+    feature_tags:
+      - vlan_l2
+      - sap
+      - native
+      - routed_interface
+      - static_routes
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - security_note
+      - routing_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/sros-vlan-l2-native-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: sros-note-rich-003
+    filename: fixtures/sros-note-rich-003.cfg
+    vendor: Nokia
+    platform_family: sros
+    feature_tags:
+      - system_identity
+      - interface_basics
+      - routed_interface
+      - static_routes
+      - management_plane
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - security_note
+      - routing_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/sros-note-rich-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+

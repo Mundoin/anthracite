@@ -1,0 +1,72 @@
+vendor: Cisco
+platform_family: iosxr
+prep_batch: baseline
+fixtures:
+  - id: iosxr-system-routed-001
+    filename: fixtures/iosxr-system-routed-001.cfg
+    vendor: Cisco
+    platform_family: iosxr
+    feature_tags:
+      - hostname
+      - loopback
+      - routed_interface
+      - ipv4
+      - ipv6
+      - static_routes
+      - management_plane
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - security_note
+      - routing_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/iosxr-system-routed-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: iosxr-vlan-l2-native-002
+    filename: fixtures/iosxr-vlan-l2-native-002.cfg
+    vendor: Cisco
+    platform_family: iosxr
+    feature_tags:
+      - l2transport
+      - subinterface
+      - dot1q
+      - native_vlan
+      - routed_interface
+      - bvi
+      - static_routes
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - security_note
+      - routing_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/iosxr-vlan-l2-native-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: iosxr-note-rich-003
+    filename: fixtures/iosxr-note-rich-003.cfg
+    vendor: Cisco
+    platform_family: iosxr
+    feature_tags:
+      - hostname
+      - loopback
+      - routed_interface
+      - static_routes
+      - management_plane
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - security_note
+      - routing_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/iosxr-note-rich-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+
