@@ -1,0 +1,59 @@
+! synthetic evidence fixture
+! no customer data
+! purpose: accepted CDP facts
+! feature tags: cdp, accepted, topology-link-fact
+! source: synthetic
+! integration_status: not_integrated
+! note-only: accepted facts need resolvable device-id and outgoing port id.
+
+! === accepted-cdp-iosxe-001 | vendor=Cisco | platform=IOS-XE ===
+hostname acc-cdp-iosxe-001
+cdp run
+interface GigabitEthernet0/0/0
+ description uplink-to-core-a
+ cdp enable
+ no shutdown
+! command output: show cdp neighbors detail
+Device ID: core-a-01
+Entry address(es):
+  IP address: 192.0.2.20
+Platform: Cisco C9500
+Interface: TenGigabitEthernet1/1, Port ID (outgoing port): TenGigabitEthernet1/1
+Holdtime : 153 sec
+Capability: Router Switch IGMP
+! mapping expectation:
+! local_node: acc-cdp-iosxe-001
+! local_interface: GigabitEthernet0/0/0
+! remote_node: core-a-01
+! remote_interface: TenGigabitEthernet1/1
+! evidence_kind: cdp
+! evidence_source: discovery
+! source_label: cdp
+! confidence: high
+! record_state: accepted
+
+! === accepted-cdp-nxos-002 | vendor=Cisco | platform=NX-OS ===
+hostname acc-cdp-nxos-002
+feature cdp
+interface Ethernet1/1
+ description uplink-to-core-b
+ cdp enable
+ no shutdown
+! command output: show cdp neighbors detail
+Device ID: core-b-01
+Entry address(es):
+  IP address: 198.51.100.20
+Platform: Cisco Nexus 9300
+Interface: Ethernet1/48, Port ID (outgoing port): Ethernet1/48
+Holdtime : 143 sec
+Capability: Switch
+! mapping expectation:
+! local_node: acc-cdp-nxos-002
+! local_interface: Ethernet1/1
+! remote_node: core-b-01
+! remote_interface: Ethernet1/48
+! evidence_kind: cdp
+! evidence_source: discovery
+! source_label: cdp
+! confidence: high
+! record_state: accepted

@@ -1,0 +1,38 @@
+pack: readiness-count-transition-fixtures-010
+entries:
+  - id: transition-none-001
+    snippet_file: snippets/readiness-count-transition-fixtures-010.txt
+    section: transition-none-001
+    vendor: mixed
+    platform: mixed
+    platform_family: mixed
+    feature_tags: [readiness, count-transition, topology-link-fact]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/readiness-count-transition-fixtures-010.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: transition-partial-002
+    snippet_file: snippets/readiness-count-transition-fixtures-010.txt
+    section: transition-partial-002
+    vendor: mixed
+    platform: mixed
+    platform_family: mixed
+    feature_tags: [readiness, count-transition, topology-link-fact]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/readiness-count-transition-fixtures-010.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: transition-ready-003
+    snippet_file: snippets/readiness-count-transition-fixtures-010.txt
+    section: transition-ready-003
+    vendor: mixed
+    platform: mixed
+    platform_family: mixed
+    feature_tags: [readiness, count-transition, topology-link-fact]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/readiness-count-transition-fixtures-010.intent.md
+    status: prep_ready
+    integration_status: not_integrated

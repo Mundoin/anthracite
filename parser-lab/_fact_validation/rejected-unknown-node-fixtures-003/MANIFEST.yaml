@@ -1,0 +1,38 @@
+pack: rejected-unknown-node-fixtures-003
+entries:
+  - id: unknown-remote-iosxe-001
+    snippet_file: snippets/rejected-unknown-node-fixtures-003.txt
+    section: unknown-remote-iosxe-001
+    vendor: Cisco
+    platform: IOS-XE
+    platform_family: cisco-iosxe
+    feature_tags: [rejected, unknown_remote_node, topology-link-fact]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/rejected-unknown-node-fixtures-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: unknown-local-junos-002
+    snippet_file: snippets/rejected-unknown-node-fixtures-003.txt
+    section: unknown-local-junos-002
+    vendor: Juniper
+    platform: Junos
+    platform_family: juniper-junos
+    feature_tags: [rejected, unknown_local_node, topology-link-fact]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/rejected-unknown-node-fixtures-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: unknown-insufficient-eos-003
+    snippet_file: snippets/rejected-unknown-node-fixtures-003.txt
+    section: unknown-insufficient-eos-003
+    vendor: Arista
+    platform: EOS
+    platform_family: arista-eos
+    feature_tags: [rejected, insufficient_evidence, topology-link-fact]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/rejected-unknown-node-fixtures-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated

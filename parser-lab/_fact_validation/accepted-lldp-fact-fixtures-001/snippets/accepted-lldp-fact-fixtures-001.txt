@@ -1,0 +1,118 @@
+! synthetic evidence fixture
+! no customer data
+! purpose: accepted LLDP facts
+! feature tags: lldp, accepted, topology-link-fact
+! source: synthetic
+! integration_status: not_integrated
+! note-only: accepted facts need resolvable remote nodes and normalized endpoints.
+
+! === accepted-lldp-iosxe-001 | vendor=Cisco | platform=IOS-XE ===
+hostname acc-lldp-iosxe-001
+lldp run
+interface GigabitEthernet0/0/0
+ description uplink-to-spine-a
+ no shutdown
+! command output: show lldp neighbors detail
+Local Interface: GigabitEthernet0/0/0
+Chassis id: 0011.2233.4455
+Port id: Ethernet1/49
+Port Description: uplink
+System Name: spine-a-01
+Management Addresses:
+    IP: 192.0.2.10
+Capabilities: Bridge, Router
+! mapping expectation:
+! local_node: acc-lldp-iosxe-001
+! local_interface: GigabitEthernet0/0/0
+! remote_node: spine-a-01
+! remote_interface: Ethernet1/49
+! evidence_kind: lldp
+! evidence_source: discovery
+! source_label: lldp
+! confidence: high
+! record_state: accepted
+
+! === accepted-lldp-nxos-002 | vendor=Cisco | platform=NX-OS ===
+hostname acc-lldp-nxos-002
+feature lldp
+interface Ethernet1/1
+ description uplink-to-spine-b
+ no shutdown
+! command output: show lldp neighbors detail
+Local Port: Ethernet1/1
+Chassis id: 00aa.bbcc.ddee
+Port id: Ethernet1/48
+System Name: spine-b-01
+Management Address: 198.51.100.11
+Capabilities: Bridge
+! mapping expectation:
+! local_node: acc-lldp-nxos-002
+! local_interface: Ethernet1/1
+! remote_node: spine-b-01
+! remote_interface: Ethernet1/48
+! evidence_kind: lldp
+! evidence_source: discovery
+! source_label: lldp
+! confidence: high
+! record_state: accepted
+
+! === accepted-lldp-junos-003 | vendor=Juniper | platform=Junos ===
+system {
+    host-name acc-lldp-junos-003;
+}
+interfaces {
+    ge-0/0/0 {
+        unit 0 {
+            family inet {
+                address 203.0.113.1/30;
+            }
+        }
+    }
+}
+protocols {
+    lldp {
+        interface all;
+    }
+}
+! command output: show lldp neighbors detail
+Local Interface: ge-0/0/0.0
+Chassis ID: 00ff.eedd.ccbb
+Port ID: xe-0/0/48
+System Name: spine-c-01
+Management Address: 203.0.113.10
+Capabilities: Bridge, Router
+! mapping expectation:
+! local_node: acc-lldp-junos-003
+! local_interface: ge-0/0/0.0
+! remote_node: spine-c-01
+! remote_interface: xe-0/0/48
+! evidence_kind: lldp
+! evidence_source: discovery
+! source_label: lldp
+! confidence: high
+! record_state: accepted
+
+! === accepted-lldp-eos-004 | vendor=Arista | platform=EOS ===
+hostname acc-lldp-eos-004
+interface Ethernet1
+   description uplink-to-spine-d
+   no switchport
+   ip address 10.0.1.1/30
+   no shutdown
+! command output: show lldp neighbors detail
+Port: Ethernet1
+Chassis ID: 00bb.ccdd.eeff
+Port ID: Ethernet1/49
+System Name: spine-d-01
+Management Address: 10.0.1.2
+Capabilities: Bridge, Router
+! mapping expectation:
+! local_node: acc-lldp-eos-004
+! local_interface: Ethernet1
+! remote_node: spine-d-01
+! remote_interface: Ethernet1/49
+! evidence_kind: lldp
+! evidence_source: discovery
+! source_label: lldp
+! confidence: high
+! record_state: accepted

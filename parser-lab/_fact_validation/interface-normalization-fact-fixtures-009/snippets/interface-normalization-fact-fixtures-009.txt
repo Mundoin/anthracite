@@ -1,0 +1,108 @@
+! synthetic evidence fixture
+! no customer data
+! purpose: interface normalization facts
+! feature tags: normalization, topology-link-fact, accepted
+! source: synthetic
+! integration_status: not_integrated
+! note-only: preserve raw spelling and the normalized interface.
+
+! === norm-iosxe-001 | vendor=Cisco | platform=IOS-XE ===
+hostname norm-iosxe-001
+interface Port-channel1
+ description uplink-to-spine-a
+ no shutdown
+! command output: show lldp neighbors detail
+Local Interface: Port-channel1
+Chassis id: 0011.2233.4455
+Port id: Ethernet1/49
+System Name: spine-a-01
+! mapping expectation:
+! local_node: norm-iosxe-001
+! local_interface_raw: Port-channel1
+! local_interface_normalized: Port-Channel1
+! remote_node: spine-a-01
+! remote_interface: Ethernet1/49
+! record_state: accepted
+
+! === norm-nxos-002 | vendor=Cisco | platform=NX-OS ===
+hostname norm-nxos-002
+interface port-channel1
+ description uplink-to-spine-b
+ no shutdown
+! command output: show cdp neighbors detail
+Device ID: spine-b-01
+Port ID (outgoing port): Ethernet1/48
+Interface: port-channel1
+! mapping expectation:
+! local_node: norm-nxos-002
+! local_interface_raw: port-channel1
+! local_interface_normalized: port-channel1
+! remote_node: spine-b-01
+! remote_interface: Ethernet1/48
+! record_state: accepted
+
+! === norm-junos-003 | vendor=Juniper | platform=Junos ===
+system {
+    host-name norm-junos-003;
+}
+interfaces {
+    ge-0/0/0 {
+        unit 0 {
+            family inet {
+                address 203.0.113.1/30;
+            }
+        }
+    }
+}
+! command output: show lldp neighbors detail
+Local Interface: ge-0/0/0.0
+Chassis ID: 00ff.eedd.ccbb
+Port ID: xe-0/0/48
+System Name: spine-c-01
+! mapping expectation:
+! local_node: norm-junos-003
+! local_interface_raw: ge-0/0/0.0
+! local_interface_normalized: ge-0/0/0.0
+! remote_node: spine-c-01
+! remote_interface: xe-0/0/48
+! record_state: accepted
+
+! === norm-eos-004 | vendor=Arista | platform=EOS ===
+hostname norm-eos-004
+interface Port-Channel1
+   description uplink-to-spine-d
+   no switchport
+   ip address 10.0.1.1/30
+   no shutdown
+! command output: show lldp neighbors detail
+Port: Port-Channel1
+Chassis ID: 00bb.ccdd.eeff
+Port ID: Ethernet1/49
+System Name: spine-d-01
+! mapping expectation:
+! local_node: norm-eos-004
+! local_interface_raw: Port-Channel1
+! local_interface_normalized: Port-Channel1
+! remote_node: spine-d-01
+! remote_interface: Ethernet1/49
+! record_state: accepted
+
+! === norm-iosxr-005 | vendor=Cisco | platform=IOS-XR ===
+! synthetic evidence payload, not a real device config
+! local_node: norm-iosxr-005
+! local_interface_raw: TenGigE0/0/0/0
+! local_interface_normalized: TenGigE0/0/0/0
+! remote_node: xr-spine-01
+! remote_interface: TenGigE0/0/0/1
+! evidence_kind: lldp
+! record_state: accepted
+
+! === norm-sros-006 | vendor=Nokia | platform=SR OS ===
+! synthetic evidence payload, not a real device config
+! local_node: norm-sros-006
+! local_interface_raw: 1/1/1
+! local_interface_normalized: 1/1/1
+! remote_node: sros-spine-01
+! remote_interface: 1/1/2
+! evidence_kind: lldp
+! record_state: accepted

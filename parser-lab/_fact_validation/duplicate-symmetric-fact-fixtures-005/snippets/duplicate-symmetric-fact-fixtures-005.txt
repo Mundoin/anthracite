@@ -1,0 +1,115 @@
+! synthetic evidence fixture
+! no customer data
+! purpose: symmetric duplicate collapse
+! feature tags: duplicate, symmetric, topology-link-fact
+! source: synthetic
+! integration_status: not_integrated
+! note-only: both directions should collapse into one fact.
+
+! === symmetric-iosxe-001 | vendor=Cisco | platform=IOS-XE ===
+hostname sym-iosxe-a
+lldp run
+interface GigabitEthernet0/0/0
+ description uplink-to-b
+ no shutdown
+! command output: show lldp neighbors detail
+Local Interface: GigabitEthernet0/0/0
+Chassis id: 0011.2233.4455
+Port id: Ethernet1/49
+System Name: spine-a-01
+Management Addresses:
+    IP: 192.0.2.10
+! mapping expectation:
+! local_node: sym-iosxe-a
+! local_interface: GigabitEthernet0/0/0
+! remote_node: spine-a-01
+! remote_interface: Ethernet1/49
+! evidence_kind: lldp
+! evidence_source: discovery
+! source_label: lldp
+! record_state: accepted
+
+! reverse report:
+hostname sym-iosxe-b
+lldp run
+interface TenGigabitEthernet1/1
+ description downlink-to-a
+ no shutdown
+! command output: show lldp neighbors detail
+Local Interface: TenGigabitEthernet1/1
+Chassis id: 00aa.bbcc.ddee
+Port id: GigabitEthernet0/0/0
+System Name: sym-iosxe-a
+Management Addresses:
+    IP: 192.0.2.11
+! mapping expectation:
+! local_node: sym-iosxe-b
+! local_interface: TenGigabitEthernet1/1
+! remote_node: sym-iosxe-a
+! remote_interface: GigabitEthernet0/0/0
+! record_state: merged
+! dedup_key: canonical symmetric pair
+
+! === symmetric-junos-002 | vendor=Juniper | platform=Junos ===
+system {
+    host-name sym-junos-a;
+}
+interfaces {
+    ge-0/0/0 {
+        unit 0 {
+            family inet {
+                address 203.0.113.1/30;
+            }
+        }
+    }
+}
+protocols {
+    lldp {
+        interface all;
+    }
+}
+! command output: show lldp neighbors detail
+Local Interface: ge-0/0/0.0
+Chassis ID: 00ff.eedd.ccbb
+Port ID: xe-0/0/48
+System Name: sym-junos-b
+Management Address: 203.0.113.10
+! reverse report:
+Local Interface: xe-0/0/48.0
+Chassis ID: 00ff.eedd.cccc
+Port ID: ge-0/0/0
+System Name: sym-junos-a
+Management Address: 203.0.113.11
+! mapping expectation:
+! record_state: merged
+! dedup_key: canonical symmetric pair
+
+! === symmetric-eos-003 | vendor=Arista | platform=EOS ===
+hostname sym-eos-a
+interface Ethernet1
+   description uplink-to-b
+   no switchport
+   ip address 10.0.1.1/30
+   no shutdown
+! command output: show lldp neighbors detail
+Port: Ethernet1
+Chassis ID: 00bb.ccdd.eeff
+Port ID: Ethernet1/49
+System Name: sym-eos-b
+Management Address: 10.0.1.2
+! reverse report:
+hostname sym-eos-b
+interface Ethernet49
+   description downlink-to-a
+   no switchport
+   ip address 10.0.1.2/30
+   no shutdown
+! command output: show lldp neighbors detail
+Port: Ethernet49
+Chassis ID: 00bb.ccdd.eeff
+Port ID: Ethernet1
+System Name: sym-eos-a
+Management Address: 10.0.1.1
+! mapping expectation:
+! record_state: merged
+! dedup_key: canonical symmetric pair

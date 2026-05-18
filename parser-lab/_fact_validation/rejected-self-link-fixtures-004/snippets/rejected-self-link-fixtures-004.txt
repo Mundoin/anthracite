@@ -1,0 +1,68 @@
+! synthetic evidence fixture
+! no customer data
+! purpose: self-link rejections
+! feature tags: rejected, self_link, topology-link-fact
+! source: synthetic
+! integration_status: not_integrated
+! note-only: remote endpoints resolve back to the local node.
+
+! === self-link-iosxe-001 | vendor=Cisco | platform=IOS-XE ===
+hostname self-link-iosxe-001
+lldp run
+interface GigabitEthernet0/0/0
+ description loopback-peer-test
+ no shutdown
+! command output: show lldp neighbors detail
+Local Interface: GigabitEthernet0/0/0
+Chassis id: 0011.2233.4455
+Port id: GigabitEthernet0/0/0
+System Name: self-link-iosxe-001
+Management Addresses:
+    IP: 192.0.2.10
+! mapping expectation:
+! record_state: rejected
+! reject_reason: self_link
+
+! === self-link-junos-002 | vendor=Juniper | platform=Junos ===
+system {
+    host-name self-link-junos-002;
+}
+interfaces {
+    ge-0/0/0 {
+        unit 0 {
+            family inet {
+                address 198.51.100.1/30;
+            }
+        }
+    }
+}
+protocols {
+    lldp {
+        interface all;
+    }
+}
+! command output: show lldp neighbors detail
+Local Interface: ge-0/0/0.0
+Chassis ID: 00ff.eedd.ccbb
+Port ID: ge-0/0/0.0
+System Name: self-link-junos-002
+Management Address: 198.51.100.10
+! mapping expectation:
+! record_state: rejected
+! reject_reason: self_link
+
+! === self-link-eos-003 | vendor=Arista | platform=EOS ===
+hostname self-link-eos-003
+interface Ethernet1
+   description peer-to-self
+   no switchport
+   ip address 10.0.2.1/30
+   no shutdown
+! command output: show cdp neighbors detail
+Device ID: self-link-eos-003
+Interface: Ethernet1, Port ID (outgoing port): Ethernet1
+IP address: 10.0.2.2
+Capabilities: Switch
+! mapping expectation:
+! record_state: rejected
+! reject_reason: self_link

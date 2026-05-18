@@ -1,0 +1,47 @@
+! synthetic validation fixture
+! no customer data
+! purpose: readiness count transitions
+! feature tags: readiness, count-transition, topology-link-fact
+! source: synthetic
+! integration_status: not_integrated
+! note-only: counts describe validation state, not topology truth.
+
+! === transition-none-001 ===
+! readiness_state: none_available
+! accepted_count: 0
+! rejected_count: 4
+! unresolved_count: 2
+! rejection_reasons: unknown_remote_node, unknown_local_node, self_link, insufficient_evidence
+! sample evidence refs:
+! - lldp neighbor table from Cisco IOS-XE
+! - cdp neighbor table from Cisco NX-OS
+! - lldp neighbor detail from Junos
+! mapping expectation:
+! record_state: rejected
+
+! === transition-partial-002 ===
+! readiness_state: partial
+! accepted_count: 3
+! rejected_count: 2
+! unresolved_count: 1
+! rejection_reasons: stale_evidence, conflicting_remote_endpoint
+! sample evidence refs:
+! - accepted LLDP fact from IOS-XE
+! - accepted CDP fact from NX-OS
+! - rejected stale LLDP fact from EOS
+! mapping expectation:
+! record_state: mixed
+
+! === transition-ready-003 ===
+! readiness_state: ready
+! accepted_count: 8
+! rejected_count: 1
+! unresolved_count: 0
+! rejection_reasons: self_link
+! sample evidence refs:
+! - accepted LLDP fact from IOS-XE
+! - accepted LLDP fact from Junos
+! - accepted CDP fact from IOS-XE
+! - symmetric duplicate collapsed from EOS
+! mapping expectation:
+! record_state: ready

@@ -1,0 +1,74 @@
+pack: interface-normalization-fact-fixtures-009
+entries:
+  - id: norm-iosxe-001
+    snippet_file: snippets/interface-normalization-fact-fixtures-009.txt
+    section: norm-iosxe-001
+    vendor: Cisco
+    platform: IOS-XE
+    platform_family: cisco-iosxe
+    feature_tags: [normalization, topology-link-fact, accepted]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/interface-normalization-fact-fixtures-009.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: norm-nxos-002
+    snippet_file: snippets/interface-normalization-fact-fixtures-009.txt
+    section: norm-nxos-002
+    vendor: Cisco
+    platform: NX-OS
+    platform_family: cisco-nxos
+    feature_tags: [normalization, topology-link-fact, accepted]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/interface-normalization-fact-fixtures-009.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: norm-junos-003
+    snippet_file: snippets/interface-normalization-fact-fixtures-009.txt
+    section: norm-junos-003
+    vendor: Juniper
+    platform: Junos
+    platform_family: juniper-junos
+    feature_tags: [normalization, topology-link-fact, accepted]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/interface-normalization-fact-fixtures-009.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: norm-eos-004
+    snippet_file: snippets/interface-normalization-fact-fixtures-009.txt
+    section: norm-eos-004
+    vendor: Arista
+    platform: EOS
+    platform_family: arista-eos
+    feature_tags: [normalization, topology-link-fact, accepted]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/interface-normalization-fact-fixtures-009.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: norm-iosxr-005
+    snippet_file: snippets/interface-normalization-fact-fixtures-009.txt
+    section: norm-iosxr-005
+    vendor: Cisco
+    platform: IOS-XR
+    platform_family: cisco-iosxr
+    feature_tags: [normalization, topology-link-fact, accepted]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/interface-normalization-fact-fixtures-009.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: norm-sros-006
+    snippet_file: snippets/interface-normalization-fact-fixtures-009.txt
+    section: norm-sros-006
+    vendor: Nokia
+    platform: SR OS
+    platform_family: nokia-sros
+    feature_tags: [normalization, topology-link-fact, accepted]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/interface-normalization-fact-fixtures-009.intent.md
+    status: prep_ready
+    integration_status: not_integrated

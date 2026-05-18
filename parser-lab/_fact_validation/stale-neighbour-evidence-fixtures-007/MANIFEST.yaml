@@ -1,0 +1,38 @@
+pack: stale-neighbour-evidence-fixtures-007
+entries:
+  - id: stale-iosxe-001
+    snippet_file: snippets/stale-neighbour-evidence-fixtures-007.txt
+    section: stale-iosxe-001
+    vendor: Cisco
+    platform: IOS-XE
+    platform_family: cisco-iosxe
+    feature_tags: [stale, rejected, topology-link-fact]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/stale-neighbour-evidence-fixtures-007.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: stale-junos-002
+    snippet_file: snippets/stale-neighbour-evidence-fixtures-007.txt
+    section: stale-junos-002
+    vendor: Juniper
+    platform: Junos
+    platform_family: juniper-junos
+    feature_tags: [stale, rejected, topology-link-fact]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/stale-neighbour-evidence-fixtures-007.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: stale-eos-003
+    snippet_file: snippets/stale-neighbour-evidence-fixtures-007.txt
+    section: stale-eos-003
+    vendor: Arista
+    platform: EOS
+    platform_family: arista-eos
+    feature_tags: [stale, rejected, topology-link-fact]
+    sanitised: true
+    source: synthetic
+    intent_file: intent/stale-neighbour-evidence-fixtures-007.intent.md
+    status: prep_ready
+    integration_status: not_integrated

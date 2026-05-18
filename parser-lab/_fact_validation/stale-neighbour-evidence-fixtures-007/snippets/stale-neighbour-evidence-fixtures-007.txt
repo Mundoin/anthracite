@@ -1,0 +1,71 @@
+! synthetic evidence fixture
+! no customer data
+! purpose: stale neighbour evidence
+! feature tags: stale, rejected, topology-link-fact
+! source: synthetic
+! integration_status: not_integrated
+! note-only: stale evidence should be held or rejected, not promoted.
+
+! === stale-iosxe-001 | vendor=Cisco | platform=IOS-XE ===
+hostname stale-iosxe-001
+lldp run
+interface GigabitEthernet0/0/0
+ description uplink-to-spine-a
+ no shutdown
+! command output: show lldp neighbors detail
+Local Interface: GigabitEthernet0/0/0
+Chassis id: 0011.2233.4455
+Port id: Ethernet1/49
+System Name: spine-a-01
+Holdtime: 1 sec
+! synthetic evidence note:
+! evidence_age_seconds: 86400
+! mapping expectation:
+! record_state: rejected
+! reject_reason: stale_evidence
+
+! === stale-junos-002 | vendor=Juniper | platform=Junos ===
+system {
+    host-name stale-junos-002;
+}
+interfaces {
+    ge-0/0/0 {
+        unit 0 {
+            family inet {
+                address 198.51.100.1/30;
+            }
+        }
+    }
+}
+protocols {
+    lldp {
+        interface all;
+    }
+}
+! command output: show lldp neighbors detail
+Local Interface: ge-0/0/0.0
+Chassis ID: 00ff.eedd.ccbb
+Port ID: xe-0/0/48
+System Name: spine-c-01
+! synthetic evidence note:
+! last-seen: 7200 seconds
+! mapping expectation:
+! record_state: rejected
+! reject_reason: stale_evidence
+
+! === stale-eos-003 | vendor=Arista | platform=EOS ===
+hostname stale-eos-003
+interface Ethernet1
+   description stale-cdp-report
+   no switchport
+   ip address 10.0.2.1/30
+   no shutdown
+! command output: show cdp neighbors detail
+Device ID: spine-d-01
+Port ID: Ethernet1/49
+Capability: Switch
+! synthetic evidence note:
+! evidence_age_minutes: 180
+! mapping expectation:
+! record_state: rejected
+! reject_reason: stale_evidence
