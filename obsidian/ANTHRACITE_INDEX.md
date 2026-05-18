@@ -60,6 +60,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1AA  | complete · Hierarchy Honesty Contract + `DataSourceState` (docs + 20-LOC type module); opens HONEST-HIERARCHY arc | [stages/V1AA-hierarchy-honesty-contract.md](./stages/V1AA-hierarchy-honesty-contract.md) |
 | V1AB  | complete · Hierarchy demo/empty labelling — `<DataSourceTag>` wired to D1/D2/Inspector/OpsStrip/StatusBar; all seeded values marked | [stages/V1AB-hierarchy-honest-labelling.md](./stages/V1AB-hierarchy-honest-labelling.md) |
 | V1AC  | complete · Typed data-source boundary — seeds to `src/data/hierarchySeeds.ts`; `getHierarchyView` boundary in `src/data/hierarchySource.ts`; `source="demo"` literals replaced with `view.sourceStateByBlock.*`; H7 added | [stages/V1AC-environment-data-source-boundary.md](./stages/V1AC-environment-data-source-boundary.md) |
+| V1AD  | complete · HONEST-HIERARCHY arc closed — 8 silent fall-through ModeIds replaced with `<ModeNotConnected />`; `MODE_STATUS` in `src/data/modeStatus.ts`; H8 added | [stages/V1AD-mode-fall-through-honesty.md](./stages/V1AD-mode-fall-through-honesty.md) |
 
 ## V1J-A adaptation
 

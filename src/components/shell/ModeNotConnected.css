@@ -1,0 +1,27 @@
+.mode-not-connected {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 28px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  max-width: 480px;
+  margin: 40px auto 0;
+}
+.mnc-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--anth-text);
+  margin: 0;
+}
+.mnc-engine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--anth-font-mono);
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+.mnc-status { color: var(--anth-text-3); }
+.mnc-planned { font-family: var(--anth-font-mono); font-size: 11px; color: var(--anth-text-3); }

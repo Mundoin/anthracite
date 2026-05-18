@@ -80,6 +80,10 @@ const MODE_GROUPS: readonly ModeGroup[] = [
   },
 ];
 
+export const MODE_LABELS: Record<ModeId, string> = Object.fromEntries(
+  MODE_GROUPS.flatMap((g) => g.modes.map((m) => [m.id, m.label])),
+) as Record<ModeId, string>;
+
 export type ModeRailVariant = "labeled" | "icons";
 
 export interface ModeRailProps {

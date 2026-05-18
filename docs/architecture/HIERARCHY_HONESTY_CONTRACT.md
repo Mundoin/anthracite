@@ -36,8 +36,8 @@ The HONEST-HIERARCHY arc closes that gap **before** it
 chases new engines (Discovery, Topology) or rewrites
 navigation IA. V1AA locks the contract. V1AB labels the
 seeded values. V1AC (optional) routes them through a typed
-boundary. V1AD (optional) replaces silent mode fall-through
-with honest "not built" placeholders. Discovery, Topology,
+boundary. V1AD (landed) replaced silent mode fall-through with
+`<ModeNotConnected />` placeholders. Discovery, Topology,
 deeper parsers, HOME / nav-IA work all sit outside this arc.
 
 ## Vocabulary
@@ -146,6 +146,18 @@ typed boundary; neither removes them. Stripping demo data
 before a real engine replaces it creates an empty-graveyard
 landing surface — anti-goal. Operators keep dense populated
 rows that they can read at a glance as "demo".
+
+### H8 — Mode-level honesty
+
+ModeRail entries whose body is not yet built render
+`<ModeNotConnected />` with `state="not_connected"`, not a
+fall-through to another mode's surface. `MODE_STATUS`
+(`src/data/modeStatus.ts`) is authoritative for ModeId →
+body-built classification. `ENGINE_AND_API_BOUNDARIES.md`
+remains authoritative for engine names; `MODE_STATUS` sources
+`engineName` values from that doc. A stage that lands a mode
+body must flip its `MODE_STATUS` entry to `"built"` in the
+same stage, same discipline as `RULE_PACK_VERSION`.
 
 ### H7 — Source-state determination lives at the data layer
 

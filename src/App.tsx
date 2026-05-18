@@ -7,6 +7,9 @@ import {
 } from "./components/shell/Inspector";
 import type { EnvDotState, TitleBarEnv } from "./components/shell/TitleBar";
 import type { ModeId } from "./components/shell/ModeRail";
+import { MODE_LABELS } from "./components/shell/ModeRail";
+import { ModeNotConnected } from "./components/shell/ModeNotConnected";
+import { MODE_STATUS } from "./data/modeStatus";
 import { SubNav, type SubNavItem } from "./components/shell/SubNav";
 import {
   SecondaryNav,
@@ -204,6 +207,28 @@ export default function App(): JSX.Element {
     : undefined;
 
   const inListView = layoutView === "list";
+
+  if (MODE_STATUS[activeMode].state === "not_connected") {
+    const status = MODE_STATUS[activeMode];
+    const label = MODE_LABELS[activeMode];
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={[label]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        statusLeft={statusLeft(readiness, view.rows)}
+        statusRight={statusRight(layoutView, undefined)}
+      >
+        <ModeNotConnected
+          modeId={activeMode}
+          modeLabel={label}
+          engineName={status.engineName}
+          plannedStage={status.plannedStage}
+        />
+      </AppShell>
+    );
+  }
 
   if (activeMode === "intake") {
     return (
