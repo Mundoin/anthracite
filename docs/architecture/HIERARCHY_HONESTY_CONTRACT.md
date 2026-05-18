@@ -147,6 +147,15 @@ before a real engine replaces it creates an empty-graveyard
 landing surface — anti-goal. Operators keep dense populated
 rows that they can read at a glance as "demo".
 
+### H7 — Source-state determination lives at the data layer
+
+The hierarchy surface reads `sourceState` from a boundary
+module (`src/data/hierarchySource.ts`), not from literal
+props at call sites. The H1 aggregate rule is computed at
+the boundary. Surfaces consume `sourceState`; they do not
+classify. Future engines replace seed imports in the boundary
+without reshaping surface props.
+
 ---
 
 ## Seed inventory

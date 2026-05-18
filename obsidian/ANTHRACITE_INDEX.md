@@ -59,6 +59,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1Z-A | complete · Telnet emission across 4 parsers + MGMT-HYG-004 + DIAG-HYG-004 land; RULE_PACK_VERSION 2→3, Junos NtpAccum parity fix; closes ASSESS-FORWARD arc | [stages/V1Z-A-telnet-and-parker-rule-retirement.md](./stages/V1Z-A-telnet-and-parker-rule-retirement.md) |
 | V1AA  | complete · Hierarchy Honesty Contract + `DataSourceState` (docs + 20-LOC type module); opens HONEST-HIERARCHY arc | [stages/V1AA-hierarchy-honesty-contract.md](./stages/V1AA-hierarchy-honesty-contract.md) |
 | V1AB  | complete · Hierarchy demo/empty labelling — `<DataSourceTag>` wired to D1/D2/Inspector/OpsStrip/StatusBar; all seeded values marked | [stages/V1AB-hierarchy-honest-labelling.md](./stages/V1AB-hierarchy-honest-labelling.md) |
+| V1AC  | complete · Typed data-source boundary — seeds to `src/data/hierarchySeeds.ts`; `getHierarchyView` boundary in `src/data/hierarchySource.ts`; `source="demo"` literals replaced with `view.sourceStateByBlock.*`; H7 added | [stages/V1AC-environment-data-source-boundary.md](./stages/V1AC-environment-data-source-boundary.md) |
 
 ## V1J-A adaptation
 
