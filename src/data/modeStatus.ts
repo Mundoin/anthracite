@@ -14,7 +14,7 @@ export const MODE_STATUS: Record<ModeId, ModeStatus> = {
   assess:       { state: "built",         engineName: "Validator / Receipt" },
   provisioning: { state: "not_connected", engineName: "Provisioning Engine" },
   operate:      { state: "not_connected", engineName: "Monitoring / Sentinel Engine" },
-  topology:     { state: "not_connected", engineName: "Topology Engine" },
+  topology:     { state: "built",         engineName: "Topology Engine" }, // Flipped V1AJ
   diagnose:     { state: "not_connected", engineName: "Diagnostic / Hypothesis Engine" },
   security:     { state: "not_connected", engineName: "Compliance Engine" },
   dashboards:   { state: "not_connected", engineName: "Reporting Engine" },

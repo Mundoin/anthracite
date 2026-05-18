@@ -138,6 +138,19 @@ chain, and INTAKE import action wording.
 - **Must NOT own.** Rendering, camera state, selection UI, Babylon
   resources. Babylon is a renderer.
 
+### V1AJ addition
+
+V1AJ ships the Topology Engine spine + visible Topology workspace v1. New Rust `TopologyEngine` 
+with stateless `project(environment_id, records) -> TopologyView` method. New command 
+`get_topology_view(environment_id?) -> TopologyView` composes with Discovery Engine: reads 
+`inventory_view(env_id).records` from Discovery, passes them to Topology projector. Engine 
+produces typed node/edge/layer shapes; edges empty in V1AJ (no link-fact inference yet; 
+wire shape locked for future stages). Node IDs namespaced `topo::<discovery-record-id>`, 
+labels hostname-or-record-id fallback, role/layer always `"device"`/`"inventory"` in V1AJ. 
+Frontend TopologyMode v1 renders read-only node list, source state via `DataSourceTag`, 
+summary (nodes/edges/records). No graph viz library; Babylon rendering deferred. See 
+`TOPOLOGY_ENGINE_BOUNDARY.md` for ownership, determinism contract, and future stages.
+
 ---
 
 ## Monitoring / Polling Engine

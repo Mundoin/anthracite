@@ -10,5 +10,6 @@ pub mod discovery;
 pub mod environment;
 pub mod parser;
 pub mod receipt;
+pub mod topology;
 pub mod validator;
 pub mod vendor_registry;

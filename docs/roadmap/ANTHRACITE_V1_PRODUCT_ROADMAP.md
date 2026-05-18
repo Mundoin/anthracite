@@ -49,6 +49,11 @@ Everything else is a placeholder, an empty contract, or doctrine without code.
   empty-state surface → INTAKE-to-Discovery preview pipe → authoritative
   import + persisted JSON inventory. `inventory_view` returns real records
   after import. App refresh chain wires Ops Console to the new count.
+- **Topology Engine + Topology Mode v1 (V1AJ).** Stateless read-model projector
+  consumes persisted Discovery records, produces deterministic node/edge/layer shapes.
+  Frontend workspace v1: read-only node list + summary + source state via DataSourceTag.
+  Edges empty (no link-fact inference yet; wire shape locked). No graph viz library;
+  Babylon rendering deferred.
 
 ---
 

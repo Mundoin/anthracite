@@ -11,5 +11,6 @@ pub mod environment;
 pub mod network_model;
 pub mod parsers;
 pub mod receipt;
+pub mod topology;
 pub mod validator;
 pub mod vendor_registry;

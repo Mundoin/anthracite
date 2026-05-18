@@ -35,6 +35,7 @@ import {
   setActiveEnvironment,
 } from "./api/environment";
 import { getDiscoveryInventory } from "./api/discovery";
+import { getTopologyView } from "./api/topology";
 import type {
   Environment,
   EnvironmentReadiness,
@@ -44,6 +45,11 @@ import {
   toDiscoverySourceView,
   type DiscoverySourceView,
 } from "./data/discoverySource";
+import {
+  toTopologySourceView,
+  type TopologySourceView,
+} from "./data/topologySource";
+import { TopologyMode } from "./modes/topology/TopologyMode";
 import { getHierarchyView } from "./data/hierarchySource";
 import { ROW_SEEDS } from "./data/hierarchySeeds";
 
@@ -97,6 +103,9 @@ export default function App(): JSX.Element {
   const [discovery, setDiscovery] = useState<DiscoverySourceView>(() =>
     toDiscoverySourceView(null),
   );
+  const [topology, setTopology] = useState<TopologySourceView>(() =>
+    toTopologySourceView(null),
+  );
 
   const fetchDiscovery = useCallback(async (envId: string | null) => {
     try {
@@ -104,6 +113,15 @@ export default function App(): JSX.Element {
       setDiscovery(toDiscoverySourceView(view));
     } catch (err) {
       setDiscovery(toDiscoverySourceView(null, err));
+    }
+  }, []);
+
+  const fetchTopology = useCallback(async (envId: string | null) => {
+    try {
+      const view = await getTopologyView(envId);
+      setTopology(toTopologySourceView(view));
+    } catch (err) {
+      setTopology(toTopologySourceView(null, err));
     }
   }, []);
 
@@ -121,6 +139,7 @@ export default function App(): JSX.Element {
         setActive(a);
         setReadiness(r);
         await fetchDiscovery(r?.active_environment_id ?? null);
+        await fetchTopology(r?.active_environment_id ?? null);
       } catch {
         if (cancelled) return;
       }
@@ -128,7 +147,7 @@ export default function App(): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [fetchDiscovery]);
+  }, [fetchDiscovery, fetchTopology]);
 
   const refreshEngineState = useCallback(async () => {
     try {
@@ -139,10 +158,11 @@ export default function App(): JSX.Element {
       setActive(a);
       setReadiness(r);
       await fetchDiscovery(r?.active_environment_id ?? null);
+      await fetchTopology(r?.active_environment_id ?? null);
     } catch {
       /* ignored — keep last good state */
     }
-  }, [fetchDiscovery]);
+  }, [fetchDiscovery, fetchTopology]);
 
   const selectEnv = useCallback(
     async (id: string, openDetail: boolean) => {
@@ -256,6 +276,21 @@ export default function App(): JSX.Element {
         statusRight={statusRight(layoutView, undefined)}
       >
         <SettingsMode />
+      </AppShell>
+    );
+  }
+
+  if (activeMode === "topology") {
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={["Topology"]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        statusLeft={statusLeft(readiness, view.rows)}
+        statusRight={statusRight(layoutView, undefined)}
+      >
+        <TopologyMode topology={topology} />
       </AppShell>
     );
   }

@@ -16,6 +16,7 @@ pub mod engines;
 
 use engines::discovery::{DiscoveryEngine, JsonDiscoveryFileStore};
 use engines::environment::{EnvironmentEngine, JsonFileStore};
+use engines::topology::TopologyEngine;
 
 #[derive(Serialize)]
 struct Pong {
@@ -49,6 +50,7 @@ pub fn run() {
             let discovery_path = data_dir.join("discovery_inventory.json");
             let discovery_store = JsonDiscoveryFileStore::new(discovery_path);
             app.manage(DiscoveryEngine::with_store(Arc::new(discovery_store)));
+            app.manage(TopologyEngine::new());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -64,6 +66,7 @@ pub fn run() {
             commands::archive_intake::archive_intake,
             commands::parser::parse_device_config,
             commands::receipt::project_device_receipt,
+            commands::topology::get_topology_view,
             commands::validator::validate_device_model,
             commands::discovery::get_discovery_inventory,
             commands::discovery::preview_discovery_import,

@@ -1,0 +1,142 @@
+.topology-mode {
+  padding: 16px 20px;
+  max-width: 920px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tm-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tm-title {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-2);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tm-scope {
+  font-size: 11px;
+  color: var(--anth-text-3);
+  margin: 0;
+  font-family: var(--anth-mono, monospace);
+}
+
+.tm-summary {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid var(--anth-border);
+  font-size: 11px;
+  flex-wrap: wrap;
+}
+
+.tm-summary-cell {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.tm-summary-label {
+  color: var(--anth-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+
+.tm-summary-value {
+  color: var(--anth-text-1, var(--anth-text-2));
+  font-family: var(--anth-mono, monospace);
+  font-size: 12px;
+}
+
+.tm-summary-message {
+  color: var(--anth-text-3);
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.tm-body {
+  border: 1px solid var(--anth-border);
+  padding: 10px 14px;
+}
+
+.tm-body--empty,
+.tm-body--unavailable {
+  color: var(--anth-text-3);
+  font-size: 12px;
+}
+
+.tm-body--empty p,
+.tm-body--unavailable p {
+  margin: 4px 0;
+}
+
+.tm-muted {
+  color: var(--anth-text-3);
+  font-size: 11px;
+}
+
+.tm-section-heading {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-2);
+  margin: 0 0 8px;
+}
+
+.tm-node-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px;
+}
+
+.tm-node-card {
+  border: 1px solid var(--anth-border);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tm-node-label {
+  font-family: var(--anth-mono, monospace);
+  font-size: 12px;
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.tm-node-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tm-node-tag {
+  font-size: 10px;
+  font-family: var(--anth-mono, monospace);
+  color: var(--anth-text-2);
+  border: 1px solid var(--anth-border);
+  padding: 1px 5px;
+}
+
+.tm-node-tag--muted {
+  color: var(--anth-text-3);
+}
+
+.tm-edges-note {
+  font-size: 11px;
+  color: var(--anth-text-3);
+  margin: 10px 0 0;
+}
