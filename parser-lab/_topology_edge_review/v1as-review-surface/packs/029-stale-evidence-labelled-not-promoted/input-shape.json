@@ -1,0 +1,103 @@
+{
+  "title": "Stale evidence labelled, not promoted",
+  "stage_target": "V1AS",
+  "synthetic": true,
+  "review_surface": {
+    "projectionStats": {
+      "conflicted": 0,
+      "rejected": 1,
+      "duplicate_collapsed": 0,
+      "accepted": 1,
+      "stale": 1
+    },
+    "current_edges": [
+      {
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "remote_interface": "Ethernet1/49",
+        "source_kind": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "vendor": "Mixed",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "status": "accepted"
+      }
+    ],
+    "accepted_evidence": [
+      {
+        "source_label": "mixed-accepted",
+        "note": "Accepted evidence promotes one current edge.",
+        "evidence_id": "evidence-010a",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "platform_family": "topology-edge-review",
+        "status": "accepted",
+        "source_kind": "LLDP"
+      }
+    ],
+    "rejected_evidence": [
+      {
+        "status": "rejected",
+        "source_label": "stale-a",
+        "note": "Stale evidence is labelled and not promoted.",
+        "rejection_reason": "stale_evidence",
+        "platform_family": "topology-edge-review",
+        "vendor": "Mixed",
+        "source_kind": "LLDP",
+        "evidence_id": "evidence-029a",
+        "platform": "topology-edge-review"
+      }
+    ],
+    "filters": {
+      "rejection_state": "mixed"
+    },
+    "evidenceStats": {
+      "total": 2,
+      "rejected": 1,
+      "accepted": 1
+    },
+    "vendor": "Mixed",
+    "platform": "topology-edge-review",
+    "platform_family": "topology-edge-review",
+    "stale_evidence": [
+      {
+        "status": "rejected",
+        "source_label": "stale-a",
+        "note": "Stale evidence is labelled and not promoted.",
+        "rejection_reason": "stale_evidence",
+        "platform_family": "topology-edge-review",
+        "vendor": "Mixed",
+        "source_kind": "LLDP",
+        "evidence_id": "evidence-029a",
+        "platform": "topology-edge-review"
+      }
+    ],
+    "conflicting_evidence": [],
+    "projected_edges": [
+      {
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "remote_interface": "Ethernet1/49",
+        "source_kind": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "vendor": "Mixed",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "status": "accepted"
+      }
+    ],
+    "state": "mixed"
+  },
+  "corpus": "topology_edge_review",
+  "scope": "prep_only",
+  "scenario": "Stale evidence is labelled and kept out of current projection.",
+  "sanitised": true,
+  "integration_status": "not_integrated",
+  "pack_id": "029-stale-evidence-labelled-not-promoted",
+  "status": "prep_ready"
+}
+

@@ -1,0 +1,62 @@
+{
+  "title": "Live collection deferred guard",
+  "stage_target": "V1AS",
+  "synthetic": true,
+  "review_surface": {
+    "projectionStats": {
+      "conflicted": 0,
+      "rejected": 0,
+      "duplicate_collapsed": 0,
+      "accepted": 0,
+      "stale": 0
+    },
+    "current_edges": [],
+    "accepted_evidence": [],
+    "rejected_evidence": [],
+    "filters": {},
+    "evidenceStats": {
+      "total": 0,
+      "rejected": 0,
+      "accepted": 0
+    },
+    "vendor": "Mixed",
+    "platform": "topology-edge-review",
+    "platform_family": "topology-edge-review",
+    "stale_evidence": [],
+    "live_collection": {
+      "operator_initiated": true,
+      "merge": false,
+      "stored_after_review": false,
+      "timeout": false,
+      "deferred_platform": true,
+      "exact_resolver": false,
+      "command_allowlist": true,
+      "redacted": true,
+      "append": false,
+      "replace": false,
+      "parse_raw_output": false,
+      "review_required": true,
+      "connection_failed": false,
+      "preview_before_store": true,
+      "no_store_mutation": true,
+      "evidence_store": "authoritative later, deferred now",
+      "auth_failed": false,
+      "dry_run": true,
+      "collect_raw_output": false,
+      "command_unsupported": false,
+      "unsupported_platform": false,
+      "read_only": true
+    },
+    "conflicting_evidence": [],
+    "projected_edges": [],
+    "state": "guard"
+  },
+  "corpus": "topology_edge_review",
+  "scope": "prep_only",
+  "scenario": "Live collection remains deferred behind a read-only guard.",
+  "sanitised": true,
+  "integration_status": "not_integrated",
+  "pack_id": "032-live-collection-deferred-guard",
+  "status": "prep_ready"
+}
+

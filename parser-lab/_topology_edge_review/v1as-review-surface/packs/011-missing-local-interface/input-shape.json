@@ -1,0 +1,53 @@
+{
+  "review_surface": {
+    "evidenceStats": {
+      "total": 1,
+      "accepted": 0,
+      "rejected": 1
+    },
+    "projected_edges": [],
+    "platform_family": "topology-edge-review",
+    "filters": {
+      "rejection_state": "rejected",
+      "reason": "missing_local_interface"
+    },
+    "state": "rejected",
+    "conflicting_evidence": [],
+    "current_edges": [],
+    "vendor": "Mixed",
+    "accepted_evidence": [],
+    "platform": "topology-edge-review",
+    "projectionStats": {
+      "conflicted": 0,
+      "rejected": 1,
+      "stale": 0,
+      "accepted": 0,
+      "duplicate_collapsed": 0
+    },
+    "stale_evidence": [],
+    "rejected_evidence": [
+      {
+        "platform": "topology-edge-review",
+        "note": "Rejection reason: missing_local_interface.",
+        "source_label": "reject-1",
+        "vendor": "Mixed",
+        "rejection_reason": "missing_local_interface",
+        "platform_family": "topology-edge-review",
+        "source_kind": "LLDP",
+        "evidence_id": "evidence-011a",
+        "status": "rejected"
+      }
+    ]
+  },
+  "stage_target": "V1AS",
+  "scope": "prep_only",
+  "sanitised": true,
+  "corpus": "topology_edge_review",
+  "title": "Missing local interface",
+  "synthetic": true,
+  "integration_status": "not_integrated",
+  "scenario": "The evidence lacks a local interface, so exact projection stays unsafe.",
+  "status": "prep_ready",
+  "pack_id": "011-missing-local-interface"
+}
+

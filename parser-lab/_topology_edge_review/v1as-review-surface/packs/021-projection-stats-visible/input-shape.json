@@ -1,0 +1,151 @@
+{
+  "synthetic": true,
+  "sanitised": true,
+  "scope": "prep_only",
+  "integration_status": "not_integrated",
+  "status": "prep_ready",
+  "scenario": "Projection stats appear as a visible read-only strip.",
+  "corpus": "topology_edge_review",
+  "review_surface": {
+    "filters": {},
+    "conflicting_evidence": [],
+    "platform_family": "topology-edge-review",
+    "platform": "topology-edge-review",
+    "rejected_evidence": [
+      {
+        "status": "rejected",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "source_label": "stats-c",
+        "note": "Evidence stats keep rejected rows visible.",
+        "rejection_reason": "unknown_remote_node",
+        "platform": "topology-edge-review",
+        "source_kind": "LLDP",
+        "evidence_id": "evidence-022a"
+      }
+    ],
+    "projected_edges": [
+      {
+        "local_node": "leaf-a1",
+        "status": "accepted",
+        "edge_id": "edge-001",
+        "remote_interface": "Ethernet1/49",
+        "platform_family": "topology-edge-review",
+        "source_label": "review-1",
+        "local_interface": "Ethernet1/1",
+        "vendor": "Mixed",
+        "remote_node": "spine-b1",
+        "platform": "topology-edge-review",
+        "source_kind": "Mixed"
+      },
+      {
+        "local_node": "leaf-a2",
+        "status": "accepted",
+        "edge_id": "edge-002",
+        "remote_interface": "Ethernet1/50",
+        "platform_family": "topology-edge-review",
+        "source_label": "stats-b",
+        "local_interface": "Ethernet1/2",
+        "vendor": "Mixed",
+        "remote_node": "spine-b2",
+        "platform": "topology-edge-review",
+        "source_kind": "CDP"
+      },
+      {
+        "local_node": "leaf-a3",
+        "status": "accepted",
+        "edge_id": "edge-003",
+        "remote_interface": "Ethernet1/51",
+        "platform_family": "topology-edge-review",
+        "source_label": "stats-c",
+        "local_interface": "Ethernet1/3",
+        "vendor": "Mixed",
+        "remote_node": "spine-b3",
+        "platform": "topology-edge-review",
+        "source_kind": "manual"
+      }
+    ],
+    "stale_evidence": [],
+    "vendor": "Mixed",
+    "current_edges": [
+      {
+        "local_node": "leaf-a1",
+        "status": "accepted",
+        "edge_id": "edge-001",
+        "remote_interface": "Ethernet1/49",
+        "platform_family": "topology-edge-review",
+        "source_label": "review-1",
+        "local_interface": "Ethernet1/1",
+        "vendor": "Mixed",
+        "remote_node": "spine-b1",
+        "platform": "topology-edge-review",
+        "source_kind": "Mixed"
+      },
+      {
+        "local_node": "leaf-a2",
+        "status": "accepted",
+        "edge_id": "edge-002",
+        "remote_interface": "Ethernet1/50",
+        "platform_family": "topology-edge-review",
+        "source_label": "stats-b",
+        "local_interface": "Ethernet1/2",
+        "vendor": "Mixed",
+        "remote_node": "spine-b2",
+        "platform": "topology-edge-review",
+        "source_kind": "CDP"
+      },
+      {
+        "local_node": "leaf-a3",
+        "status": "accepted",
+        "edge_id": "edge-003",
+        "remote_interface": "Ethernet1/51",
+        "platform_family": "topology-edge-review",
+        "source_label": "stats-c",
+        "local_interface": "Ethernet1/3",
+        "vendor": "Mixed",
+        "remote_node": "spine-b3",
+        "platform": "topology-edge-review",
+        "source_kind": "manual"
+      }
+    ],
+    "evidenceStats": {
+      "rejected": 1,
+      "total": 3,
+      "accepted": 2
+    },
+    "state": "stats",
+    "projectionStats": {
+      "stale": 0,
+      "duplicate_collapsed": 0,
+      "conflicted": 0,
+      "accepted": 3,
+      "rejected": 1
+    },
+    "accepted_evidence": [
+      {
+        "source_label": "stats-a",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "evidence_id": "evidence-021a",
+        "note": "Projection stats are derived from store truth.",
+        "source_kind": "LLDP",
+        "status": "accepted"
+      },
+      {
+        "source_label": "stats-b",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "evidence_id": "evidence-021b",
+        "note": "Projection stats are derived from store truth.",
+        "source_kind": "CDP",
+        "status": "accepted"
+      }
+    ]
+  },
+  "stage_target": "V1AS",
+  "title": "Projection stats visible",
+  "pack_id": "021-projection-stats-visible"
+}
+

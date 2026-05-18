@@ -1,0 +1,1091 @@
+corpus: topology_edge_review
+
+stage_target: V1AS
+
+status: prep_ready
+
+integration_status: not_integrated
+
+created_by: codex
+
+scope: prep_only
+
+notes:
+
+  - Synthetic and sanitised review-surface corpus.
+
+  - Older edge-review packs in the parent directory remain untouched.
+
+  - No renderer or live collection is introduced here.
+
+packs:
+
+  - id: 001-accepted-lldp-single-edge
+
+    title: accepted lldp single edge
+
+    purpose: Synthetic prep scenario for accepted lldp single edge.
+
+    files:
+
+      - packs/001-accepted-lldp-single-edge/README.md
+
+      - packs/001-accepted-lldp-single-edge/intent.md
+
+      - packs/001-accepted-lldp-single-edge/input-shape.json
+
+      - packs/001-accepted-lldp-single-edge/expected-review.md
+
+      - packs/001-accepted-lldp-single-edge/scope-guards.md
+
+      - packs/001-accepted-lldp-single-edge/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - accepted
+
+    integration_status: not_integrated
+
+  - id: 002-accepted-cdp-single-edge
+
+    title: accepted cdp single edge
+
+    purpose: Synthetic prep scenario for accepted cdp single edge.
+
+    files:
+
+      - packs/002-accepted-cdp-single-edge/README.md
+
+      - packs/002-accepted-cdp-single-edge/intent.md
+
+      - packs/002-accepted-cdp-single-edge/input-shape.json
+
+      - packs/002-accepted-cdp-single-edge/expected-review.md
+
+      - packs/002-accepted-cdp-single-edge/scope-guards.md
+
+      - packs/002-accepted-cdp-single-edge/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - accepted
+
+    integration_status: not_integrated
+
+  - id: 003-duplicate-reverse-edge
+
+    title: duplicate reverse edge
+
+    purpose: Synthetic prep scenario for duplicate reverse edge.
+
+    files:
+
+      - packs/003-duplicate-reverse-edge/README.md
+
+      - packs/003-duplicate-reverse-edge/intent.md
+
+      - packs/003-duplicate-reverse-edge/input-shape.json
+
+      - packs/003-duplicate-reverse-edge/expected-review.md
+
+      - packs/003-duplicate-reverse-edge/scope-guards.md
+
+      - packs/003-duplicate-reverse-edge/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 004-merge-labels-and-notes
+
+    title: merge labels and notes
+
+    purpose: Synthetic prep scenario for merge labels and notes.
+
+    files:
+
+      - packs/004-merge-labels-and-notes/README.md
+
+      - packs/004-merge-labels-and-notes/intent.md
+
+      - packs/004-merge-labels-and-notes/input-shape.json
+
+      - packs/004-merge-labels-and-notes/expected-review.md
+
+      - packs/004-merge-labels-and-notes/scope-guards.md
+
+      - packs/004-merge-labels-and-notes/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 005-append-multiple-sources
+
+    title: append multiple sources
+
+    purpose: Synthetic prep scenario for append multiple sources.
+
+    files:
+
+      - packs/005-append-multiple-sources/README.md
+
+      - packs/005-append-multiple-sources/intent.md
+
+      - packs/005-append-multiple-sources/input-shape.json
+
+      - packs/005-append-multiple-sources/expected-review.md
+
+      - packs/005-append-multiple-sources/scope-guards.md
+
+      - packs/005-append-multiple-sources/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 006-rejected-unknown-local
+
+    title: rejected unknown local
+
+    purpose: Synthetic prep scenario for rejected unknown local.
+
+    files:
+
+      - packs/006-rejected-unknown-local/README.md
+
+      - packs/006-rejected-unknown-local/intent.md
+
+      - packs/006-rejected-unknown-local/input-shape.json
+
+      - packs/006-rejected-unknown-local/expected-review.md
+
+      - packs/006-rejected-unknown-local/scope-guards.md
+
+      - packs/006-rejected-unknown-local/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - rejected
+
+    integration_status: not_integrated
+
+  - id: 007-rejected-unknown-remote
+
+    title: rejected unknown remote
+
+    purpose: Synthetic prep scenario for rejected unknown remote.
+
+    files:
+
+      - packs/007-rejected-unknown-remote/README.md
+
+      - packs/007-rejected-unknown-remote/intent.md
+
+      - packs/007-rejected-unknown-remote/input-shape.json
+
+      - packs/007-rejected-unknown-remote/expected-review.md
+
+      - packs/007-rejected-unknown-remote/scope-guards.md
+
+      - packs/007-rejected-unknown-remote/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - rejected
+
+    integration_status: not_integrated
+
+  - id: 008-rejected-self-link
+
+    title: rejected self link
+
+    purpose: Synthetic prep scenario for rejected self link.
+
+    files:
+
+      - packs/008-rejected-self-link/README.md
+
+      - packs/008-rejected-self-link/intent.md
+
+      - packs/008-rejected-self-link/input-shape.json
+
+      - packs/008-rejected-self-link/expected-review.md
+
+      - packs/008-rejected-self-link/scope-guards.md
+
+      - packs/008-rejected-self-link/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - rejected
+
+    integration_status: not_integrated
+
+  - id: 009-all-rejected-no-edges
+
+    title: all rejected no edges
+
+    purpose: Synthetic prep scenario for all rejected no edges.
+
+    files:
+
+      - packs/009-all-rejected-no-edges/README.md
+
+      - packs/009-all-rejected-no-edges/intent.md
+
+      - packs/009-all-rejected-no-edges/input-shape.json
+
+      - packs/009-all-rejected-no-edges/expected-review.md
+
+      - packs/009-all-rejected-no-edges/scope-guards.md
+
+      - packs/009-all-rejected-no-edges/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - rejected
+
+    integration_status: not_integrated
+
+  - id: 010-mixed-accepted-and-rejected
+
+    title: mixed accepted and rejected
+
+    purpose: Synthetic prep scenario for mixed accepted and rejected.
+
+    files:
+
+      - packs/010-mixed-accepted-and-rejected/README.md
+
+      - packs/010-mixed-accepted-and-rejected/intent.md
+
+      - packs/010-mixed-accepted-and-rejected/input-shape.json
+
+      - packs/010-mixed-accepted-and-rejected/expected-review.md
+
+      - packs/010-mixed-accepted-and-rejected/scope-guards.md
+
+      - packs/010-mixed-accepted-and-rejected/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - accepted
+
+      - rejected
+
+      - mixed
+
+    integration_status: not_integrated
+
+  - id: 011-missing-local-interface
+
+    title: missing local interface
+
+    purpose: Synthetic prep scenario for missing local interface.
+
+    files:
+
+      - packs/011-missing-local-interface/README.md
+
+      - packs/011-missing-local-interface/intent.md
+
+      - packs/011-missing-local-interface/input-shape.json
+
+      - packs/011-missing-local-interface/expected-review.md
+
+      - packs/011-missing-local-interface/scope-guards.md
+
+      - packs/011-missing-local-interface/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 012-missing-remote-interface
+
+    title: missing remote interface
+
+    purpose: Synthetic prep scenario for missing remote interface.
+
+    files:
+
+      - packs/012-missing-remote-interface/README.md
+
+      - packs/012-missing-remote-interface/intent.md
+
+      - packs/012-missing-remote-interface/input-shape.json
+
+      - packs/012-missing-remote-interface/expected-review.md
+
+      - packs/012-missing-remote-interface/scope-guards.md
+
+      - packs/012-missing-remote-interface/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 013-manual-evidence-kind
+
+    title: manual evidence kind
+
+    purpose: Synthetic prep scenario for manual evidence kind.
+
+    files:
+
+      - packs/013-manual-evidence-kind/README.md
+
+      - packs/013-manual-evidence-kind/intent.md
+
+      - packs/013-manual-evidence-kind/input-shape.json
+
+      - packs/013-manual-evidence-kind/expected-review.md
+
+      - packs/013-manual-evidence-kind/scope-guards.md
+
+      - packs/013-manual-evidence-kind/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 014-config-neighbor-kind
+
+    title: config neighbor kind
+
+    purpose: Synthetic prep scenario for config neighbor kind.
+
+    files:
+
+      - packs/014-config-neighbor-kind/README.md
+
+      - packs/014-config-neighbor-kind/intent.md
+
+      - packs/014-config-neighbor-kind/input-shape.json
+
+      - packs/014-config-neighbor-kind/expected-review.md
+
+      - packs/014-config-neighbor-kind/scope-guards.md
+
+      - packs/014-config-neighbor-kind/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 015-evidence-source-label-filter
+
+    title: evidence source label filter
+
+    purpose: Synthetic prep scenario for evidence source label filter.
+
+    files:
+
+      - packs/015-evidence-source-label-filter/README.md
+
+      - packs/015-evidence-source-label-filter/intent.md
+
+      - packs/015-evidence-source-label-filter/input-shape.json
+
+      - packs/015-evidence-source-label-filter/expected-review.md
+
+      - packs/015-evidence-source-label-filter/scope-guards.md
+
+      - packs/015-evidence-source-label-filter/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - filter
+
+    integration_status: not_integrated
+
+  - id: 016-source-kind-filter
+
+    title: source kind filter
+
+    purpose: Synthetic prep scenario for source kind filter.
+
+    files:
+
+      - packs/016-source-kind-filter/README.md
+
+      - packs/016-source-kind-filter/intent.md
+
+      - packs/016-source-kind-filter/input-shape.json
+
+      - packs/016-source-kind-filter/expected-review.md
+
+      - packs/016-source-kind-filter/scope-guards.md
+
+      - packs/016-source-kind-filter/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - filter
+
+    integration_status: not_integrated
+
+  - id: 017-node-search-filter
+
+    title: node search filter
+
+    purpose: Synthetic prep scenario for node search filter.
+
+    files:
+
+      - packs/017-node-search-filter/README.md
+
+      - packs/017-node-search-filter/intent.md
+
+      - packs/017-node-search-filter/input-shape.json
+
+      - packs/017-node-search-filter/expected-review.md
+
+      - packs/017-node-search-filter/scope-guards.md
+
+      - packs/017-node-search-filter/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - filter
+
+    integration_status: not_integrated
+
+  - id: 018-interface-search-filter
+
+    title: interface search filter
+
+    purpose: Synthetic prep scenario for interface search filter.
+
+    files:
+
+      - packs/018-interface-search-filter/README.md
+
+      - packs/018-interface-search-filter/intent.md
+
+      - packs/018-interface-search-filter/input-shape.json
+
+      - packs/018-interface-search-filter/expected-review.md
+
+      - packs/018-interface-search-filter/scope-guards.md
+
+      - packs/018-interface-search-filter/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - filter
+
+    integration_status: not_integrated
+
+  - id: 019-edge-selection-inspector
+
+    title: edge selection inspector
+
+    purpose: Synthetic prep scenario for edge selection inspector.
+
+    files:
+
+      - packs/019-edge-selection-inspector/README.md
+
+      - packs/019-edge-selection-inspector/intent.md
+
+      - packs/019-edge-selection-inspector/input-shape.json
+
+      - packs/019-edge-selection-inspector/expected-review.md
+
+      - packs/019-edge-selection-inspector/scope-guards.md
+
+      - packs/019-edge-selection-inspector/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - inspector
+
+    integration_status: not_integrated
+
+  - id: 020-evidence-drilldown-expanded
+
+    title: evidence drilldown expanded
+
+    purpose: Synthetic prep scenario for evidence drilldown expanded.
+
+    files:
+
+      - packs/020-evidence-drilldown-expanded/README.md
+
+      - packs/020-evidence-drilldown-expanded/intent.md
+
+      - packs/020-evidence-drilldown-expanded/input-shape.json
+
+      - packs/020-evidence-drilldown-expanded/expected-review.md
+
+      - packs/020-evidence-drilldown-expanded/scope-guards.md
+
+      - packs/020-evidence-drilldown-expanded/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - inspector
+
+    integration_status: not_integrated
+
+  - id: 021-projection-stats-visible
+
+    title: projection stats visible
+
+    purpose: Synthetic prep scenario for projection stats visible.
+
+    files:
+
+      - packs/021-projection-stats-visible/README.md
+
+      - packs/021-projection-stats-visible/intent.md
+
+      - packs/021-projection-stats-visible/input-shape.json
+
+      - packs/021-projection-stats-visible/expected-review.md
+
+      - packs/021-projection-stats-visible/scope-guards.md
+
+      - packs/021-projection-stats-visible/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - stats
+
+    integration_status: not_integrated
+
+  - id: 022-evidence-stats-visible
+
+    title: evidence stats visible
+
+    purpose: Synthetic prep scenario for evidence stats visible.
+
+    files:
+
+      - packs/022-evidence-stats-visible/README.md
+
+      - packs/022-evidence-stats-visible/intent.md
+
+      - packs/022-evidence-stats-visible/input-shape.json
+
+      - packs/022-evidence-stats-visible/expected-review.md
+
+      - packs/022-evidence-stats-visible/scope-guards.md
+
+      - packs/022-evidence-stats-visible/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - stats
+
+    integration_status: not_integrated
+
+  - id: 023-empty-store-state
+
+    title: empty store state
+
+    purpose: Synthetic prep scenario for empty store state.
+
+    files:
+
+      - packs/023-empty-store-state/README.md
+
+      - packs/023-empty-store-state/intent.md
+
+      - packs/023-empty-store-state/input-shape.json
+
+      - packs/023-empty-store-state/expected-review.md
+
+      - packs/023-empty-store-state/scope-guards.md
+
+      - packs/023-empty-store-state/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - empty-state
+
+    integration_status: not_integrated
+
+  - id: 024-empty-inventory-state
+
+    title: empty inventory state
+
+    purpose: Synthetic prep scenario for empty inventory state.
+
+    files:
+
+      - packs/024-empty-inventory-state/README.md
+
+      - packs/024-empty-inventory-state/intent.md
+
+      - packs/024-empty-inventory-state/input-shape.json
+
+      - packs/024-empty-inventory-state/expected-review.md
+
+      - packs/024-empty-inventory-state/scope-guards.md
+
+      - packs/024-empty-inventory-state/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - empty-state
+
+    integration_status: not_integrated
+
+  - id: 025-store-present-no-edges
+
+    title: store present no edges
+
+    purpose: Synthetic prep scenario for store present no edges.
+
+    files:
+
+      - packs/025-store-present-no-edges/README.md
+
+      - packs/025-store-present-no-edges/intent.md
+
+      - packs/025-store-present-no-edges/input-shape.json
+
+      - packs/025-store-present-no-edges/expected-review.md
+
+      - packs/025-store-present-no-edges/scope-guards.md
+
+      - packs/025-store-present-no-edges/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 026-many-edges-density
+
+    title: many edges density
+
+    purpose: Synthetic prep scenario for many edges density.
+
+    files:
+
+      - packs/026-many-edges-density/README.md
+
+      - packs/026-many-edges-density/intent.md
+
+      - packs/026-many-edges-density/input-shape.json
+
+      - packs/026-many-edges-density/expected-review.md
+
+      - packs/026-many-edges-density/scope-guards.md
+
+      - packs/026-many-edges-density/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - density
+
+    integration_status: not_integrated
+
+  - id: 027-long-evidence-note-wrapping
+
+    title: long evidence note wrapping
+
+    purpose: Synthetic prep scenario for long evidence note wrapping.
+
+    files:
+
+      - packs/027-long-evidence-note-wrapping/README.md
+
+      - packs/027-long-evidence-note-wrapping/intent.md
+
+      - packs/027-long-evidence-note-wrapping/input-shape.json
+
+      - packs/027-long-evidence-note-wrapping/expected-review.md
+
+      - packs/027-long-evidence-note-wrapping/scope-guards.md
+
+      - packs/027-long-evidence-note-wrapping/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 028-conflicting-evidence-review
+
+    title: conflicting evidence review
+
+    purpose: Synthetic prep scenario for conflicting evidence review.
+
+    files:
+
+      - packs/028-conflicting-evidence-review/README.md
+
+      - packs/028-conflicting-evidence-review/intent.md
+
+      - packs/028-conflicting-evidence-review/input-shape.json
+
+      - packs/028-conflicting-evidence-review/expected-review.md
+
+      - packs/028-conflicting-evidence-review/scope-guards.md
+
+      - packs/028-conflicting-evidence-review/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 029-stale-evidence-labelled-not-promoted
+
+    title: stale evidence labelled not promoted
+
+    purpose: Synthetic prep scenario for stale evidence labelled not promoted.
+
+    files:
+
+      - packs/029-stale-evidence-labelled-not-promoted/README.md
+
+      - packs/029-stale-evidence-labelled-not-promoted/intent.md
+
+      - packs/029-stale-evidence-labelled-not-promoted/input-shape.json
+
+      - packs/029-stale-evidence-labelled-not-promoted/expected-review.md
+
+      - packs/029-stale-evidence-labelled-not-promoted/scope-guards.md
+
+      - packs/029-stale-evidence-labelled-not-promoted/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+    integration_status: not_integrated
+
+  - id: 030-graph-ready-node-edge-shape
+
+    title: graph ready node edge shape
+
+    purpose: Synthetic prep scenario for graph ready node edge shape.
+
+    files:
+
+      - packs/030-graph-ready-node-edge-shape/README.md
+
+      - packs/030-graph-ready-node-edge-shape/intent.md
+
+      - packs/030-graph-ready-node-edge-shape/input-shape.json
+
+      - packs/030-graph-ready-node-edge-shape/expected-review.md
+
+      - packs/030-graph-ready-node-edge-shape/scope-guards.md
+
+      - packs/030-graph-ready-node-edge-shape/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - graph-ready
+
+    integration_status: not_integrated
+
+  - id: 031-graph-ready-no-renderer
+
+    title: graph ready no renderer
+
+    purpose: Synthetic prep scenario for graph ready no renderer.
+
+    files:
+
+      - packs/031-graph-ready-no-renderer/README.md
+
+      - packs/031-graph-ready-no-renderer/intent.md
+
+      - packs/031-graph-ready-no-renderer/input-shape.json
+
+      - packs/031-graph-ready-no-renderer/expected-review.md
+
+      - packs/031-graph-ready-no-renderer/scope-guards.md
+
+      - packs/031-graph-ready-no-renderer/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - graph-ready
+
+    integration_status: not_integrated
+
+  - id: 032-live-collection-deferred-guard
+
+    title: live collection deferred guard
+
+    purpose: Synthetic prep scenario for live collection deferred guard.
+
+    files:
+
+      - packs/032-live-collection-deferred-guard/README.md
+
+      - packs/032-live-collection-deferred-guard/intent.md
+
+      - packs/032-live-collection-deferred-guard/input-shape.json
+
+      - packs/032-live-collection-deferred-guard/expected-review.md
+
+      - packs/032-live-collection-deferred-guard/scope-guards.md
+
+      - packs/032-live-collection-deferred-guard/test-notes.md
+
+    tags:
+
+      - review-surface
+
+      - graph-ready
+
+      - display-only
+
+      - synthetic
+
+      - guard
+
+    integration_status: not_integrated

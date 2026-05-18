@@ -1,0 +1,52 @@
+{
+  "synthetic": true,
+  "sanitised": true,
+  "scope": "prep_only",
+  "integration_status": "not_integrated",
+  "status": "prep_ready",
+  "scenario": "The inventory is empty, so exact resolution cannot promote edges.",
+  "corpus": "topology_edge_review",
+  "review_surface": {
+    "filters": {},
+    "conflicting_evidence": [],
+    "platform_family": "topology-edge-review",
+    "platform": "topology-edge-review",
+    "rejected_evidence": [
+      {
+        "status": "rejected",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "source_label": "empty-inventory",
+        "note": "Empty inventory prevents exact resolution.",
+        "rejection_reason": "unknown_local_node",
+        "platform": "topology-edge-review",
+        "source_kind": "LLDP",
+        "evidence_id": "evidence-024a"
+      }
+    ],
+    "projected_edges": [],
+    "stale_evidence": [],
+    "vendor": "Mixed",
+    "current_edges": [],
+    "evidenceStats": {
+      "rejected": 1,
+      "total": 1,
+      "accepted": 0
+    },
+    "inventory_state": "empty",
+    "state": "empty",
+    "projectionStats": {
+      "stale": 0,
+      "duplicate_collapsed": 0,
+      "conflicted": 0,
+      "accepted": 0,
+      "rejected": 1
+    },
+    "store_state": "loaded",
+    "accepted_evidence": []
+  },
+  "stage_target": "V1AS",
+  "title": "Empty inventory state",
+  "pack_id": "024-empty-inventory-state"
+}
+

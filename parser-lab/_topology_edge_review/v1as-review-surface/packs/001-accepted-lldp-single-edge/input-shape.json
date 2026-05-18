@@ -1,0 +1,78 @@
+{
+  "stage_target": "V1AS",
+  "scope": "prep_only",
+  "sanitised": true,
+  "scenario": "One LLDP-backed projected edge is accepted and selected.",
+  "pack_id": "001-accepted-lldp-single-edge",
+  "review_surface": {
+    "rejected_evidence": [],
+    "projected_edges": [
+      {
+        "status": "accepted",
+        "source_label": "review-1",
+        "remote_node": "spine-b1",
+        "edge_id": "edge-001",
+        "local_interface": "Ethernet1/1",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "source_kind": "LLDP",
+        "platform": "topology-edge-review",
+        "remote_interface": "Ethernet1/49",
+        "vendor": "Mixed"
+      }
+    ],
+    "current_edges": [
+      {
+        "status": "accepted",
+        "source_label": "review-1",
+        "remote_node": "spine-b1",
+        "edge_id": "edge-001",
+        "local_interface": "Ethernet1/1",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "source_kind": "LLDP",
+        "platform": "topology-edge-review",
+        "remote_interface": "Ethernet1/49",
+        "vendor": "Mixed"
+      }
+    ],
+    "evidenceStats": {
+      "total": 1,
+      "rejected": 0,
+      "accepted": 1
+    },
+    "state": "accepted",
+    "projectionStats": {
+      "duplicate_collapsed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "conflicted": 0,
+      "accepted": 1
+    },
+    "filters": {
+      "source_kind": "LLDP",
+      "rejection_state": "accepted"
+    },
+    "platform_family": "topology-edge-review",
+    "accepted_evidence": [
+      {
+        "source_label": "review-1",
+        "platform_family": "topology-edge-review",
+        "evidence_id": "evidence-001",
+        "note": "Exact resolver matched by hostname or record_id only.",
+        "vendor": "Mixed",
+        "source_kind": "LLDP",
+        "status": "accepted",
+        "platform": "topology-edge-review"
+      }
+    ],
+    "platform": "topology-edge-review",
+    "vendor": "Mixed"
+  },
+  "status": "prep_ready",
+  "integration_status": "not_integrated",
+  "synthetic": true,
+  "corpus": "topology_edge_review",
+  "title": "Accepted LLDP single edge"
+}
+

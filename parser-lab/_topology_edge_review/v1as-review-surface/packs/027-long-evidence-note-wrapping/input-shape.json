@@ -1,0 +1,77 @@
+{
+  "title": "Long evidence note wrapping",
+  "scope": "prep_only",
+  "synthetic": true,
+  "scenario": "A very long evidence note wraps or truncates without losing identity.",
+  "stage_target": "V1AS",
+  "pack_id": "027-long-evidence-note-wrapping",
+  "review_surface": {
+    "projected_edges": [
+      {
+        "platform_family": "topology-edge-review",
+        "source_kind": "LLDP",
+        "remote_interface": "Ethernet1/49",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "status": "accepted",
+        "vendor": "Mixed"
+      }
+    ],
+    "conflicting_evidence": [],
+    "state": "long-note",
+    "current_edges": [
+      {
+        "platform_family": "topology-edge-review",
+        "source_kind": "LLDP",
+        "remote_interface": "Ethernet1/49",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "status": "accepted",
+        "vendor": "Mixed"
+      }
+    ],
+    "vendor": "Mixed",
+    "accepted_evidence": [
+      {
+        "note": "This is a deliberately long note to exercise wrapping and truncation behaviour in the edge review surface. It should remain readable, keep the evidence identity stable, and avoid collapsing into a hidden blob of text that makes the inspector unusable. The note is synthetic and sanitised, and it is only here to show that a long operator note can be displayed honestly without changing any truth fields.",
+        "status": "accepted",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "source_label": "long-note",
+        "source_kind": "LLDP",
+        "evidence_id": "evidence-027a"
+      }
+    ],
+    "platform_family": "topology-edge-review",
+    "platform": "topology-edge-review",
+    "rejected_evidence": [],
+    "stale_evidence": [],
+    "evidenceStats": {
+      "rejected": 0,
+      "total": 1,
+      "accepted": 1
+    },
+    "filters": {},
+    "projectionStats": {
+      "rejected": 0,
+      "conflicted": 0,
+      "duplicate_collapsed": 0,
+      "accepted": 1,
+      "stale": 0
+    }
+  },
+  "integration_status": "not_integrated",
+  "sanitised": true,
+  "status": "prep_ready",
+  "corpus": "topology_edge_review"
+}
+

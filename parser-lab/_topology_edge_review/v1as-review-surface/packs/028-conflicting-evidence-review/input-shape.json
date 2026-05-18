@@ -1,0 +1,103 @@
+{
+  "title": "Conflicting evidence review",
+  "scope": "prep_only",
+  "synthetic": true,
+  "scenario": "Conflicting evidence stays visible beside the selected edge.",
+  "stage_target": "V1AS",
+  "pack_id": "028-conflicting-evidence-review",
+  "review_surface": {
+    "projected_edges": [
+      {
+        "platform_family": "topology-edge-review",
+        "source_kind": "Mixed",
+        "remote_interface": "Ethernet1/49",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "status": "accepted",
+        "vendor": "Mixed"
+      }
+    ],
+    "conflicting_evidence": [
+      {
+        "evidence_id": "evidence-028a",
+        "source_kind": "LLDP",
+        "rejection_reason": "conflicting_remote_endpoint",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "note": "Conflicting remote endpoint stays visible.",
+        "source_label": "conflict-a",
+        "status": "rejected",
+        "vendor": "Mixed"
+      }
+    ],
+    "state": "mixed",
+    "current_edges": [
+      {
+        "platform_family": "topology-edge-review",
+        "source_kind": "Mixed",
+        "remote_interface": "Ethernet1/49",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "status": "accepted",
+        "vendor": "Mixed"
+      }
+    ],
+    "vendor": "Mixed",
+    "accepted_evidence": [
+      {
+        "note": "Accepted evidence promotes one current edge.",
+        "status": "accepted",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "source_label": "mixed-accepted",
+        "source_kind": "LLDP",
+        "evidence_id": "evidence-010a"
+      }
+    ],
+    "platform_family": "topology-edge-review",
+    "platform": "topology-edge-review",
+    "rejected_evidence": [
+      {
+        "evidence_id": "evidence-028a",
+        "source_kind": "LLDP",
+        "rejection_reason": "conflicting_remote_endpoint",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "note": "Conflicting remote endpoint stays visible.",
+        "source_label": "conflict-a",
+        "status": "rejected",
+        "vendor": "Mixed"
+      }
+    ],
+    "stale_evidence": [],
+    "evidenceStats": {
+      "rejected": 1,
+      "total": 2,
+      "accepted": 1
+    },
+    "filters": {
+      "rejection_state": "mixed"
+    },
+    "projectionStats": {
+      "rejected": 1,
+      "conflicted": 1,
+      "duplicate_collapsed": 0,
+      "accepted": 1,
+      "stale": 0
+    }
+  },
+  "integration_status": "not_integrated",
+  "sanitised": true,
+  "status": "prep_ready",
+  "corpus": "topology_edge_review"
+}
+

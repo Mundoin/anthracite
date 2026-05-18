@@ -1,0 +1,103 @@
+{
+  "synthetic": true,
+  "sanitised": true,
+  "pack_id": "019-edge-selection-inspector",
+  "scope": "prep_only",
+  "integration_status": "not_integrated",
+  "review_surface": {
+    "evidence_drilldown": [
+      {
+        "source_kind": "LLDP",
+        "note": "Selected edge inspector keeps the evidence visible.",
+        "evidence_id": "evidence-019a",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "status": "accepted",
+        "source_label": "selected-a"
+      },
+      {
+        "source_kind": "CDP",
+        "note": "Selected edge inspector keeps the evidence visible.",
+        "evidence_id": "evidence-019b",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "status": "accepted",
+        "source_label": "selected-b"
+      }
+    ],
+    "current_edges": [
+      {
+        "local_interface": "Ethernet1/1",
+        "source_kind": "Mixed",
+        "source_label": "review-1",
+        "status": "accepted",
+        "remote_node": "spine-b1",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "edge_id": "edge-001",
+        "remote_interface": "Ethernet1/49"
+      }
+    ],
+    "stale_evidence": [],
+    "selected_edge": {
+      "local_interface": "Ethernet1/1",
+      "source_kind": "Mixed",
+      "source_label": "review-1",
+      "status": "accepted",
+      "remote_node": "spine-b1",
+      "vendor": "Mixed",
+      "platform": "topology-edge-review",
+      "local_node": "leaf-a1",
+      "platform_family": "topology-edge-review",
+      "edge_id": "edge-001",
+      "remote_interface": "Ethernet1/49"
+    },
+    "rejected_evidence": [],
+    "projectionStats": {
+      "conflicted": 0,
+      "stale": 0,
+      "rejected": 0,
+      "accepted": 1,
+      "duplicate_collapsed": 0
+    },
+    "platform": "topology-edge-review",
+    "evidenceStats": {
+      "total": 2,
+      "rejected": 0,
+      "accepted": 2
+    },
+    "vendor": "Mixed",
+    "platform_family": "topology-edge-review",
+    "state": "inspector",
+    "conflicting_evidence": [],
+    "filters": {
+      "selected_edge": "edge-001"
+    },
+    "accepted_evidence": [],
+    "projected_edges": [
+      {
+        "local_interface": "Ethernet1/1",
+        "source_kind": "Mixed",
+        "source_label": "review-1",
+        "status": "accepted",
+        "remote_node": "spine-b1",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "edge_id": "edge-001",
+        "remote_interface": "Ethernet1/49"
+      }
+    ]
+  },
+  "status": "prep_ready",
+  "corpus": "topology_edge_review",
+  "scenario": "A selected edge stays visible in the inspector with its evidence.",
+  "stage_target": "V1AS",
+  "title": "Edge selection inspector"
+}
+

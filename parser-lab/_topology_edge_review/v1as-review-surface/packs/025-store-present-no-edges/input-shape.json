@@ -1,0 +1,52 @@
+{
+  "title": "Store present, no edges",
+  "scope": "prep_only",
+  "synthetic": true,
+  "scenario": "The store is present, but no projected edges are available.",
+  "stage_target": "V1AS",
+  "pack_id": "025-store-present-no-edges",
+  "review_surface": {
+    "projected_edges": [],
+    "conflicting_evidence": [],
+    "state": "empty",
+    "current_edges": [],
+    "store_state": "loaded",
+    "vendor": "Mixed",
+    "accepted_evidence": [],
+    "platform_family": "topology-edge-review",
+    "platform": "topology-edge-review",
+    "rejected_evidence": [
+      {
+        "evidence_id": "evidence-025a",
+        "source_kind": "LLDP",
+        "rejection_reason": "insufficient_evidence",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "note": "Evidence exists but no edge is promoted.",
+        "source_label": "no-edges",
+        "status": "rejected",
+        "vendor": "Mixed"
+      }
+    ],
+    "inventory_state": "loaded",
+    "stale_evidence": [],
+    "evidenceStats": {
+      "rejected": 1,
+      "total": 1,
+      "accepted": 0
+    },
+    "filters": {},
+    "projectionStats": {
+      "rejected": 1,
+      "conflicted": 0,
+      "duplicate_collapsed": 0,
+      "accepted": 0,
+      "stale": 0
+    }
+  },
+  "integration_status": "not_integrated",
+  "sanitised": true,
+  "status": "prep_ready",
+  "corpus": "topology_edge_review"
+}
+

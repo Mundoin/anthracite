@@ -1,0 +1,91 @@
+{
+  "review_surface": {
+    "evidenceStats": {
+      "total": 2,
+      "accepted": 1,
+      "rejected": 1
+    },
+    "projected_edges": [
+      {
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "vendor": "Mixed",
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "local_node": "leaf-a1",
+        "platform": "topology-edge-review",
+        "platform_family": "topology-edge-review",
+        "source_kind": "Mixed",
+        "remote_interface": "Ethernet1/49",
+        "status": "accepted"
+      }
+    ],
+    "platform_family": "topology-edge-review",
+    "filters": {
+      "rejection_state": "mixed"
+    },
+    "state": "mixed",
+    "conflicting_evidence": [],
+    "current_edges": [
+      {
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "vendor": "Mixed",
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "local_node": "leaf-a1",
+        "platform": "topology-edge-review",
+        "platform_family": "topology-edge-review",
+        "source_kind": "Mixed",
+        "remote_interface": "Ethernet1/49",
+        "status": "accepted"
+      }
+    ],
+    "vendor": "Mixed",
+    "accepted_evidence": [
+      {
+        "source_label": "mixed-accepted",
+        "platform_family": "topology-edge-review",
+        "status": "accepted",
+        "evidence_id": "evidence-010a",
+        "note": "Accepted evidence promotes one current edge.",
+        "platform": "topology-edge-review",
+        "source_kind": "LLDP",
+        "vendor": "Mixed"
+      }
+    ],
+    "platform": "topology-edge-review",
+    "projectionStats": {
+      "conflicted": 0,
+      "rejected": 1,
+      "stale": 0,
+      "accepted": 1,
+      "duplicate_collapsed": 0
+    },
+    "stale_evidence": [],
+    "rejected_evidence": [
+      {
+        "platform": "topology-edge-review",
+        "note": "Rejected evidence stays visible.",
+        "source_label": "mixed-rejected",
+        "vendor": "Mixed",
+        "rejection_reason": "unknown_remote_node",
+        "platform_family": "topology-edge-review",
+        "source_kind": "CDP",
+        "evidence_id": "evidence-010b",
+        "status": "rejected"
+      }
+    ]
+  },
+  "stage_target": "V1AS",
+  "scope": "prep_only",
+  "sanitised": true,
+  "corpus": "topology_edge_review",
+  "title": "Mixed accepted and rejected",
+  "synthetic": true,
+  "integration_status": "not_integrated",
+  "scenario": "Accepted and rejected evidence appear together in one review state.",
+  "status": "prep_ready",
+  "pack_id": "010-mixed-accepted-and-rejected"
+}
+

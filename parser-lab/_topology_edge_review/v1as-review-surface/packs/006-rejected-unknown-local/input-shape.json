@@ -1,0 +1,36 @@
+{
+  "stage_target": "V1AS",
+  "scope": "prep_only",
+  "sanitised": true,
+  "scenario": "The resolver cannot match the local node, so nothing is promoted.",
+  "pack_id": "006-rejected-unknown-local",
+  "review_surface": {
+    "rejected_evidence": [],
+    "projected_edges": [],
+    "current_edges": [],
+    "evidenceStats": {
+      "total": 0,
+      "rejected": 0,
+      "accepted": 0
+    },
+    "state": "rejected",
+    "projectionStats": {
+      "duplicate_collapsed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "conflicted": 0,
+      "accepted": 0
+    },
+    "filters": {},
+    "platform_family": "topology-edge-review",
+    "accepted_evidence": [],
+    "platform": "topology-edge-review",
+    "vendor": "Mixed"
+  },
+  "status": "prep_ready",
+  "integration_status": "not_integrated",
+  "synthetic": true,
+  "corpus": "topology_edge_review",
+  "title": "Rejected unknown local"
+}
+

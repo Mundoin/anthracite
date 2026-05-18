@@ -1,0 +1,40 @@
+{
+  "synthetic": true,
+  "sanitised": true,
+  "scope": "prep_only",
+  "integration_status": "not_integrated",
+  "status": "prep_ready",
+  "scenario": "The store is empty and no evidence has been loaded yet.",
+  "corpus": "topology_edge_review",
+  "review_surface": {
+    "filters": {},
+    "conflicting_evidence": [],
+    "platform_family": "topology-edge-review",
+    "platform": "topology-edge-review",
+    "rejected_evidence": [],
+    "projected_edges": [],
+    "stale_evidence": [],
+    "vendor": "Mixed",
+    "current_edges": [],
+    "evidenceStats": {
+      "rejected": 0,
+      "total": 0,
+      "accepted": 0
+    },
+    "inventory_state": "loaded",
+    "state": "empty",
+    "projectionStats": {
+      "stale": 0,
+      "duplicate_collapsed": 0,
+      "conflicted": 0,
+      "accepted": 0,
+      "rejected": 0
+    },
+    "store_state": "empty",
+    "accepted_evidence": []
+  },
+  "stage_target": "V1AS",
+  "title": "Empty store state",
+  "pack_id": "023-empty-store-state"
+}
+

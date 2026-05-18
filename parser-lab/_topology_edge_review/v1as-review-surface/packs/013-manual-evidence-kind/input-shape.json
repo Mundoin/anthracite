@@ -1,0 +1,152 @@
+{
+  "review_surface": {
+    "stale_evidence": [],
+    "conflicting_evidence": [],
+    "projected_edges": [
+      {
+        "source_label": "review-1",
+        "status": "accepted",
+        "local_node": "leaf-a1",
+        "edge_id": "edge-001",
+        "remote_interface": "Ethernet1/49",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "source_kind": "manual"
+      },
+      {
+        "source_label": "source-b",
+        "status": "accepted",
+        "local_node": "leaf-a2",
+        "edge_id": "edge-002",
+        "remote_interface": "Ethernet1/50",
+        "local_interface": "Ethernet1/2",
+        "remote_node": "spine-b2",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "source_kind": "CDP"
+      },
+      {
+        "source_label": "node-a",
+        "status": "accepted",
+        "local_node": "leaf-a3",
+        "edge_id": "edge-003",
+        "remote_interface": "Ethernet1/51",
+        "local_interface": "Ethernet1/3",
+        "remote_node": "spine-b3",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "source_kind": "manual"
+      }
+    ],
+    "accepted_evidence": [
+      {
+        "source_kind": "LLDP",
+        "status": "accepted",
+        "platform_family": "topology-edge-review",
+        "source_label": "source-a",
+        "note": "Filter state keeps the matching source label visible.",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "evidence_id": "evidence-015a"
+      },
+      {
+        "source_kind": "CDP",
+        "status": "accepted",
+        "platform_family": "topology-edge-review",
+        "source_label": "source-b",
+        "note": "Filter state keeps the matching source kind visible.",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "evidence_id": "evidence-016a"
+      },
+      {
+        "source_kind": "manual",
+        "status": "accepted",
+        "platform_family": "topology-edge-review",
+        "source_label": "node-a",
+        "note": "Filter state keeps the matching node visible.",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "evidence_id": "evidence-017a"
+      }
+    ],
+    "current_edges": [
+      {
+        "source_label": "review-1",
+        "status": "accepted",
+        "local_node": "leaf-a1",
+        "edge_id": "edge-001",
+        "remote_interface": "Ethernet1/49",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "source_kind": "manual"
+      },
+      {
+        "source_label": "source-b",
+        "status": "accepted",
+        "local_node": "leaf-a2",
+        "edge_id": "edge-002",
+        "remote_interface": "Ethernet1/50",
+        "local_interface": "Ethernet1/2",
+        "remote_node": "spine-b2",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "source_kind": "CDP"
+      },
+      {
+        "source_label": "node-a",
+        "status": "accepted",
+        "local_node": "leaf-a3",
+        "edge_id": "edge-003",
+        "remote_interface": "Ethernet1/51",
+        "local_interface": "Ethernet1/3",
+        "remote_node": "spine-b3",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "platform": "topology-edge-review",
+        "source_kind": "manual"
+      }
+    ],
+    "rejected_evidence": [],
+    "platform_family": "topology-edge-review",
+    "evidenceStats": {
+      "rejected": 0,
+      "total": 3,
+      "accepted": 3
+    },
+    "projectionStats": {
+      "conflicted": 0,
+      "stale": 0,
+      "rejected": 0,
+      "accepted": 3,
+      "duplicate_collapsed": 0
+    },
+    "state": "filter",
+    "filters": {
+      "source_kind": "manual",
+      "exact_match": true
+    },
+    "platform": "topology-edge-review",
+    "vendor": "Mixed"
+  },
+  "title": "Manual evidence kind",
+  "corpus": "topology_edge_review",
+  "scope": "prep_only",
+  "status": "prep_ready",
+  "stage_target": "V1AS",
+  "scenario": "Manual evidence is present and can be filtered exactly.",
+  "sanitised": true,
+  "integration_status": "not_integrated",
+  "pack_id": "013-manual-evidence-kind",
+  "synthetic": true
+}
+

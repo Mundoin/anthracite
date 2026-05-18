@@ -1,0 +1,102 @@
+{
+  "title": "Graph-ready no renderer",
+  "stage_target": "V1AS",
+  "synthetic": true,
+  "review_surface": {
+    "projectionStats": {
+      "conflicted": 0,
+      "rejected": 0,
+      "duplicate_collapsed": 0,
+      "accepted": 1,
+      "stale": 0
+    },
+    "current_edges": [
+      {
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "remote_interface": "Ethernet1/49",
+        "source_kind": "LLDP",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "vendor": "Mixed",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "status": "accepted"
+      }
+    ],
+    "accepted_evidence": [],
+    "rejected_evidence": [],
+    "filters": {},
+    "evidenceStats": {
+      "total": 1,
+      "rejected": 0,
+      "accepted": 1
+    },
+    "vendor": "Mixed",
+    "graph_ready": {
+      "coordinates": "not_required",
+      "layout_engine": "absent",
+      "nodes": [
+        {
+          "node_id": "node-leaf-a1",
+          "vendor": "Mixed",
+          "platform": "topology-edge-review",
+          "platform_family": "topology-edge-review",
+          "label": "leaf-a1"
+        },
+        {
+          "node_id": "node-spine-b1",
+          "vendor": "Mixed",
+          "platform": "topology-edge-review",
+          "platform_family": "topology-edge-review",
+          "label": "spine-b1"
+        }
+      ],
+      "renderer_state": "absent",
+      "edges": [
+        {
+          "edge_id": "graph-edge-030",
+          "source_label": "graph-ready",
+          "target_node_id": "node-spine-b1",
+          "source_kind": "LLDP",
+          "platform": "topology-edge-review",
+          "source_node_id": "node-leaf-a1",
+          "platform_family": "topology-edge-review",
+          "vendor": "Mixed",
+          "local_interface": "Ethernet1/1",
+          "remote_interface": "Ethernet1/49",
+          "status": "accepted"
+        }
+      ]
+    },
+    "platform": "topology-edge-review",
+    "platform_family": "topology-edge-review",
+    "stale_evidence": [],
+    "conflicting_evidence": [],
+    "projected_edges": [
+      {
+        "edge_id": "edge-001",
+        "source_label": "review-1",
+        "remote_interface": "Ethernet1/49",
+        "source_kind": "LLDP",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "vendor": "Mixed",
+        "local_interface": "Ethernet1/1",
+        "remote_node": "spine-b1",
+        "status": "accepted"
+      }
+    ],
+    "state": "graph-ready"
+  },
+  "corpus": "topology_edge_review",
+  "scope": "prep_only",
+  "scenario": "Graph-ready data is exposed, but no canvas or layout engine mounts.",
+  "sanitised": true,
+  "integration_status": "not_integrated",
+  "pack_id": "031-graph-ready-no-renderer",
+  "status": "prep_ready"
+}
+

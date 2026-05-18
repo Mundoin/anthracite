@@ -1,0 +1,64 @@
+{
+  "review_surface": {
+    "evidenceStats": {
+      "total": 2,
+      "accepted": 0,
+      "rejected": 2
+    },
+    "projected_edges": [],
+    "platform_family": "topology-edge-review",
+    "filters": {
+      "rejection_state": "rejected",
+      "reason": "insufficient_evidence"
+    },
+    "state": "rejected",
+    "conflicting_evidence": [],
+    "current_edges": [],
+    "vendor": "Mixed",
+    "accepted_evidence": [],
+    "platform": "topology-edge-review",
+    "projectionStats": {
+      "conflicted": 0,
+      "rejected": 2,
+      "stale": 0,
+      "accepted": 0,
+      "duplicate_collapsed": 0
+    },
+    "stale_evidence": [],
+    "rejected_evidence": [
+      {
+        "platform": "topology-edge-review",
+        "note": "All evidence stayed rejected.",
+        "source_label": "reject-a",
+        "vendor": "Mixed",
+        "rejection_reason": "insufficient_evidence",
+        "platform_family": "topology-edge-review",
+        "source_kind": "LLDP",
+        "evidence_id": "evidence-009a",
+        "status": "rejected"
+      },
+      {
+        "platform": "topology-edge-review",
+        "note": "All evidence stayed rejected.",
+        "source_label": "reject-b",
+        "vendor": "Mixed",
+        "rejection_reason": "insufficient_evidence",
+        "platform_family": "topology-edge-review",
+        "source_kind": "CDP",
+        "evidence_id": "evidence-009b",
+        "status": "rejected"
+      }
+    ]
+  },
+  "stage_target": "V1AS",
+  "scope": "prep_only",
+  "sanitised": true,
+  "corpus": "topology_edge_review",
+  "title": "All rejected, no edges",
+  "synthetic": true,
+  "integration_status": "not_integrated",
+  "scenario": "All evidence remains rejected and no edge is promoted.",
+  "status": "prep_ready",
+  "pack_id": "009-all-rejected-no-edges"
+}
+

@@ -1,0 +1,168 @@
+{
+  "synthetic": true,
+  "sanitised": true,
+  "pack_id": "018-interface-search-filter",
+  "scope": "prep_only",
+  "integration_status": "not_integrated",
+  "review_surface": {
+    "current_edges": [
+      {
+        "local_interface": "Ethernet1/1",
+        "source_kind": "Mixed",
+        "source_label": "review-1",
+        "status": "accepted",
+        "remote_node": "spine-b1",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "edge_id": "edge-001",
+        "remote_interface": "Ethernet1/49"
+      },
+      {
+        "local_interface": "Ethernet1/2",
+        "source_kind": "CDP",
+        "source_label": "source-b",
+        "status": "accepted",
+        "remote_node": "spine-b2",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a2",
+        "platform_family": "topology-edge-review",
+        "edge_id": "edge-002",
+        "remote_interface": "Ethernet1/50"
+      },
+      {
+        "local_interface": "Ethernet1/3",
+        "source_kind": "manual",
+        "source_label": "node-a",
+        "status": "accepted",
+        "remote_node": "spine-b3",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a3",
+        "platform_family": "topology-edge-review",
+        "edge_id": "edge-003",
+        "remote_interface": "Ethernet1/51"
+      }
+    ],
+    "visible_edges": [
+      {
+        "local_interface": "Ethernet1/1",
+        "source_kind": "Mixed",
+        "source_label": "review-1",
+        "status": "accepted",
+        "remote_node": "spine-b1",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "edge_id": "edge-001",
+        "remote_interface": "Ethernet1/49"
+      }
+    ],
+    "stale_evidence": [],
+    "rejected_evidence": [],
+    "projectionStats": {
+      "conflicted": 0,
+      "stale": 0,
+      "rejected": 0,
+      "accepted": 3,
+      "duplicate_collapsed": 0
+    },
+    "platform": "topology-edge-review",
+    "evidenceStats": {
+      "total": 3,
+      "rejected": 0,
+      "accepted": 3
+    },
+    "vendor": "Mixed",
+    "platform_family": "topology-edge-review",
+    "state": "filter",
+    "conflicting_evidence": [],
+    "filters": {
+      "exact_match": true,
+      "source_kind": "LLDP",
+      "source_label": "source-a"
+    },
+    "accepted_evidence": [
+      {
+        "source_kind": "LLDP",
+        "note": "Filter state keeps the matching source label visible.",
+        "evidence_id": "evidence-015a",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "status": "accepted",
+        "source_label": "source-a"
+      },
+      {
+        "source_kind": "CDP",
+        "note": "Filter state keeps the matching source kind visible.",
+        "evidence_id": "evidence-016a",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "status": "accepted",
+        "source_label": "source-b"
+      },
+      {
+        "source_kind": "manual",
+        "note": "Filter state keeps the matching node visible.",
+        "evidence_id": "evidence-017a",
+        "platform": "topology-edge-review",
+        "vendor": "Mixed",
+        "platform_family": "topology-edge-review",
+        "status": "accepted",
+        "source_label": "node-a"
+      }
+    ],
+    "projected_edges": [
+      {
+        "local_interface": "Ethernet1/1",
+        "source_kind": "Mixed",
+        "source_label": "review-1",
+        "status": "accepted",
+        "remote_node": "spine-b1",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a1",
+        "platform_family": "topology-edge-review",
+        "edge_id": "edge-001",
+        "remote_interface": "Ethernet1/49"
+      },
+      {
+        "local_interface": "Ethernet1/2",
+        "source_kind": "CDP",
+        "source_label": "source-b",
+        "status": "accepted",
+        "remote_node": "spine-b2",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a2",
+        "platform_family": "topology-edge-review",
+        "edge_id": "edge-002",
+        "remote_interface": "Ethernet1/50"
+      },
+      {
+        "local_interface": "Ethernet1/3",
+        "source_kind": "manual",
+        "source_label": "node-a",
+        "status": "accepted",
+        "remote_node": "spine-b3",
+        "vendor": "Mixed",
+        "platform": "topology-edge-review",
+        "local_node": "leaf-a3",
+        "platform_family": "topology-edge-review",
+        "edge_id": "edge-003",
+        "remote_interface": "Ethernet1/51"
+      }
+    ]
+  },
+  "status": "prep_ready",
+  "corpus": "topology_edge_review",
+  "scenario": "Interface search narrows the table by exact interface identity.",
+  "stage_target": "V1AS",
+  "title": "Interface search filter"
+}
+
