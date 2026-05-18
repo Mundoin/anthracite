@@ -1,0 +1,73 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic collision corpus
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic collision corpus
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic multiple neighbours on one local interface bundle
+Local Interface: Ethernet1/1
+Remote System: multi-neighbour-a
+Remote Port: Ethernet1/49
+--- second neighbour on same local interface ---
+Local Interface: Ethernet1/1
+Remote System: multi-neighbour-b
+Remote Port: Ethernet1/50
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic collision corpus
+
+### section: duplicate
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# rejection reason: duplicate_collapsed
+Synthetic multiple neighbours on one local interface bundle
+Local Interface: Ethernet1/1
+Remote System: multi-neighbour-a
+Remote Port: Ethernet1/49
+--- second neighbour on same local interface ---
+Local Interface: Ethernet1/1
+Remote System: multi-neighbour-b
+Remote Port: Ethernet1/50
+
+Expected import behaviour: duplicate_collapsed; reason=duplicate_collapsed; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic collision corpus
+
+### section: reject
+# source: synthetic
+# expected outcome: conflicting_remote_endpoint
+# rejection reason: conflicting_remote_endpoint
+Synthetic multiple neighbours on one local interface bundle
+Local Interface: Ethernet1/1
+Remote System: multi-neighbour-a
+Remote Port: Ethernet1/49
+--- second neighbour on same local interface ---
+Local Interface: Ethernet1/1
+Remote System: multi-neighbour-b
+Remote Port: Ethernet1/50
+
+Expected import behaviour: conflicting_remote_endpoint; reason=conflicting_remote_endpoint; exact inventory matching only.
+

@@ -1,0 +1,67 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: MikroTik
+# platform: RouterOS
+# command: /ip neighbor print
+# note: lower-confidence neighbour-discovery source
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: MikroTik
+# platform: RouterOS
+# command: /ip neighbor print
+# note: lower-confidence neighbour-discovery source
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+/ip neighbor print
+Flags: R
+Address: 192.0.2.34
+Identity: mikrotik-core-01
+Interface: ether1
+Protocol: neighbour-discovery
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: MikroTik
+# platform: RouterOS
+# command: /ip neighbor print
+# note: lower-confidence neighbour-discovery source
+
+### section: duplicate
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# rejection reason: duplicate_collapsed
+/ip neighbor print
+Flags: R
+Address: 192.0.2.34
+Identity: mikrotik-core-01
+Interface: ether1
+Protocol: neighbour-discovery
+
+Expected import behaviour: duplicate_collapsed; reason=duplicate_collapsed; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: MikroTik
+# platform: RouterOS
+# command: /ip neighbor print
+# note: lower-confidence neighbour-discovery source
+
+### section: reject
+# source: synthetic
+# expected outcome: conflicting_remote_endpoint
+# rejection reason: conflicting_remote_endpoint
+/ip neighbor print
+Flags: R
+Address: 192.0.2.34
+Identity: mikrotik-core-01
+Interface: ether1
+Protocol: neighbour-discovery
+
+Expected import behaviour: conflicting_remote_endpoint; reason=conflicting_remote_endpoint; exact inventory matching only.
+

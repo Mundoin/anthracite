@@ -1,0 +1,67 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: MikroTik
+# platform: RouterOS
+# command: /interface lldp neighbors print
+# note: illustrative synthetic lower-confidence payload
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: MikroTik
+# platform: RouterOS
+# command: /interface lldp neighbors print
+# note: illustrative synthetic lower-confidence payload
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+# note: illustrative synthetic lower-confidence payload.
+/interface lldp neighbors print
+Local Interface: ether1
+Remote Device: mikrotik-core-02
+Remote Port: ether2
+Address: 192.0.2.35
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: MikroTik
+# platform: RouterOS
+# command: /interface lldp neighbors print
+# note: illustrative synthetic lower-confidence payload
+
+### section: unsupported
+# source: synthetic
+# expected outcome: unsupported_format
+# rejection reason: unsupported_format
+# note: illustrative synthetic lower-confidence payload.
+/interface lldp neighbors print
+Local Interface: ether1
+Remote Device: mikrotik-core-02
+Remote Port: ether2
+Address: 192.0.2.35
+
+Expected import behaviour: unsupported_format; reason=unsupported_format; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: MikroTik
+# platform: RouterOS
+# command: /interface lldp neighbors print
+# note: illustrative synthetic lower-confidence payload
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_remote_node
+# rejection reason: unknown_remote_node
+# note: illustrative synthetic lower-confidence payload.
+/interface lldp neighbors print
+Local Interface: ether1
+Remote Device: mikrotik-core-02
+Remote Port: ether2
+Address: 192.0.2.35
+
+Expected import behaviour: unknown_remote_node; reason=unknown_remote_node; exact inventory matching only.
+

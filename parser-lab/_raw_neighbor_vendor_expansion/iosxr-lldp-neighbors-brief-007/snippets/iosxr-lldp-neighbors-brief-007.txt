@@ -1,0 +1,64 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Cisco
+# platform: IOS-XR
+# command: show lldp neighbors brief
+# note: illustrative synthetic evidence payload
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Cisco
+# platform: IOS-XR
+# command: show lldp neighbors brief
+# note: illustrative synthetic evidence payload
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+# note: synthetic raw brief output.
+show lldp neighbors brief
+Local Interface: GigabitEthernet0/0/0/0
+System Name: xr-core-02
+Port ID: GigabitEthernet0/0/0/1
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Cisco
+# platform: IOS-XR
+# command: show lldp neighbors brief
+# note: illustrative synthetic evidence payload
+
+### section: partial
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+# note: synthetic raw brief output.
+show lldp neighbors brief
+Local Interface: GigabitEthernet0/0/0/0
+System Name: xr-core-02
+Port ID: GigabitEthernet0/0/0/1
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Cisco
+# platform: IOS-XR
+# command: show lldp neighbors brief
+# note: illustrative synthetic evidence payload
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_remote_node
+# rejection reason: unknown_remote_node
+# note: synthetic raw brief output.
+show lldp neighbors brief
+Local Interface: GigabitEthernet0/0/0/0
+System Name: unknown
+Port ID: GigabitEthernet0/0/0/1
+
+Expected import behaviour: unknown_remote_node; reason=unknown_remote_node; exact inventory matching only.
+

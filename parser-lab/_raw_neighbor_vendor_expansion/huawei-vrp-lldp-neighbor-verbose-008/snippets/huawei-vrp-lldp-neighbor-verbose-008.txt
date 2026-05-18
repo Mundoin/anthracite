@@ -1,0 +1,73 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Huawei
+# platform: VRP
+# command: display lldp neighbor-information verbose
+# note: illustrative synthetic evidence payload
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Huawei
+# platform: VRP
+# command: display lldp neighbor-information verbose
+# note: illustrative synthetic evidence payload
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+# note: illustrative synthetic evidence payload; VRP syntax may need confirmation.
+display lldp neighbor-information verbose
+Local Interface: GigabitEthernet0/0/1
+Chassis ID: 0011.2233.3008
+Port ID: GigabitEthernet0/0/24
+System Name: vrp-core-01
+Management Address: 192.0.2.28
+Capabilities: Bridge Router
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Huawei
+# platform: VRP
+# command: display lldp neighbor-information verbose
+# note: illustrative synthetic evidence payload
+
+### section: partial
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+# note: illustrative synthetic evidence payload; VRP syntax may need confirmation.
+display lldp neighbor-information verbose
+Local Interface: GigabitEthernet0/0/1
+Chassis ID: 0011.2233.3008
+Port ID: GigabitEthernet0/0/24
+System Name: vrp-core-01
+Management Address: 192.0.2.28
+Capabilities: Bridge Router
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Huawei
+# platform: VRP
+# command: display lldp neighbor-information verbose
+# note: illustrative synthetic evidence payload
+
+### section: reject
+# source: synthetic
+# expected outcome: self_link
+# rejection reason: self_link
+# note: illustrative synthetic evidence payload; VRP syntax may need confirmation.
+display lldp neighbor-information verbose
+Local Interface: GigabitEthernet0/0/1
+Chassis ID: 0011.2233.3008
+Port ID: GigabitEthernet0/0/24
+System Name: vrp-core-01
+Management Address: 192.0.2.28
+Capabilities: Bridge Router
+
+Expected import behaviour: self_link; reason=self_link; exact inventory matching only.
+

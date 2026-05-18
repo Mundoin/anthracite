@@ -1,0 +1,61 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+### section: iosxe-nxos
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic interface normalisation example bundle
+Local Interface: GigabitEthernet1/0/1
+Normalised Interface: Ethernet1/1
+Remote System: normalise-local
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+### section: junos
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic interface normalisation example bundle
+Local Interface: ge-0/0/0.0
+Normalised Interface: ge-0/0/0.0
+Remote System: normalise-local
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+### section: eos
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic interface normalisation example bundle
+Local Interface: Ethernet1
+Normalised Interface: Ethernet1
+Remote System: normalise-local
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+

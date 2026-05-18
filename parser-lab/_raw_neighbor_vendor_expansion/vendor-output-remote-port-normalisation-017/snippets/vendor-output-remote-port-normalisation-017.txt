@@ -1,0 +1,58 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+### section: nxos-iosxe
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic remote port normalisation example bundle
+Remote Port: Ethernet1/48
+Normalised Remote Port: Ethernet1/48
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+### section: junos-iosxr
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic remote port normalisation example bundle
+Remote Port: xe-0/0/1
+Normalised Remote Port: xe-0/0/1
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+### section: unknown
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+Synthetic remote port normalisation example bundle
+Remote Port: port-channel? 
+Normalised Remote Port: <unsupported>
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+

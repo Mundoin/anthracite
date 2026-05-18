@@ -1,0 +1,58 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic evidence corpus
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic evidence corpus
+
+### section: bridge-router
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic capability hint example bundle
+Capabilities: Bridge Router
+Remote System: capability-hints
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic evidence corpus
+
+### section: switch-only
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic capability hint example bundle
+Capabilities: Switch
+Remote System: capability-hints
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic evidence corpus
+
+### section: unsupported
+# source: synthetic
+# expected outcome: lower_confidence_source
+# rejection reason: lower_confidence_source
+Synthetic capability hint example bundle
+Capabilities: Router
+Remote System: capability-hints
+
+Expected import behaviour: lower_confidence_source; reason=lower_confidence_source; exact inventory matching only.
+

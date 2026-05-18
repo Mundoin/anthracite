@@ -1,0 +1,58 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic evidence corpus
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic evidence corpus
+
+### section: ipv4
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic management address handling example bundle
+Management Address: 192.0.2.39
+Remote System: mgmt-address
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic evidence corpus
+
+### section: ipv6
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic management address handling example bundle
+Management Address: 2001:db8::29
+Remote System: mgmt-address
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic evidence corpus
+
+### section: absent
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+Synthetic management address handling example bundle
+Management Address: <absent>
+Remote System: mgmt-address
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+

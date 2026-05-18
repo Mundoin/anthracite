@@ -1,0 +1,64 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic collision corpus
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic collision corpus
+
+### section: lldp-cdp-same-edge
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic duplicate protocol report bundle
+LLDP Local Interface: Ethernet1/1
+LLDP Remote System: duplicate-protocol
+CDP Local Interface: Ethernet1/1
+CDP Device ID: duplicate-protocol
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic collision corpus
+
+### section: duplicate
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# rejection reason: duplicate_collapsed
+Synthetic duplicate protocol report bundle
+LLDP Local Interface: Ethernet1/1
+LLDP Remote System: duplicate-protocol
+CDP Local Interface: Ethernet1/1
+CDP Device ID: duplicate-protocol
+
+Expected import behaviour: duplicate_collapsed; reason=duplicate_collapsed; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic collision corpus
+
+### section: reject
+# source: synthetic
+# expected outcome: conflicting_remote_endpoint
+# rejection reason: conflicting_remote_endpoint
+Synthetic duplicate protocol report bundle
+LLDP Local Interface: Ethernet1/1
+LLDP Remote System: duplicate-protocol
+CDP Local Interface: Ethernet1/1
+CDP Device ID: duplicate-protocol
+
+Expected import behaviour: conflicting_remote_endpoint; reason=conflicting_remote_endpoint; exact inventory matching only.
+

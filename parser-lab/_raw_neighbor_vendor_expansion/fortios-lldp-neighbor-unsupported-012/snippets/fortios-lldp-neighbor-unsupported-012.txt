@@ -1,0 +1,67 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Fortinet
+# platform: FortiOS
+# command: diagnose switch lldp neighbors
+# note: unsupported until V1AQ confirms the real command shape
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Fortinet
+# platform: FortiOS
+# command: diagnose switch lldp neighbors
+# note: unsupported until V1AQ confirms the real command shape
+
+### section: unsupported
+# source: synthetic
+# expected outcome: unsupported_format
+# rejection reason: unsupported_format
+# note: unsupported until V1AQ confirms the real command shape.
+diagnose switch lldp neighbors
+Local Interface: port1
+Remote System: fortigate-01
+Remote Port: port2
+Management Address: 192.0.2.32
+
+Expected import behaviour: unsupported_format; reason=unsupported_format; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Fortinet
+# platform: FortiOS
+# command: diagnose switch lldp neighbors
+# note: unsupported until V1AQ confirms the real command shape
+
+### section: partial
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+# note: unsupported until V1AQ confirms the real command shape.
+diagnose switch lldp neighbors
+Local Interface: port1
+Remote System: fortigate-01
+Remote Port: port2
+Management Address: 192.0.2.32
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Fortinet
+# platform: FortiOS
+# command: diagnose switch lldp neighbors
+# note: unsupported until V1AQ confirms the real command shape
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_remote_node
+# rejection reason: unknown_remote_node
+# note: unsupported until V1AQ confirms the real command shape.
+diagnose switch lldp neighbors
+Local Interface: port1
+Remote System: fortigate-01
+Remote Port: port2
+Management Address: 192.0.2.32
+
+Expected import behaviour: unknown_remote_node; reason=unknown_remote_node; exact inventory matching only.
+

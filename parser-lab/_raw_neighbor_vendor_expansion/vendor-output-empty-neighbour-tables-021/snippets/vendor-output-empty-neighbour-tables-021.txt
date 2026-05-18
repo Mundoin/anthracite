@@ -1,0 +1,58 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic empty-table corpus
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic empty-table corpus
+
+### section: empty
+# source: synthetic
+# expected outcome: empty_output
+# rejection reason: empty_output
+synthetic raw output bundle
+No neighbour entries present.
+Total neighbours: 0
+
+Expected import behaviour: empty_output; reason=empty_output; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic empty-table corpus
+
+### section: blank
+# source: synthetic
+# expected outcome: empty_output
+# rejection reason: empty_output
+synthetic raw output bundle
+No neighbour entries present.
+Total neighbours: 0
+
+Expected import behaviour: empty_output; reason=empty_output; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic empty-table corpus
+
+### section: reject
+# source: synthetic
+# expected outcome: malformed_output
+# rejection reason: malformed_output
+synthetic raw output bundle
+No neighbour entries present.
+Total neighbours: 0
+
+Expected import behaviour: malformed_output; reason=malformed_output; exact inventory matching only.
+

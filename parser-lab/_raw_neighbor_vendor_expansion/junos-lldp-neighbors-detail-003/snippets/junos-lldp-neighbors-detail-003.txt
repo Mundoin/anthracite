@@ -1,0 +1,70 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Juniper
+# platform: Junos
+# command: show lldp neighbors detail
+# note: real-style
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Juniper
+# platform: Junos
+# command: show lldp neighbors detail
+# note: real-style
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+show lldp neighbors detail
+Local Interface: ge-0/0/0.0
+Chassis ID: 0011.2233.3003
+Port ID: xe-0/0/1
+System Name: mx-01
+Management Address: 192.0.2.23
+System Description: synthetic Junos LLDP block
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Juniper
+# platform: Junos
+# command: show lldp neighbors detail
+# note: real-style
+
+### section: duplicate
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# rejection reason: duplicate_collapsed
+show lldp neighbors detail
+Local Interface: ge-0/0/0.0
+Chassis ID: 0011.2233.3003
+Port ID: xe-0/0/1
+System Name: mx-01
+Management Address: 192.0.2.23
+System Description: synthetic Junos LLDP block
+
+Expected import behaviour: duplicate_collapsed; reason=duplicate_collapsed; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Juniper
+# platform: Junos
+# command: show lldp neighbors detail
+# note: real-style
+
+### section: reject
+# source: synthetic
+# expected outcome: stale_evidence
+# rejection reason: stale_evidence
+show lldp neighbors detail
+Local Interface: ge-0/0/0.0
+Chassis ID: 0011.2233.3003
+Port ID: xe-0/0/1
+System Name: mx-01
+Management Address: 192.0.2.23
+System Description: synthetic Junos LLDP block
+
+Expected import behaviour: stale_evidence; reason=stale_evidence; exact inventory matching only.
+

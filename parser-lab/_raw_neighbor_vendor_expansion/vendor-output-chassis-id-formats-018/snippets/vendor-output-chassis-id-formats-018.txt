@@ -1,0 +1,61 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+### section: mac
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic chassis ID example bundle
+Chassis ID: 0011.2233.3018
+Remote System: chassis-formats
+Note: chassis ID alone must not invent a node.
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+### section: local
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+Synthetic chassis ID example bundle
+Chassis ID: local-node
+Remote System: chassis-formats
+Note: chassis ID alone must not invent a node.
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Mixed
+# platform: Mixed
+# command: synthetic raw output bundle
+# note: synthetic normalisation corpus
+
+### section: network-address
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+Synthetic chassis ID example bundle
+Chassis ID: 192.0.2.77
+Remote System: chassis-formats
+Note: chassis ID alone must not invent a node.
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+

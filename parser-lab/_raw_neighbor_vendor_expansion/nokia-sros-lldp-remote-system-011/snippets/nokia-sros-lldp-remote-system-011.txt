@@ -1,0 +1,67 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Nokia
+# platform: SR OS
+# command: show lldp remote-system
+# note: illustrative synthetic evidence payload
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Nokia
+# platform: SR OS
+# command: show lldp remote-system
+# note: illustrative synthetic evidence payload
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+# note: illustrative synthetic evidence payload; SR OS remote-system syntax may need confirmation.
+show lldp remote-system
+System Name: sros-core-02
+Local Interface: 1/1/1
+Remote Port: 1/1/48
+Management Address: 192.0.2.31
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Nokia
+# platform: SR OS
+# command: show lldp remote-system
+# note: illustrative synthetic evidence payload
+
+### section: partial
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+# note: illustrative synthetic evidence payload; SR OS remote-system syntax may need confirmation.
+show lldp remote-system
+System Name: sros-core-02
+Local Interface: 1/1/1
+Remote Port: 1/1/48
+Management Address: 192.0.2.31
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Nokia
+# platform: SR OS
+# command: show lldp remote-system
+# note: illustrative synthetic evidence payload
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_remote_node
+# rejection reason: unknown_remote_node
+# note: illustrative synthetic evidence payload; SR OS remote-system syntax may need confirmation.
+show lldp remote-system
+System Name: sros-core-02
+Local Interface: 1/1/1
+Remote Port: 1/1/48
+Management Address: 192.0.2.31
+
+Expected import behaviour: unknown_remote_node; reason=unknown_remote_node; exact inventory matching only.
+

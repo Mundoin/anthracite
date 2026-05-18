@@ -1,0 +1,70 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Nokia
+# platform: SR OS
+# command: show system lldp neighbor
+# note: illustrative synthetic evidence payload
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Nokia
+# platform: SR OS
+# command: show system lldp neighbor
+# note: illustrative synthetic evidence payload
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+# note: illustrative synthetic evidence payload; SR OS syntax may need confirmation.
+show system lldp neighbor
+Local Interface: 1/1/1
+System Name: sros-core-01
+Remote Port: 1/1/48
+Management Address: 192.0.2.30
+Holdtime: 3
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Nokia
+# platform: SR OS
+# command: show system lldp neighbor
+# note: illustrative synthetic evidence payload
+
+### section: stale
+# source: synthetic
+# expected outcome: stale_evidence
+# rejection reason: stale_evidence
+# note: illustrative synthetic evidence payload; SR OS syntax may need confirmation.
+show system lldp neighbor
+Local Interface: 1/1/1
+System Name: sros-core-01
+Remote Port: 1/1/48
+Management Address: 192.0.2.30
+Holdtime: 3
+
+Expected import behaviour: stale_evidence; reason=stale_evidence; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Nokia
+# platform: SR OS
+# command: show system lldp neighbor
+# note: illustrative synthetic evidence payload
+
+### section: reject
+# source: synthetic
+# expected outcome: unsupported_format
+# rejection reason: unsupported_format
+# note: illustrative synthetic evidence payload; SR OS syntax may need confirmation.
+show system lldp neighbor
+Local Interface: 1/1/1
+System Name: sros-core-01
+Remote Port: 1/1/48
+Management Address: 192.0.2.30
+Holdtime: 3
+
+Expected import behaviour: unsupported_format; reason=unsupported_format; exact inventory matching only.
+

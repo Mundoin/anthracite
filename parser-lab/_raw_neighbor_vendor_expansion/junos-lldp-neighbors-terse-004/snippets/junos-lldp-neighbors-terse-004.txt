@@ -1,0 +1,64 @@
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Juniper
+# platform: Junos
+# command: show lldp neighbors terse
+# note: real-style
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Juniper
+# platform: Junos
+# command: show lldp neighbors terse
+# note: real-style
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted
+# rejection reason: accepted
+show lldp neighbors terse
+Local Interface: ge-0/0/0.0
+Remote Chassis ID: 0011.2233.3004
+Remote Port ID: xe-0/0/1
+System Name: mx-02
+
+Expected import behaviour: accepted; reason=accepted; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Juniper
+# platform: Junos
+# command: show lldp neighbors terse
+# note: real-style
+
+### section: partial
+# source: synthetic
+# expected outcome: insufficient_evidence
+# rejection reason: insufficient_evidence
+show lldp neighbors terse
+Local Interface: ge-0/0/0.0
+Remote Chassis ID: 0011.2233.3004
+Remote Port ID: xe-0/0/1
+System Name: mx-02
+
+Expected import behaviour: insufficient_evidence; reason=insufficient_evidence; exact inventory matching only.
+
+# synthetic raw neighbour-output bundle
+# source: synthetic
+# vendor: Juniper
+# platform: Junos
+# command: show lldp neighbors terse
+# note: real-style
+
+### section: reject
+# source: synthetic
+# expected outcome: unknown_local_node
+# rejection reason: unknown_local_node
+show lldp neighbors terse
+Local Interface: ge-0/0/0.0
+Remote Chassis ID: 0011.2233.3004
+Remote Port ID: xe-0/0/1
+System Name: unknown
+
+Expected import behaviour: unknown_local_node; reason=unknown_local_node; exact inventory matching only.
+
