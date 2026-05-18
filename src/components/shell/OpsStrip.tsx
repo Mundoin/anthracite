@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { IcoTerminal } from "./icons";
+import { DataSourceTag } from "./DataSourceTag";
 
 export interface OpsStripProps {
   readonly expanded?: boolean;
@@ -24,7 +25,9 @@ export function OpsStrip({ expanded = false, onToggle }: OpsStripProps): JSX.Ele
         <span>Ops Console</span>
       </span>
       <span className="ops-sep" />
-      <span className="ops-cell mono">idle</span>
+      <span className="ops-cell mono">
+        <DataSourceTag state="not_connected" override="not connected" />
+      </span>
       <span className="ops-sep" />
       <span className="ops-cell">no active session</span>
 

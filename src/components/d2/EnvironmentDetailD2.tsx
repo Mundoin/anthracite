@@ -1,6 +1,8 @@
 import type { JSX } from "react";
 import { IcoMap, IcoMore, IcoTable } from "../shell/icons";
 import type { StatusSignal } from "../shell/StatusBar";
+import { DataSourceTag } from "../shell/DataSourceTag";
+import type { DataSourceState } from "../../types/dataSource";
 
 export interface KpiMiniSpec {
   readonly id: string;
@@ -47,6 +49,7 @@ export interface EnvironmentDetailD2Props {
   readonly events: readonly EventRow[];
   readonly sites: readonly SiteRow[];
   readonly siteCount: number;
+  readonly source?: DataSourceState;
 }
 
 /** D2 Environment Detail body: 6-KPI strip · readiness-by-domain · open events · sites. */
@@ -56,19 +59,28 @@ export function EnvironmentDetailD2({
   events,
   sites,
   siteCount,
+  source,
 }: EnvironmentDetailD2Props): JSX.Element {
   return (
     <div className="anth-d2-body">
-      <div className="anth-d2-kpi-strip">
-        {kpis.map((k) => (
-          <KpiMini key={k.id} spec={k} />
-        ))}
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {source && (
+          <div style={{ padding: "0 4px" }}>
+            <DataSourceTag state={source} />
+          </div>
+        )}
+        <div className="anth-d2-kpi-strip">
+          {kpis.map((k) => (
+            <KpiMini key={k.id} spec={k} />
+          ))}
+        </div>
       </div>
 
       <div className="anth-panel" style={{ minHeight: 250 }}>
         <div className="anth-panel-hd">
           <span className="ttl">Readiness — by domain</span>
           <span className="sub">{domains.length} baselines</span>
+          {source && <DataSourceTag state={source} />}
         </div>
         <div
           className="anth-panel-bd"
@@ -91,6 +103,7 @@ export function EnvironmentDetailD2({
         <div className="anth-panel-hd">
           <span className="ttl">Open events</span>
           <span className="sub">last 60 minutes</span>
+          {source && <DataSourceTag state={source} />}
         </div>
         <div className="anth-panel-bd" style={{ overflow: "auto" }}>
           <table className="anth-table">
@@ -135,6 +148,7 @@ export function EnvironmentDetailD2({
         <div className="anth-panel-hd">
           <span className="ttl">Sites · {siteCount}</span>
           <span className="sub">{regionsOf(sites)} regions</span>
+          {source && <DataSourceTag state={source} />}
           <span className="actions" style={{ display: "flex", gap: 4, marginLeft: "auto", color: "var(--anth-text-3)" }}>
             <span className="btn sm ghost" aria-label="Table view">
               <IcoTable size={13} />

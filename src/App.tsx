@@ -465,6 +465,7 @@ export default function App(): JSX.Element {
         { tone: "ok",   label: "in compliance", note: "LEAF-BASE-EU · v3 · 1,420 lines" },
         { tone: "warn", label: "3 lines drift", note: "CORE-AAA-V3" },
       ]}
+      source="demo"
     />
   );
 
@@ -490,6 +491,7 @@ export default function App(): JSX.Element {
           rows={rows}
           selectedRowId={selectedRowId}
           onSelectRow={(id) => void selectEnv(id, true)}
+          source="demo"
         />
       ) : (
         <EnvironmentDetailD2
@@ -498,6 +500,7 @@ export default function App(): JSX.Element {
           events={detailEvents}
           sites={detailSites}
           siteCount={activeRow?.sites ?? detailSites.length}
+          source="demo"
         />
       )}
     </AppShell>
@@ -517,27 +520,27 @@ function statusLeft(
   const drift = rows.reduce((s, r) => s + r.drift, 0);
   const events = rows.reduce((s, r) => s + r.events, 0);
   return [
-    { id: "engine", label: "engines online", signal: "ok" },
-    { id: "inventory", label: `inventory: ${totalDevices.toLocaleString("en-US")}` },
-    { id: "drift", label: `drift: ${drift}`, signal: drift > 0 ? "warn" : "ok" },
-    { id: "events", label: `events: ${events}`, signal: events > 0 ? "err" : "ok" },
+    { id: "engine", label: "engines · unavail.", signal: "idle" },
+    { id: "inventory", label: `inventory: ${totalDevices.toLocaleString("en-US")} · demo` },
+    { id: "drift", label: `drift: ${drift} · demo`, signal: drift > 0 ? "warn" : "ok" },
+    { id: "events", label: `events: ${events} · demo`, signal: events > 0 ? "err" : "ok" },
   ];
 }
 
 function statusRight(view: View, activeRow?: EnvRow): readonly StatusCell[] {
   if (view === "list") {
     return [
-      { id: "note", label: "hierarchy · 8 of 8 · sorted by readiness ↓" },
+      { id: "note", label: "hierarchy · 8 of 8 · sorted by readiness ↓ · demo" },
       { id: "ver", label: "v0.1.0" },
-      { id: "core", label: "rust-core · ok", signal: "ok" },
+      { id: "core", label: "rust-core · unavail.", signal: "idle" },
     ];
   }
   return [
     {
       id: "note",
-      label: `scope: ${activeRow?.id ?? "—"} · 38s since last poll · readiness ${activeRow?.readiness ?? 0}%`,
+      label: `scope: ${activeRow?.id ?? "—"} · 38s since last poll · readiness ${activeRow?.readiness ?? 0}% · demo`,
     },
     { id: "ver", label: "v0.1.0" },
-    { id: "core", label: "rust-core · ok", signal: "ok" },
+    { id: "core", label: "rust-core · unavail.", signal: "idle" },
   ];
 }

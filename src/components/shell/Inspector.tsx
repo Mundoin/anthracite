@@ -1,6 +1,8 @@
 import type { JSX, ReactNode } from "react";
 import { IcoEye, IcoLink, IcoMore, IcoTerminal } from "./icons";
 import type { StatusSignal } from "./StatusBar";
+import { DataSourceTag } from "./DataSourceTag";
+import type { DataSourceState } from "../../types/dataSource";
 
 export interface InspectorTabSpec {
   readonly id: string;
@@ -16,6 +18,7 @@ export interface InspectorHealthCell {
   readonly label: string;
   readonly value: string;
   readonly pct?: number;
+  readonly source?: DataSourceState;
 }
 
 export interface InspectorInterfaceRow {
@@ -47,6 +50,7 @@ export interface InspectorProps {
   readonly interfaces?: readonly InspectorInterfaceRow[];
   readonly baselines?: readonly InspectorBaselineRow[];
   readonly events?: ReactNode;
+  readonly source?: DataSourceState;
 }
 
 /** Right-docked inspector (340 px default). Empty state vs D2 subject view. */
@@ -60,6 +64,7 @@ export function Inspector({
   interfaces,
   baselines,
   events,
+  source,
 }: InspectorProps): JSX.Element {
   if (!subject) {
     return (
@@ -126,7 +131,10 @@ export function Inspector({
 
         {health && health.length > 0 && (
           <div className="insp-section">
-            <h4>Health · 1 m</h4>
+            <h4 style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              Health · 1 m
+              {source && <DataSourceTag state={source} />}
+            </h4>
             <div className="health-grid">
               {health.map((h) => (
                 <div key={h.label} className="health-cell">

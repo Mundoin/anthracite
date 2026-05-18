@@ -8,6 +8,8 @@ import {
   IcoSearch,
 } from "../shell/icons";
 import type { StatusSignal } from "../shell/StatusBar";
+import { DataSourceTag } from "../shell/DataSourceTag";
+import type { DataSourceState } from "../../types/dataSource";
 
 export interface KpiSpec {
   readonly id: string;
@@ -41,6 +43,7 @@ export interface EnvironmentCentreD1Props {
   readonly rows: readonly EnvRow[];
   readonly selectedRowId?: string;
   readonly onSelectRow?: (id: string) => void;
+  readonly source?: DataSourceState;
 }
 
 /** D1 Env Centre work area: KPI ribbon + filter toolbar + dense env table. */
@@ -49,6 +52,7 @@ export function EnvironmentCentreD1({
   rows,
   selectedRowId,
   onSelectRow,
+  source,
 }: EnvironmentCentreD1Props): JSX.Element {
   return (
     <div
@@ -63,24 +67,27 @@ export function EnvironmentCentreD1({
         minHeight: 0,
       }}
     >
-      <KpiRibbon kpis={kpis} />
-      <EnvTable rows={rows} selectedRowId={selectedRowId} onSelectRow={onSelectRow} />
+      <KpiRibbon kpis={kpis} source={source} />
+      <EnvTable rows={rows} selectedRowId={selectedRowId} onSelectRow={onSelectRow} source={source} />
     </div>
   );
 }
 
-function KpiRibbon({ kpis }: { kpis: readonly KpiSpec[] }): JSX.Element {
+function KpiRibbon({ kpis, source }: { kpis: readonly KpiSpec[]; source?: DataSourceState }): JSX.Element {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${kpis.length}, minmax(0, 1fr))`,
-        gap: 8,
-      }}
-    >
-      {kpis.map((k) => (
-        <KpiCard key={k.id} spec={k} />
-      ))}
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      {source && <DataSourceTag state={source} />}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${kpis.length}, minmax(0, 1fr))`,
+          gap: 8,
+        }}
+      >
+        {kpis.map((k) => (
+          <KpiCard key={k.id} spec={k} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -110,10 +117,12 @@ function EnvTable({
   rows,
   selectedRowId,
   onSelectRow,
+  source,
 }: {
   rows: readonly EnvRow[];
   selectedRowId?: string;
   onSelectRow?: (id: string) => void;
+  source?: DataSourceState;
 }): JSX.Element {
   return (
     <div className="anth-panel" style={{ flex: 1, minHeight: 0 }}>
@@ -149,6 +158,12 @@ function EnvTable({
           <IcoPlus size={12} /> New environment
         </span>
       </div>
+
+      {source && (
+        <div style={{ padding: "4px 10px" }}>
+          <DataSourceTag state={source} />
+        </div>
+      )}
 
       <div style={{ flex: 1, overflow: "auto" }}>
         <table className="anth-table">
