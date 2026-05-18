@@ -1,0 +1,111 @@
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: vendor-platform-filters
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: vendor-platform-filters
+
+### section: cisco-juniper
+# source: synthetic
+# expected outcome: filtered_view
+# status reason: accepted
+edge_id: edge-006
+current_edges: present
+projected_edges: present
+local_node: node-alpha-06
+local_interface: Eth6/1
+remote_node: node-beta-06
+remote_interface: Eth6/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Cisco
+platform: NX-OS
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: filtered_view; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: vendor-platform-filters
+
+### section: eos-iosxr
+# source: synthetic
+# expected outcome: filtered_view
+# status reason: accepted
+edge_id: edge-006
+current_edges: present
+projected_edges: present
+local_node: node-alpha-06
+local_interface: Eth6/1
+remote_node: node-beta-06
+remote_interface: Eth6/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Cisco
+platform: NX-OS
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: filtered_view; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: vendor-platform-filters
+
+### section: huawei-nokia
+# source: synthetic
+# expected outcome: filtered_view
+# status reason: accepted
+edge_id: edge-006
+current_edges: present
+projected_edges: present
+local_node: node-alpha-06
+local_interface: Eth6/1
+remote_node: node-beta-06
+remote_interface: Eth6/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Cisco
+platform: NX-OS
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: filtered_view; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+

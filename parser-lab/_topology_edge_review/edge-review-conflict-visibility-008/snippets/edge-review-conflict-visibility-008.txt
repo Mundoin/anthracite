@@ -1,0 +1,111 @@
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: conflict-visibility
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: conflict-visibility
+
+### section: conflict
+# source: synthetic
+# expected outcome: conflicting_evidence
+# status reason: conflicting_remote_endpoint
+edge_id: edge-008
+current_edges: present
+projected_edges: present
+local_node: node-alpha-08
+local_interface: Eth8/1
+remote_node: node-beta-08
+remote_interface: Eth8/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Mixed
+platform: topology-edge-review
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: conflicting_evidence; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: conflict-visibility
+
+### section: duplicate
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# status reason: duplicate_collapsed
+edge_id: edge-008
+current_edges: present
+projected_edges: present
+local_node: node-alpha-08
+local_interface: Eth8/1
+remote_node: node-beta-08
+remote_interface: Eth8/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Mixed
+platform: topology-edge-review
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: duplicate_collapsed; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: conflict-visibility
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted_evidence
+# status reason: accepted
+edge_id: edge-008
+current_edges: present
+projected_edges: present
+local_node: node-alpha-08
+local_interface: Eth8/1
+remote_node: node-beta-08
+remote_interface: Eth8/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Mixed
+platform: topology-edge-review
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: accepted_evidence; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+

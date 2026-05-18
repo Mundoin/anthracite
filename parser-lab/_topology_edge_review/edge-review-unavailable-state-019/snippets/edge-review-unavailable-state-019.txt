@@ -1,0 +1,111 @@
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: unavailable-state
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: unavailable-state
+
+### section: loading
+# source: synthetic
+# expected outcome: unavailable
+# status reason: unavailable
+edge_id: edge-019
+current_edges: present
+projected_edges: present
+local_node: node-alpha-19
+local_interface: Eth19/1
+remote_node: node-beta-19
+remote_interface: Eth19/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Mixed
+platform: topology-edge-review
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: unavailable; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: unavailable-state
+
+### section: error
+# source: synthetic
+# expected outcome: unavailable
+# status reason: unavailable
+edge_id: edge-019
+current_edges: present
+projected_edges: present
+local_node: node-alpha-19
+local_interface: Eth19/1
+remote_node: node-beta-19
+remote_interface: Eth19/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Mixed
+platform: topology-edge-review
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: unavailable; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: unavailable-state
+
+### section: retry
+# source: synthetic
+# expected outcome: unavailable
+# status reason: unavailable
+edge_id: edge-019
+current_edges: present
+projected_edges: present
+local_node: node-alpha-19
+local_interface: Eth19/1
+remote_node: node-beta-19
+remote_interface: Eth19/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Mixed
+platform: topology-edge-review
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: unavailable; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+

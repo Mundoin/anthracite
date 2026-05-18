@@ -1,0 +1,111 @@
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: accepted-rejected-split
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: accepted-rejected-split
+
+### section: accepted
+# source: synthetic
+# expected outcome: accepted_evidence
+# status reason: accepted
+edge_id: edge-007
+current_edges: present
+projected_edges: present
+local_node: node-alpha-07
+local_interface: Eth7/1
+remote_node: node-beta-07
+remote_interface: Eth7/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Mixed
+platform: topology-edge-review
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: accepted_evidence; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: accepted-rejected-split
+
+### section: rejected
+# source: synthetic
+# expected outcome: rejected_evidence
+# status reason: rejected
+edge_id: edge-007
+current_edges: present
+projected_edges: present
+local_node: node-alpha-07
+local_interface: Eth7/1
+remote_node: node-beta-07
+remote_interface: Eth7/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Mixed
+platform: topology-edge-review
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: rejected_evidence; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+
+# synthetic topology edge review bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-edge-review
+# template: accepted-rejected-split
+
+### section: mixed
+# source: synthetic
+# expected outcome: filtered_view
+# status reason: accepted
+edge_id: edge-007
+current_edges: present
+projected_edges: present
+local_node: node-alpha-07
+local_interface: Eth7/1
+remote_node: node-beta-07
+remote_interface: Eth7/2
+source_kind: LLDP
+source_label: raw-output
+vendor: Mixed
+platform: topology-edge-review
+accepted_evidence: true
+rejected_evidence: false
+conflicting_evidence: false
+stale_evidence: false
+duplicate_collapsed: false
+ignored_duplicate: false
+import_delta: added
+evidence_drilldown: raw evidence ref present
+graph_ready: true
+display_contract: stable edge row
+filtered_view: none
+
+Expected review behaviour: filtered_view; exact store truth remains authoritative; graph-ready only, not graph-rendered.
+
