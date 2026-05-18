@@ -222,3 +222,21 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+
+## Project Map
+
+Anthracite has a generated project map for operator and agent orientation.
+
+- Source data: `parser-lab/_project_status_map/anthracite-status-map-source.json`
+- Generator: `tools/project-map/build-project-map.mjs`
+- Generated visual: `docs/project-map/anthracite-project-map.html`
+
+Codex role:
+- Use the project map/source when doing repo-status, roadmap, handoff, prep-corpus, or stage-orientation work.
+- After a landed stage, major prep corpus, roadmap change, deferred-boundary change, or safety-boundary change, mention whether the project-map source should be refreshed.
+- Codex may refresh/extract project-map source as admin/prep work when Bujar asks.
+- Keep project-map extraction/generation as a separate docs/admin change unless Bujar explicitly asks to bundle it with product work.
+- Update source/extraction material first, then regenerate with:
+
+```powershell
+node tools/project-map/build-project-map.mjs

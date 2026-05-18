@@ -165,3 +165,24 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+
+
+```md id="g6v2ex"
+## Project Map
+
+Anthracite has a generated project map for planning and stage orientation.
+
+- Source data: `parser-lab/_project_status_map/anthracite-status-map-source.json`
+- Generator: `tools/project-map/build-project-map.mjs`
+- Generated visual: `docs/project-map/anthracite-project-map.html`
+
+Claude role:
+- Check the project map or its source before proposing a major stage, roadmap turn, architecture fork, or next-arc decision.
+- Use it to understand what is landed, current, prep-only, deferred, halted, and still open for Bujar/Vale decision.
+- After landing a stage or changing roadmap/safety/deferred boundaries, mention whether the project-map source should be refreshed.
+- Treat the generated HTML as a visual readout, not the product source of truth.
+- Keep project-map refreshes separate from product implementation commits unless Bujar explicitly asks to bundle them.
+- When source data changes and Bujar wants the visual refreshed, regenerate with:
+
+```powershell
+node tools/project-map/build-project-map.mjs
