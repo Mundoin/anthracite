@@ -54,6 +54,11 @@ Everything else is a placeholder, an empty contract, or doctrine without code.
   Frontend workspace v1: read-only node list + summary + source state via DataSourceTag.
   Edges empty (no link-fact inference yet; wire shape locked). No graph viz library;
   Babylon rendering deferred.
+- **Discovery Inventory Browser (V1AK).** Operator-facing read-only Discovery Inventory
+  Browser inside Hierarchy → Devices detail segment. Honest consumption of persisted
+  records with live source state and record detail. Three-state surface: unavailable /
+  empty / loaded. No mutation semantics. DETAIL_SUBNAV count derives from live
+  `sourceRecordCount` when real, falls back to seed otherwise.
 
 ---
 
@@ -214,12 +219,10 @@ first diagnosis / path-trace surface.
 
 **Discovery inventory browser:**
 
-- Environment filter.
-- Device list.
-- Record detail.
-- Source label + parser/source metadata.
-- Honest empty / real / unavailable states.
-- Drives operator confidence in "what does Anthracite know?".
+- **COMPLETE (V1AK).** Operator-facing read-only browser inside Hierarchy → Devices
+  detail segment. Consumes persisted Discovery records with live source state. Three-state
+  surface: unavailable / empty / loaded. Record detail panel shows full metadata. No
+  mutation semantics (add/edit/delete/merge deferred).
 
 **Discovery mutation semantics (deferred):**
 

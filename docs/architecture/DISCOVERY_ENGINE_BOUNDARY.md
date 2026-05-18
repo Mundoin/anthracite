@@ -378,9 +378,71 @@ OpsConsoleMode renders new record count
 
 ---
 
+## V1AK — Discovery Inventory Browser
+
+**Goal:** First operator-facing read-only Discovery Inventory Browser surface. Honest consumption of persisted Discovery records with live source state and record detail.
+
+**Surface placement:**
+
+New component `src/modes/hierarchy/InventoryBrowser.tsx` (+ CSS + tests) renders inside Hierarchy mode when:
+- `activeMode === "hierarchy"` AND
+- `layoutView === "detail"` AND
+- `detailSegment === "devices"`
+
+Replaces only the existing `EnvironmentDetailD2` placeholder for the "devices" segment. Other detail segments (overview / sites / topology / configs / baselines / events / compliance / audit) keep seeded D2; no ModeRail/MODE_STATUS changes.
+
+**Data consumption:**
+
+- Reads from `App.tsx`'s existing `discovery` state (already hydrated on env change + after Discovery import via V1AG/V1AI/V1AJ refresh chain).
+- Adapter `src/data/discoverySource.ts` extended with `view: DiscoveryInventoryView | null` field to carry raw records for detail rendering. Same pattern as V1AJ Topology adapter.
+- Existing V1AG discoverySource tests continue passing (field-by-field assertions, not struct equality).
+
+**DETAIL_SUBNAV count update:**
+
+Static `"2,184"` devices count in DETAIL_SUBNAV updated to derive from live `discovery.sourceRecordCount` when `discovery.sourceState === "real"`, falling back to seeded `"2,184"` otherwise. Maintains honesty: real count when real, seeded when seeded.
+
+**Browser behaviour (three states):**
+
+1. **Unavailable:** `discovery.view === null` → "Discovery source is not available right now." message, no list.
+2. **Empty:** `records.length === 0` → "No devices imported yet for this environment. Use INTAKE to parse configs and import them into Discovery." message, no list.
+3. **Loaded:** records present → split-pane layout:
+   - Header: title + `<DataSourceTag state={discovery.sourceState} />` + scope ("env-id" or "All environments")
+   - Summary row: record count, total records, live message from engine
+   - List pane: Hostname / Vendor / Platform / Source columns; selectable rows
+   - Detail pane: dl/dt/dd format showing Record ID, Environment, Hostname, Chassis, Vendor, Platform, OS family, OS version, Source kind, Source label, Slice ID, Confidence (toFixed(2)), Last seen
+
+**Selection and detail rendering:**
+
+- Internal `useState<string | null>` for selected record ID, defaulting to first record.
+- Snaps to first record on env switch or after refresh; snaps to `null` when records become empty.
+- Missing per-record fields render as em-dash `—`. Never inferred, never invented.
+
+**Honesty rules:**
+
+- Uses existing `DataSourceState` / `DataSourceTag` discipline. No new state variants.
+- Real values from Discovery records → rendered verbatim.
+- Seeded hierarchy data outside the browser (D1 list view, other detail segments) stays demo with existing tags. No silent promotion.
+- First-wins import semantics preserved. No add/edit/delete/merge in this stage.
+
+**Strict scope-out:**
+
+- No Rust changes (existing `get_discovery_inventory` used as-is).
+- No DeviceModel schema changes.
+- No parser, validator, config_detection, archive_intake, vendor_registry, BatchRunExport touches.
+- No Topology engine / Topology mode body changes.
+- No INTAKE, Assess, Settings, OpsConsole structural changes.
+- No ModeRail / MODE_STATUS changes.
+- No D1 (EnvironmentCentreD1) or hierarchy seeds changes.
+- No mutation semantics (add/edit/delete/merge deferred).
+- No graph viz, no virtualised list library, no new dependency.
+- No DataSourceState union changes.
+- No AGENTS.md / CLAUDE.md / parser-lab / `.codex/` touches.
+
+---
+
 ## Cross-links
 
-- `ENGINE_AND_API_BOUNDARIES.md` — Discovery section (V1AF status; V1AH + V1AI additions)
+- `ENGINE_AND_API_BOUNDARIES.md` — Discovery section (V1AF status; V1AH + V1AI + V1AK additions)
 - `HIERARCHY_HONESTY_CONTRACT.md` — DataSourceState definitions and block promotion rules
 - `src-tauri/src/engines/discovery.rs` — Rust implementation (V1AF + V1AH + V1AI)
 - `src-tauri/src/commands/discovery.rs` — Tauri command bindings (V1AF + V1AH + V1AI)

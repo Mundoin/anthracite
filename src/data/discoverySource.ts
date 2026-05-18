@@ -7,6 +7,10 @@ export interface DiscoverySourceView {
   readonly totalRecords: number;
   readonly message: string;
   readonly isEmpty: boolean;
+  // V1AK — preserve the raw view so the Inventory Browser can render record
+  // detail without a second fetch. Null only when the underlying command
+  // call failed or has not run yet (matches null/error/loading entry paths).
+  readonly view: DiscoveryInventoryView | null;
 }
 
 /**
@@ -36,6 +40,7 @@ export function toDiscoverySourceView(
       totalRecords: 0,
       message: error ? "Discovery source unavailable" : "Discovery engine not connected",
       isEmpty: false,
+      view: null,
     };
   }
 
@@ -45,5 +50,6 @@ export function toDiscoverySourceView(
     totalRecords: view.total_records,
     message: view.message,
     isEmpty: view.source_state === "empty" && view.total_records === 0,
+    view,
   };
 }

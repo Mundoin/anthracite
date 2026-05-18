@@ -50,6 +50,7 @@ import {
   type TopologySourceView,
 } from "./data/topologySource";
 import { TopologyMode } from "./modes/topology/TopologyMode";
+import { InventoryBrowser } from "./modes/hierarchy/InventoryBrowser";
 import { getHierarchyView } from "./data/hierarchySource";
 import { ROW_SEEDS } from "./data/hierarchySeeds";
 
@@ -71,7 +72,7 @@ const LIST_SUBNAV: readonly SubNavItem[] = [
   { id: "isolated", label: "Isolated", count: 1 },
 ];
 
-const DETAIL_SUBNAV: readonly SubNavItem[] = [
+const DETAIL_SUBNAV_BASE: readonly SubNavItem[] = [
   { id: "overview", label: "Overview" },
   { id: "sites", label: "Sites", count: 41 },
   { id: "devices", label: "Devices", count: "2,184" },
@@ -362,10 +363,22 @@ export default function App(): JSX.Element {
     ? ["Hierarchy", "Environments"]
     : ["Hierarchy", activeRow?.id ?? selectedRowId, detailSegmentLabel(detailSegment)];
 
+  // V1AK — devices count derives from real Discovery inventory when source is
+  // "real"; falls back to the existing seeded "2,184" otherwise. Honest count.
+  const detailSubnav = useMemo<readonly SubNavItem[]>(
+    () =>
+      DETAIL_SUBNAV_BASE.map((item) =>
+        item.id === "devices" && discovery.sourceState === "real"
+          ? { ...item, count: discovery.totalRecords.toLocaleString("en-US") }
+          : item,
+      ),
+    [discovery.sourceState, discovery.totalRecords],
+  );
+
   const subNav = inListView ? (
     <SubNav items={LIST_SUBNAV} activeId={listSegment} onChange={setListSegment} />
   ) : (
-    <SubNav items={DETAIL_SUBNAV} activeId={detailSegment} onChange={setDetailSegment} />
+    <SubNav items={detailSubnav} activeId={detailSegment} onChange={setDetailSegment} />
   );
 
   const secondary = (
@@ -421,6 +434,8 @@ export default function App(): JSX.Element {
           onSelectRow={(id) => void selectEnv(id, true)}
           source={view.sourceStateByBlock.rows}
         />
+      ) : detailSegment === "devices" ? (
+        <InventoryBrowser discovery={discovery} />
       ) : (
         <EnvironmentDetailD2
           kpis={detailKpis}
@@ -436,7 +451,7 @@ export default function App(): JSX.Element {
 }
 
 function detailSegmentLabel(id: string): string {
-  const found = DETAIL_SUBNAV.find((s) => s.id === id);
+  const found = DETAIL_SUBNAV_BASE.find((s) => s.id === id);
   return found?.label ?? "Overview";
 }
 
