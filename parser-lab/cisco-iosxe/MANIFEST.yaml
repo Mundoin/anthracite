@@ -1,0 +1,67 @@
+vendor: Cisco
+platform_family: iosxe
+prep_batch: interface-depth
+fixtures:
+  - id: iosxe-interface-depth-001
+    filename: fixtures/iosxe-interface-depth-001.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - hostname
+      - loopback
+      - routed_interface
+      - switchport_access
+      - switchport_trunk
+      - shutdown
+      - no_shutdown
+      - description
+      - ipv4
+      - ipv6
+      - mtu
+      - speed
+      - duplex
+    sanitised: true
+    source: synthetic
+    intent_file: intent/iosxe-interface-depth-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: iosxe-subinterface-dot1q-002
+    filename: fixtures/iosxe-subinterface-dot1q-002.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - parent_interface
+      - subinterface
+      - dot1q
+      - native_vlan
+      - ipv4
+      - description
+      - shutdown
+      - no_shutdown
+      - note_only_service_policy
+    sanitised: true
+    source: synthetic
+    intent_file: intent/iosxe-subinterface-dot1q-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: iosxe-portchannel-vlan-003
+    filename: fixtures/iosxe-portchannel-vlan-003.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - port_channel
+      - channel_group
+      - trunk_allowed_vlans
+      - trunk_native_vlan
+      - svi
+      - vlan
+      - spanning_tree_hint
+      - description
+      - shutdown
+      - no_shutdown
+    sanitised: true
+    source: synthetic
+    intent_file: intent/iosxe-portchannel-vlan-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+
