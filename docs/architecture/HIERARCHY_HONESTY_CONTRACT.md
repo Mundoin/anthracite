@@ -159,6 +159,16 @@ remains authoritative for engine names; `MODE_STATUS` sources
 body must flip its `MODE_STATUS` entry to `"built"` in the
 same stage, same discipline as `RULE_PACK_VERSION`.
 
+### Arc-validation note (V1AE)
+
+The arc's flip disciplines were validated end-to-end before Discovery Engine work.
+`MODE_STATUS.settings` flipped from `not_connected` to `built` (H8 flip discipline).
+`hierarchySource.ts` `sourceStateByBlock.inspectorIdentity` now classifies based on overlay
+success (H7 boundary-placement). Aggregate `sourceState` remains `demo` per H1 until
+additional blocks promote. Settings mode demonstrates that a mode body can be `"built"`
+without a dedicated engine, provided its content is honest about engine readiness — H8
+explicitly supports this.
+
 ### H7 — Source-state determination lives at the data layer
 
 The hierarchy surface reads `sourceState` from a boundary

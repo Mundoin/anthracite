@@ -18,6 +18,8 @@ import {
 import type { StatusCell, StatusSignal } from "./components/shell/StatusBar";
 import { IntakePanel } from "./modes/intake/IntakePanel";
 import { AssessPanel } from "./modes/assess/AssessPanel";
+import { SettingsMode } from "./modes/settings/SettingsMode";
+import { OpsConsoleMode } from "./modes/opsConsole/OpsConsoleMode";
 import {
   EnvironmentCentreD1,
   type EnvRow,
@@ -207,6 +209,37 @@ export default function App(): JSX.Element {
     : undefined;
 
   const inListView = layoutView === "list";
+
+  if (activeMode === "opsConsole") {
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={["Ops Console"]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        statusLeft={statusLeft(readiness, view.rows)}
+        statusRight={statusRight(layoutView, undefined)}
+      >
+        <OpsConsoleMode />
+      </AppShell>
+    );
+  }
+
+  if (activeMode === "settings") {
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={[MODE_LABELS.settings ?? "Settings"]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        inspector={<Inspector />}
+        statusLeft={statusLeft(readiness, view.rows)}
+        statusRight={statusRight(layoutView, undefined)}
+      >
+        <SettingsMode />
+      </AppShell>
+    );
+  }
 
   if (MODE_STATUS[activeMode].state === "not_connected") {
     const status = MODE_STATUS[activeMode];

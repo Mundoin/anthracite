@@ -77,6 +77,25 @@ describe("getHierarchyView", () => {
     expect(v.sourceState).not.toBe("real");
   });
 
+  it("inspectorIdentity is demo when readiness is null", () => {
+    const v = getHierarchyView({ envs: [], readiness: null });
+    expect(v.sourceStateByBlock.inspectorIdentity).toBe("demo");
+    expect(v.sourceState).toBe("demo");
+  });
+
+  it("inspectorIdentity is real when readiness and envs match; other blocks remain demo (H1)", () => {
+    const v = getHierarchyView({ envs: MOCK_ENVS, readiness: MOCK_READINESS });
+    expect(v.sourceStateByBlock.inspectorIdentity).toBe("real");
+    expect(v.sourceStateByBlock.rows).toBe("demo");
+    expect(v.sourceState).toBe("demo");
+    expect(v.inspectorIdentity[0]?.v).toBe("apex-prod-emea");
+  });
+
+  it("inspectorIdentity is demo when readiness id has no matching env", () => {
+    const v = getHierarchyView({ envs: [], readiness: MOCK_READINESS });
+    expect(v.sourceStateByBlock.inspectorIdentity).toBe("demo");
+  });
+
   it("structural shape: detailDomains/Events/Sites/inspectorHealth non-empty, relocation preserved", () => {
     const v = getHierarchyView(EMPTY_INPUT);
     expect(v.detailDomains.length).toBeGreaterThan(0);

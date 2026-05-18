@@ -1,0 +1,48 @@
+.ops-console-mode {
+  padding: 16px 20px;
+  max-width: 560px;
+}
+
+.ocm-section {
+  border: 1px solid var(--anth-border);
+  padding: 10px 14px;
+}
+
+.ocm-heading {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-2);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ocm-note {
+  font-size: 11px;
+  color: var(--anth-text-3);
+  margin: 0 0 8px;
+}
+
+.ocm-engine-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ocm-engine-row {
+  display: grid;
+  grid-template-columns: 100px 100px 1fr;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.ocm-pill { font-size: 10px; }
+.ocm-pill--built { color: var(--anth-ok); }
+.ocm-pill--not_connected { color: var(--anth-text-3); }
+
+.ocm-engine-name { font-family: var(--anth-mono, monospace); color: var(--anth-text-3); }

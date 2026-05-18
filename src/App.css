@@ -96,7 +96,6 @@ html, body, #root {
   font-size: var(--fs-body);
   line-height: 1.45;
   overflow: hidden;
-  user-select: none;
   -webkit-font-smoothing: antialiased;
 }
 

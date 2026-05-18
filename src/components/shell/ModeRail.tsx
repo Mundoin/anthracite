@@ -25,7 +25,8 @@ export type ModeId =
   | "security"
   | "dashboards"
   | "build"
-  | "settings";
+  | "settings"
+  | "opsConsole";
 
 export type ModeGroupId = "foundation" | "run" | "governance" | "workshop";
 
@@ -115,7 +116,14 @@ export function ModeRail({
         />
       ))}
       <div className="rail-foot">
-        <div className="item" role="button" tabIndex={0}>
+        <div
+          className={`item${active === "opsConsole" ? " active" : ""}`}
+          role="button"
+          tabIndex={0}
+          aria-pressed={active === "opsConsole"}
+          aria-label="Ops Console"
+          onClick={() => onChange?.("opsConsole")}
+        >
           <IcoTerminal size={variant === "icons" ? 18 : 15} />
           <span className="lbl">Ops Console</span>
         </div>

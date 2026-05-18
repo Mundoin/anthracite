@@ -4,6 +4,7 @@ import { MODE_STATUS } from "../modeStatus";
 const ALL_MODE_IDS = [
   "hierarchy", "intake", "provisioning", "operate", "topology",
   "diagnose", "assess", "security", "dashboards", "build", "settings",
+  "opsConsole",
 ] as const;
 
 describe("MODE_STATUS", () => {
@@ -13,10 +14,12 @@ describe("MODE_STATUS", () => {
     }
   });
 
-  it("intake, assess, hierarchy are built", () => {
+  it("intake, assess, hierarchy, settings, opsConsole are built", () => {
     expect(MODE_STATUS.intake.state).toBe("built");
     expect(MODE_STATUS.assess.state).toBe("built");
     expect(MODE_STATUS.hierarchy.state).toBe("built");
+    expect(MODE_STATUS.settings.state).toBe("built");
+    expect(MODE_STATUS.opsConsole.state).toBe("built");
   });
 
   it("all not_connected entries have non-empty engineName", () => {
@@ -27,9 +30,9 @@ describe("MODE_STATUS", () => {
     }
   });
 
-  it("exactly 8 not_connected and 3 built", () => {
+  it("exactly 7 not_connected and 5 built", () => {
     const entries = Object.values(MODE_STATUS);
-    expect(entries.filter((s) => s.state === "not_connected").length).toBe(8);
-    expect(entries.filter((s) => s.state === "built").length).toBe(3);
+    expect(entries.filter((s) => s.state === "not_connected").length).toBe(7);
+    expect(entries.filter((s) => s.state === "built").length).toBe(5);
   });
 });

@@ -19,5 +19,6 @@ export const MODE_STATUS: Record<ModeId, ModeStatus> = {
   security:     { state: "not_connected", engineName: "Compliance Engine" },
   dashboards:   { state: "not_connected", engineName: "Reporting Engine" },
   build:        { state: "not_connected", engineName: "Config Generation Engine" },
-  settings:     { state: "not_connected", engineName: "Settings (local)" },
+  settings:     { state: "built",         engineName: "Settings (local)" }, // Flipped V1AE
+  opsConsole:   { state: "built",         engineName: "Ops Console (local)" }, // Added V1AE-A
 };

@@ -62,6 +62,7 @@ export function getHierarchyView(input: {
 
   // readiness.active_environment_id drives live identity rows without a separate `active` param
   const activeEnv = r?.active_environment_id ? (envs.find((e) => e.id === r.active_environment_id) ?? null) : null;
+  const inspectorIdentityIsReal = activeEnv !== null && r?.active_environment_id != null;
   const activeSeed = activeEnv ? (ROW_SEEDS.find((s) => s.id === activeEnv.id) ?? ROW_SEEDS[0]) : ROW_SEEDS[0];
   const inspectorIdentity: readonly InspectorIdentityRow[] = activeEnv
     ? [
@@ -80,6 +81,6 @@ export function getHierarchyView(input: {
     detailDomains: DETAIL_DOMAINS_SEED, detailEvents: DETAIL_EVENTS_SEED, detailSites: DETAIL_SITES_SEED,
     inspectorIdentity, inspectorHealth: INSPECTOR_HEALTH_SEED, inspectorInterfaces: INSPECTOR_INTERFACES_SEED,
     sourceState: bs,
-    sourceStateByBlock: { rows: bs, listKpis: bs, detailDomains: bs, detailEvents: bs, detailSites: bs, inspectorIdentity: bs, inspectorHealth: bs, inspectorInterfaces: bs },
+    sourceStateByBlock: { rows: bs, listKpis: bs, detailDomains: bs, detailEvents: bs, detailSites: bs, inspectorIdentity: inspectorIdentityIsReal ? "real" : "demo", inspectorHealth: bs, inspectorInterfaces: bs },
   };
 }

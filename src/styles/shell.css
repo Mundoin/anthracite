@@ -192,6 +192,7 @@
   display: flex; flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  user-select: text;
 }
 .anth-secondary__head {
   padding: 10px 12px 8px;
@@ -255,6 +256,7 @@
   min-height: 0;
   overflow: auto;
   background: var(--anth-bg-app);
+  user-select: text;
 }
 
 /* ---- Inspector (right, 340 px) ------------------------------------- */
@@ -263,6 +265,7 @@
   min-width: 0;
   background: var(--anth-bg-panel);
   border-left: 1px solid var(--anth-border);
+  user-select: text;
 }
 .anth-inspector .insp-tabs {
   display: flex; gap: 0; height: 32px;
