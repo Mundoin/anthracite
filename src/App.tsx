@@ -50,6 +50,7 @@ import {
   type TopologySourceView,
 } from "./data/topologySource";
 import { TopologyMode } from "./modes/topology/TopologyMode";
+import { DiagnoseMode } from "./modes/diagnose/DiagnoseMode";
 import { planLiveTopologyCollection } from "./api/liveCollection";
 import { InventoryBrowser } from "./modes/hierarchy/InventoryBrowser";
 import { getHierarchyView } from "./data/hierarchySource";
@@ -296,6 +297,21 @@ export default function App(): JSX.Element {
           topology={topology}
           onPlanLiveCollection={planLiveTopologyCollection}
         />
+      </AppShell>
+    );
+  }
+
+  if (activeMode === "diagnose") {
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={["Diagnose"]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        statusLeft={statusLeft(readiness, view.rows)}
+        statusRight={statusRight(layoutView, undefined)}
+      >
+        <DiagnoseMode discovery={discovery} topology={topology} />
       </AppShell>
     );
   }

@@ -14,13 +14,14 @@ describe("MODE_STATUS", () => {
     }
   });
 
-  it("intake, assess, hierarchy, settings, opsConsole, topology are built", () => {
+  it("intake, assess, hierarchy, settings, opsConsole, topology, diagnose are built", () => {
     expect(MODE_STATUS.intake.state).toBe("built");
     expect(MODE_STATUS.assess.state).toBe("built");
     expect(MODE_STATUS.hierarchy.state).toBe("built");
     expect(MODE_STATUS.settings.state).toBe("built");
     expect(MODE_STATUS.opsConsole.state).toBe("built");
     expect(MODE_STATUS.topology.state).toBe("built");
+    expect(MODE_STATUS.diagnose.state).toBe("built"); // V1AW
   });
 
   it("all not_connected entries have non-empty engineName", () => {
@@ -31,9 +32,9 @@ describe("MODE_STATUS", () => {
     }
   });
 
-  it("exactly 6 not_connected and 6 built (post-V1AJ topology flip)", () => {
+  it("exactly 5 not_connected and 7 built (post-V1AW diagnose flip)", () => {
     const entries = Object.values(MODE_STATUS);
-    expect(entries.filter((s) => s.state === "not_connected").length).toBe(6);
-    expect(entries.filter((s) => s.state === "built").length).toBe(6);
+    expect(entries.filter((s) => s.state === "not_connected").length).toBe(5);
+    expect(entries.filter((s) => s.state === "built").length).toBe(7);
   });
 });

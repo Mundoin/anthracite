@@ -1,0 +1,286 @@
+/* V1AW — Diagnose Mode styles. NOC-light industrial palette. */
+
+.diagnose-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 20px 60px;
+  background: var(--anth-bg, transparent);
+}
+
+.dx-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dx-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.dx-scope {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-3);
+}
+
+.dx-tagline {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+  font-style: italic;
+}
+
+.dx-muted {
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+
+.dx-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 8px 10px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+}
+
+.dx-summary-cell {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 96px;
+}
+
+.dx-summary-cats {
+  flex-grow: 1;
+  min-width: 200px;
+}
+
+.dx-summary-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--anth-text-3);
+}
+
+.dx-summary-value {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.dx-summary-value--critical {
+  color: var(--anth-text-1);
+  font-weight: 600;
+}
+
+.dx-summary-value--warning {
+  color: var(--anth-text-2);
+}
+
+.dx-summary-value--info {
+  color: var(--anth-text-3);
+}
+
+.dx-body {
+  border: 1px dashed var(--anth-border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dx-body--empty {
+  background: var(--anth-bg-2, var(--anth-bg));
+}
+
+.dx-body--clean {
+  background: var(--anth-bg-2, var(--anth-bg));
+}
+
+.dx-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(280px, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .dx-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dx-card {
+  appearance: none;
+  text-align: left;
+  background: var(--anth-bg-2, var(--anth-bg));
+  border: 1px solid var(--anth-border);
+  padding: 10px 12px;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dx-card:hover {
+  background: var(--anth-bg-3, var(--anth-border));
+}
+
+.dx-card--selected {
+  border-left-width: 3px;
+  background: var(--anth-bg-3, var(--anth-border));
+}
+
+.dx-card-header {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.dx-card-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dx-card-sub {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-3);
+}
+
+.dx-card-why {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.dx-chip {
+  display: inline-block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  font-weight: 600;
+}
+
+.dx-chip--critical {
+  color: #8a2f2f;
+}
+
+.dx-chip--warning {
+  color: #a26b18;
+}
+
+.dx-chip--info {
+  color: #3a6a4b;
+}
+
+.dx-chip--category {
+  color: var(--anth-text-3);
+  font-weight: 400;
+}
+
+.dx-inspector {
+  border: 1px solid var(--anth-border);
+  padding: 12px 14px;
+  background: var(--anth-bg-2, var(--anth-bg));
+  position: sticky;
+  top: 12px;
+}
+
+.dx-inspector-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dx-inspector-header {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.dx-inspector-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dx-inspector-affected {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.dx-inspector-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.dx-inspector-section p {
+  margin: 0;
+}
+
+.dx-inspector-subheading {
+  margin: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--anth-text-3);
+  font-weight: 600;
+}
+
+.dx-evidence {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 3px 10px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.dx-evidence-row {
+  display: contents;
+}
+
+.dx-evidence-row dt {
+  color: var(--anth-text-3);
+  font-weight: 600;
+}
+
+.dx-evidence-row dd {
+  margin: 0;
+  color: var(--anth-text-1);
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 11px;
+}
+
+.dx-evidence-source {
+  font-style: italic;
+  color: var(--anth-text-3);
+}
+
+.dx-inspector-source {
+  margin: 0;
+  font-size: 10px;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
