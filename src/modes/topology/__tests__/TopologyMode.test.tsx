@@ -1555,4 +1555,112 @@ describe("TopologyMode", () => {
       expect(rawTextarea).toHaveValue("test output");
     });
   });
+
+  describe("TopologyMode — V1AQ Platform hint selector (UI)", () => {
+    it("renders platform hint select with auto default", () => {
+      render(<TopologyMode topology={makeView()} />);
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      fireEvent.click(rawTab);
+      const select = screen.getByTestId("tm-raw-platform-hint") as HTMLSelectElement;
+      expect(select).toBeInTheDocument();
+      expect(select.value).toBe("");
+    });
+
+    it("select offers expected platform options including unsupported labels", () => {
+      render(<TopologyMode topology={makeView()} />);
+      fireEvent.click(screen.getByTestId("tm-evidence-tab-raw"));
+      const select = screen.getByTestId("tm-raw-platform-hint") as HTMLSelectElement;
+      const values = Array.from(select.options).map((o) => o.value);
+      expect(values).toEqual(
+        expect.arrayContaining([
+          "",
+          "iosxe",
+          "nxos",
+          "iosxr",
+          "eos",
+          "junos",
+          "huawei_vrp",
+          "nokia_sros",
+          "fortios",
+          "mikrotik",
+        ])
+      );
+      const fortiosOption = Array.from(select.options).find((o) => o.value === "fortios");
+      expect(fortiosOption?.textContent).toMatch(/unsupported/i);
+      const mikrotikOption = Array.from(select.options).find((o) => o.value === "mikrotik");
+      expect(mikrotikOption?.textContent).toMatch(/unsupported/i);
+    });
+
+    it("selecting nxos lldp and importing sends platform_hint nxos", async () => {
+      const mockResult: RawNeighborEvidenceImportResult = {
+        parsed_entries_total: 1,
+        accepted_evidence_count: 1,
+        rejected_count: 0,
+        unresolved_count: 0,
+        stored_evidence_count: 1,
+        evidence_set_id: "evset-x",
+        accepted_evidence: [],
+        rejected_entries: [],
+      };
+      const mock = vi.fn().mockResolvedValue(mockResult);
+      render(
+        <TopologyMode topology={makeView()} onImportRawNeighborOutput={mock} />
+      );
+      fireEvent.click(screen.getByTestId("tm-evidence-tab-raw"));
+      const select = screen.getByTestId("tm-raw-platform-hint") as HTMLSelectElement;
+      fireEvent.change(select, { target: { value: "nxos" } });
+      const localNode = screen.getByTestId("tm-raw-local-node");
+      fireEvent.change(localNode, { target: { value: "router-a" } });
+      const textarea = screen.getByTestId("tm-raw-output-textarea");
+      fireEvent.change(textarea, { target: { value: "synthetic nxos lldp output" } });
+      const importBtn = screen.getByTestId("tm-raw-import-button");
+      fireEvent.click(importBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(mock).toHaveBeenCalledTimes(1);
+      const callArg = mock.mock.calls[0][0];
+      expect(callArg.platform_hint).toBe("nxos");
+      expect(callArg.source_kind).toBe("lldp");
+    });
+
+    it("default Auto sends null platform_hint in request", async () => {
+      const mockResult: RawNeighborEvidenceImportResult = {
+        parsed_entries_total: 0,
+        accepted_evidence_count: 0,
+        rejected_count: 0,
+        unresolved_count: 0,
+        stored_evidence_count: 0,
+        evidence_set_id: null,
+        accepted_evidence: [],
+        rejected_entries: [],
+      };
+      const mock = vi.fn().mockResolvedValue(mockResult);
+      render(
+        <TopologyMode topology={makeView()} onImportRawNeighborOutput={mock} />
+      );
+      fireEvent.click(screen.getByTestId("tm-evidence-tab-raw"));
+      fireEvent.change(screen.getByTestId("tm-raw-local-node"), {
+        target: { value: "router-a" },
+      });
+      fireEvent.change(screen.getByTestId("tm-raw-output-textarea"), {
+        target: { value: "any raw text" },
+      });
+      fireEvent.click(screen.getByTestId("tm-raw-import-button"));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(mock).toHaveBeenCalledTimes(1);
+      expect(mock.mock.calls[0][0].platform_hint).toBeNull();
+    });
+
+    it("V1AP raw form testids preserved alongside V1AQ selector", () => {
+      render(<TopologyMode topology={makeView()} />);
+      fireEvent.click(screen.getByTestId("tm-evidence-tab-raw"));
+      expect(screen.getByTestId("tm-raw-source-kind-lldp")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-source-kind-cdp")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-local-node")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-output-textarea")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-import-button")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-platform-hint")).toBeInTheDocument();
+    });
+  });
 });

@@ -54,6 +54,7 @@ function EvidenceImportPanel({
   const [rawTextValue, setRawTextValue] = useState("");
   const [rawFeedback, setRawFeedback] = useState("");
   const [rawIsLoading, setRawIsLoading] = useState(false);
+  const [rawPlatformHint, setRawPlatformHint] = useState("");
 
   const handleJsonImport = async () => {
     if (!environmentId || !onImportEvidence) {
@@ -99,7 +100,7 @@ function EvidenceImportPanel({
         environment_id: environmentId,
         local_node: rawLocalNode,
         source_kind: rawSourceKind,
-        platform_hint: null,
+        platform_hint: rawPlatformHint === "" ? null : rawPlatformHint,
         raw_text: rawTextValue,
         source_label: null,
       };
@@ -190,6 +191,30 @@ function EvidenceImportPanel({
       ) : (
         <>
           <div className="tm-raw-form">
+            <label className="tm-raw-form-field">
+              <span className="tm-raw-form-label">Platform hint</span>
+              <select
+                data-testid="tm-raw-platform-hint"
+                className="tm-raw-platform-hint-select"
+                value={rawPlatformHint}
+                onChange={(e) => setRawPlatformHint(e.currentTarget.value)}
+                disabled={rawIsLoading}
+              >
+                <option value="">Auto (cascade)</option>
+                <option value="iosxe">Cisco IOS-XE</option>
+                <option value="nxos">Cisco NX-OS</option>
+                <option value="iosxr">Cisco IOS-XR</option>
+                <option value="eos">Arista EOS</option>
+                <option value="junos">Juniper Junos</option>
+                <option value="huawei_vrp">Huawei VRP</option>
+                <option value="nokia_sros">Nokia SR OS</option>
+                <option value="fortios">FortiOS (unsupported)</option>
+                <option value="mikrotik">MikroTik (unsupported)</option>
+              </select>
+            </label>
+            <p className="tm-raw-form-hint" data-testid="tm-raw-platform-hint-hint">
+              Platform hint guides parser selection. Auto cascades through supported formats. Exact inventory match only — no fuzzy resolution. Unsupported platforms are honestly rejected with diagnostics.
+            </p>
             <fieldset className="tm-raw-source-kind-group">
               <legend className="tm-raw-form-label">Source kind</legend>
               <div className="tm-raw-radio-group">

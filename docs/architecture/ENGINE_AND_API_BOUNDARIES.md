@@ -250,6 +250,26 @@ matching, no second store. Reuse V1AO `TopologyEvidenceStore`. Future hook: NX-O
 same pipeline; no engine changes needed. See `TOPOLOGY_ENGINE_BOUNDARY.md` V1AP section for types, resolver contract,
 and rejection categories.
 
+### V1AQ addition
+
+V1AQ extends V1AP raw-output parser with multi-vendor coverage (NX-OS, Junos, IOS-XR, EOS-CDP). No new types or Tauri
+commands — reuses V1AP wire shape. Dispatcher signature refined to accept `platform_hint: Option<&str>` parameter;
+routes `(source_kind, platform_hint)` pairs to format-specific parsers. New parsers: `parse_nxos_lldp_detail`,
+`parse_nxos_cdp_detail`, `parse_junos_lldp_neighbors`, `parse_iosxr_lldp_neighbors`, `parse_eos_cdp_detail` (primary support);
+optional `parse_huawei_vrp_lldp_neighbor`, `parse_nokia_sros_lldp_neighbor` if cleanly implementable (secondary support,
+documented as deferred if complex). Dispatcher routing: explicit platform hints (e.g. "nxos", "junos", "iosxr")
+select matching parser; auto-cascade (None | "other") tries IOS-XE → EOS → NX-OS → Junos → IOS-XR for LLDP, IOS-XE
+→ NX-OS → EOS for CDP; first non-empty wins. Unsupported platforms (FortiOS, MikroTik) return empty, triggering
+`UnsupportedFormat` rejection with diagnostic detail naming the platform. Orchestrator passes platform_hint through
+to dispatcher; detects empty result + explicit hint and emits UnsupportedFormat with reason. UI gains platform-hint
+selector (default "Auto (cascade)") between source-kind radio and text inputs; options include all supported vendors
+plus "(unsupported)" labels. Resolver, store, and evidence pipeline unchanged — same V1AO `TopologyEvidenceStore`,
+same V1AN mapper, same V1AM projection. Honest wording: "Platform hint", "Auto (cascade)", "(unsupported)" — never
+"Auto-detect"/"Smart routing"/"Discovery". Scope-out strict: no new types/commands, no vendor parser tree changes,
+no parser-lab edits, no DeviceModel mutation, no live polling, no fuzzy matching, no append/merge semantics. Future hook:
+parser-driven extraction, broader vendor coverage, SSH-based live ingestion all plug into same pipeline. See
+`TOPOLOGY_ENGINE_BOUNDARY.md` V1AQ section for dispatcher routing rules, platform mismatch handling, and design decisions.
+
 ---
 
 ## Monitoring / Polling Engine

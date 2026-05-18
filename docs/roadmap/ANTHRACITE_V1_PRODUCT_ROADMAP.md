@@ -273,7 +273,16 @@ diagnostics. Remaining work in Stage Group 2:
   V1AO `TopologyEvidenceStore`, projecting through V1AN/V1AM into live
   edges. NX-OS/Junos and any other formats are explicitly unsupported
   in V1AP and honestly rejected.
-- **Vendor Parser LLDP/CDP/Config-Neighbour Extraction (V1AQ+).** Vendor parsers produce
+- **Vendor Raw Output Coverage Expansion (V1AQ).** Topology raw
+  neighbour output importer adds parsers for Cisco NX-OS LLDP/CDP,
+  Juniper Junos LLDP (terse), Cisco IOS-XR LLDP, and Arista EOS CDP
+  (plus optional Huawei VRP and Nokia SR OS LLDP if cleanly
+  implementable). Dispatcher selects parser by source_kind +
+  platform_hint; Auto cascade preserves V1AP's first-match
+  behaviour. FortiOS and MikroTik are explicitly unsupported with
+  honest UnsupportedFormat rejections. Exact resolver, V1AO store,
+  V1AN mapper, V1AM projection all reused unchanged.
+- **Vendor Parser LLDP/CDP/Config-Neighbour Extraction (post-V1AQ).** Vendor parsers produce
   `Vec<TopologyNeighborEvidence>` from their LLDP, CDP, and config-neighbour
   extractors. Call `TopologyEngine::project_with_neighbor_evidence(env, records, evidence)`.
   Flip `present: true` on relevant sources; state auto-transitions; edge count

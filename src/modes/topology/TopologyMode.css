@@ -448,6 +448,27 @@
   cursor: not-allowed;
 }
 
+.tm-raw-platform-hint-select {
+  padding: 6px 8px;
+  font-family: var(--anth-mono, monospace);
+  font-size: 11px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.tm-raw-platform-hint-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tm-raw-form-hint {
+  margin: 0;
+  font-size: 10px;
+  color: var(--anth-text-3);
+  line-height: 1.4;
+}
+
 .tm-raw-source-kind-group {
   border: none;
   padding: 0;

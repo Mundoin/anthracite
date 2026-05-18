@@ -251,23 +251,373 @@ fn parse_eos_lldp_detail(text: &str) -> Vec<RawNeighborParsedEntry> {
 }
 
 // =====================================================================
+// Parsers — Cisco NX-OS LLDP detail
+// =====================================================================
+
+fn parse_nxos_lldp_detail(text: &str) -> Vec<RawNeighborParsedEntry> {
+    let mut entries = Vec::new();
+    // Split on long separator lines (========) or blank lines between blocks
+
+    let mut current_block = String::new();
+    for line in text.lines() {
+        let trimmed = line.trim();
+        // Check for block separator: line of 8+ dashes or equals
+        if (trimmed.chars().all(|c| c == '-') || trimmed.chars().all(|c| c == '='))
+            && trimmed.len() >= 8
+        {
+            if !current_block.is_empty() {
+                process_nxos_lldp_block(&current_block, &mut entries);
+                current_block.clear();
+            }
+        } else if trimmed.is_empty() {
+            if !current_block.is_empty() {
+                process_nxos_lldp_block(&current_block, &mut entries);
+                current_block.clear();
+            }
+        } else {
+            if !current_block.is_empty() {
+                current_block.push('\n');
+            }
+            current_block.push_str(line);
+        }
+    }
+    if !current_block.is_empty() {
+        process_nxos_lldp_block(&current_block, &mut entries);
+    }
+
+    entries
+}
+
+fn process_nxos_lldp_block(block: &str, entries: &mut Vec<RawNeighborParsedEntry>) {
+    let mut entry = RawNeighborParsedEntry {
+        local_interface: None,
+        remote_system_name: None,
+        remote_port_id: None,
+        remote_chassis_id: None,
+        raw_block: block.to_string(),
+    };
+
+    for line in block.lines() {
+        let line_trimmed = line.trim();
+        // Split on first colon and extract value
+        if let Some((key, val)) = line_trimmed.split_once(':') {
+            let key = key.trim();
+            let val = val.trim();
+            match key {
+                "System Name" => entry.remote_system_name = Some(val.to_string()),
+                "Chassis id" | "Chassis ID" => entry.remote_chassis_id = Some(val.to_string()),
+                "Port id" | "Port ID" => entry.remote_port_id = Some(val.to_string()),
+                "Local Port id" | "Local Port ID" => entry.local_interface = Some(val.to_string()),
+                _ => {}
+            }
+        }
+    }
+
+    // Accept only if remote has identity
+    if entry.remote_system_name.is_some() || entry.remote_chassis_id.is_some() {
+        entries.push(entry);
+    }
+}
+
+// =====================================================================
+// Parsers — Cisco NX-OS CDP detail
+// =====================================================================
+
+fn parse_nxos_cdp_detail(text: &str) -> Vec<RawNeighborParsedEntry> {
+    let mut entries = Vec::new();
+    let mut current_block = String::new();
+
+    for line in text.lines() {
+        let trimmed = line.trim();
+        // Detect block separator: line of dashes (----) of length >= 4
+        if trimmed.chars().all(|c| c == '-') && trimmed.len() >= 4 {
+            if !current_block.is_empty() {
+                process_nxos_cdp_block(&current_block, &mut entries);
+                current_block.clear();
+            }
+        } else if !trimmed.is_empty() {
+            if !current_block.is_empty() {
+                current_block.push('\n');
+            }
+            current_block.push_str(line);
+        }
+    }
+    if !current_block.is_empty() {
+        process_nxos_cdp_block(&current_block, &mut entries);
+    }
+
+    entries
+}
+
+fn process_nxos_cdp_block(block: &str, entries: &mut Vec<RawNeighborParsedEntry>) {
+    let mut entry = RawNeighborParsedEntry {
+        local_interface: None,
+        remote_system_name: None,
+        remote_port_id: None,
+        remote_chassis_id: None,
+        raw_block: block.to_string(),
+    };
+
+    let mut has_device_id = false;
+
+    for line in block.lines() {
+        let line_trimmed = line.trim();
+        if let Some((key, val)) = line_trimmed.split_once(':') {
+            let key = key.trim();
+            let val = val.trim();
+            match key {
+                "Device ID" => {
+                    entry.remote_system_name = Some(val.to_string());
+                    has_device_id = true;
+                }
+                "Interface" => {
+                    entry.local_interface = Some(val.to_string());
+                }
+                "Port ID (outgoing port)" => {
+                    entry.remote_port_id = Some(val.to_string());
+                }
+                _ => {}
+            }
+        }
+    }
+
+    if has_device_id {
+        entries.push(entry);
+    }
+}
+
+// =====================================================================
+// Parsers — Juniper Junos LLDP neighbors (terse table)
+// =====================================================================
+
+fn parse_junos_lldp_neighbors(text: &str) -> Vec<RawNeighborParsedEntry> {
+    let mut entries = Vec::new();
+    let mut header_found = false;
+
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        // Detect header line: contains "Local Interface" and "System Name"
+        if trimmed.contains("Local Interface") && trimmed.contains("System Name") {
+            header_found = true;
+            continue;
+        }
+
+        if !header_found {
+            continue;
+        }
+
+        // Parse data line: columns are whitespace-separated
+        let parts: Vec<&str> = trimmed.split_whitespace().collect();
+        if parts.len() < 5 {
+            continue;
+        }
+
+        let entry = RawNeighborParsedEntry {
+            local_interface: Some(parts[0].to_string()),
+            remote_chassis_id: Some(parts[2].to_string()),
+            remote_port_id: Some(parts[3].to_string()),
+            remote_system_name: Some(parts[4].to_string()),
+            raw_block: line.to_string(),
+        };
+
+        entries.push(entry);
+    }
+
+    entries
+}
+
+// =====================================================================
+// Parsers — Cisco IOS-XR LLDP neighbors detail
+// =====================================================================
+
+fn parse_iosxr_lldp_neighbors(text: &str) -> Vec<RawNeighborParsedEntry> {
+    let mut entries = Vec::new();
+    let mut current_block = String::new();
+
+    for line in text.lines() {
+        let trimmed = line.trim();
+        // Block separator: line of 8+ dashes or "Local Interface:" starts a new block
+        if (trimmed.chars().all(|c| c == '-') && trimmed.len() >= 8)
+            || (trimmed.starts_with("Local Interface") && !current_block.is_empty())
+        {
+            if !current_block.is_empty() {
+                process_iosxr_lldp_block(&current_block, &mut entries);
+                current_block.clear();
+            }
+        }
+        if !trimmed.is_empty() {
+            if !current_block.is_empty() {
+                current_block.push('\n');
+            }
+            current_block.push_str(line);
+        }
+    }
+    if !current_block.is_empty() {
+        process_iosxr_lldp_block(&current_block, &mut entries);
+    }
+
+    entries
+}
+
+fn process_iosxr_lldp_block(block: &str, entries: &mut Vec<RawNeighborParsedEntry>) {
+    let mut entry = RawNeighborParsedEntry {
+        local_interface: None,
+        remote_system_name: None,
+        remote_port_id: None,
+        remote_chassis_id: None,
+        raw_block: block.to_string(),
+    };
+
+    for line in block.lines() {
+        let line_trimmed = line.trim();
+        if let Some((key, val)) = line_trimmed.split_once(':') {
+            let key = key.trim();
+            let val = val.trim();
+            match key {
+                "Local Interface" => entry.local_interface = Some(val.to_string()),
+                "System Name" => entry.remote_system_name = Some(val.to_string()),
+                "Port id" | "Port ID" => entry.remote_port_id = Some(val.to_string()),
+                "Chassis id" | "Chassis ID" => entry.remote_chassis_id = Some(val.to_string()),
+                _ => {}
+            }
+        }
+    }
+
+    if entry.remote_system_name.is_some() || entry.remote_chassis_id.is_some() {
+        entries.push(entry);
+    }
+}
+
+// =====================================================================
+// Parsers — Arista EOS CDP detail
+// =====================================================================
+
+fn parse_eos_cdp_detail(text: &str) -> Vec<RawNeighborParsedEntry> {
+    let mut entries = Vec::new();
+    let mut current_block = String::new();
+
+    for line in text.lines() {
+        let trimmed = line.trim();
+        // Block separator: line of 4+ dashes
+        if trimmed.chars().all(|c| c == '-') && trimmed.len() >= 4 {
+            if !current_block.is_empty() {
+                process_eos_cdp_block(&current_block, &mut entries);
+                current_block.clear();
+            }
+        } else if !trimmed.is_empty() {
+            if !current_block.is_empty() {
+                current_block.push('\n');
+            }
+            current_block.push_str(line);
+        }
+    }
+    if !current_block.is_empty() {
+        process_eos_cdp_block(&current_block, &mut entries);
+    }
+
+    entries
+}
+
+fn process_eos_cdp_block(block: &str, entries: &mut Vec<RawNeighborParsedEntry>) {
+    let mut entry = RawNeighborParsedEntry {
+        local_interface: None,
+        remote_system_name: None,
+        remote_port_id: None,
+        remote_chassis_id: None,
+        raw_block: block.to_string(),
+    };
+
+    let mut has_device_id = false;
+
+    for line in block.lines() {
+        let line_trimmed = line.trim();
+        if let Some((key, val)) = line_trimmed.split_once(':') {
+            let key = key.trim();
+            let val = val.trim();
+            match key {
+                "Device ID" => {
+                    entry.remote_system_name = Some(val.to_string());
+                    has_device_id = true;
+                }
+                "Interface" => {
+                    entry.local_interface = Some(val.to_string());
+                }
+                "Port ID (outgoing port)" => {
+                    entry.remote_port_id = Some(val.to_string());
+                }
+                _ => {}
+            }
+        }
+    }
+
+    if has_device_id {
+        entries.push(entry);
+    }
+}
+
+// =====================================================================
 // Dispatcher
 // =====================================================================
 
-fn parse_raw_neighbor_output(source_kind: RawNeighborSourceKind, text: &str) -> Vec<RawNeighborParsedEntry> {
+pub fn parse_raw_neighbor_output(
+    source_kind: RawNeighborSourceKind,
+    platform_hint: Option<&str>,
+    text: &str,
+) -> Vec<RawNeighborParsedEntry> {
     match source_kind {
         RawNeighborSourceKind::Lldp => {
-            // Try IOS-XE LLDP first
-            let iosxe_result = parse_iosxe_lldp_detail(text);
-            if !iosxe_result.is_empty() {
-                return iosxe_result;
+            match platform_hint {
+                Some("iosxe") => parse_iosxe_lldp_detail(text),
+                Some("eos") => parse_eos_lldp_detail(text),
+                Some("nxos") => parse_nxos_lldp_detail(text),
+                Some("junos") => parse_junos_lldp_neighbors(text),
+                Some("iosxr") => parse_iosxr_lldp_neighbors(text),
+                Some("huawei_vrp") | Some("nokia_sros") | Some("fortios") | Some("mikrotik") => Vec::new(),
+                None | Some(_) => {
+                    // Auto-cascade: try parsers in order, return first non-empty
+                    let iosxe_result = parse_iosxe_lldp_detail(text);
+                    if !iosxe_result.is_empty() {
+                        return iosxe_result;
+                    }
+                    let eos_result = parse_eos_lldp_detail(text);
+                    if !eos_result.is_empty() {
+                        return eos_result;
+                    }
+                    let nxos_result = parse_nxos_lldp_detail(text);
+                    if !nxos_result.is_empty() {
+                        return nxos_result;
+                    }
+                    let junos_result = parse_junos_lldp_neighbors(text);
+                    if !junos_result.is_empty() {
+                        return junos_result;
+                    }
+                    parse_iosxr_lldp_neighbors(text)
+                }
             }
-            // Fall back to EOS LLDP
-            parse_eos_lldp_detail(text)
         }
         RawNeighborSourceKind::Cdp => {
-            // Only IOS-XE CDP
-            parse_iosxe_cdp_detail(text)
+            match platform_hint {
+                Some("iosxe") => parse_iosxe_cdp_detail(text),
+                Some("nxos") => parse_nxos_cdp_detail(text),
+                Some("eos") => parse_eos_cdp_detail(text),
+                Some(_) => Vec::new(),
+                None => {
+                    // Auto-cascade: IOS-XE → NX-OS → EOS
+                    let iosxe_result = parse_iosxe_cdp_detail(text);
+                    if !iosxe_result.is_empty() {
+                        return iosxe_result;
+                    }
+                    let nxos_result = parse_nxos_cdp_detail(text);
+                    if !nxos_result.is_empty() {
+                        return nxos_result;
+                    }
+                    parse_eos_cdp_detail(text)
+                }
+            }
         }
     }
 }
@@ -312,7 +662,7 @@ pub fn import_raw_neighbor_output(
     let local_record_id = resolve_node_id(records, &request.local_node);
 
     // Step 2: Parse raw text
-    let parsed_entries = parse_raw_neighbor_output(request.source_kind, &request.raw_text);
+    let parsed_entries = parse_raw_neighbor_output(request.source_kind, request.platform_hint.as_deref(), &request.raw_text);
     let parsed_entries_total = parsed_entries.len() as u32;
 
     let mut accepted_evidence = Vec::new();
@@ -321,6 +671,28 @@ pub fn import_raw_neighbor_output(
 
     // Step 3: Handle parse-empty case
     if parsed_entries_total == 0 {
+        // Check if this is an unsupported platform
+        if let Some(hint) = request.platform_hint.as_deref() {
+            if hint == "fortios" || hint == "mikrotik" {
+                rejected_entries.push(RawNeighborRejectedEntry {
+                    reason: RawNeighborRejectionReason::UnsupportedFormat,
+                    detail: format!("Platform '{}' is not supported in V1AQ", hint),
+                    raw_block: request.raw_text.chars().take(256).collect(),
+                });
+
+                return Ok(RawNeighborEvidenceImportResult {
+                    parsed_entries_total,
+                    accepted_evidence_count: 0,
+                    rejected_count: 1,
+                    unresolved_count: 0,
+                    stored_evidence_count: 0,
+                    evidence_set_id: None,
+                    accepted_evidence,
+                    rejected_entries,
+                });
+            }
+        }
+
         rejected_entries.push(RawNeighborRejectedEntry {
             reason: RawNeighborRejectionReason::ParseEmpty,
             detail: "No entries matched the expected format".to_string(),
@@ -892,5 +1264,331 @@ Port id: Gi0/2"#;
         // Load from env_b (should be empty)
         let stored_b = store.load("env-b");
         assert_eq!(stored_b.len(), 0);
+    }
+
+    // ──── V1AQ — Vendor Coverage Expansion Tests ────
+
+    #[test]
+    fn parse_nxos_lldp_detail_basic() {
+        let text = r#"Chassis id: 00aa.bbcc.ddee
+Port id: Eth1/1
+Local Port id: Ethernet1/2
+Port Description: <none>
+System Name: nxos-switch-b
+System Description: Cisco NX-OS
+
+========================================
+
+Chassis id: aabb.ccdd.eeff
+Port id: Eth2/1
+Local Port id: Ethernet2/2
+System Name: nxos-switch-c"#;
+
+        let entries = parse_nxos_lldp_detail(text);
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].local_interface, Some("Ethernet1/2".to_string()));
+        assert_eq!(entries[0].remote_system_name, Some("nxos-switch-b".to_string()));
+        assert_eq!(entries[0].remote_chassis_id, Some("00aa.bbcc.ddee".to_string()));
+        assert_eq!(entries[1].remote_system_name, Some("nxos-switch-c".to_string()));
+    }
+
+    #[test]
+    fn parse_nxos_lldp_skips_blocks_without_identity() {
+        let text = r#"Port id: Eth1/1
+Local Port id: Ethernet1/2
+
+========================================
+
+System Name: nxos-switch-b
+Port id: Eth2/1
+Chassis id: aabb.ccdd.eeff"#;
+
+        let entries = parse_nxos_lldp_detail(text);
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].remote_system_name, Some("nxos-switch-b".to_string()));
+    }
+
+    #[test]
+    fn parse_nxos_cdp_detail_basic() {
+        let text = r#"Device ID: nxos-switch-b
+Interface: Ethernet1/2
+Port ID (outgoing port): Ethernet1/1
+Platform: cisco Nexus7000
+
+----
+
+Device ID: nxos-switch-c
+Interface: Ethernet2/2
+Port ID (outgoing port): Ethernet2/1"#;
+
+        let entries = parse_nxos_cdp_detail(text);
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].remote_system_name, Some("nxos-switch-b".to_string()));
+        assert_eq!(entries[0].local_interface, Some("Ethernet1/2".to_string()));
+        assert_eq!(entries[0].remote_port_id, Some("Ethernet1/1".to_string()));
+    }
+
+    #[test]
+    fn parse_junos_lldp_neighbors_basic_terse_table() {
+        let text = r#"Local Interface    Parent Interface  Chassis Id          Port info          System Name
+ge-0/0/0           -                 00:11:22:33:44:55   ge-0/0/1           router-b
+ge-0/0/1           -                 aa:bb:cc:dd:ee:ff   xe-2/0/0           router-c"#;
+
+        let entries = parse_junos_lldp_neighbors(text);
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].local_interface, Some("ge-0/0/0".to_string()));
+        assert_eq!(entries[0].remote_chassis_id, Some("00:11:22:33:44:55".to_string()));
+        assert_eq!(entries[0].remote_port_id, Some("ge-0/0/1".to_string()));
+        assert_eq!(entries[0].remote_system_name, Some("router-b".to_string()));
+        assert_eq!(entries[1].remote_system_name, Some("router-c".to_string()));
+    }
+
+    #[test]
+    fn parse_junos_lldp_skips_header_line() {
+        let text = r#"Local Interface    Parent Interface  Chassis Id          Port info          System Name
+ge-0/0/0           -                 00:11:22:33:44:55   ge-0/0/1           router-b"#;
+
+        let entries = parse_junos_lldp_neighbors(text);
+        // Should have exactly 1 entry (header not counted)
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].remote_system_name, Some("router-b".to_string()));
+    }
+
+    #[test]
+    fn parse_iosxr_lldp_neighbors_basic() {
+        let text = r#"Local Interface: GigabitEthernet0/0/0/1
+Chassis id: 0011.2233.4455
+Port id: GigabitEthernet0/0/0/2
+Port Description: uplink
+System Name: iosxr-b
+System Description: Cisco IOS-XR
+
+------------------------------------------------
+
+Local Interface: GigabitEthernet0/0/0/3
+Chassis id: aabb.ccdd.eeff
+Port id: GigabitEthernet0/0/0/4
+System Name: iosxr-c"#;
+
+        let entries = parse_iosxr_lldp_neighbors(text);
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].local_interface, Some("GigabitEthernet0/0/0/1".to_string()));
+        assert_eq!(entries[0].remote_system_name, Some("iosxr-b".to_string()));
+        assert_eq!(entries[0].remote_chassis_id, Some("0011.2233.4455".to_string()));
+    }
+
+    #[test]
+    fn parse_eos_cdp_detail_basic() {
+        let text = r#"Device ID: eos-switch-b
+Interface: Ethernet1
+Port ID (outgoing port): Ethernet2
+Platform: Arista EOS
+
+----
+
+Device ID: eos-switch-c
+Interface: Ethernet3
+Port ID (outgoing port): Ethernet4"#;
+
+        let entries = parse_eos_cdp_detail(text);
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].remote_system_name, Some("eos-switch-b".to_string()));
+        assert_eq!(entries[0].local_interface, Some("Ethernet1".to_string()));
+        assert_eq!(entries[0].remote_port_id, Some("Ethernet2".to_string()));
+    }
+
+    #[test]
+    fn dispatcher_routes_by_platform_hint_lldp() {
+        let iosxe_text = r#"Local Intf: Gi0/1
+System Name: router-b
+Port id: Gi0/2
+Chassis id: 00:11:22:33:44:55"#;
+
+        let eos_text = r#"Interface Ethernet1 detected 1 LLDP neighbors:
+  Neighbor Device ID: router-b
+  Neighbor Port ID: Ethernet2"#;
+
+        let nxos_text = r#"System Name: nxos-b
+Chassis id: 00aa.bbcc.ddee
+Local Port id: Ethernet1/2
+Port id: Eth1/1"#;
+
+        // IOS-XE hint
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Lldp, Some("iosxe"), iosxe_text);
+        assert!(!result.is_empty());
+        assert_eq!(result[0].remote_system_name, Some("router-b".to_string()));
+
+        // EOS hint
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Lldp, Some("eos"), eos_text);
+        assert!(!result.is_empty());
+        assert_eq!(result[0].remote_system_name, Some("router-b".to_string()));
+
+        // NX-OS hint
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Lldp, Some("nxos"), nxos_text);
+        assert!(!result.is_empty());
+        assert_eq!(result[0].remote_system_name, Some("nxos-b".to_string()));
+    }
+
+    #[test]
+    fn dispatcher_routes_by_platform_hint_cdp() {
+        let iosxe_text = r#"Device ID: router-b
+Interface: Gi0/1, Port ID (outgoing port): Gi0/2"#;
+
+        let nxos_text = r#"Device ID: nxos-b
+Interface: Ethernet1/2
+Port ID (outgoing port): Ethernet1/1"#;
+
+        // IOS-XE hint
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Cdp, Some("iosxe"), iosxe_text);
+        assert!(!result.is_empty());
+        assert_eq!(result[0].remote_system_name, Some("router-b".to_string()));
+
+        // NX-OS hint
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Cdp, Some("nxos"), nxos_text);
+        assert!(!result.is_empty());
+        assert_eq!(result[0].remote_system_name, Some("nxos-b".to_string()));
+    }
+
+    #[test]
+    fn dispatcher_fortios_returns_empty() {
+        let text = "some fortios output";
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Lldp, Some("fortios"), text);
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn dispatcher_mikrotik_returns_empty() {
+        let text = "some mikrotik output";
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Lldp, Some("mikrotik"), text);
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn dispatcher_unknown_cdp_platform_returns_empty() {
+        let text = "some unknown cdp output";
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Cdp, Some("unknown_platform"), text);
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn dispatcher_lldp_auto_cascade_picks_first_match() {
+        let iosxe_text = r#"Local Intf: Gi0/1
+System Name: router-b
+Port id: Gi0/2
+Chassis id: 00:11:22:33:44:55"#;
+
+        // No hint: should cascade and pick IOS-XE parser
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Lldp, None, iosxe_text);
+        assert!(!result.is_empty());
+        assert_eq!(result[0].remote_system_name, Some("router-b".to_string()));
+    }
+
+    #[test]
+    fn dispatcher_cdp_auto_cascade_picks_first_match() {
+        let iosxe_text = r#"Device ID: router-b
+Interface: Gi0/1, Port ID (outgoing port): Gi0/2"#;
+
+        // No hint: should cascade and pick IOS-XE parser
+        let result = parse_raw_neighbor_output(RawNeighborSourceKind::Cdp, None, iosxe_text);
+        assert!(!result.is_empty());
+        assert_eq!(result[0].remote_system_name, Some("router-b".to_string()));
+    }
+
+    #[test]
+    fn import_nxos_lldp_writes_to_store() {
+        let records = vec![
+            make_record("rec-1", Some("router-a")),
+            make_record("rec-2", Some("nxos-b")),
+            make_record("rec-3", Some("nxos-c")),
+        ];
+
+        let text = r#"Chassis id: 00aa.bbcc.ddee
+System Name: nxos-b
+Local Port id: Ethernet1/2
+Port id: Eth1/1
+
+========================================
+
+Chassis id: aabb.ccdd.eeff
+System Name: nxos-c
+Local Port id: Ethernet2/2
+Port id: Eth2/1"#;
+
+        let request = RawNeighborEvidenceImportRequest {
+            environment_id: "test-env".to_string(),
+            local_node: "router-a".to_string(),
+            source_kind: RawNeighborSourceKind::Lldp,
+            platform_hint: Some("nxos".to_string()),
+            raw_text: text.to_string(),
+            source_label: None,
+        };
+
+        let store = MockStore::new();
+        let result = import_raw_neighbor_output(&request, &records, &store).unwrap();
+
+        assert_eq!(result.parsed_entries_total, 2);
+        assert_eq!(result.accepted_evidence_count, 2);
+        assert_eq!(result.rejected_count, 0);
+        assert_eq!(result.stored_evidence_count, 2);
+
+        let stored = store.load("test-env");
+        assert_eq!(stored.len(), 2);
+    }
+
+    #[test]
+    fn import_unsupported_fortios_emits_unsupported_format_rejection() {
+        let records = vec![
+            make_record("rec-1", Some("router-a")),
+        ];
+
+        let text = "FortiOS neighbor output";
+
+        let request = RawNeighborEvidenceImportRequest {
+            environment_id: "test-env".to_string(),
+            local_node: "router-a".to_string(),
+            source_kind: RawNeighborSourceKind::Lldp,
+            platform_hint: Some("fortios".to_string()),
+            raw_text: text.to_string(),
+            source_label: None,
+        };
+
+        let store = MockStore::new();
+        let result = import_raw_neighbor_output(&request, &records, &store).unwrap();
+
+        assert_eq!(result.accepted_evidence_count, 0);
+        assert_eq!(result.rejected_count, 1);
+        assert_eq!(result.rejected_entries[0].reason, RawNeighborRejectionReason::UnsupportedFormat);
+        assert!(result.rejected_entries[0].detail.contains("fortios"));
+        assert_eq!(result.stored_evidence_count, 0);
+
+        let stored = store.load("test-env");
+        assert_eq!(stored.len(), 0);
+    }
+
+    #[test]
+    fn import_unsupported_mikrotik_emits_unsupported_format_rejection() {
+        let records = vec![
+            make_record("rec-1", Some("router-a")),
+        ];
+
+        let text = "MikroTik neighbor output";
+
+        let request = RawNeighborEvidenceImportRequest {
+            environment_id: "test-env".to_string(),
+            local_node: "router-a".to_string(),
+            source_kind: RawNeighborSourceKind::Lldp,
+            platform_hint: Some("mikrotik".to_string()),
+            raw_text: text.to_string(),
+            source_label: None,
+        };
+
+        let store = MockStore::new();
+        let result = import_raw_neighbor_output(&request, &records, &store).unwrap();
+
+        assert_eq!(result.accepted_evidence_count, 0);
+        assert_eq!(result.rejected_count, 1);
+        assert_eq!(result.rejected_entries[0].reason, RawNeighborRejectionReason::UnsupportedFormat);
+        assert!(result.rejected_entries[0].detail.contains("mikrotik"));
+        assert_eq!(result.stored_evidence_count, 0);
     }
 }

@@ -774,6 +774,209 @@ and future SSH-driven evidence collection both use the same import pipeline.
 
 ---
 
+## V1AQ — Vendor Raw Output Coverage Expansion
+
+### Status
+
+V1AQ extends the V1AP raw-output parser with support for Cisco NX-OS, Juniper Junos,
+Cisco IOS-XR, and Arista EOS (CDP). No new types or commands — reuses V1AP wire shape.
+`platform_hint: Option<String>` from V1AP carries through to dispatcher for deterministic
+parser selection. Dispatcher routing rules map source_kind + platform_hint to format-specific
+parser. Auto cascade (None | "other") applies fallback matching for known formats. FortiOS
+and MikroTik are explicitly unsupported with honest `UnsupportedFormat` rejections and
+diagnostic detail. Same resolver, same store, same orchestrator — V1AQ is a parser-coverage
+expansion layer.
+
+### What V1AQ adds
+
+**New parsers in `src-tauri/src/engines/topology_neighbor_output.rs` (primary support):**
+
+- `parse_nxos_lldp_detail(text)` — Cisco NX-OS `show lldp neighbors detail`
+- `parse_nxos_cdp_detail(text)` — Cisco NX-OS `show cdp neighbors detail`
+- `parse_junos_lldp_neighbors(text)` — Juniper Junos `show lldp neighbors` (terse table)
+- `parse_iosxr_lldp_neighbors(text)` — Cisco IOS-XR `show lldp neighbors detail`
+- `parse_eos_cdp_detail(text)` — Arista EOS `show cdp neighbors detail`
+
+**Secondary parsers (deferred in V1AQ):**
+
+- Huawei VRP `display lldp neighbor` — **deferred to follow-up.** Field labels
+  (`Chassis ID/subtype`, `Port ID/subtype`) are ambiguous without representative
+  fixtures; honest deferral chosen over guessing. Dispatcher returns empty for
+  `huawei_vrp` hint in V1AQ.
+- Nokia SR OS `show system lldp neighbor` — **deferred to follow-up.** Same
+  rationale: insufficient fixture confidence. Dispatcher returns empty for
+  `nokia_sros` hint in V1AQ.
+
+**Updated dispatcher signature:**
+
+```rust
+pub fn parse_raw_neighbor_output(
+    source_kind: RawNeighborSourceKind,
+    platform_hint: Option<&str>,
+    text: &str,
+) -> Vec<RawNeighborParsedEntry>
+```
+
+**Dispatcher routing rules:**
+
+- `(Lldp, Some("iosxe"))` → IOS-XE LLDP parser
+- `(Lldp, Some("eos"))` → EOS LLDP parser
+- `(Lldp, Some("nxos"))` → NX-OS LLDP parser (NEW)
+- `(Lldp, Some("junos"))` → Junos LLDP parser (NEW)
+- `(Lldp, Some("iosxr"))` → IOS-XR LLDP parser (NEW)
+- `(Lldp, Some("huawei_vrp"))` → empty (deferred in V1AQ; orchestrator falls to `ParseEmpty`)
+- `(Lldp, Some("nokia_sros"))` → empty (deferred in V1AQ; orchestrator falls to `ParseEmpty`)
+- `(Lldp, Some("fortios"))` → empty (orchestrator emits `UnsupportedFormat`)
+- `(Lldp, Some("mikrotik"))` → empty (orchestrator emits `UnsupportedFormat`)
+- `(Lldp, None | Some("other"))` → cascade: IOS-XE → EOS → NX-OS → Junos → IOS-XR;
+  first non-empty wins
+- `(Cdp, Some("iosxe"))` → IOS-XE CDP parser
+- `(Cdp, Some("nxos"))` → NX-OS CDP parser (NEW)
+- `(Cdp, Some("eos"))` → EOS CDP parser (NEW)
+- `(Cdp, None | Some("other"))` → cascade IOS-XE → NX-OS → EOS
+- `(Cdp, Some(unknown))` → empty (orchestrator emits `UnsupportedFormat` with detail
+  naming the platform)
+
+**Orchestrator refinement (`import_raw_neighbor_output`):**
+
+- Passes `platform_hint` from request to dispatcher.
+- When dispatcher returns empty Vec AND platform_hint is Some("fortios") or Some("mikrotik"):
+  emit one `UnsupportedFormat` rejection with detailed reason naming the platform.
+- Otherwise existing `ParseEmpty` path applies.
+
+**UI surface (TopologyMode):**
+
+Evidence-import raw-output tab gains a new `<select data-testid="tm-raw-platform-hint">`
+selector between source-kind radio and other fields:
+
+- Options: `Auto (cascade)`, `Cisco IOS-XE`, `Cisco NX-OS`, `Cisco IOS-XR`, `Arista EOS`,
+  `Juniper Junos`, `Huawei VRP`, `Nokia SR OS`, `FortiOS (unsupported)`, `MikroTik (unsupported)`.
+- Default: `Auto (cascade)` (value: empty string → `platform_hint: None`).
+- All V1AP testids preserved.
+
+### Supported source formats (V1AQ bounded)
+
+- Cisco IOS-XE `show lldp neighbors detail` (from V1AP)
+- Cisco IOS-XE `show cdp neighbors detail` (from V1AP)
+- Arista EOS `show lldp neighbors detail` (from V1AP)
+- Cisco NX-OS `show lldp neighbors detail` (NEW)
+- Cisco NX-OS `show cdp neighbors detail` (NEW)
+- Juniper Junos `show lldp neighbors` terse table format (NEW)
+- Cisco IOS-XR `show lldp neighbors detail` (NEW)
+- Arista EOS `show cdp neighbors detail` (NEW)
+- Huawei VRP `display lldp neighbor` — deferred in V1AQ (fixture confidence insufficient)
+- Nokia SR OS `show system lldp neighbor` — deferred in V1AQ (fixture confidence insufficient)
+
+### Unsupported formats (explicit rejection)
+
+- **Fortinet FortiOS.** Output format inconsistent across versions. Honest rejection chosen
+  over guessing. Operator sees `UnsupportedFormat: "FortiOS not supported in V1AQ"`.
+- **MikroTik RouterOS.** Uses non-LLDP neighbour model ("Neighbors" with different identity
+  semantics). Honest rejection chosen. Operator sees `UnsupportedFormat: "MikroTik not supported in V1AQ"`.
+
+### Dispatcher routing rules (detail)
+
+**LLDP cascade (None / "other"):**
+Try IOS-XE → EOS → NX-OS → Junos → IOS-XR in order. Return first non-empty Vec.
+Cascade order chosen by format likelihood and parser maturity.
+
+**CDP cascade (None / "other"):**
+Try IOS-XE → NX-OS → EOS in order. Return first non-empty Vec.
+
+**Explicit platform mismatch (e.g. "fortios"):**
+Return empty Vec. Orchestrator detects empty + explicit hint and emits `UnsupportedFormat`
+with reason string.
+
+### Resolver unchanged
+
+Same `resolve_node_id(records, needle)` from V1AP — case-insensitive trim, exact match
+against hostname OR record_id, no fuzzy, no IP/chassis fallback. No hint-based matching.
+
+### Store and pipeline reuse
+
+- V1AQ writes through the same V1AO `TopologyEvidenceStore` (REPLACE per-environment).
+- Evidence maps through V1AN unchanged (no new fields, no mapper changes).
+- Edges project through V1AM unchanged (same projection logic, dedup, evidence carry-forward).
+- Same safety guard: zero-accepted → no store.store() call.
+
+### Honest wording
+
+- "Platform hint", "Auto (cascade)", "(unsupported)" — literals in UI.
+- NEVER "Auto-detect via probe", "Smart routing", "Discovery". Cascade is honest prefix-match
+  order, not detection.
+- Unsupported platform rejection detail is clear: `"FortiOS not supported in V1AQ"`,
+  `"MikroTik not supported in V1AQ"`.
+
+### Scope-out (V1AQ strict)
+
+- **No new types or wire shapes.** `RawNeighborEvidenceImportRequest` + `RawNeighborEvidenceImportResult`
+  reused.
+- **No new Tauri commands.** `import_topology_neighbor_output` unchanged.
+- **No vendor parser engine changes.** `parsers/*.rs` files (vendor parser tree) untouched.
+- **No `parser-lab/` changes.** Codex prep packs (`_adjacency/`, etc.) untouched.
+- **No parser version bumps, no `expected.json` changes.**
+- **No DeviceModel mutation.** Discovery engine and record schema unchanged.
+- **No new discovery semantics.** No live polling, SSH, SNMP, probing, or device contact.
+- **No graph visualisation library.** Babylon rendering deferred.
+- **No fuzzy matching, inference, or fallback.** Exact hostname/record_id resolution only.
+- **No append/merge evidence semantics.** V1AQ still REPLACES per-environment (V1AO unchanged).
+- **No AGENTS.md / CLAUDE.md / validator / rule pack / parser-lab / `.codex/` touches.**
+
+### Design decisions
+
+**1. Platform hint instead of auto-detect.**
+
+Dispatcher selection is deterministic and explicit. Operator chooses the platform or relies
+on Auto cascade. No probe-based detection magic. Honest wording protects operator intent.
+
+**2. Cascade order for Auto.**
+
+When platform_hint is None or "other", cascade tries parsers in likelihood order (IOS-XE
+first for LLDP/CDP as most common; then EOS, NX-OS, Junos, IOS-XR). First non-empty Vec
+wins. Same semantics as V1AP's single-parser default.
+
+**3. Explicit unsupported rejection with detail.**
+
+FortiOS and MikroTik produce one `UnsupportedFormat` rejection per import attempt, not
+silent ParseEmpty. Operator sees the reason and knows not to re-paste the same format.
+
+**4. Secondary vendor support (deferred in V1AQ).**
+
+Huawei VRP and Nokia SR OS LLDP parsing was scoped for evaluation but deferred — without
+representative real-output fixtures, the field-label disambiguation (`Port ID/subtype`,
+`Chassis ID/subtype`) carries too much guessing risk. Honest deferral chosen. UI keeps
+the platform-hint options visible so operators can paste and learn the parser is not yet
+available; dispatcher returns empty → orchestrator emits `ParseEmpty`. Follow-up stage will
+add these once fixtures are validated.
+
+**5. Parser locality and ownership.**
+
+All new parsers live in `topology_neighbor_output.rs` alongside V1AP parsers. Shape
+recognizers, not vendor-parser-tree integration.
+
+### Future hook
+
+V1AQ provides multi-vendor raw-output ingestion. Future stages can:
+
+- Add append/merge evidence-set management (per-environment append, diff, audit).
+- Expand vendor coverage (deeper Junos detail formats, additional vendors).
+- Connect parser-driven automatic extraction (via vendor parsers' LLDP/CDP extractors).
+- Add SSH-based live ingestion (driver stage reads device config, pipes to same
+  `parse_raw_neighbor_output` dispatcher, stores evidence).
+
+All plug into the same V1AP/V1AQ/V1AN/V1AM/V1AO pipeline. No orchestrator or resolver
+changes needed.
+
+### Cross-links
+
+- [`TOPOLOGY_ENGINE_BOUNDARY.md`](./TOPOLOGY_ENGINE_BOUNDARY.md) — Boundary and determinism.
+- [`ENGINE_AND_API_BOUNDARIES.md`](./ENGINE_AND_API_BOUNDARIES.md) — Topology Engine V1AQ
+  addition.
+- `src-tauri/src/engines/topology_neighbor_output.rs` — Rust implementation + new parsers + dispatcher.
+- `obsidian/stages/V1AQ-vendor-raw-output-coverage-expansion.md` — Stage note.
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine
