@@ -6,6 +6,7 @@
 pub mod archive_intake;
 pub mod config_detection;
 pub mod config_splitter;
+pub mod discovery;
 pub mod environment;
 pub mod parser;
 pub mod receipt;

@@ -62,6 +62,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1AC  | complete · Typed data-source boundary — seeds to `src/data/hierarchySeeds.ts`; `getHierarchyView` boundary in `src/data/hierarchySource.ts`; `source="demo"` literals replaced with `view.sourceStateByBlock.*`; H7 added | [stages/V1AC-environment-data-source-boundary.md](./stages/V1AC-environment-data-source-boundary.md) |
 | V1AD  | complete · HONEST-HIERARCHY arc closed — 8 silent fall-through ModeIds replaced with `<ModeNotConnected />`; `MODE_STATUS` in `src/data/modeStatus.ts`; H8 added | [stages/V1AD-mode-fall-through-honesty.md](./stages/V1AD-mode-fall-through-honesty.md) |
 | V1AE  | complete · Arc-validation — settings mode body (FLIP 1: H8 flip-discipline); inspectorIdentity real promotion (FLIP 2: H7 boundary); first built mode without engine | [stages/V1AE-settings-and-identity-real.md](./stages/V1AE-settings-and-identity-real.md) |
+| V1AF  | complete · Discovery Engine spine — connected-but-empty, deterministic; device inventory boundary owned | [stages/V1AF-discovery-engine-spine.md](./stages/V1AF-discovery-engine-spine.md) |
 
 ## V1J-A adaptation
 

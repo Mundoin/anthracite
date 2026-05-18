@@ -94,6 +94,14 @@ during their build stage.
 - **Must NOT own.** Inventory authoritative state (writes into it
   through typed transactions), topology rendering.
 
+### V1AF status
+
+Discovery Engine is implemented as a connected-but-empty spine. The single command
+is `get_discovery_inventory(environment_id?: string)`, which returns a deterministic
+empty `DiscoveryInventoryView`. No discovery I/O yet; `runDiscovery`, `latestFacts`,
+and `evidence` are future surface. See `DISCOVERY_ENGINE_BOUNDARY.md` for ownership
+details and planned inventory evolution phases.
+
 ---
 
 ## Topology Engine
