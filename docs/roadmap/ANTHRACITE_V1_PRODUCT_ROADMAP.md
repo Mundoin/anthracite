@@ -69,6 +69,15 @@ Everything else is a placeholder, an empty contract, or doctrine without code.
   evidence. Readiness is data-driven from real fact counts. Live `get_topology_view` still 
   passes zero facts (no fact source connected yet) — engine is the socket future ingestion 
   stages plug into.
+- **Parser-Derived Neighbour Evidence Intake (V1AN).** Topology
+  Engine gains `TopologyNeighborEvidence` + deterministic mapper
+  `map_neighbor_evidence_to_link_facts(nodes, evidence)` +
+  internal `TopologyEngine::project_with_neighbor_evidence(env,
+  records, evidence)`. Accepted evidence becomes
+  `TopologyLinkFact` and projects through V1AM's edge pipeline.
+  Unknown-remote and self-link evidence is rejected, not invented.
+  Live `get_topology_view` still passes zero evidence — vendor
+  parser ingestion is the next stage.
 
 ---
 
@@ -232,10 +241,11 @@ OCC owns parser code; Codex owns fixture/coverage/intent prep.
 
 **Next in Stage Group 2:**
 
-- **Parser-Derived Ingestion.** LLDP/CDP/config-neighbor fact extraction from
-  vendor parsers. Produce `&[TopologyLinkFact]`, call `project_with_facts()`.
+- **Vendor Parser LLDP/CDP/Config-Neighbour Extraction.** Vendor parsers produce
+  `Vec<TopologyNeighborEvidence>` from their LLDP, CDP, and config-neighbour
+  extractors. Call `TopologyEngine::project_with_neighbor_evidence(env, records, evidence)`.
   Flip `present: true` on relevant sources; state auto-transitions; edge count
-  increments.
+  increments. No topology projection changes needed.
 - **Edge Rendering.** Babylon.js integration for interactive 2D/3D topology
   graph visualization; camera, node selection, drill-down.
 

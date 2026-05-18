@@ -151,3 +151,39 @@ export interface ProjectionStats {
     number,
   ])[];
 }
+
+// -----------------------------------------------------------------------
+// V1AN — Parser-Derived Neighbour Evidence Intake wire shapes.
+// Mirrors `TopologyNeighborEvidence` and `NeighborEvidenceMappingStats`
+// in src-tauri/src/engines/topology.rs. Evidence is constructed by
+// future parser stages (LLDP/CDP/config-neighbour) and mapped to
+// TopologyLinkFact records via the engine's deterministic intake layer.
+// Live command path does not expose evidence yet — these types are
+// mirrored for future TS-side test fixtures and command surfaces.
+// -----------------------------------------------------------------------
+
+/** Parsed evidence of a neighbour relationship from a source (LLDP, CDP,
+ *  config, manual). Contains identifiers and optional metadata to be mapped
+ *  to TopologyLinkFact records and validated against known nodes. */
+export interface TopologyNeighborEvidence {
+  readonly source_kind: TopologyAdjacencyFactSourceKind;
+  readonly local_node_id: string;
+  readonly local_interface: string | null;
+  readonly remote_node_id: string;
+  readonly remote_interface: string | null;
+  readonly remote_chassis_id: string | null;
+  readonly remote_system_name: string | null;
+  readonly remote_port_id: string | null;
+  readonly source_label: string | null;
+  readonly evidence_notes: string | null;
+}
+
+/** Statistics from neighbour evidence mapping phase. Tracks total evidence
+ *  records ingested and rejection reasons (unknown local/remote, self-link). */
+export interface NeighborEvidenceMappingStats {
+  readonly evidence_total: number;
+  readonly accepted: number;
+  readonly rejected_unknown_local: number;
+  readonly rejected_unknown_remote: number;
+  readonly rejected_self_link: number;
+}

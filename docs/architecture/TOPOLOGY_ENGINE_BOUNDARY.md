@@ -473,6 +473,90 @@ records, facts)`. No engine change needed in those stages.
 
 ---
 
+## V1AN — Parser-Derived Neighbour Evidence Intake
+
+### Status
+V1AN lands the upstream intake layer that turns explicit parser-
+derived neighbour evidence (LLDP, CDP, config-neighbour, manual)
+into `TopologyLinkFact` records. Evidence → facts → V1AM
+`project_edges_from_link_facts` → deterministic edges. Live command
+path remains zero-evidence; a future stage connects a real evidence
+source.
+
+### What V1AN adds
+- `TopologyNeighborEvidence` (engine-owned model for explicit
+  parser-derived neighbour payloads).
+- `NeighborEvidenceMappingStats` (acceptance/rejection counts).
+- `map_neighbor_evidence_to_link_facts(nodes, evidence)` —
+  deterministic mapper.
+- `TopologyEngine::project_with_neighbor_evidence(env, records,
+  evidence)` — internal overload that pipes evidence → facts →
+  `project_with_facts`.
+
+### Evidence model fields
+- `source_kind: TopologyAdjacencyFactSourceKind` — lldp / cdp /
+  config_neighbor / manual.
+- `local_node_id: String` — device_record_id, required.
+- `local_interface: Option<String>`.
+- `remote_node_id: String` — REQUIRED. Caller resolves
+  hostname→id upstream. No hint matching in V1AN.
+- `remote_interface: Option<String>`.
+- `remote_chassis_id: Option<String>` — raw LLDP/CDP field,
+  preserved.
+- `remote_system_name: Option<String>` — raw, preserved.
+- `remote_port_id: Option<String>` — raw, preserved.
+- `source_label: Option<String>` — e.g.
+  `"parser:cisco-iosxe lldp neighbors"`.
+- `evidence_notes: Option<String>` — free-form additional context.
+
+### Acceptance rules (engine-owned)
+- `local_node_id == remote_node_id` → self-link, rejected.
+- `local_node_id` not in node set → unknown_local, rejected.
+- `remote_node_id` not in node set → unknown_remote, rejected.
+- Otherwise → emit a `TopologyLinkFact` with snake-case
+  evidence string `"{kind}:remote_sys={sys}|chassis={chassis}|port={port}[|notes={notes}]"`
+  (each placeholder filled with field value or `"?"` when None;
+  `|notes=...` tail omitted when notes is None).
+- Mapper does NOT dedup. V1AM's `project_edges_from_link_facts`
+  handles edge-level collapse, evidence merging, and source-count
+  bookkeeping downstream.
+- Deterministic: same evidence input → same fact output, same order.
+
+### Live command path (V1AN)
+`get_topology_view` is unchanged. It calls `project()` →
+`project_with_facts(env, records, &[])` → zero edges,
+NoneAvailable readiness, "0 reliable links" message. V1AN provides
+the socket; later stages connect a real evidence source.
+
+### Scope-out (V1AN strict)
+- No hostname matching / no hint resolution.
+- No vendor parser changes.
+- No parser-lab changes (`_adjacency/`, `_edge_integration/` stay
+  untouched).
+- No new Tauri command.
+- No DeviceModel mutation, no expected.json, no parser version
+  bump.
+- No Validator / rule pack changes.
+- No UI changes.
+- No live polling / SSH / SNMP.
+- `NeighborEvidenceMappingStats` not surfaced in `TopologyView` —
+  internal/test only.
+
+### Future hook
+Vendor parser stages (e.g. cisco-iosxe LLDP extractor) produce
+`Vec<TopologyNeighborEvidence>` and call
+`TopologyEngine::project_with_neighbor_evidence(env, records,
+evidence)`. No engine change needed in those stages. A future
+"evidence persistence" stage may add a Tauri command and persist
+evidence between sessions, but neither is V1AN.
+
+### Cross-links
+- `docs/architecture/ENGINE_AND_API_BOUNDARIES.md`
+- `docs/roadmap/ANTHRACITE_V1_PRODUCT_ROADMAP.md`
+- `obsidian/stages/V1AN-parser-derived-neighbour-evidence-intake.md`
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine

@@ -184,6 +184,23 @@ plug into. No parser changes, no DeviceModel mutation, no new Tauri command. See
 `TOPOLOGY_ENGINE_BOUNDARY.md` V1AM section for types, edge ID format, acceptance rules, 
 and future hook.
 
+### V1AN addition
+
+V1AN lands the explicit-evidence intake mapper that turns parser-derived neighbour evidence 
+(LLDP, CDP, config-neighbour, manual) into `TopologyLinkFact` records. New Rust `TopologyNeighborEvidence` 
+struct carries `source_kind`, `local_node_id`, `local_interface`, `remote_node_id`, `remote_interface`, 
+`remote_chassis_id`, `remote_system_name`, `remote_port_id`, `source_label`, and `evidence_notes`. 
+New `NeighborEvidenceMappingStats` struct reports `evidence_total`, `accepted`, `rejected_unknown_local`, 
+`rejected_unknown_remote`, and `rejected_self_link`. New `map_neighbor_evidence_to_link_facts(nodes, evidence) 
+-> (facts, stats)` helper deterministically maps evidence to facts, rejecting self-links and unknown-node 
+evidence, preserving raw fields in evidence strings (`"{kind}:remote_sys={sys}|chassis={chassis}|port={port}[|notes={notes}]"`). 
+`TopologyEngine::project_with_neighbor_evidence(env, records, evidence)` is the internal overload that pipes 
+evidence through the mapper to `project_with_facts`. Mapper produces facts in input order; no mapper-level dedup 
+(V1AM's `project_edges_from_link_facts` handles edge collapse). Live command path (`get_topology_view`) 
+unchanged — still passes zero evidence, still shows zero edges and NoneAvailable readiness. No parser changes, 
+no DeviceModel mutation, no new Tauri command. See `TOPOLOGY_ENGINE_BOUNDARY.md` V1AN section for evidence 
+model, acceptance rules, and future hook.
+
 ---
 
 ## Monitoring / Polling Engine

@@ -120,6 +120,23 @@ pub struct TopologyLinkFact {
     pub source_label: Option<String>, // e.g. "parser:cisco-iosxe lldp neighbors"
 }
 
+/// V1AN — parser-derived neighbor evidence structure.
+/// Represents explicit LLDP/CDP (and optionally config-neighbor) payloads.
+/// All fields wire-shape; derives serde with snake_case, no skip_serializing_if.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TopologyNeighborEvidence {
+    pub source_kind: TopologyAdjacencyFactSourceKind,   // lldp | cdp | config_neighbor
+    pub local_node_id: String,                          // device_record_id (NOT topo:: prefixed)
+    pub local_interface: Option<String>,
+    pub remote_node_id: String,                         // REQUIRED in V1AN — caller must resolve upstream
+    pub remote_interface: Option<String>,
+    pub remote_chassis_id: Option<String>,              // optional raw LLDP/CDP field
+    pub remote_system_name: Option<String>,             // optional raw field
+    pub remote_port_id: Option<String>,                 // optional raw field
+    pub source_label: Option<String>,                   // e.g. "parser:cisco-iosxe lldp neighbors"
+    pub evidence_notes: Option<String>,                 // free-form additional context
+}
+
 /// V1AL — per-source breakdown for the adjacency readiness report.
 /// `present: false` is honest "not connected" for that source;
 /// `present: true, count: 0` means source connected but no facts ingested.
@@ -155,6 +172,17 @@ pub struct ProjectionStats {
     pub facts_rejected_self_link: u32,
     pub facts_collapsed_duplicate: u32,
     pub per_kind_counts: Vec<(TopologyAdjacencyFactSourceKind, u32)>,
+}
+
+/// V1AN — neighbor evidence mapping statistics.
+/// Tracks evidence acceptance/rejection during mapper stage.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct NeighborEvidenceMappingStats {
+    pub evidence_total: u32,
+    pub accepted: u32,
+    pub rejected_unknown_local: u32,
+    pub rejected_unknown_remote: u32,
+    pub rejected_self_link: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -252,6 +280,90 @@ fn compute_adjacency_readiness(
         accepted_kinds,
         reason,
     }
+}
+
+/// V1AN — map neighbor evidence to link facts.
+/// Deterministic mapper: validates local/remote node IDs, rejects self-links.
+/// Returns facts in input order, with mapping statistics.
+pub fn map_neighbor_evidence_to_link_facts(
+    nodes: &[TopologyNode],
+    evidence: &[TopologyNeighborEvidence],
+) -> (Vec<TopologyLinkFact>, NeighborEvidenceMappingStats) {
+    use std::collections::HashSet;
+
+    let mut stats = NeighborEvidenceMappingStats {
+        evidence_total: evidence.len() as u32,
+        accepted: 0,
+        rejected_unknown_local: 0,
+        rejected_unknown_remote: 0,
+        rejected_self_link: 0,
+    };
+
+    // Build valid node ID set from nodes.
+    let valid_nodes: HashSet<&str> = nodes
+        .iter()
+        .map(|n| n.device_record_id.as_str())
+        .collect();
+
+    let mut facts = Vec::new();
+
+    for ev in evidence {
+        // Reject self-links.
+        if ev.local_node_id == ev.remote_node_id {
+            stats.rejected_self_link += 1;
+            continue;
+        }
+
+        // Reject unknown local node.
+        if !valid_nodes.contains(ev.local_node_id.as_str()) {
+            stats.rejected_unknown_local += 1;
+            continue;
+        }
+
+        // Reject unknown remote node.
+        if !valid_nodes.contains(ev.remote_node_id.as_str()) {
+            stats.rejected_unknown_remote += 1;
+            continue;
+        }
+
+        // Build evidence string in format:
+        // "{kind}:remote_sys={sys}|chassis={chassis}|port={port}|notes={notes}"
+        // Strip trailing "|notes=?" if evidence_notes is None.
+        let kind_str = match ev.source_kind {
+            TopologyAdjacencyFactSourceKind::Lldp => "lldp",
+            TopologyAdjacencyFactSourceKind::Cdp => "cdp",
+            TopologyAdjacencyFactSourceKind::ConfigNeighbor => "config_neighbor",
+            TopologyAdjacencyFactSourceKind::Manual => "manual",
+        };
+
+        let remote_sys = ev.remote_system_name.as_deref().unwrap_or("?");
+        let chassis = ev.remote_chassis_id.as_deref().unwrap_or("?");
+        let port = ev.remote_port_id.as_deref().unwrap_or("?");
+
+        let mut evidence_str = format!(
+            "{}:remote_sys={}|chassis={}|port={}",
+            kind_str, remote_sys, chassis, port
+        );
+
+        if let Some(notes) = &ev.evidence_notes {
+            evidence_str.push_str(&format!("|notes={}", notes));
+        }
+
+        let fact = TopologyLinkFact {
+            source_kind: ev.source_kind,
+            local_node_id: ev.local_node_id.clone(),
+            remote_node_id: ev.remote_node_id.clone(),
+            local_interface: ev.local_interface.clone(),
+            remote_interface: ev.remote_interface.clone(),
+            evidence: evidence_str,
+            source_label: ev.source_label.clone(),
+        };
+
+        facts.push(fact);
+        stats.accepted += 1;
+    }
+
+    (facts, stats)
 }
 
 /// V1AM — project edges from explicit link facts.
@@ -409,6 +521,39 @@ pub fn project_edges_from_link_facts(
     (edges, stats)
 }
 
+/// Build topology nodes from discovery records.
+/// Pure function: records iterated in given order so node order is stable.
+fn build_nodes(records: &[DiscoveryDeviceRecord]) -> Vec<TopologyNode> {
+    records
+        .iter()
+        .map(|record| {
+            let hostname = record
+                .device_model
+                .identity
+                .hostname
+                .as_deref()
+                .filter(|s| !s.trim().is_empty())
+                .map(|s| s.to_string());
+            let label = hostname
+                .clone()
+                .unwrap_or_else(|| record.id.clone());
+            let platform_id = record.device_model.platform.platform_id.clone();
+            let vendor = record.device_model.platform.vendor.clone();
+            TopologyNode {
+                id: format!("topo::{}", record.id),
+                label,
+                device_record_id: record.id.clone(),
+                hostname,
+                platform_id,
+                vendor,
+                role_hint: TopologyRoleHint::Device,
+                layer: TopologyLayer::Inventory,
+                source_kind: TopologyNodeSource::DiscoveryInventory,
+            }
+        })
+        .collect()
+}
+
 /// Stateless engine. V1AJ has no projection state — same input → same output.
 pub struct TopologyEngine;
 
@@ -426,34 +571,7 @@ impl TopologyEngine {
         records: &[DiscoveryDeviceRecord],
         facts: &[TopologyLinkFact],
     ) -> TopologyView {
-        let nodes: Vec<TopologyNode> = records
-            .iter()
-            .map(|record| {
-                let hostname = record
-                    .device_model
-                    .identity
-                    .hostname
-                    .as_deref()
-                    .filter(|s| !s.trim().is_empty())
-                    .map(|s| s.to_string());
-                let label = hostname
-                    .clone()
-                    .unwrap_or_else(|| record.id.clone());
-                let platform_id = record.device_model.platform.platform_id.clone();
-                let vendor = record.device_model.platform.vendor.clone();
-                TopologyNode {
-                    id: format!("topo::{}", record.id),
-                    label,
-                    device_record_id: record.id.clone(),
-                    hostname,
-                    platform_id,
-                    vendor,
-                    role_hint: TopologyRoleHint::Device,
-                    layer: TopologyLayer::Inventory,
-                    source_kind: TopologyNodeSource::DiscoveryInventory,
-                }
-            })
-            .collect();
+        let nodes = build_nodes(records);
 
         let (edges, stats) = project_edges_from_link_facts(&nodes, facts);
 
@@ -501,6 +619,20 @@ impl TopologyEngine {
             message,
             adjacency_readiness,
         }
+    }
+
+    /// V1AN — deterministic projection from Discovery records and neighbor evidence.
+    /// Maps evidence to facts, then projects using `project_with_facts`.
+    /// Pure function — no I/O, no clock, no random.
+    pub fn project_with_neighbor_evidence(
+        &self,
+        environment_id: Option<&str>,
+        records: &[DiscoveryDeviceRecord],
+        evidence: &[TopologyNeighborEvidence],
+    ) -> TopologyView {
+        let nodes = build_nodes(records);
+        let (facts, _stats) = map_neighbor_evidence_to_link_facts(&nodes, evidence);
+        self.project_with_facts(environment_id, records, &facts)
     }
 
     /// Thin wrapper around `project_with_facts` with empty facts.
@@ -570,6 +702,32 @@ mod tests {
             remote_interface: remote_interface.map(|s| s.to_string()),
             evidence: evidence.to_string(),
             source_label: None,
+        }
+    }
+
+    fn make_evidence(
+        source_kind: TopologyAdjacencyFactSourceKind,
+        local_node_id: &str,
+        remote_node_id: &str,
+        local_interface: Option<&str>,
+        remote_interface: Option<&str>,
+        remote_system_name: Option<&str>,
+        remote_chassis_id: Option<&str>,
+        remote_port_id: Option<&str>,
+        source_label: Option<&str>,
+        evidence_notes: Option<&str>,
+    ) -> TopologyNeighborEvidence {
+        TopologyNeighborEvidence {
+            source_kind,
+            local_node_id: local_node_id.to_string(),
+            local_interface: local_interface.map(|s| s.to_string()),
+            remote_node_id: remote_node_id.to_string(),
+            remote_interface: remote_interface.map(|s| s.to_string()),
+            remote_chassis_id: remote_chassis_id.map(|s| s.to_string()),
+            remote_system_name: remote_system_name.map(|s| s.to_string()),
+            remote_port_id: remote_port_id.map(|s| s.to_string()),
+            source_label: source_label.map(|s| s.to_string()),
+            evidence_notes: evidence_notes.map(|s| s.to_string()),
         }
     }
 
@@ -1417,5 +1575,584 @@ mod tests {
             TopologyAdjacencyFactSourceState::Partial
         );
         assert!(view.adjacency_readiness.reason.contains("2 of 4"));
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // V1AN — Parser-Derived Neighbour Evidence Intake Tests
+    // ────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn lldp_evidence_between_known_nodes_creates_fact_and_edge() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                Some("eth0"),
+                Some("eth1"),
+                Some("router-2"),
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let view = engine.project_with_neighbor_evidence(Some("env-a"), &records, &evidence);
+        assert_eq!(view.edges.len(), 1);
+        assert_eq!(view.edges[0].kind, TopologyEdgeKind::Lldp);
+        assert_eq!(
+            view.adjacency_readiness.fact_source_state,
+            TopologyAdjacencyFactSourceState::Partial
+        );
+        let lldp_source = view
+            .adjacency_readiness
+            .fact_sources
+            .iter()
+            .find(|s| s.kind == TopologyAdjacencyFactSourceKind::Lldp)
+            .unwrap();
+        assert!(lldp_source.present);
+        assert_eq!(lldp_source.count, 1);
+    }
+
+    #[test]
+    fn cdp_evidence_between_known_nodes_creates_fact_and_edge() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Cdp,
+                "rec1",
+                "rec2",
+                Some("eth0"),
+                Some("eth1"),
+                Some("router-2"),
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let view = engine.project_with_neighbor_evidence(Some("env-a"), &records, &evidence);
+        assert_eq!(view.edges.len(), 1);
+        assert_eq!(view.edges[0].kind, TopologyEdgeKind::Cdp);
+        let cdp_source = view
+            .adjacency_readiness
+            .fact_sources
+            .iter()
+            .find(|s| s.kind == TopologyAdjacencyFactSourceKind::Cdp)
+            .unwrap();
+        assert!(cdp_source.present);
+        assert_eq!(cdp_source.count, 1);
+    }
+
+    #[test]
+    fn unknown_remote_node_rejected() {
+        let engine = TopologyEngine::new();
+        let records = vec![make_record("rec1", "env-a", Some("r1"), None, None)];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "ghost-rec",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let nodes = build_nodes(&records);
+        let (facts, stats) = map_neighbor_evidence_to_link_facts(&nodes, &evidence);
+        assert!(facts.is_empty());
+        assert_eq!(stats.rejected_unknown_remote, 1);
+        assert_eq!(stats.accepted, 0);
+
+        let view = engine.project_with_neighbor_evidence(Some("env-a"), &records, &evidence);
+        assert!(view.edges.is_empty());
+        assert_eq!(
+            view.adjacency_readiness.fact_source_state,
+            TopologyAdjacencyFactSourceState::NoneAvailable
+        );
+    }
+
+    #[test]
+    fn v1an_unknown_local_node_rejected() {
+        let engine = TopologyEngine::new();
+        let records = vec![make_record("rec1", "env-a", Some("r1"), None, None)];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "ghost-rec",
+                "rec1",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let nodes = build_nodes(&records);
+        let (facts, stats) = map_neighbor_evidence_to_link_facts(&nodes, &evidence);
+        assert!(facts.is_empty());
+        assert_eq!(stats.rejected_unknown_local, 1);
+
+        let view = engine.project_with_neighbor_evidence(Some("env-a"), &records, &evidence);
+        assert_eq!(view.nodes.len(), 1);
+        assert!(view.edges.is_empty());
+    }
+
+    #[test]
+    fn v1an_self_link_rejected() {
+        let records = vec![make_record("rec1", "env-a", Some("r1"), None, None)];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec1",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let nodes = build_nodes(&records);
+        let (facts, stats) = map_neighbor_evidence_to_link_facts(&nodes, &evidence);
+        assert!(facts.is_empty());
+        assert_eq!(stats.rejected_self_link, 1);
+    }
+
+    #[test]
+    fn duplicate_lldp_evidence_dedups_through_v1am_edge_layer() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                Some("eth0"),
+                Some("eth1"),
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                Some("eth0"),
+                Some("eth1"),
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let view = engine.project_with_neighbor_evidence(Some("env-a"), &records, &evidence);
+        assert_eq!(view.edges.len(), 1);
+        let lldp_source = view
+            .adjacency_readiness
+            .fact_sources
+            .iter()
+            .find(|s| s.kind == TopologyAdjacencyFactSourceKind::Lldp)
+            .unwrap();
+        assert_eq!(lldp_source.count, 1);
+    }
+
+    #[test]
+    fn evidence_carries_remote_system_name_chassis_and_port_in_evidence_string() {
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                None,
+                None,
+                Some("router-b"),
+                Some("00:11:22:33:44:55"),
+                Some("Gi0/2"),
+                None,
+                None,
+            ),
+        ];
+        let nodes = build_nodes(&records);
+        let (facts, _) = map_neighbor_evidence_to_link_facts(&nodes, &evidence);
+        assert_eq!(facts.len(), 1);
+        let fact = &facts[0];
+        assert!(fact.evidence.contains("remote_sys=router-b"));
+        assert!(fact.evidence.contains("chassis=00:11:22:33:44:55"));
+        assert!(fact.evidence.contains("port=Gi0/2"));
+    }
+
+    #[test]
+    fn evidence_string_uses_question_mark_for_absent_optionals() {
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let nodes = build_nodes(&records);
+        let (facts, _) = map_neighbor_evidence_to_link_facts(&nodes, &evidence);
+        assert_eq!(facts.len(), 1);
+        let fact = &facts[0];
+        assert_eq!(fact.evidence, "lldp:remote_sys=?|chassis=?|port=?");
+    }
+
+    #[test]
+    fn evidence_string_includes_notes_when_present() {
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                Some("table row 4"),
+            ),
+        ];
+        let nodes = build_nodes(&records);
+        let (facts, _) = map_neighbor_evidence_to_link_facts(&nodes, &evidence);
+        assert_eq!(facts.len(), 1);
+        let fact = &facts[0];
+        assert!(fact.evidence.ends_with("|notes=table row 4"));
+    }
+
+    #[test]
+    fn accepted_evidence_flips_readiness_to_partial() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let view = engine.project_with_neighbor_evidence(Some("env-a"), &records, &evidence);
+        assert_eq!(
+            view.adjacency_readiness.fact_source_state,
+            TopologyAdjacencyFactSourceState::Partial
+        );
+        let lldp_source = view
+            .adjacency_readiness
+            .fact_sources
+            .iter()
+            .find(|s| s.kind == TopologyAdjacencyFactSourceKind::Lldp)
+            .unwrap();
+        assert!(lldp_source.present);
+        assert_eq!(lldp_source.count, 1);
+        let cdp_source = view
+            .adjacency_readiness
+            .fact_sources
+            .iter()
+            .find(|s| s.kind == TopologyAdjacencyFactSourceKind::Cdp)
+            .unwrap();
+        assert!(!cdp_source.present);
+    }
+
+    #[test]
+    fn live_project_still_zero_evidence_and_zero_edges() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let view = engine.project(Some("env-a"), &records);
+        assert!(view.edges.is_empty());
+        assert_eq!(
+            view.adjacency_readiness.fact_source_state,
+            TopologyAdjacencyFactSourceState::NoneAvailable
+        );
+        assert!(view.message.contains("0 reliable links"));
+    }
+
+    #[test]
+    fn deterministic_ordering_across_runs() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+            make_record("rec3", "env-a", Some("r3"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                None,
+                None,
+                Some("router-2"),
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Cdp,
+                "rec2",
+                "rec3",
+                None,
+                None,
+                Some("router-3"),
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let view1 = engine.project_with_neighbor_evidence(Some("env-a"), &records, &evidence);
+        let view2 = engine.project_with_neighbor_evidence(Some("env-a"), &records, &evidence);
+        assert_eq!(view1.edges, view2.edges);
+        assert_eq!(view1.adjacency_readiness, view2.adjacency_readiness);
+    }
+
+    #[test]
+    fn source_label_propagates_to_fact() {
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                None,
+                None,
+                None,
+                None,
+                None,
+                Some("parser:cisco-iosxe lldp neighbors"),
+                None,
+            ),
+        ];
+        let nodes = build_nodes(&records);
+        let (facts, _) = map_neighbor_evidence_to_link_facts(&nodes, &evidence);
+        assert_eq!(facts.len(), 1);
+        let fact = &facts[0];
+        assert_eq!(
+            fact.source_label,
+            Some("parser:cisco-iosxe lldp neighbors".to_string())
+        );
+    }
+
+    #[test]
+    fn mapper_preserves_fact_order_matches_evidence_order() {
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+            make_record("rec3", "env-a", Some("r3"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                None,
+                None,
+                Some("a-system"),
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Cdp,
+                "rec1",
+                "rec3",
+                None,
+                None,
+                Some("b-system"),
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::ConfigNeighbor,
+                "rec2",
+                "rec3",
+                None,
+                None,
+                Some("c-system"),
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let nodes = build_nodes(&records);
+        let (facts, _) = map_neighbor_evidence_to_link_facts(&nodes, &evidence);
+        assert_eq!(facts.len(), 3);
+        assert!(facts[0].evidence.contains("a-system"));
+        assert!(facts[1].evidence.contains("b-system"));
+        assert!(facts[2].evidence.contains("c-system"));
+    }
+
+    #[test]
+    fn topology_neighbor_evidence_serialises_snake_case() {
+        let ev = TopologyNeighborEvidence {
+            source_kind: TopologyAdjacencyFactSourceKind::Lldp,
+            local_node_id: "rec1".to_string(),
+            local_interface: Some("eth0".to_string()),
+            remote_node_id: "rec2".to_string(),
+            remote_interface: Some("eth1".to_string()),
+            remote_chassis_id: Some("00:11:22:33:44:55".to_string()),
+            remote_system_name: Some("router-2".to_string()),
+            remote_port_id: Some("Gi0/2".to_string()),
+            source_label: Some("parser:test".to_string()),
+            evidence_notes: Some("test notes".to_string()),
+        };
+        let json = serde_json::to_value(&ev).expect("serialization failed");
+        let obj = json.as_object().expect("value must be an object");
+        assert!(obj.contains_key("source_kind"));
+        assert!(obj.contains_key("local_node_id"));
+        assert!(obj.contains_key("local_interface"));
+        assert!(obj.contains_key("remote_node_id"));
+        assert!(obj.contains_key("remote_interface"));
+        assert!(obj.contains_key("remote_chassis_id"));
+        assert!(obj.contains_key("remote_system_name"));
+        assert!(obj.contains_key("remote_port_id"));
+        assert!(obj.contains_key("source_label"));
+        assert!(obj.contains_key("evidence_notes"));
+    }
+
+    #[test]
+    fn neighbor_evidence_mapping_stats_count_total_correctly() {
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Cdp,
+                "ghost1",
+                "rec2",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::ConfigNeighbor,
+                "rec1",
+                "ghost2",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Manual,
+                "rec1",
+                "rec1",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec2",
+                "rec1",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let nodes = build_nodes(&records);
+        let (_, stats) = map_neighbor_evidence_to_link_facts(&nodes, &evidence);
+        assert_eq!(stats.evidence_total, 5);
+        assert_eq!(
+            stats.accepted + stats.rejected_unknown_local
+                + stats.rejected_unknown_remote
+                + stats.rejected_self_link,
+            5
+        );
+        assert_eq!(stats.accepted, 2);
+        assert_eq!(stats.rejected_unknown_local, 1);
+        assert_eq!(stats.rejected_unknown_remote, 1);
+        assert_eq!(stats.rejected_self_link, 1);
     }
 }
