@@ -1,0 +1,60 @@
+! synthetic output fixture
+! no customer data
+! purpose: Junos LLDP neighbor evidence
+! feature tags: lldp, neighbor-evidence, topology-link-fact
+! source: synthetic
+! integration_status: not_integrated
+! note-only: keep raw Junos evidence and resolve nodes conservatively.
+
+! === junos-lldp-001 | vendor=Juniper | platform=Junos ===
+system {
+    host-name junos-lldp-001;
+}
+interfaces {
+    ge-0/0/0 {
+        unit 0 {
+            family inet {
+                address 203.0.113.1/30;
+            }
+        }
+    }
+}
+protocols {
+    lldp {
+        interface all;
+    }
+}
+! command output: show lldp neighbors detail
+Local Interface: ge-0/0/0.0
+Chassis ID: 00ff.eedd.ccbb
+Port ID: xe-0/0/48
+Port Description: spine-link
+System Name: spine-c-01
+Management Address: 203.0.113.10
+Capabilities: Bridge, Router
+
+! === junos-lldp-002 | vendor=Juniper | platform=Junos ===
+system {
+    host-name junos-lldp-002;
+}
+interfaces {
+    xe-0/0/1 {
+        unit 0 {
+            family inet {
+                address 198.51.100.1/30;
+            }
+        }
+    }
+}
+protocols {
+    lldp {
+        interface all;
+    }
+}
+! command output: show lldp neighbors detail
+Local Interface: xe-0/0/1.0
+Chassis ID: 00aa.bbcc.ddee
+Port ID: et-0/0/47
+System Name: leaf-b-01
+Management Address: 198.51.100.30
+Capabilities: Bridge

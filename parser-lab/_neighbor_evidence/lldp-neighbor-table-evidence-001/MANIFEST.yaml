@@ -1,0 +1,47 @@
+pack: lldp-neighbor-table-evidence-001
+entries:
+  - id: lldp-table-iosxe-001
+    snippet_file: snippets/lldp-neighbor-table-evidence-001.txt
+    section: lldp-table-iosxe-001
+    vendor: Cisco
+    platform: IOS-XE
+    platform_family: cisco-iosxe
+    feature_tags:
+      - lldp
+      - neighbor-table
+      - topology-link-fact
+    sanitised: true
+    source: synthetic
+    intent_file: intent/lldp-neighbor-table-evidence-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: lldp-table-nxos-002
+    snippet_file: snippets/lldp-neighbor-table-evidence-001.txt
+    section: lldp-table-nxos-002
+    vendor: Cisco
+    platform: NX-OS
+    platform_family: cisco-nxos
+    feature_tags:
+      - lldp
+      - neighbor-table
+      - topology-link-fact
+    sanitised: true
+    source: synthetic
+    intent_file: intent/lldp-neighbor-table-evidence-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: lldp-table-junos-003
+    snippet_file: snippets/lldp-neighbor-table-evidence-001.txt
+    section: lldp-table-junos-003
+    vendor: Juniper
+    platform: Junos
+    platform_family: juniper-junos
+    feature_tags:
+      - lldp
+      - neighbor-table
+      - topology-link-fact
+    sanitised: true
+    source: synthetic
+    intent_file: intent/lldp-neighbor-table-evidence-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated

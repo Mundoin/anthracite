@@ -1,0 +1,40 @@
+! synthetic output fixture
+! no customer data
+! purpose: EOS LLDP/CDP neighbor evidence
+! feature tags: lldp, cdp, neighbor-evidence, topology-link-fact
+! source: synthetic
+! integration_status: not_integrated
+! note-only: LLDP is stronger; CDP stays conservative when resolution is weak.
+
+! === eos-lldp-001 | vendor=Arista | platform=EOS ===
+hostname eos-lldp-001
+interface Ethernet1
+   description uplink-to-spine-a
+   no switchport
+   ip address 10.0.1.1/30
+   no shutdown
+! command output: show lldp neighbors detail
+Port: Ethernet1
+Chassis ID: 0011.2233.4455
+Port ID: Ethernet1/49
+System Name: spine-a-01
+Management Address: 10.0.1.2
+Capabilities: Bridge, Router
+
+! === eos-cdp-note-002 | vendor=Arista | platform=EOS ===
+hostname eos-cdp-note-002
+interface Port-Channel1000
+   description mlag-peer-link
+   switchport mode trunk
+   no shutdown
+mlag configuration
+   domain-id DC1-MLAG
+   local-interface Vlan4094
+   peer-address 10.255.255.2
+   peer-link Port-Channel1000
+! command output: show cdp neighbors detail
+Device ID: eos-peer-01
+Interface: Port-Channel1000, Port ID (outgoing port): Port-Channel1000
+IP address: 10.255.255.2
+Capabilities: Switch
+! note-only: CDP here should stay conservative if node resolution is weak.

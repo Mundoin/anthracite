@@ -1,0 +1,47 @@
+pack: evidence-to-node-resolution-risks-005
+entries:
+  - id: resolve-risk-iosxe-001
+    snippet_file: snippets/evidence-to-node-resolution-risks-005.txt
+    section: resolve-risk-iosxe-001
+    vendor: Cisco
+    platform: IOS-XE
+    platform_family: cisco-iosxe
+    feature_tags:
+      - neighbor-evidence
+      - node-resolution-risk
+      - topology-link-fact
+    sanitised: true
+    source: synthetic
+    intent_file: intent/evidence-to-node-resolution-risks-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: resolve-risk-junos-002
+    snippet_file: snippets/evidence-to-node-resolution-risks-005.txt
+    section: resolve-risk-junos-002
+    vendor: Juniper
+    platform: Junos
+    platform_family: juniper-junos
+    feature_tags:
+      - neighbor-evidence
+      - node-resolution-risk
+      - topology-link-fact
+    sanitised: true
+    source: synthetic
+    intent_file: intent/evidence-to-node-resolution-risks-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: resolve-risk-eos-003
+    snippet_file: snippets/evidence-to-node-resolution-risks-005.txt
+    section: resolve-risk-eos-003
+    vendor: Arista
+    platform: EOS
+    platform_family: arista-eos
+    feature_tags:
+      - neighbor-evidence
+      - node-resolution-risk
+      - topology-link-fact
+    sanitised: true
+    source: synthetic
+    intent_file: intent/evidence-to-node-resolution-risks-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated

@@ -1,0 +1,32 @@
+pack: junos-lldp-neighbor-evidence-003
+entries:
+  - id: junos-lldp-001
+    snippet_file: snippets/junos-lldp-neighbor-evidence-003.txt
+    section: junos-lldp-001
+    vendor: Juniper
+    platform: Junos
+    platform_family: juniper-junos
+    feature_tags:
+      - lldp
+      - neighbor-evidence
+      - topology-link-fact
+    sanitised: true
+    source: synthetic
+    intent_file: intent/junos-lldp-neighbor-evidence-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: junos-lldp-002
+    snippet_file: snippets/junos-lldp-neighbor-evidence-003.txt
+    section: junos-lldp-002
+    vendor: Juniper
+    platform: Junos
+    platform_family: juniper-junos
+    feature_tags:
+      - lldp
+      - neighbor-evidence
+      - topology-link-fact
+    sanitised: true
+    source: synthetic
+    intent_file: intent/junos-lldp-neighbor-evidence-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated

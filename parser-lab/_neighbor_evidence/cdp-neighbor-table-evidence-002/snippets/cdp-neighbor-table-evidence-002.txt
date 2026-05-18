@@ -1,0 +1,46 @@
+! synthetic output fixture
+! no customer data
+! purpose: CDP neighbor-table evidence
+! feature tags: cdp, neighbor-table, topology-link-fact
+! source: synthetic
+! integration_status: not_integrated
+! note-only: CDP is Cisco-only and should be handled conservatively.
+
+! === cdp-table-iosxe-001 | vendor=Cisco | platform=IOS-XE ===
+hostname cdp-table-iosxe-001
+cdp run
+interface GigabitEthernet0/0/0
+ description uplink-to-core-a
+ cdp enable
+ no shutdown
+! command output: show cdp neighbors detail
+Device ID: core-a-01
+Entry address(es):
+  IP address: 192.0.2.20
+Platform: Cisco C9500
+Interface: TenGigabitEthernet1/1, Port ID (outgoing port): TenGigabitEthernet1/1
+Holdtime : 153 sec
+Capability: Router Switch IGMP
+
+! === cdp-table-nxos-002 | vendor=Cisco | platform=NX-OS ===
+hostname cdp-table-nxos-002
+feature cdp
+interface Ethernet1/1
+ description uplink-to-core-b
+ cdp enable
+ no shutdown
+! command output: show cdp neighbors detail
+Device ID: core-b-01
+Entry address(es):
+  IP address: 198.51.100.20
+Platform: Cisco Nexus 9300
+Interface: Ethernet1/48, Port ID (outgoing port): Ethernet1/48
+Holdtime : 143 sec
+Capability: Switch
+
+! self-link rejection example:
+! Device ID: cdp-table-nxos-002
+! Interface: Ethernet1/1, Port ID (outgoing port): Ethernet1/1
+! mapping expectation:
+! record_state: rejected
+! reject_reason: self_link
