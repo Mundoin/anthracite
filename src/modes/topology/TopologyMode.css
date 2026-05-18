@@ -226,3 +226,288 @@
   color: var(--anth-text-3);
   font-family: inherit;
 }
+
+/* V1AO Evidence Import Panel */
+
+.tm-evidence-import {
+  border: 1px solid var(--anth-border);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tm-evidence-import-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-3);
+}
+
+.tm-evidence-import-textarea {
+  width: 100%;
+  height: 80px;
+  padding: 8px;
+  font-family: var(--anth-mono, monospace);
+  font-size: 11px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+  color: var(--anth-text-1, var(--anth-text-2));
+  resize: vertical;
+}
+
+.tm-evidence-import-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tm-evidence-import-button {
+  align-self: flex-start;
+  padding: 4px 10px;
+  font-size: 11px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+  color: var(--anth-text-1, var(--anth-text-2));
+  cursor: pointer;
+}
+
+.tm-evidence-import-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tm-evidence-import-button:hover:not(:disabled) {
+  background: var(--anth-bg-3, var(--anth-border));
+}
+
+.tm-evidence-import-feedback {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-2);
+}
+
+/* V1AO Evidence Rejection Banner */
+
+.tm-evidence-rejections {
+  border: 1px solid var(--anth-border);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tm-evidence-rejections-summary {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-2);
+}
+
+.tm-evidence-rejections-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 11px;
+  color: var(--anth-text-3);
+}
+
+.tm-evidence-rejection-item {
+  margin: 2px 0;
+}
+
+/* V1AO Edge List Table */
+
+.tm-edge-list {
+  border: 1px solid var(--anth-border);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tm-edge-list-empty {
+  border: 1px solid var(--anth-border);
+  padding: 10px 14px;
+}
+
+.tm-edge-list-empty p {
+  margin: 0;
+  font-size: 11px;
+}
+
+.tm-edge-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  font-family: var(--anth-mono, monospace);
+}
+
+.tm-edge-table th,
+.tm-edge-table td {
+  text-align: left;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.tm-edge-table th {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--anth-text-3);
+  font-weight: normal;
+}
+
+.tm-edge-row {
+  color: var(--anth-text-2);
+}
+
+.tm-edge-kind {
+  color: var(--anth-text-1, var(--anth-text-2));
+  font-weight: 500;
+}
+
+.tm-edge-node-id {
+  font-family: var(--anth-mono, monospace);
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.tm-edge-interface {
+  color: var(--anth-text-3);
+}
+
+.tm-edge-evidence {
+  color: var(--anth-text-3);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* V1AP Evidence Import Tabs */
+
+.tm-evidence-tabs {
+  display: flex;
+  gap: 1px;
+  border-bottom: 1px solid var(--anth-border);
+  margin-bottom: 8px;
+}
+
+.tm-evidence-tab {
+  padding: 6px 12px;
+  font-size: 11px;
+  border: none;
+  background: transparent;
+  color: var(--anth-text-3);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tm-evidence-tab[aria-selected="true"] {
+  color: var(--anth-text-1, var(--anth-text-2));
+  border-bottom-color: var(--anth-text-2);
+}
+
+.tm-evidence-tab:hover:not([aria-selected="true"]) {
+  color: var(--anth-text-2);
+}
+
+/* V1AP Raw Form */
+
+.tm-raw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.tm-raw-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tm-raw-form-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--anth-text-3);
+  margin: 0;
+}
+
+.tm-raw-input {
+  padding: 6px 8px;
+  font-family: var(--anth-mono, monospace);
+  font-size: 11px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.tm-raw-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tm-raw-source-kind-group {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tm-raw-radio-group {
+  display: flex;
+  gap: 12px;
+}
+
+.tm-raw-radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.tm-raw-radio-group input[type="radio"] {
+  cursor: pointer;
+}
+
+.tm-raw-radio-group input[type="radio"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* V1AP Raw Import Result */
+
+.tm-raw-import-result {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+  font-size: 11px;
+}
+
+.tm-raw-import-summary {
+  margin: 0 0 8px;
+  color: var(--anth-text-2);
+  line-height: 1.4;
+}
+
+.tm-raw-rejected-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 10px;
+  color: var(--anth-text-3);
+}
+
+.tm-raw-rejected-item {
+  margin: 2px 0;
+}
+
+.tm-raw-import-error {
+  margin: 0;
+  color: var(--anth-warn, #cc0000);
+  font-size: 10px;
+}

@@ -654,6 +654,126 @@ TopologyMode gains:
 
 ---
 
+## V1AP — Raw Neighbour Output Import + Inventory Resolver
+
+### Status
+
+V1AP lands the first bounded, topology-owned parser that extracts neighbour adjacency facts
+from raw vendor output (LLDP, CDP). Operator can paste raw `show lldp neighbors detail`
+(IOS-XE, EOS) or `show cdp neighbors detail` (IOS-XE) into TopologyMode. Topology parsers
+extract entries; exact inventory resolver matches local/remote nodes by hostname/record_id only
+(no fuzzy, no IP/chassis fallback). Accepted evidence persists into the V1AO
+`TopologyEvidenceStore`, projecting through V1AN/V1AM into live edges.
+
+### What V1AP adds
+
+**New Rust module: `src-tauri/src/engines/topology_neighbor_output.rs`**
+
+- `RawNeighborSourceKind` enum (Lldp, Cdp).
+- `RawNeighborEvidenceImportRequest` struct: `environment_id`, `local_node` (hostname or
+  record_id), `source_kind`, `platform_hint` (optional, carried to source_label), `raw_text`,
+  `source_label` (optional).
+- `RawNeighborRejectionReason` enum (UnresolvedLocal, UnresolvedRemote, SelfLink,
+  UnsupportedFormat, ParseEmpty, MissingRequiredField).
+- `RawNeighborRejectedEntry` struct (reason, detail, raw_block).
+- `RawNeighborParsedEntry` struct (local_interface, remote_system_name, remote_port_id,
+  remote_chassis_id, raw_block).
+- `RawNeighborEvidenceImportResult` struct (parsed_entries_total, accepted_evidence_count,
+  rejected_count, unresolved_count, stored_evidence_count, evidence_set_id,
+  accepted_evidence: Vec<TopologyNeighborEvidence>, rejected_entries: Vec<RawNeighborRejectedEntry>).
+- Format-specific parsers: `parse_iosxe_lldp_detail`, `parse_iosxe_cdp_detail`,
+  `parse_eos_lldp_detail`.
+- Generic dispatcher: `parse_raw_neighbor_output(source_kind, text) -> Vec<RawNeighborParsedEntry>`.
+- Exact-match resolver: `resolve_node_id(records, needle) -> Option<String>` — case-insensitive
+  trim, matches hostname or record.id, no fuzzy, no fallback.
+- Import orchestrator: `import_raw_neighbor_output(request, records, store) ->
+  Result<RawNeighborEvidenceImportResult, TopologyEvidenceStoreError>` — parses, resolves,
+  validates, and calls store.store() only if accepted_evidence_count > 0 (safety guard).
+
+**Supported source formats (V1AP bounded):**
+
+- Cisco IOS-XE `show lldp neighbors detail`
+- Cisco IOS-XE `show cdp neighbors detail`
+- Arista EOS `show lldp neighbors detail`
+
+**Unsupported formats (explicitly rejected with honest diagnostics):**
+
+- Cisco NX-OS LLDP/CDP
+- Juniper Junos LLDP/CDP
+- Any other format
+
+### Resolver rules
+
+- Lowercase + trim both needle and candidates.
+- Match `record.device_model.identity.hostname` OR `record.id` (exact only).
+- Return first matching `record.id` in inventory iteration order.
+- No substring, no fuzzy, no IP, no chassis fallback.
+- Unresolved local → `UnresolvedLocal` rejection.
+- Unresolved remote → `UnresolvedRemote` rejection.
+- Resolved local == resolved remote → `SelfLink` rejection.
+- `remote_system_name` absent → `MissingRequiredField` rejection.
+- Parser yields zero entries → `ParseEmpty` rejection.
+
+### Store-write policy
+
+- REPLACE per-environment (matches V1AO `import_topology_neighbor_evidence` semantics).
+- Operator re-pastes all evidence to refresh; future stages may add append/merge.
+- Safety guard: if `accepted_evidence_count == 0`, the orchestrator does NOT call `store.store()`.
+  Prevents surprise-clears when operator pastes malformed text.
+
+### Tauri command
+
+`import_topology_neighbor_output(request: RawNeighborEvidenceImportRequest) ->
+Result<RawNeighborEvidenceImportResult, String>` — registered in `src-tauri/src/lib.rs`.
+
+### UI surface (TopologyMode)
+
+Evidence-import panel gains tabbed sub-section:
+
+- **Tab 1:** "Structured JSON" (V1AO preserved).
+- **Tab 2:** "Raw neighbour output" (V1AP).
+  - Source kind radio: LLDP / CDP.
+  - Local node text input (hostname or record_id).
+  - Raw text area (paste vendor output here).
+  - Import button.
+  - Result summary: counts (parsed / accepted / rejected / unresolved / stored) + rejection
+    list (capped at 5 items with reason + detail).
+
+### Honest wording
+
+- "Raw neighbour output", "Imported evidence", "Resolved", "Unresolved", "Rejected".
+- NEVER "Live discovery", "Auto-discovery", "Scanned", "Polled".
+
+### Scope-out (V1AP strict)
+
+- **No vendor parser changes.** Neighbour-output parsers are bounded, topology-owned, and
+  shape-recognisers only — not full vendor parser edits.
+- **No `expected.json`, no parser version bumps.**
+- **No DeviceModel mutation, no Discovery semantic change.**
+- **No `parser-lab/` changes.** Codex prep packs stay untouched.
+- **No live polling / SSH / SNMP / scanning.**
+- **No graph visualisation library.**
+- **No fuzzy matching / hostname inference / IP/chassis fallback resolution.**
+- **No second evidence store.** Reuse V1AO `TopologyEvidenceStore`.
+- **No Tauri commands beyond `import_topology_neighbor_output`.**
+
+### Future hook
+
+NX-OS/Junos and any other formats are explicitly unsupported in V1AP and honestly rejected.
+Future stages may add format parsers and extend `RawNeighborSourceKind` enum. Same import
+orchestrator, same resolver, same store — no engine changes needed. Manual raw-output paste
+and future SSH-driven evidence collection both use the same import pipeline.
+
+### Cross-links
+
+- [`TOPOLOGY_ENGINE_BOUNDARY.md`](./TOPOLOGY_ENGINE_BOUNDARY.md) — Boundary and determinism.
+- [`ENGINE_AND_API_BOUNDARIES.md`](./ENGINE_AND_API_BOUNDARIES.md) — Topology Engine V1AP
+  addition.
+- `src-tauri/src/engines/topology_neighbor_output.rs` — Rust implementation.
+- `obsidian/stages/V1AP-raw-neighbour-output-import.md` — Stage note.
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine

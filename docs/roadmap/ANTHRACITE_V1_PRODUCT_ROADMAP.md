@@ -89,6 +89,14 @@ Everything else is a placeholder, an empty contract, or doctrine without code.
   "Imported neighbour evidence" panel + rejection banner + edge
   list. No vendor parser extraction yet — operator imports evidence
   manually for now; parser stages follow in V1AP+.
+- **Raw Neighbour Output Import + Inventory Resolver (V1AP).** Operator
+  can paste raw `show lldp neighbors detail` (IOS-XE, EOS) or
+  `show cdp neighbors detail` (IOS-XE) into TopologyMode.
+  Bounded, topology-owned parsers extract entries; exact inventory
+  resolver matches local/remote nodes by hostname/record_id only (no
+  fuzzy, no IP/chassis fallback). Accepted evidence persists into the
+  V1AO store, projecting through V1AN/V1AM into live edges. NX-OS/Junos
+  and other formats are explicitly unsupported and honestly rejected.
 
 ---
 
@@ -256,7 +264,16 @@ Stage Group 2's engine-alive arc (V1AJ → V1AN → V1AO) is now complete. Opera
 import explicit neighbour evidence and see real edges + readiness counts + rejection 
 diagnostics. Remaining work in Stage Group 2:
 
-- **Vendor Parser LLDP/CDP/Config-Neighbour Extraction (V1AP+).** Vendor parsers produce
+- **Raw Neighbour Output Import + Inventory Resolver (V1AP).** Operator
+  can paste raw `show lldp neighbors detail` (IOS-XE, EOS) or
+  `show cdp neighbors detail` (IOS-XE) into TopologyMode.
+  Bounded, topology-owned parsers extract entries; exact inventory
+  resolver matches local/remote nodes by hostname/record_id only (no
+  fuzzy, no IP/chassis fallback). Accepted evidence persists into the
+  V1AO `TopologyEvidenceStore`, projecting through V1AN/V1AM into live
+  edges. NX-OS/Junos and any other formats are explicitly unsupported
+  in V1AP and honestly rejected.
+- **Vendor Parser LLDP/CDP/Config-Neighbour Extraction (V1AQ+).** Vendor parsers produce
   `Vec<TopologyNeighborEvidence>` from their LLDP, CDP, and config-neighbour
   extractors. Call `TopologyEngine::project_with_neighbor_evidence(env, records, evidence)`.
   Flip `present: true` on relevant sources; state auto-transitions; edge count

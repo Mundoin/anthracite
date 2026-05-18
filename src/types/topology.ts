@@ -214,3 +214,44 @@ export interface ImportTopologyNeighborEvidenceRequest {
   readonly evidence: readonly TopologyNeighborEvidence[];
   readonly source_label: string | null;
 }
+
+// -----------------------------------------------------------------------
+// V1AP — Raw neighbour-output import wire shapes.
+// Mirrors src-tauri/src/engines/topology_neighbor_output.rs.
+// -----------------------------------------------------------------------
+
+export type RawNeighborSourceKind = "lldp" | "cdp";
+
+export type RawNeighborRejectionReason =
+  | "unresolved_local"
+  | "unresolved_remote"
+  | "self_link"
+  | "unsupported_format"
+  | "parse_empty"
+  | "missing_required_field";
+
+export interface RawNeighborEvidenceImportRequest {
+  readonly environment_id: string;
+  readonly local_node: string;
+  readonly source_kind: RawNeighborSourceKind;
+  readonly platform_hint: string | null;
+  readonly raw_text: string;
+  readonly source_label: string | null;
+}
+
+export interface RawNeighborRejectedEntry {
+  readonly reason: RawNeighborRejectionReason;
+  readonly detail: string;
+  readonly raw_block: string;
+}
+
+export interface RawNeighborEvidenceImportResult {
+  readonly parsed_entries_total: number;
+  readonly accepted_evidence_count: number;
+  readonly rejected_count: number;
+  readonly unresolved_count: number;
+  readonly stored_evidence_count: number;
+  readonly evidence_set_id: string | null;
+  readonly accepted_evidence: readonly TopologyNeighborEvidence[];
+  readonly rejected_entries: readonly RawNeighborRejectedEntry[];
+}

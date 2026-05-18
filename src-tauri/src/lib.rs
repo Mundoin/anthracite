@@ -17,6 +17,7 @@ pub mod engines;
 use engines::discovery::{DiscoveryEngine, JsonDiscoveryFileStore};
 use engines::environment::{EnvironmentEngine, JsonFileStore};
 use engines::topology::TopologyEngine;
+use engines::topology_evidence_store::{TopologyEvidenceStore, JsonFileTopologyEvidenceStore};
 
 #[derive(Serialize)]
 struct Pong {
@@ -51,6 +52,9 @@ pub fn run() {
             let discovery_store = JsonDiscoveryFileStore::new(discovery_path);
             app.manage(DiscoveryEngine::with_store(Arc::new(discovery_store)));
             app.manage(TopologyEngine::new());
+            let evidence_store: Box<dyn TopologyEvidenceStore> =
+                Box::new(JsonFileTopologyEvidenceStore::new(data_dir.clone()));
+            app.manage(evidence_store);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -67,6 +71,10 @@ pub fn run() {
             commands::parser::parse_device_config,
             commands::receipt::project_device_receipt,
             commands::topology::get_topology_view,
+            commands::topology::import_topology_neighbor_evidence,
+            commands::topology::get_topology_neighbor_evidence,
+            commands::topology::clear_topology_neighbor_evidence,
+            commands::topology::import_topology_neighbor_output,
             commands::validator::validate_device_model,
             commands::discovery::get_discovery_inventory,
             commands::discovery::preview_discovery_import,

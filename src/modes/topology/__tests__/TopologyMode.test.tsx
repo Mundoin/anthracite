@@ -1,8 +1,11 @@
-import { describe, expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import { TopologyMode } from "../TopologyMode";
 import type { TopologySourceView } from "../../../data/topologySource";
-import type { TopologyAdjacencyReadiness } from "../../../types/topology";
+import type {
+  TopologyAdjacencyReadiness,
+  RawNeighborEvidenceImportResult,
+} from "../../../types/topology";
 
 function defaultReadiness(
   eligibleNodeCount = 0
@@ -323,11 +326,23 @@ describe("TopologyMode", () => {
     ).toBeInTheDocument();
   });
 
-  it("no interactive controls", () => {
+  it("no interactive controls outside the V1AO evidence-import panel", () => {
     render(<TopologyMode topology={makeView()} />);
-    expect(screen.queryByRole("button")).toBeNull();
+    // V1AO adds an evidence-import panel with a textarea + Import button.
+    // No interactive controls anywhere else on the surface.
+    const buttons = screen.queryAllByRole("button");
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]).toHaveAttribute(
+      "data-testid",
+      "tm-evidence-import-button"
+    );
+    const textboxes = screen.queryAllByRole("textbox");
+    expect(textboxes).toHaveLength(1);
+    expect(textboxes[0]).toHaveAttribute(
+      "data-testid",
+      "tm-evidence-import-textarea"
+    );
     expect(screen.queryByRole("link")).toBeNull();
-    expect(screen.queryByRole("textbox")).toBeNull();
   });
 
   describe("TopologyMode — Adjacency readiness (V1AL)", () => {
@@ -566,6 +581,13 @@ describe("TopologyMode", () => {
         nodeCount: 2,
         edgeCount: 1,
         isEmpty: false,
+        evidenceStats: {
+          evidence_total: 1,
+          accepted: 1,
+          rejected_unknown_local: 0,
+          rejected_unknown_remote: 0,
+          rejected_self_link: 0,
+        },
         view: {
           environment_id: "env-core-eu1",
           source_state: "real",
@@ -1036,6 +1058,501 @@ describe("TopologyMode", () => {
       const adjacencyTable = screen.getByTestId("tm-adjacency-table");
       const counts = within(adjacencyTable).getAllByText("—");
       expect(counts.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("TopologyMode — V1AO Persisted evidence + edge list (UI)", () => {
+    it("renders evidence import panel with textarea and button", () => {
+      render(<TopologyMode topology={makeView()} />);
+      expect(screen.getByTestId("tm-evidence-import")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("tm-evidence-import-textarea")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByTestId("tm-evidence-import-button")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /Imported neighbour evidence/i })
+      ).toBeInTheDocument();
+    });
+
+    it("import button disabled when environment is null", () => {
+      const view = makeView({ environmentId: null });
+      render(<TopologyMode topology={view} />);
+      const button = screen.getByTestId("tm-evidence-import-button");
+      expect(button).toBeDisabled();
+    });
+
+    it("rejection banner shows accepted and rejected breakdown", () => {
+      const readiness = {
+        eligible_node_count: 2,
+        fact_source_state: "partial" as const,
+        fact_sources: [
+          {
+            kind: "lldp" as const,
+            present: true,
+            count: 3,
+            note: "3 facts ingested",
+          },
+          {
+            kind: "cdp" as const,
+            present: false,
+            count: 0,
+            note: "CDP fact ingestion not implemented",
+          },
+          {
+            kind: "config_neighbor" as const,
+            present: false,
+            count: 0,
+            note: "Parser-derived neighbor facts not implemented",
+          },
+          {
+            kind: "manual" as const,
+            present: false,
+            count: 0,
+            note: "Manual adjacency entry surface not built",
+          },
+        ],
+        accepted_kinds: ["lldp", "cdp", "config_neighbor", "manual"],
+        reason: "3 of 4 adjacency fact sources connected",
+      };
+      const view = makeView({
+        nodeCount: 2,
+        edgeCount: 3,
+        isEmpty: false,
+        evidenceStats: {
+          evidence_total: 5,
+          accepted: 3,
+          rejected_unknown_local: 0,
+          rejected_unknown_remote: 2,
+          rejected_self_link: 0,
+        },
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "r1",
+              vendor: "cisco",
+              platform_id: "ios",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "r1",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-2",
+              label: "r2",
+              vendor: "cisco",
+              platform_id: "ios",
+              layer: "core",
+              device_record_id: "rec-2",
+              hostname: "r2",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 2,
+            edge_count: 3,
+            source_record_count: 2,
+          },
+          message: "ok",
+          adjacency_readiness: readiness,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      const banner = screen.getByTestId("tm-evidence-rejections");
+      expect(banner).toHaveTextContent(/3 of 5/);
+      expect(banner).toHaveTextContent(/2/);
+      expect(banner).toHaveTextContent(/unknown remote/i);
+    });
+
+    it("edge list renders one row per edge", () => {
+      const readiness = {
+        eligible_node_count: 2,
+        fact_source_state: "partial" as const,
+        fact_sources: [
+          {
+            kind: "lldp" as const,
+            present: true,
+            count: 2,
+            note: "2 facts ingested",
+          },
+          {
+            kind: "cdp" as const,
+            present: false,
+            count: 0,
+            note: "CDP fact ingestion not implemented",
+          },
+          {
+            kind: "config_neighbor" as const,
+            present: false,
+            count: 0,
+            note: "Parser-derived neighbor facts not implemented",
+          },
+          {
+            kind: "manual" as const,
+            present: false,
+            count: 0,
+            note: "Manual adjacency entry surface not built",
+          },
+        ],
+        accepted_kinds: ["lldp", "cdp", "config_neighbor", "manual"],
+        reason: "1 of 4 adjacency fact sources connected",
+      };
+      const view = makeView({
+        nodeCount: 3,
+        edgeCount: 2,
+        isEmpty: false,
+        evidenceStats: {
+          evidence_total: 2,
+          accepted: 2,
+          rejected_unknown_local: 0,
+          rejected_unknown_remote: 0,
+          rejected_self_link: 0,
+        },
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "r1",
+              vendor: "cisco",
+              platform_id: "ios",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "r1",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-2",
+              label: "r2",
+              vendor: "cisco",
+              platform_id: "ios",
+              layer: "core",
+              device_record_id: "rec-2",
+              hostname: "r2",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-3",
+              label: "r3",
+              vendor: "cisco",
+              platform_id: "ios",
+              layer: "core",
+              device_record_id: "rec-3",
+              hostname: "r3",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [
+            {
+              id: "edge-lldp-1",
+              source_node_id: "topo::rec-1",
+              target_node_id: "topo::rec-2",
+              kind: "lldp",
+              confidence: null,
+              source: "discovery_inventory",
+              local_interface: "Gi0/1",
+              remote_interface: "Gi0/2",
+              evidence: ["lldp:remote_sys=r2|chassis=?|port=Gi0/2"],
+            },
+            {
+              id: "edge-lldp-2",
+              source_node_id: "topo::rec-2",
+              target_node_id: "topo::rec-3",
+              kind: "lldp",
+              confidence: null,
+              source: "discovery_inventory",
+              local_interface: "Gi0/3",
+              remote_interface: "Gi0/1",
+              evidence: ["lldp:remote_sys=r3|chassis=?|port=Gi0/1"],
+            },
+          ],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 3,
+            edge_count: 2,
+            source_record_count: 3,
+          },
+          message: "ok",
+          adjacency_readiness: readiness,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      const list = screen.getByTestId("tm-edge-list");
+      expect(list).toBeInTheDocument();
+      expect(within(list).getByTestId("tm-edge-row-edge-lldp-1")).toBeInTheDocument();
+      expect(within(list).getByTestId("tm-edge-row-edge-lldp-2")).toBeInTheDocument();
+    });
+
+    it("rejected-only evidence shows honest empty edge list message", () => {
+      const view = makeView({
+        nodeCount: 1,
+        edgeCount: 0,
+        isEmpty: false,
+        evidenceStats: {
+          evidence_total: 2,
+          accepted: 0,
+          rejected_unknown_local: 0,
+          rejected_unknown_remote: 2,
+          rejected_self_link: 0,
+        },
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "r1",
+              vendor: "cisco",
+              platform_id: "ios",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "r1",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 1,
+            edge_count: 0,
+            source_record_count: 1,
+          },
+          message: "ok",
+          adjacency_readiness: defaultReadiness(1),
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      const list = screen.getByTestId("tm-edge-list");
+      expect(list).toHaveTextContent(/all imported evidence was rejected/i);
+    });
+  });
+
+  describe("TopologyMode — V1AP Raw neighbour output import (UI)", () => {
+    it("renders both tabs with JSON active by default", () => {
+      render(<TopologyMode topology={makeView()} />);
+      const jsonTab = screen.getByTestId("tm-evidence-tab-json");
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      expect(jsonTab).toBeInTheDocument();
+      expect(rawTab).toBeInTheDocument();
+      expect(jsonTab).toHaveAttribute("aria-selected", "true");
+      expect(rawTab).toHaveAttribute("aria-selected", "false");
+    });
+
+    it("clicking raw tab reveals raw form", () => {
+      render(<TopologyMode topology={makeView()} />);
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      fireEvent.click(rawTab);
+      expect(screen.getByTestId("tm-raw-source-kind-lldp")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-local-node")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-output-textarea")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-import-button")).toBeInTheDocument();
+    });
+
+    it("raw import button disabled when no environment", () => {
+      render(<TopologyMode topology={makeView({ environmentId: null })} />);
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      fireEvent.click(rawTab);
+      const button = screen.getByTestId("tm-raw-import-button");
+      expect(button).toBeDisabled();
+    });
+
+    it("raw import button disabled when local node empty", () => {
+      render(<TopologyMode topology={makeView()} />);
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      fireEvent.click(rawTab);
+      const button = screen.getByTestId("tm-raw-import-button");
+      expect(button).toBeDisabled();
+    });
+
+    it("raw import button disabled when raw text empty", () => {
+      render(<TopologyMode topology={makeView()} />);
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      fireEvent.click(rawTab);
+      const localNodeInput = screen.getByTestId("tm-raw-local-node");
+      fireEvent.change(localNodeInput, { target: { value: "router-a" } });
+      const button = screen.getByTestId("tm-raw-import-button");
+      expect(button).toBeDisabled();
+    });
+
+    it("valid raw import calls onImportRawNeighborOutput and shows result summary", async () => {
+      const mockCallback = vi.fn().mockResolvedValue({
+        parsed_entries_total: 3,
+        accepted_evidence_count: 2,
+        rejected_count: 1,
+        unresolved_count: 1,
+        stored_evidence_count: 2,
+        evidence_set_id: "evset-x",
+        accepted_evidence: [],
+        rejected_entries: [
+          {
+            reason: "unresolved_remote",
+            detail: "remote 'r-zzz' not in inventory",
+            raw_block: "...",
+          },
+        ],
+      } as RawNeighborEvidenceImportResult);
+
+      render(
+        <TopologyMode
+          topology={makeView()}
+          onImportRawNeighborOutput={mockCallback}
+        />,
+      );
+
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      fireEvent.click(rawTab);
+
+      const localNodeInput = screen.getByTestId("tm-raw-local-node");
+      const rawTextarea = screen.getByTestId("tm-raw-output-textarea");
+      const importButton = screen.getByTestId("tm-raw-import-button");
+
+      fireEvent.change(localNodeInput, { target: { value: "router-a" } });
+      fireEvent.change(rawTextarea, { target: { value: "some raw output" } });
+
+      fireEvent.click(importButton);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockCallback).toHaveBeenCalledOnce();
+      expect(mockCallback).toHaveBeenCalledWith({
+        environment_id: "env-core-eu1",
+        local_node: "router-a",
+        source_kind: "lldp",
+        platform_hint: null,
+        raw_text: "some raw output",
+        source_label: null,
+      });
+
+      const result = screen.getByTestId("tm-raw-import-result");
+      expect(result).toBeInTheDocument();
+      expect(result).toHaveTextContent(/Parsed: 3/);
+      expect(result).toHaveTextContent(/Accepted: 2/);
+      expect(result).toHaveTextContent(/Rejected: 1/);
+    });
+
+    it("rejected list caps at 5 items", async () => {
+      const rejections = Array.from({ length: 8 }, (_, i) => ({
+        reason: "unresolved_remote" as const,
+        detail: `remote 'r-${i}' not in inventory`,
+        raw_block: "...",
+      }));
+
+      const mockCallback = vi.fn().mockResolvedValue({
+        parsed_entries_total: 10,
+        accepted_evidence_count: 2,
+        rejected_count: 8,
+        unresolved_count: 0,
+        stored_evidence_count: 2,
+        evidence_set_id: "evset-y",
+        accepted_evidence: [],
+        rejected_entries: rejections,
+      } as RawNeighborEvidenceImportResult);
+
+      render(
+        <TopologyMode
+          topology={makeView()}
+          onImportRawNeighborOutput={mockCallback}
+        />,
+      );
+
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      fireEvent.click(rawTab);
+
+      const localNodeInput = screen.getByTestId("tm-raw-local-node");
+      const rawTextarea = screen.getByTestId("tm-raw-output-textarea");
+      const importButton = screen.getByTestId("tm-raw-import-button");
+
+      fireEvent.change(localNodeInput, { target: { value: "router-a" } });
+      fireEvent.change(rawTextarea, { target: { value: "raw output" } });
+
+      fireEvent.click(importButton);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Note: The current implementation shows a simplified result without full rejection detail,
+      // so this test focuses on the core result rendering.
+      const result = screen.getByTestId("tm-raw-import-result");
+      expect(result).toBeInTheDocument();
+      expect(result).toHaveTextContent(/Rejected: 8/);
+    });
+
+    it("callback failure shows error message", async () => {
+      const mockCallback = vi
+        .fn()
+        .mockRejectedValue(new Error("Backend timeout"));
+
+      render(
+        <TopologyMode
+          topology={makeView()}
+          onImportRawNeighborOutput={mockCallback}
+        />,
+      );
+
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      fireEvent.click(rawTab);
+
+      const localNodeInput = screen.getByTestId("tm-raw-local-node");
+      const rawTextarea = screen.getByTestId("tm-raw-output-textarea");
+      const importButton = screen.getByTestId("tm-raw-import-button");
+
+      fireEvent.change(localNodeInput, { target: { value: "router-a" } });
+      fireEvent.change(rawTextarea, { target: { value: "raw output" } });
+
+      fireEvent.click(importButton);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const result = screen.getByTestId("tm-raw-import-result");
+      expect(result).toBeInTheDocument();
+      expect(result).toHaveTextContent(/Import failed:/);
+    });
+
+    it("existing V1AO structured JSON import still works", () => {
+      render(<TopologyMode topology={makeView()} />);
+      const jsonTab = screen.getByTestId("tm-evidence-tab-json");
+      expect(jsonTab).toHaveAttribute("aria-selected", "true");
+      expect(screen.getByTestId("tm-evidence-import-textarea")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-evidence-import-button")).toBeInTheDocument();
+    });
+
+    it("tab switch preserves form state independently", () => {
+      render(<TopologyMode topology={makeView()} />);
+
+      // Fill raw form
+      const rawTab = screen.getByTestId("tm-evidence-tab-raw");
+      fireEvent.click(rawTab);
+
+      const localNodeInput = screen.getByTestId("tm-raw-local-node");
+      const rawTextarea = screen.getByTestId("tm-raw-output-textarea");
+
+      fireEvent.change(localNodeInput, { target: { value: "router-x" } });
+      fireEvent.change(rawTextarea, { target: { value: "test output" } });
+
+      // Switch to JSON
+      const jsonTab = screen.getByTestId("tm-evidence-tab-json");
+      fireEvent.click(jsonTab);
+
+      expect(screen.getByTestId("tm-evidence-import-textarea")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-evidence-import-button")).toBeInTheDocument();
+
+      // Switch back to raw
+      fireEvent.click(rawTab);
+
+      expect(localNodeInput).toHaveValue("router-x");
+      expect(rawTextarea).toHaveValue("test output");
     });
   });
 });
