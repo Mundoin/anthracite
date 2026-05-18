@@ -1,0 +1,68 @@
+vendor: Fortinet
+platform_family: fortios
+prep_batch: baseline
+fixtures:
+  - id: fortios-system-interface-zone-001
+    filename: fixtures/fortios-system-interface-zone-001.cfg
+    vendor: Fortinet
+    platform_family: fortios
+    feature_tags:
+      - system_global
+      - hostname
+      - interfaces
+      - vlan_interface
+      - zones
+      - address_objects
+      - service_objects
+      - policy
+      - nat_marker
+      - vpn_note
+      - sdwan_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/fortios-system-interface-zone-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: fortios-routing-objects-002
+    filename: fixtures/fortios-routing-objects-002.cfg
+    vendor: Fortinet
+    platform_family: fortios
+    feature_tags:
+      - system_global
+      - interfaces
+      - vlan_interface
+      - zones
+      - static_routes
+      - address_objects
+      - service_objects
+      - policy
+      - ippool
+      - nat_marker
+    sanitised: true
+    source: synthetic
+    intent_file: intent/fortios-routing-objects-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: fortios-vpn-sdwan-notes-003
+    filename: fixtures/fortios-vpn-sdwan-notes-003.cfg
+    vendor: Fortinet
+    platform_family: fortios
+    feature_tags:
+      - system_global
+      - interfaces
+      - vlan_interface
+      - zones
+      - static_routes
+      - address_objects
+      - service_objects
+      - policy
+      - ippool
+      - nat_marker
+      - vpn_note
+      - sdwan_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/fortios-vpn-sdwan-notes-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+
