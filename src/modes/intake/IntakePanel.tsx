@@ -13,9 +13,12 @@ import { projectDeviceReceipt } from "../../api/receipt";
 import { validateDeviceModel } from "../../api/validator";
 import { listVendorPlatforms } from "../../api/vendor";
 import { splitConfigBatch } from "../../api/configBatch";
-import { previewDiscoveryImport } from "../../api/discovery";
+import { importDiscoveryRecords, previewDiscoveryImport } from "../../api/discovery";
 import { buildDiscoveryImportCandidates } from "../../data/discoveryImport";
-import type { DiscoveryImportPreview } from "../../types/discovery";
+import type {
+  DiscoveryImportCommitResult,
+  DiscoveryImportPreview,
+} from "../../types/discovery";
 import type {
   ArchiveEntry,
   ArchiveEntryRef,
@@ -71,6 +74,9 @@ export interface IntakePanelProps {
   readonly api?: IntakeApi;
   /** Active operator-environment id for V1AH discovery-import preview. */
   readonly activeEnvironmentId?: string | null;
+  /** V1AI — invoked after a successful Discovery import so the App can
+   *  refresh its discovery inventory (Ops Console will reflect the new count). */
+  readonly onDiscoveryImported?: () => void | Promise<void>;
 }
 
 export interface IntakeApi {
@@ -87,6 +93,9 @@ export interface IntakeApi {
   // V1AH — optional so pre-V1AH tests can omit it. Production
   // DEFAULT_API always includes the real wrapper.
   readonly previewDiscoveryImport?: typeof previewDiscoveryImport;
+  // V1AI — optional so pre-V1AI tests can omit it. Production
+  // DEFAULT_API always includes the real wrapper.
+  readonly importDiscoveryRecords?: typeof importDiscoveryRecords;
 }
 
 const DEFAULT_API: IntakeApi = {
@@ -98,6 +107,7 @@ const DEFAULT_API: IntakeApi = {
   archiveIntake,
   validateDeviceModel,
   previewDiscoveryImport,
+  importDiscoveryRecords,
 };
 
 /** V1AH preview status — surfaced verbatim by RunSummaryStrip. */
@@ -107,15 +117,25 @@ export type DiscoveryImportPreviewStatus =
   | { readonly kind: "ready"; readonly preview: DiscoveryImportPreview }
   | { readonly kind: "failed"; readonly message: string };
 
+/** V1AI import commit status — surfaced verbatim by RunSummaryStrip. */
+export type DiscoveryImportCommitStatus =
+  | { readonly kind: "idle" }
+  | { readonly kind: "running" }
+  | { readonly kind: "imported"; readonly result: DiscoveryImportCommitResult }
+  | { readonly kind: "failed"; readonly message: string };
+
 export function IntakePanel({
   api = DEFAULT_API,
   activeEnvironmentId = null,
+  onDiscoveryImported,
 }: IntakePanelProps = {}): JSX.Element {
   const [state, dispatch] = useReducer(intakeReducer, initialIntakeState);
   const [exportStatus, setExportStatus] =
     useState<BatchRunExportStatus | null>(null);
   const [discoveryPreview, setDiscoveryPreview] =
     useState<DiscoveryImportPreviewStatus>({ kind: "idle" });
+  const [discoveryCommit, setDiscoveryCommit] =
+    useState<DiscoveryImportCommitStatus>({ kind: "idle" });
 
   // ---- Vendor registry load (once) -------------------------------
   useEffect(() => {
@@ -593,6 +613,27 @@ export function IntakePanel({
     }
   }, [activeEnvironmentId, api]);
 
+  // V1AI — authoritative import. Reads current BatchRun + active env,
+  // recomputes acceptance via Rust, persists, then notifies App to refresh.
+  const onImportDiscoveryRecords = useCallback(async (): Promise<void> => {
+    const importFn = api.importDiscoveryRecords;
+    if (!importFn) return;
+    const run = stateRef.current.batch?.batchRun ?? null;
+    if (!run || !activeEnvironmentId) return;
+    const built = buildDiscoveryImportCandidates(run, activeEnvironmentId);
+    if (built.candidates.length === 0) return;
+    setDiscoveryCommit({ kind: "running" });
+    try {
+      const result = await importFn(activeEnvironmentId, built.candidates);
+      setDiscoveryCommit({ kind: "imported", result });
+      if (onDiscoveryImported) {
+        await onDiscoveryImported();
+      }
+    } catch (err) {
+      setDiscoveryCommit({ kind: "failed", message: describeError(err) });
+    }
+  }, [activeEnvironmentId, api, onDiscoveryImported]);
+
   // Honest importable count from live BatchRun + env. 0 hides the action.
   const discoveryImportableCount: number = (() => {
     const run = state.batch?.batchRun ?? null;
@@ -902,6 +943,8 @@ export function IntakePanel({
           discoveryImportableCount={discoveryImportableCount}
           discoveryPreviewStatus={discoveryPreview}
           onPreviewDiscoveryImport={() => void onPreviewDiscoveryImport()}
+          discoveryCommitStatus={discoveryCommit}
+          onImportDiscoveryRecords={() => void onImportDiscoveryRecords()}
         />
       )}
 

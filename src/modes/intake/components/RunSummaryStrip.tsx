@@ -30,7 +30,10 @@ import type {
   FindingsDisplayMode,
   FindingsDisplaySummary,
 } from "../../../types/findingsDisplay";
-import type { DiscoveryImportPreviewStatus } from "../IntakePanel";
+import type {
+  DiscoveryImportCommitStatus,
+  DiscoveryImportPreviewStatus,
+} from "../IntakePanel";
 
 export type BatchRunExportFormat = "json" | "markdown";
 
@@ -59,6 +62,9 @@ export interface RunSummaryStripProps {
   readonly discoveryImportableCount?: number;
   readonly discoveryPreviewStatus?: DiscoveryImportPreviewStatus;
   readonly onPreviewDiscoveryImport?: () => void;
+  // V1AI — Discovery import commit.
+  readonly discoveryCommitStatus?: DiscoveryImportCommitStatus;
+  readonly onImportDiscoveryRecords?: () => void;
 }
 
 export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
@@ -77,6 +83,8 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
     discoveryImportableCount,
     discoveryPreviewStatus,
     onPreviewDiscoveryImport,
+    discoveryCommitStatus,
+    onImportDiscoveryRecords,
   } = props;
 
   const inProgress = display?.status === "in_progress";
@@ -95,6 +103,12 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
     isComplete &&
     onPreviewDiscoveryImport != null &&
     (activeEnvironmentId != null && (discoveryImportableCount ?? 0) > 0);
+  const showDiscoveryImport =
+    isAuthor &&
+    isComplete &&
+    onImportDiscoveryRecords != null &&
+    activeEnvironmentId != null &&
+    (discoveryImportableCount ?? 0) > 0;
 
   return (
     <div
@@ -146,6 +160,14 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
             importableCount={discoveryImportableCount ?? 0}
             status={discoveryPreviewStatus ?? { kind: "idle" }}
             disabled={buttonsDisabled || discoveryPreviewStatus?.kind === "running"}
+          />
+        )}
+        {showDiscoveryImport && (
+          <DiscoveryImportCommitAction
+            onImportDiscoveryRecords={onImportDiscoveryRecords!}
+            importableCount={discoveryImportableCount ?? 0}
+            status={discoveryCommitStatus ?? { kind: "idle" }}
+            disabled={buttonsDisabled || discoveryCommitStatus?.kind === "running"}
           />
         )}
       </div>
@@ -274,6 +296,73 @@ function DiscoveryImportPreviewStatusView({
       aria-label="Discovery preview result"
     >
       preview: {s.accepted_count} accepted · {s.rejected_count} rejected
+    </span>
+  );
+}
+
+interface DiscoveryImportCommitActionProps {
+  readonly onImportDiscoveryRecords: () => void;
+  readonly importableCount: number;
+  readonly status: DiscoveryImportCommitStatus;
+  readonly disabled: boolean;
+}
+
+function DiscoveryImportCommitAction(
+  props: DiscoveryImportCommitActionProps,
+): JSX.Element {
+  const { onImportDiscoveryRecords, importableCount, status, disabled } = props;
+  return (
+    <>
+      <button
+        type="button"
+        className="intake-btn intake-btn--tiny"
+        onClick={onImportDiscoveryRecords}
+        disabled={disabled}
+        aria-label="Import to Discovery"
+      >
+        Import to Discovery ({importableCount})
+      </button>
+      <DiscoveryImportCommitStatusView status={status} />
+    </>
+  );
+}
+
+function DiscoveryImportCommitStatusView({
+  status,
+}: {
+  readonly status: DiscoveryImportCommitStatus;
+}): JSX.Element | null {
+  if (status.kind === "idle") return null;
+  if (status.kind === "running") {
+    return (
+      <span
+        className="intake-run-export-status"
+        role="status"
+        aria-label="Discovery import running"
+      >
+        importing…
+      </span>
+    );
+  }
+  if (status.kind === "failed") {
+    return (
+      <span
+        className="intake-run-export-status intake-run-export-status--failed"
+        role="alert"
+      >
+        import failed: {status.message}
+      </span>
+    );
+  }
+  // imported
+  const s = status.result.summary;
+  return (
+    <span
+      className="intake-run-export-status intake-run-export-status--ok"
+      role="status"
+      aria-label="Discovery import result"
+    >
+      Imported {s.imported_count} · Rejected {s.rejected_count}
     </span>
   );
 }

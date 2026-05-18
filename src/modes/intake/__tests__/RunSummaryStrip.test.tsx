@@ -909,3 +909,214 @@ describe("RunSummaryStrip — Discovery import preview (V1AH)", () => {
     ).toBeNull();
   });
 });
+
+describe("RunSummaryStrip — Discovery import commit (V1AI)", () => {
+  const completeSummary = {
+    total_count: 3,
+    parsed_count: 3,
+    failed_count: 0,
+    skipped_count: 0,
+    pending_count: 0,
+    with_findings_count: 0,
+    clean_count: 3,
+    severity_counts: { critical: 0, high: 0, medium: 0, low: 0, info: 0 },
+  };
+  const mkRun = (status: "complete" | "complete_with_failures" | "in_progress" | "idle") =>
+    makeRun({ status, summary: completeSummary });
+  const mkCommit = (imported: number, rejected: number) => ({
+    environment_id: "env-core-eu1",
+    imported_records: [],
+    rejected: [],
+    summary: {
+      total_candidates: imported + rejected,
+      imported_count: imported,
+      rejected_count: rejected,
+      inventory_total_after: imported,
+    },
+  });
+
+  it("does not render import button when activeEnvironmentId is null", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId={null}
+        onImportDiscoveryRecords={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /Import to Discovery/i })).toBeNull();
+  });
+
+  it("does not render import button when discoveryImportableCount is 0", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="author"
+        discoveryImportableCount={0}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /Import to Discovery/i })).toBeNull();
+  });
+
+  it("does not render import button when run is in_progress", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("in_progress")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /Import to Discovery/i })).toBeNull();
+  });
+
+  it("does not render import button when run is idle", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("idle")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /Import to Discovery/i })).toBeNull();
+  });
+
+  it("renders import button when run complete + env + candidates", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+      />,
+    );
+    const btn = screen.getByRole("button", { name: "Import to Discovery" });
+    expect(btn).toBeInTheDocument();
+    expect(btn.textContent).toContain("(3)");
+  });
+
+  it("renders import button when run complete_with_failures", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete_with_failures")}
+        mode="author"
+        discoveryImportableCount={2}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Import to Discovery" })).toBeInTheDocument();
+  });
+
+  it("button calls onImportDiscoveryRecords when clicked", async () => {
+    const spy = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={spy}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Import to Discovery" }));
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("button is disabled when commit status is 'running'", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+        discoveryCommitStatus={{ kind: "running" }}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Import to Discovery" })).toBeDisabled();
+  });
+
+  it("renders 'importing…' status while running", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+        discoveryCommitStatus={{ kind: "running" }}
+      />,
+    );
+    expect(screen.getByRole("status", { name: "Discovery import running" }).textContent).toContain(
+      "importing…",
+    );
+  });
+
+  it("renders Imported/Rejected counts when status is 'imported'", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+        discoveryCommitStatus={{ kind: "imported", result: mkCommit(3, 1) }}
+      />,
+    );
+    const status = screen.getByRole("status", { name: "Discovery import result" });
+    expect(status.textContent).toContain("Imported 3 · Rejected 1");
+  });
+
+  it("renders 'Imported 0 · Rejected N' on duplicate-only re-import", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+        discoveryCommitStatus={{ kind: "imported", result: mkCommit(0, 3) }}
+      />,
+    );
+    const status = screen.getByRole("status", { name: "Discovery import result" });
+    expect(status.textContent).toContain("Imported 0 · Rejected 3");
+  });
+
+  it("renders failure message when status is 'failed'", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="author"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onImportDiscoveryRecords={vi.fn()}
+        discoveryCommitStatus={{ kind: "failed", message: "boom" }}
+      />,
+    );
+    expect(screen.getByRole("alert").textContent).toContain("import failed: boom");
+  });
+
+  it("viewer mode hides both preview and import buttons", () => {
+    render(
+      <RunSummaryStrip
+        display={mkRun("complete")}
+        mode="viewer"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-core-eu1"
+        onPreviewDiscoveryImport={vi.fn()}
+        onImportDiscoveryRecords={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /Preview Discovery Import/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Import to Discovery/i })).toBeNull();
+  });
+});

@@ -7,6 +7,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
   DiscoveryImportCandidate,
+  DiscoveryImportCommitResult,
   DiscoveryImportPreview,
   DiscoveryInventoryView,
 } from "../types/discovery";
@@ -28,6 +29,21 @@ export async function previewDiscoveryImport(
   candidates: readonly DiscoveryImportCandidate[],
 ): Promise<DiscoveryImportPreview> {
   return invoke<DiscoveryImportPreview>("preview_discovery_import", {
+    environmentId,
+    candidates,
+  });
+}
+
+/**
+ * V1AI — authoritative import commit. Rust recomputes acceptance against the
+ * current persisted store and writes accepted records. Returns the records
+ * actually imported plus rejections; preview result is advisory only.
+ */
+export async function importDiscoveryRecords(
+  environmentId: string,
+  candidates: readonly DiscoveryImportCandidate[],
+): Promise<DiscoveryImportCommitResult> {
+  return invoke<DiscoveryImportCommitResult>("import_discovery_records", {
     environmentId,
     candidates,
   });

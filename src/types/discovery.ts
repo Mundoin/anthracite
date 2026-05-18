@@ -24,6 +24,11 @@ export interface DiscoveryDeviceRecord {
   readonly source_kind: DiscoveryRecordSourceKind;
   readonly confidence: number | null;
   readonly last_seen: string | null;
+  // V1AI — canonical device shape carried by Discovery's persisted record.
+  // Topology consumes DeviceModel from here. No fork.
+  readonly device_model: DeviceModel;
+  readonly source_label: string | null;
+  readonly slice_id: string | null;
 }
 
 export interface DiscoveryInventoryView {
@@ -77,4 +82,24 @@ export interface DiscoveryImportPreview {
   readonly accepted: readonly DiscoveryImportPreviewRecord[];
   readonly rejected: readonly DiscoveryImportRejection[];
   readonly summary: DiscoveryImportSummary;
+}
+
+// ---------------------------------------------------------------------
+// V1AI — authoritative import commit wire shapes.
+// Mirrors `DiscoveryImportCommit*` types in src-tauri/src/engines/discovery.rs.
+// Import recomputes acceptance server-side; preview result is advisory.
+// ---------------------------------------------------------------------
+
+export interface DiscoveryImportCommitSummary {
+  readonly total_candidates: number;
+  readonly imported_count: number;
+  readonly rejected_count: number;
+  readonly inventory_total_after: number;
+}
+
+export interface DiscoveryImportCommitResult {
+  readonly environment_id: string;
+  readonly imported_records: readonly DiscoveryDeviceRecord[];
+  readonly rejected: readonly DiscoveryImportRejection[];
+  readonly summary: DiscoveryImportCommitSummary;
 }

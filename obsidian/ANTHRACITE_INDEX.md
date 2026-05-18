@@ -65,6 +65,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1AF  | complete · Discovery Engine spine — connected-but-empty, deterministic; device inventory boundary owned | [stages/V1AF-discovery-engine-spine.md](./stages/V1AF-discovery-engine-spine.md) |
 | V1AG  | complete · Discovery empty-state integration — frontend adapter, App fetch, OpsConsoleMode surface; Hierarchy untouched | [stages/V1AG-discovery-empty-state-integration.md](./stages/V1AG-discovery-empty-state-integration.md) |
 | V1AH  | complete · INTAKE → Discovery import preview pipe — first real pipe, preview-only, deterministic record-ID derivation | [stages/V1AH-intake-to-discovery-import-preview.md](./stages/V1AH-intake-to-discovery-import-preview.md) |
+| V1AI  | complete · Discovery inventory persistence + authoritative import — first persisted inventory, JSON store, App refresh chain | [stages/V1AI-discovery-import-persistence.md](./stages/V1AI-discovery-import-persistence.md) |
 
 ## V1J-A adaptation
 

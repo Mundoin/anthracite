@@ -263,14 +263,130 @@ Example:
 
 ---
 
+## V1AI — Inventory Persistence + Authoritative Import
+
+**Goal:** First persisted Discovery inventory pipe. Preview pipe becomes authoritative import command; records persist to JSON; App refreshes inventory on successful import.
+
+**Pipe overview (extended from V1AH):**
+
+```
+BatchRun (in-memory)
+  ↓
+buildDiscoveryImportCandidates(batchRun, environmentId)
+  ↓
+previewDiscoveryImport(environment_id, candidates)  [V1AH: advisory, non-mutating]
+  ↓ [Operator review on INTAKE RunSummaryStrip]
+importDiscoveryRecords(environment_id, candidates)  [V1AI: authoritative, mutating]
+  ↓ [Rust recomputes acceptance against current store state]
+DiscoveryStore (JsonDiscoveryFileStore writes JSON)
+  ↓
+inventory_view() source_state = "real"  [now has N records]
+  ↓ [App refresh callback chain]
+App.tsx re-runs fetchDiscovery(activeEnvId)
+  ↓
+OpsConsoleMode renders new record count
+```
+
+**Persistence layer:**
+
+- New trait: `DiscoveryStore` with `load()` and `save()` methods.
+- Implementation: `NullDiscoveryStore` (V1AF/V1AH fallback) + `JsonDiscoveryFileStore` (runtime).
+- File path: `<app_data_dir>/discovery_inventory.json`.
+- Schema: `DiscoveryInventoryState { schema_version: 1, records: Vec<DiscoveryDeviceRecord> }`.
+- Missing file → empty inventory loaded at boot.
+- Corrupt JSON → empty inventory fallback (mirror Environment Engine pattern).
+
+**Engine state upgrade:**
+
+- `DiscoveryEngine` now holds `Mutex<Vec<DiscoveryDeviceRecord>>` + `Arc<dyn DiscoveryStore>`.
+- Hydrates from store at boot (engine constructor).
+- Wired in `src-tauri/src/lib.rs`: `DiscoveryEngine::with_store(Arc::new(JsonDiscoveryFileStore::new(data_dir.join("discovery_inventory.json"))))`.
+
+**Extended record:**
+
+- `DiscoveryDeviceRecord` gains 3 fields:
+  - `device_model: DeviceModel` — canonical model carried by persisted record; no fork.
+  - `source_label: Option<String>` — label for the source batch or run (e.g., "batch-2026-05-18").
+  - `slice_id: Option<String>` — correlation ID across records from the same batch.
+
+**Shared validation (new):**
+
+- Factored: `validate_and_build_record(env_id, candidate, existing_ids, in_request_ids) → Result<DiscoveryDeviceRecord, DiscoveryImportRejection>`.
+- Called by both `preview_import` (V1AH) and `import_records` (V1AI).
+- Single source of truth for env-mismatch / missing-identity / duplicate-record-id rules.
+
+**Preview behaviour update (V1AH→V1AI):**
+
+- Preview now reads in-store record IDs as part of the duplicate check.
+- Advisory honesty: operator sees what would import NOW, against current store state.
+- Still non-mutating (test-guarded).
+
+**Authoritative import command (V1AI):**
+
+- Signature: `import_discovery_records(environment_id, candidates) → DiscoveryImportCommitResult`.
+- Recomputes acceptance against current store state (import recomputes; frontend preview is purely advisory).
+- Writes accepted records to in-memory inventory and calls `store.save()`.
+- Returns `DiscoveryImportCommitResult` with:
+  - `imported_records: Vec<DiscoveryDeviceRecord>` — newly persisted records.
+  - `rejected: Vec<DiscoveryImportRejection>` — candidates that failed.
+  - `summary: { total_candidates, imported_count, rejected_count, inventory_total_after }`.
+
+**First-wins idempotency:**
+
+- Second identical import returns `imported_count: 0, rejected_count: N`, all rejections with reason `duplicate_record_id`.
+- Inventory unchanged; records already persisted.
+
+**inventory_view behaviour:**
+
+- Records empty → `source_state: "empty"`, message `"discovery inventory empty — no records collected"`.
+- Records present → `source_state: "real"`, message `"discovery inventory has N record(s)"`.
+- Scoped by `env_id` when provided (list only records matching environment); `None` returns all records.
+
+**TS mirror (src/types/discovery.ts + src/api/discovery.ts):**
+
+- `DiscoveryDeviceRecord` extends with 3 new fields.
+- New types: `DiscoveryImportCommitSummary`, `DiscoveryImportCommitResult`.
+- API wrapper: `importDiscoveryRecords(environmentId, candidates)` with camelCase invoke args.
+
+**INTAKE surface (RunSummaryStrip):**
+
+- "Import to Discovery" action shown ONLY after preview produced `accepted_count > 0` (or whenever importable candidates exist + env id present + run complete).
+- Status line on success: `"Imported X · Rejected Y"`.
+- Status line on duplicate-only re-import: `"Imported 0 · Rejected N"`.
+- Wording strictly distinct from preview (`"Preview"` vs `"Import"`).
+- Disabled while import is running.
+- Hidden in viewer mode, without active env, or without importable candidates.
+
+**App refresh chain:**
+
+- `App.tsx` passes `onDiscoveryImported?: () => Promise<void>` callback into `IntakePanel`.
+- After successful import, `IntakePanel` invokes callback.
+- `App` re-runs `fetchDiscovery(activeEnvId)`.
+- `discovery` state updates; Ops Console renders new record count when operator opens it.
+
+**Ops Console:**
+
+- No structural change. Adapter `toDiscoverySourceView` maps `"real"` source_state correctly via the same value-for-value mapping it already does.
+
+**Out of scope in V1AI:**
+
+- No update / overwrite / merge / delete semantics. First-wins on duplicate record id.
+- No topology consumption (future stage).
+- No polling / SSH / SNMP / live discovery.
+- No BatchRunExport schema changes.
+- No DataSourceState union changes.
+
+---
+
 ## Cross-links
 
-- `ENGINE_AND_API_BOUNDARIES.md` — Discovery section (V1AF status; V1AH `preview_discovery_import` appended)
+- `ENGINE_AND_API_BOUNDARIES.md` — Discovery section (V1AF status; V1AH + V1AI additions)
 - `HIERARCHY_HONESTY_CONTRACT.md` — DataSourceState definitions and block promotion rules
-- `src-tauri/src/engines/discovery.rs` — Rust implementation (V1AF + V1AH)
-- `src-tauri/src/commands/discovery.rs` — Tauri command bindings (V1AF + V1AH)
+- `src-tauri/src/engines/discovery.rs` — Rust implementation (V1AF + V1AH + V1AI)
+- `src-tauri/src/commands/discovery.rs` — Tauri command bindings (V1AF + V1AH + V1AI)
 - `src/types/discovery.ts` — TypeScript type mirror (parallel)
 - `src/api/discovery.ts` — Tauri command binding (parallel)
 - `src/data/discoverySource.ts` — Frontend adapter (V1AG)
 - `src/data/discoveryImport.ts` — Candidate builder (V1AH)
-- `obsidian/stages/V1AH-intake-to-discovery-import-preview.md` — stage note
+- `obsidian/stages/V1AH-intake-to-discovery-import-preview.md` — V1AH stage note
+- `obsidian/stages/V1AI-discovery-import-persistence.md` — V1AI stage note

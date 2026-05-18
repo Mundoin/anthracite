@@ -14,7 +14,7 @@ use tauri::Manager;
 pub mod commands;
 pub mod engines;
 
-use engines::discovery::DiscoveryEngine;
+use engines::discovery::{DiscoveryEngine, JsonDiscoveryFileStore};
 use engines::environment::{EnvironmentEngine, JsonFileStore};
 
 #[derive(Serialize)]
@@ -46,7 +46,9 @@ pub fn run() {
             let _ = std::fs::create_dir_all(&data_dir);
             let store = JsonFileStore::new(data_dir.join("environment.json"));
             app.manage(EnvironmentEngine::with_store(Arc::new(store)));
-            app.manage(DiscoveryEngine::new());
+            let discovery_path = data_dir.join("discovery_inventory.json");
+            let discovery_store = JsonDiscoveryFileStore::new(discovery_path);
+            app.manage(DiscoveryEngine::with_store(Arc::new(discovery_store)));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -65,6 +67,7 @@ pub fn run() {
             commands::validator::validate_device_model,
             commands::discovery::get_discovery_inventory,
             commands::discovery::preview_discovery_import,
+            commands::discovery::import_discovery_records,
         ])
         .run(tauri::generate_context!())
         .expect("error while running anthracite tauri application");

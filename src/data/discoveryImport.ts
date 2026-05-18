@@ -1,4 +1,4 @@
-import type { BatchRun, BatchRunDevice } from "../types/batchRun";
+import type { BatchRun } from "../types/batchRun";
 import type { DiscoveryImportCandidate } from "../types/discovery";
 
 export interface BuildImportCandidatesResult {

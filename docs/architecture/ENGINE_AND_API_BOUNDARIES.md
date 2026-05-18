@@ -110,6 +110,16 @@ Discovery now owns the import-candidate intake seam; deterministic record-ID der
 are engine-side. Persistence and actual inventory mutation remain future stages. See `DISCOVERY_ENGINE_BOUNDARY.md`
 V1AH section for the full pipe contract, rejection-reason enum, record-ID format, and DeviceModel carry-through.
 
+### V1AI addition
+
+V1AI adds `import_discovery_records(environment_id, candidates) → DiscoveryImportCommitResult` — the first
+mutating Discovery command. Recomputes acceptance against current store state and persists records to JSON
+(`<app_data_dir>/discovery_inventory.json`). Discovery inventory is now persistent; `inventory_view()` returns
+`source_state = "real"` when records are present. Introduces `DiscoveryStore` trait (persist/load abstraction).
+First-wins on duplicate record ID (second import of same candidates returns `imported_count: 0`). See
+`DISCOVERY_ENGINE_BOUNDARY.md` V1AI section for persistence schema, extended record fields, App refresh callback
+chain, and INTAKE import action wording.
+
 ---
 
 ## Topology Engine

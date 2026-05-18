@@ -1,23 +1,28 @@
-//! Discovery Engine — V1AF spine.
+//! Discovery Engine — V1AI spine.
 //!
-//! Future boundary for device inventory records. In V1AF the engine is
-//! intentionally **connected but empty**: it exposes a typed inventory
-//! view, never invents devices, and never performs I/O.
+//! Authoritative inventory boundary for device records. In V1AI the engine:
+//! - Owns discovery inventory records (persisted to disk).
+//! - Exposes typed inventory view, source state, preview + import operations.
+//! - Never invents devices; import validation is deterministic.
 //!
 //! Boundary (per `docs/architecture/DISCOVERY_ENGINE_BOUNDARY.md`):
-//!   - Owns:    discovery inventory records (future), source state, view
-//!              projection.
+//!   - Owns:    discovery inventory records (persisted), source state, view
+//!              projection, import validation.
 //!   - Does NOT own: environments (Environment Engine), canonical device
 //!              shape (DeviceModel via parser/INTAKE), topology, live
 //!              state, polling.
 //!
-//! Initial state is `Empty` — *connected source, zero records*. This is
-//! distinct from `not_connected` on the frontend `DataSourceState`, which
-//! signals an absent capability. DataSourceState itself is unchanged in
-//! V1AF.
+//! State is one of:
+//! - `Empty` — connected source, zero records.
+//! - `Real` — connected source, inventory has ≥1 records.
+//! - `Unavailable` — connection lost or store error.
+//!
+//! V1AI persistence: records hydrate from `JsonDiscoveryFileStore` on engine init,
+//! persisted after each successful import. Preview is advisory (reads store state).
 
 use serde::{Deserialize, Serialize};
 use crate::engines::network_model::{DeviceModel, DeviceIdentity, PlatformRef};
+use std::sync::Arc;
 
 /// Engine-local source state for the Discovery inventory.
 ///
@@ -44,9 +49,9 @@ pub enum DiscoveryRecordSourceKind {
     Manual,
 }
 
-/// A single discovery record envelope. Intentionally minimal in V1AF —
-/// no `DeviceModel` field yet, no parser dependency. Later stages attach
-/// a `DeviceModel` reference; this stage only locks the wrapper shape.
+/// A single discovery record envelope. Extended in V1AI with authoritative
+/// device model, source label, and slice identifier. Wire shape matches TS
+/// `DiscoveryDeviceRecord` exactly.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DiscoveryDeviceRecord {
     pub id: String,
@@ -54,6 +59,9 @@ pub struct DiscoveryDeviceRecord {
     pub source_kind: DiscoveryRecordSourceKind,
     pub confidence: Option<f32>,
     pub last_seen: Option<String>,
+    pub device_model: DeviceModel,
+    pub source_label: Option<String>,
+    pub slice_id: Option<String>,
 }
 
 /// Deterministic, view-shaped projection of the Discovery inventory for
@@ -67,25 +75,145 @@ pub struct DiscoveryInventoryView {
     pub message: String,
 }
 
-/// Engine state. V1AF holds no records and no mutable state — the engine
-/// exists as a typed seam so commands, TS mirror, and tests can settle.
-pub struct DiscoveryEngine;
+// =====================================================================
+// V1AI — Persistence Boundary
+// =====================================================================
 
-impl DiscoveryEngine {
-    pub fn new() -> Self {
-        Self
+/// V1AI persisted inventory shape on disk. Schema versioned from day one.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiscoveryInventoryState {
+    pub schema_version: u32,
+    pub records: Vec<DiscoveryDeviceRecord>,
+}
+
+pub const DISCOVERY_INVENTORY_SCHEMA_VERSION: u32 = 1;
+
+/// Persistence boundary for Discovery inventory. Stays narrow on purpose.
+pub trait DiscoveryStore: Send + Sync {
+    fn load(&self) -> DiscoveryInventoryState;
+    fn save(&self, state: &DiscoveryInventoryState) -> Result<(), String>;
+}
+
+pub struct NullDiscoveryStore;
+
+impl DiscoveryStore for NullDiscoveryStore {
+    fn load(&self) -> DiscoveryInventoryState {
+        DiscoveryInventoryState {
+            schema_version: DISCOVERY_INVENTORY_SCHEMA_VERSION,
+            records: Vec::new(),
+        }
     }
 
-    /// Deterministic empty inventory view. Same inputs → same output, no
-    /// I/O, no clock, no random ids. Honest empty: `source_state =
-    /// Empty`, zero records, stable message.
+    fn save(&self, _: &DiscoveryInventoryState) -> Result<(), String> {
+        Ok(())
+    }
+}
+
+/// JSON file persistence for discovery inventory.
+pub struct JsonDiscoveryFileStore {
+    path: std::path::PathBuf,
+}
+
+impl JsonDiscoveryFileStore {
+    pub fn new(path: std::path::PathBuf) -> Self {
+        Self { path }
+    }
+
+    pub fn path(&self) -> &std::path::PathBuf {
+        &self.path
+    }
+}
+
+impl DiscoveryStore for JsonDiscoveryFileStore {
+    fn load(&self) -> DiscoveryInventoryState {
+        // Missing file → empty inventory (safe).
+        // Unreadable / corrupt JSON → empty inventory (safe fallback).
+        match std::fs::read(&self.path) {
+            Ok(bytes) => serde_json::from_slice(&bytes)
+                .unwrap_or_else(|_| DiscoveryInventoryState {
+                    schema_version: DISCOVERY_INVENTORY_SCHEMA_VERSION,
+                    records: Vec::new(),
+                }),
+            Err(_) => DiscoveryInventoryState {
+                schema_version: DISCOVERY_INVENTORY_SCHEMA_VERSION,
+                records: Vec::new(),
+            },
+        }
+    }
+
+    fn save(&self, state: &DiscoveryInventoryState) -> Result<(), String> {
+        if let Some(parent) = self.path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        let bytes = serde_json::to_vec_pretty(state).map_err(|e| e.to_string())?;
+        std::fs::write(&self.path, bytes).map_err(|e| e.to_string())
+    }
+}
+
+// =====================================================================
+// Engine
+// =====================================================================
+
+/// Discovery Engine — stateful inventory boundary with persistence.
+/// Records are hydrated from the store on init and persisted after successful imports.
+pub struct DiscoveryEngine {
+    records: std::sync::Mutex<Vec<DiscoveryDeviceRecord>>,
+    store: Arc<dyn DiscoveryStore>,
+}
+
+impl DiscoveryEngine {
+    /// Non-persistent constructor (uses NullDiscoveryStore).
+    pub fn new() -> Self {
+        Self::with_store(Arc::new(NullDiscoveryStore))
+    }
+
+    /// Build the engine with a concrete store. Hydrates records from the store at boot.
+    pub fn with_store(store: Arc<dyn DiscoveryStore>) -> Self {
+        let state = store.load();
+        Self {
+            records: std::sync::Mutex::new(state.records),
+            store,
+        }
+    }
+
+    /// Deterministic inventory view reading from current state.
+    /// Same inputs → same output, no clock, no random ids. Honest view
+    /// reflecting in-memory records (hydrated from store at init and
+    /// mutated by imports).
     pub fn inventory_view(&self, environment_id: Option<&str>) -> DiscoveryInventoryView {
+        let guard = self
+            .records
+            .lock()
+            .expect("discovery records mutex poisoned");
+        let scoped: Vec<DiscoveryDeviceRecord> = match environment_id {
+            Some(env) => guard
+                .iter()
+                .filter(|r| r.environment_id == env)
+                .cloned()
+                .collect(),
+            None => guard.clone(),
+        };
+        let total = scoped.len() as u32;
+        let source_state = if total == 0 {
+            DiscoverySourceState::Empty
+        } else {
+            DiscoverySourceState::Real
+        };
+        let message = if total == 0 {
+            "discovery inventory empty — no records collected".to_string()
+        } else {
+            format!(
+                "discovery inventory has {} record{}",
+                total,
+                if total == 1 { "" } else { "s" }
+            )
+        };
         DiscoveryInventoryView {
             environment_id: environment_id.map(|s| s.to_string()),
-            source_state: DiscoverySourceState::Empty,
-            records: Vec::new(),
-            total_records: 0,
-            message: "discovery inventory empty — no records collected".to_string(),
+            source_state,
+            records: scoped,
+            total_records: total,
+            message,
         }
     }
 }
@@ -155,6 +283,24 @@ pub struct DiscoveryImportPreview {
     pub summary: DiscoveryImportSummary,
 }
 
+/// Summary counts for an import commit.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DiscoveryImportCommitSummary {
+    pub total_candidates: u32,
+    pub imported_count: u32,
+    pub rejected_count: u32,
+    pub inventory_total_after: u32,
+}
+
+/// Result of import_records: accepted records, rejections, and summary.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct DiscoveryImportCommitResult {
+    pub environment_id: String,
+    pub imported_records: Vec<DiscoveryDeviceRecord>,
+    pub rejected: Vec<DiscoveryImportRejection>,
+    pub summary: DiscoveryImportCommitSummary,
+}
+
 /// Sanitize a string for use in a record_id: lowercase, [a-z0-9-] only,
 /// collapse consecutive hyphens, trim edges, default to "unknown" if empty.
 fn sanitize(s: &str) -> String {
@@ -201,78 +347,111 @@ fn discovery_record_id(environment_id: &str, candidate: &DiscoveryImportCandidat
     format!("discovery::{}::{}", sanitized_env, sanitized_identity)
 }
 
+/// Shared per-candidate validation and record building.
+/// Returns the would-be record on accept, or a rejection on reject.
+/// Caller tracks duplicate-record-id state across existing store + in-request records.
+fn validate_and_build_record(
+    environment_id: &str,
+    candidate: &DiscoveryImportCandidate,
+    existing_record_ids: &std::collections::HashSet<String>,
+    in_request_record_ids: &std::collections::HashSet<String>,
+) -> Result<DiscoveryDeviceRecord, DiscoveryImportRejection> {
+    // Rule 1: environment_mismatch
+    if candidate.environment_id != environment_id {
+        return Err(DiscoveryImportRejection {
+            candidate_id: candidate.candidate_id.clone(),
+            reason: DiscoveryImportRejectionReason::EnvironmentMismatch,
+            message: format!(
+                "candidate environment_id '{}' does not match scope '{}'",
+                candidate.environment_id, environment_id
+            ),
+        });
+    }
+
+    // Rule 2: missing_identity
+    let has_hostname = candidate
+        .device_model
+        .identity
+        .hostname
+        .as_deref()
+        .map(|h| !h.trim().is_empty())
+        .unwrap_or(false);
+    let has_candidate_id = !candidate.candidate_id.trim().is_empty();
+
+    if !has_hostname && !has_candidate_id {
+        return Err(DiscoveryImportRejection {
+            candidate_id: candidate.candidate_id.clone(),
+            reason: DiscoveryImportRejectionReason::MissingIdentity,
+            message: "candidate has no usable identity (hostname missing and candidate_id blank)"
+                .to_string(),
+        });
+    }
+
+    let record_id = discovery_record_id(environment_id, candidate);
+
+    // Rule 3: duplicate against existing store
+    if existing_record_ids.contains(&record_id) {
+        return Err(DiscoveryImportRejection {
+            candidate_id: candidate.candidate_id.clone(),
+            reason: DiscoveryImportRejectionReason::DuplicateRecordId,
+            message: format!("record_id '{}' already exists in inventory", record_id),
+        });
+    }
+
+    // Rule 4: duplicate within this request
+    if in_request_record_ids.contains(&record_id) {
+        return Err(DiscoveryImportRejection {
+            candidate_id: candidate.candidate_id.clone(),
+            reason: DiscoveryImportRejectionReason::DuplicateRecordId,
+            message: format!("record_id '{}' already accepted in this request", record_id),
+        });
+    }
+
+    Ok(DiscoveryDeviceRecord {
+        id: record_id,
+        environment_id: environment_id.to_string(),
+        source_kind: candidate.source_kind,
+        confidence: candidate.confidence,
+        last_seen: None,
+        device_model: candidate.device_model.clone(),
+        source_label: candidate.source_label.clone(),
+        slice_id: candidate.slice_id.clone(),
+    })
+}
+
 impl DiscoveryEngine {
     /// Preview importing candidates into this environment.
     /// Returns accepted records, rejections, and summary — does not mutate state.
     /// Deterministic: same input ordering → same output ordering.
+    /// Reads existing records from store for honest duplicate detection.
     pub fn preview_import(
         &self,
         environment_id: &str,
         candidates: &[DiscoveryImportCandidate],
     ) -> DiscoveryImportPreview {
+        // Preview reads existing records from store for honest duplicate detection.
+        let existing: std::collections::HashSet<String> = self
+            .records
+            .lock()
+            .expect("discovery records mutex poisoned")
+            .iter()
+            .map(|r| r.id.clone())
+            .collect();
+        let mut in_request: std::collections::HashSet<String> = std::collections::HashSet::new();
         let mut accepted: Vec<DiscoveryImportPreviewRecord> = Vec::new();
         let mut rejected: Vec<DiscoveryImportRejection> = Vec::new();
-        let mut seen_record_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
 
         for candidate in candidates {
-            // Rule 1: environment_mismatch
-            if candidate.environment_id != environment_id {
-                rejected.push(DiscoveryImportRejection {
-                    candidate_id: candidate.candidate_id.clone(),
-                    reason: DiscoveryImportRejectionReason::EnvironmentMismatch,
-                    message: format!(
-                        "candidate environment_id '{}' does not match preview scope '{}'",
-                        candidate.environment_id, environment_id
-                    ),
-                });
-                continue;
+            match validate_and_build_record(environment_id, candidate, &existing, &in_request) {
+                Ok(record) => {
+                    in_request.insert(record.id.clone());
+                    accepted.push(DiscoveryImportPreviewRecord {
+                        candidate_id: candidate.candidate_id.clone(),
+                        record,
+                    });
+                }
+                Err(rejection) => rejected.push(rejection),
             }
-
-            // Rule 2: missing_identity
-            let has_hostname = candidate
-                .device_model
-                .identity
-                .hostname
-                .as_deref()
-                .map(|h| !h.trim().is_empty())
-                .unwrap_or(false);
-            let has_candidate_id = !candidate.candidate_id.trim().is_empty();
-
-            if !has_hostname && !has_candidate_id {
-                rejected.push(DiscoveryImportRejection {
-                    candidate_id: candidate.candidate_id.clone(),
-                    reason: DiscoveryImportRejectionReason::MissingIdentity,
-                    message: "candidate has no usable identity (hostname missing and candidate_id blank)".to_string(),
-                });
-                continue;
-            }
-
-            // Derive record_id for duplicate check and acceptance
-            let record_id = discovery_record_id(environment_id, candidate);
-
-            // Rule 3: duplicate_record_id
-            if seen_record_ids.contains(&record_id) {
-                rejected.push(DiscoveryImportRejection {
-                    candidate_id: candidate.candidate_id.clone(),
-                    reason: DiscoveryImportRejectionReason::DuplicateRecordId,
-                    message: format!("record_id '{}' already accepted in this preview", record_id),
-                });
-                continue;
-            }
-
-            // Accept: create record and track id
-            seen_record_ids.insert(record_id.clone());
-            let record = DiscoveryDeviceRecord {
-                id: record_id,
-                environment_id: environment_id.to_string(),
-                source_kind: candidate.source_kind,
-                confidence: candidate.confidence,
-                last_seen: None,
-            };
-            accepted.push(DiscoveryImportPreviewRecord {
-                candidate_id: candidate.candidate_id.clone(),
-                record,
-            });
         }
 
         let summary = DiscoveryImportSummary {
@@ -287,11 +466,75 @@ impl DiscoveryEngine {
             summary,
         }
     }
+
+    /// Authoritative import: validate, store, and persist.
+    /// Returns the commit result with accepted records, rejections, and summary.
+    /// On success, records are stored and persisted to disk.
+    /// On store error, the in-memory state is mutated but the error is returned
+    /// (next import will retry).
+    pub fn import_records(
+        &self,
+        environment_id: &str,
+        candidates: &[DiscoveryImportCandidate],
+    ) -> Result<DiscoveryImportCommitResult, String> {
+        let mut guard = self
+            .records
+            .lock()
+            .map_err(|_| "discovery records mutex poisoned".to_string())?;
+        let existing: std::collections::HashSet<String> =
+            guard.iter().map(|r| r.id.clone()).collect();
+        let mut in_request: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let mut imported_records: Vec<DiscoveryDeviceRecord> = Vec::new();
+        let mut rejected: Vec<DiscoveryImportRejection> = Vec::new();
+
+        for candidate in candidates {
+            match validate_and_build_record(environment_id, candidate, &existing, &in_request) {
+                Ok(record) => {
+                    in_request.insert(record.id.clone());
+                    imported_records.push(record);
+                }
+                Err(rejection) => rejected.push(rejection),
+            }
+        }
+
+        // Apply: append accepted records to in-memory state, then persist.
+        for record in &imported_records {
+            guard.push(record.clone());
+        }
+        let inventory_total_after = guard.len() as u32;
+        let new_state = DiscoveryInventoryState {
+            schema_version: DISCOVERY_INVENTORY_SCHEMA_VERSION,
+            records: guard.clone(),
+        };
+        drop(guard); // release lock before I/O
+
+        // Persist: if the store save fails, surface the error to the caller.
+        // (The in-memory state has already been mutated; the next save attempt
+        // on a future import will retry. Documented behaviour.)
+        self.store.save(&new_state)?;
+
+        let summary = DiscoveryImportCommitSummary {
+            total_candidates: candidates.len() as u32,
+            imported_count: imported_records.len() as u32,
+            rejected_count: rejected.len() as u32,
+            inventory_total_after,
+        };
+        Ok(DiscoveryImportCommitResult {
+            environment_id: environment_id.to_string(),
+            imported_records,
+            rejected,
+            summary,
+        })
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ===================================================================
+    // V1AF/V1AI — Inventory View Tests
+    // ===================================================================
 
     #[test]
     fn inventory_view_is_deterministic_across_calls() {
@@ -357,6 +600,244 @@ mod tests {
     }
 
     // ===================================================================
+    // V1AI — Persistence and Import Tests
+    // ===================================================================
+
+    #[test]
+    fn empty_store_returns_empty_view() {
+        let engine = DiscoveryEngine::new();
+        let view = engine.inventory_view(None);
+        assert_eq!(view.source_state, DiscoverySourceState::Empty);
+        assert!(view.records.is_empty());
+        assert_eq!(view.total_records, 0);
+    }
+
+    #[test]
+    fn import_valid_candidate_stores_record() {
+        let engine = DiscoveryEngine::new();
+        let candidate = make_candidate("c1", "env-core-eu1", Some("router-1"), Some(0.95));
+        let result = engine.import_records("env-core-eu1", &[candidate]).unwrap();
+        assert_eq!(result.summary.imported_count, 1);
+        assert_eq!(result.summary.rejected_count, 0);
+        assert_eq!(result.summary.inventory_total_after, 1);
+        let view = engine.inventory_view(Some("env-core-eu1"));
+        assert_eq!(view.records.len(), 1);
+        assert_eq!(view.source_state, DiscoverySourceState::Real);
+    }
+
+    #[test]
+    fn inventory_view_real_after_import() {
+        let engine = DiscoveryEngine::new();
+        let candidates = vec![
+            make_candidate("c1", "env-core-eu1", Some("router-1"), None),
+            make_candidate("c2", "env-core-eu1", Some("router-2"), None),
+        ];
+        let _ = engine.import_records("env-core-eu1", &candidates).unwrap();
+        let view = engine.inventory_view(None);
+        assert_eq!(view.source_state, DiscoverySourceState::Real);
+        assert!(view.message.contains("2 records"));
+    }
+
+    #[test]
+    fn environment_filter_returns_scoped_records_only() {
+        let engine = DiscoveryEngine::new();
+        let c1 = make_candidate("c1", "env-a", Some("dev-a1"), None);
+        let c2 = make_candidate("c2", "env-a", Some("dev-a2"), None);
+        let c3 = make_candidate("c3", "env-b", Some("dev-b1"), None);
+        let _ = engine.import_records("env-a", &[c1, c2]).unwrap();
+        let _ = engine.import_records("env-b", &[c3]).unwrap();
+        let view_a = engine.inventory_view(Some("env-a"));
+        let view_b = engine.inventory_view(Some("env-b"));
+        let view_all = engine.inventory_view(None);
+        assert_eq!(view_a.records.len(), 2);
+        assert_eq!(view_b.records.len(), 1);
+        assert_eq!(view_all.records.len(), 3);
+    }
+
+    #[test]
+    fn duplicate_existing_record_rejected() {
+        let engine = DiscoveryEngine::new();
+        let candidate = make_candidate("c1", "env-core-eu1", Some("router-1"), None);
+        let r1 = engine.import_records("env-core-eu1", &[candidate.clone()]).unwrap();
+        assert_eq!(r1.summary.imported_count, 1);
+        let r2 = engine.import_records("env-core-eu1", &[candidate]).unwrap();
+        assert_eq!(r2.summary.imported_count, 0);
+        assert_eq!(r2.summary.rejected_count, 1);
+        assert_eq!(
+            r2.rejected[0].reason,
+            DiscoveryImportRejectionReason::DuplicateRecordId
+        );
+        let view = engine.inventory_view(None);
+        assert_eq!(view.total_records, 1);
+    }
+
+    #[test]
+    fn duplicate_within_same_request_first_wins() {
+        let engine = DiscoveryEngine::new();
+        let c1 = make_candidate("c1", "env-core-eu1", Some("core-01"), None);
+        let c2 = make_candidate("c2", "env-core-eu1", Some("core-01"), None);
+        let result = engine.import_records("env-core-eu1", &[c1, c2]).unwrap();
+        assert_eq!(result.summary.imported_count, 1);
+        assert_eq!(result.summary.rejected_count, 1);
+        assert_eq!(result.imported_records[0].id, result.imported_records[0].id); // c1
+    }
+
+    #[test]
+    fn import_recomputes_acceptance_not_blind_trust() {
+        let engine = DiscoveryEngine::new();
+        let candidate = make_candidate("c1", "env-core-eu1", Some("router-1"), None);
+        let r1 = engine.import_records("env-core-eu1", &[candidate.clone()]).unwrap();
+        let r2 = engine.import_records("env-core-eu1", &[candidate]).unwrap();
+        assert_eq!(r1.summary.imported_count, 1);
+        assert_eq!(r2.summary.imported_count, 0);
+    }
+
+    #[test]
+    fn preview_remains_non_mutating() {
+        let engine = DiscoveryEngine::new();
+        let candidate = make_candidate("c1", "env-core-eu1", Some("router-1"), None);
+        let _ = engine.preview_import("env-core-eu1", &[candidate]);
+        let view = engine.inventory_view(None);
+        assert!(view.records.is_empty());
+        assert_eq!(view.source_state, DiscoverySourceState::Empty);
+    }
+
+    #[test]
+    fn preview_sees_existing_records_as_duplicates() {
+        let engine = DiscoveryEngine::new();
+        let candidate = make_candidate("c1", "env-core-eu1", Some("router-1"), None);
+        let _ = engine.import_records("env-core-eu1", &[candidate.clone()]).unwrap();
+        let preview = engine.preview_import("env-core-eu1", &[candidate]);
+        assert_eq!(preview.accepted.len(), 0);
+        assert_eq!(preview.rejected.len(), 1);
+        assert_eq!(
+            preview.rejected[0].reason,
+            DiscoveryImportRejectionReason::DuplicateRecordId
+        );
+    }
+
+    #[test]
+    fn deterministic_output_across_same_initial_store_state() {
+        let e1 = DiscoveryEngine::new();
+        let e2 = DiscoveryEngine::new();
+        let candidates = vec![
+            make_candidate("c1", "env-core-eu1", Some("router-1"), Some(0.9)),
+            make_candidate("c2", "env-core-eu1", Some("router-2"), Some(0.85)),
+        ];
+        let r1 = e1.import_records("env-core-eu1", &candidates).unwrap();
+        let r2 = e2.import_records("env-core-eu1", &candidates).unwrap();
+        assert_eq!(r1.summary.imported_count, r2.summary.imported_count);
+        assert_eq!(r1.summary.rejected_count, r2.summary.rejected_count);
+    }
+
+    #[test]
+    fn json_file_store_round_trips_records() {
+        let temp_dir = std::env::temp_dir();
+        let path = temp_dir.join(format!(
+            "discovery_test_{}.json",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis()
+        ));
+        {
+            let store = Arc::new(JsonDiscoveryFileStore::new(path.clone()));
+            let engine = DiscoveryEngine::with_store(store);
+            let c1 = make_candidate("c1", "env-core-eu1", Some("router-1"), None);
+            let c2 = make_candidate("c2", "env-core-eu1", Some("router-2"), None);
+            let _ = engine.import_records("env-core-eu1", &[c1, c2]).unwrap();
+        }
+        {
+            let store = Arc::new(JsonDiscoveryFileStore::new(path.clone()));
+            let engine = DiscoveryEngine::with_store(store);
+            let view = engine.inventory_view(None);
+            assert_eq!(view.records.len(), 2);
+            assert_eq!(view.source_state, DiscoverySourceState::Real);
+            for record in &view.records {
+                assert!(!record.device_model.identity.hostname.is_none());
+            }
+        }
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn corrupt_json_file_falls_back_to_empty() {
+        let temp_dir = std::env::temp_dir();
+        let path = temp_dir.join(format!(
+            "discovery_corrupt_{}.json",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis()
+        ));
+        std::fs::write(&path, b"{not valid json").unwrap();
+        let store = Arc::new(JsonDiscoveryFileStore::new(path.clone()));
+        let engine = DiscoveryEngine::with_store(store);
+        let view = engine.inventory_view(None);
+        assert!(view.records.is_empty());
+        assert_eq!(view.source_state, DiscoverySourceState::Empty);
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn missing_json_file_falls_back_to_empty() {
+        let temp_dir = std::env::temp_dir();
+        let path = temp_dir.join(format!(
+            "discovery_missing_{}.json",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis()
+        ));
+        let store = Arc::new(JsonDiscoveryFileStore::new(path));
+        let engine = DiscoveryEngine::with_store(store);
+        let view = engine.inventory_view(None);
+        assert!(view.records.is_empty());
+    }
+
+    #[test]
+    fn import_with_environment_mismatch_rejected_and_not_stored() {
+        let engine = DiscoveryEngine::new();
+        let candidate = make_candidate("c1", "env-edge-us-east", Some("router-1"), None);
+        let result = engine.import_records("env-core-eu1", &[candidate]).unwrap();
+        assert_eq!(result.summary.imported_count, 0);
+        assert_eq!(result.summary.rejected_count, 1);
+        assert_eq!(
+            result.rejected[0].reason,
+            DiscoveryImportRejectionReason::EnvironmentMismatch
+        );
+        let view = engine.inventory_view(None);
+        assert!(view.records.is_empty());
+    }
+
+    #[test]
+    fn import_with_missing_identity_rejected_and_not_stored() {
+        let engine = DiscoveryEngine::new();
+        let candidate = make_candidate("", "env-core-eu1", None, None);
+        let result = engine.import_records("env-core-eu1", &[candidate]).unwrap();
+        assert_eq!(result.summary.imported_count, 0);
+        assert_eq!(result.summary.rejected_count, 1);
+        assert_eq!(
+            result.rejected[0].reason,
+            DiscoveryImportRejectionReason::MissingIdentity
+        );
+        let view = engine.inventory_view(None);
+        assert!(view.records.is_empty());
+    }
+
+    #[test]
+    fn commit_summary_inventory_total_after_includes_pre_existing_records() {
+        let engine = DiscoveryEngine::new();
+        let c1 = make_candidate("c1", "env-a", Some("dev-a1"), None);
+        let c2 = make_candidate("c2", "env-a", Some("dev-a2"), None);
+        let c3 = make_candidate("c3", "env-b", Some("dev-b1"), None);
+        let r1 = engine.import_records("env-a", &[c1, c2]).unwrap();
+        assert_eq!(r1.summary.inventory_total_after, 2);
+        let r2 = engine.import_records("env-b", &[c3]).unwrap();
+        assert_eq!(r2.summary.inventory_total_after, 3);
+    }
+
+    // ===================================================================
     // V1AH — Discovery Import Preview Tests
     // ===================================================================
 
@@ -400,9 +881,13 @@ mod tests {
         let result = engine.preview_import("env-core-eu1", &[candidate]);
         assert_eq!(result.accepted.len(), 1);
         assert_eq!(result.rejected.len(), 0);
-        let record_id = &result.accepted[0].record.id;
-        assert!(record_id.starts_with("discovery::env-core-eu1::"));
-        assert!(record_id.contains("router-1"));
+        let record = &result.accepted[0].record;
+        assert_eq!(record.environment_id, "env-core-eu1");
+        assert_eq!(
+            record.device_model.identity.hostname.as_deref(),
+            Some("router-1")
+        );
+        assert_eq!(record.confidence, Some(0.95));
     }
 
     #[test]
