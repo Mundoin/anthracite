@@ -447,3 +447,465 @@ describe("RunSummaryStrip — mode='viewer' (V1Y)", () => {
     ).toBeNull();
   });
 });
+
+// -----------------------------------------------------------------------------
+// V1AH — Discovery import preview
+// -----------------------------------------------------------------------------
+
+describe("RunSummaryStrip — Discovery import preview (V1AH)", () => {
+  it("does not render preview button when activeEnvironmentId is null", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId={null}
+        onPreviewDiscoveryImport={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: /Preview Discovery Import/i }),
+    ).toBeNull();
+  });
+
+  it("does not render preview button when discoveryImportableCount is 0", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={0}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: /Preview Discovery Import/i }),
+    ).toBeNull();
+  });
+
+  it("does not render preview button when run is in_progress", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "in_progress",
+          summary: {
+            total_count: 3,
+            parsed_count: 1,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 2,
+            with_findings_count: 0,
+            clean_count: 1,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: /Preview Discovery Import/i }),
+    ).toBeNull();
+  });
+
+  it("does not render preview button when run is idle", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "idle",
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: /Preview Discovery Import/i }),
+    ).toBeNull();
+  });
+
+  it("renders preview button when run is complete and env + candidates present", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+      />,
+    );
+    const btn = screen.getByRole("button", { name: /Preview Discovery Import/i });
+    expect(btn).toBeInTheDocument();
+    expect(btn).toHaveTextContent("(3)");
+  });
+
+  it("renders preview button when run is complete_with_failures", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete_with_failures",
+          summary: {
+            total_count: 3,
+            parsed_count: 2,
+            failed_count: 1,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 2,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={2}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: /Preview Discovery Import/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("button calls onPreviewDiscoveryImport when clicked", async () => {
+    const user = userEvent.setup();
+    const onPreviewDiscoveryImport = vi.fn();
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={onPreviewDiscoveryImport}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /Preview Discovery Import/i }),
+    );
+    expect(onPreviewDiscoveryImport).toHaveBeenCalledTimes(1);
+  });
+
+  it("button is disabled when status is 'running'", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+        discoveryPreviewStatus={{ kind: "running" }}
+      />,
+    );
+    const btn = screen.getByRole("button", {
+      name: /Preview Discovery Import/i,
+    });
+    expect(btn).toBeDisabled();
+  });
+
+  it("renders 'previewing…' status while running", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+        discoveryPreviewStatus={{ kind: "running" }}
+      />,
+    );
+    expect(screen.getByText("previewing…")).toBeInTheDocument();
+  });
+
+  it("renders accepted/rejected counts when status is 'ready'", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+        discoveryPreviewStatus={{
+          kind: "ready",
+          preview: {
+            environment_id: "env-123",
+            accepted: [],
+            rejected: [],
+            summary: {
+              total_candidates: 7,
+              accepted_count: 5,
+              rejected_count: 2,
+            },
+          },
+        }}
+      />,
+    );
+    const status = screen.getByRole("status", { name: "Discovery preview result" });
+    expect(status.textContent).toContain("5 accepted · 2 rejected");
+  });
+
+  it("renders failure message when status is 'failed'", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+        discoveryPreviewStatus={{
+          kind: "failed",
+          message: "Network error",
+        }}
+      />,
+    );
+    expect(screen.getByText(/preview failed: Network error/)).toBeInTheDocument();
+  });
+
+  it("does not render preview status when status is 'idle'", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="author"
+        onReRun={vi.fn()}
+        disabled={false}
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+        discoveryPreviewStatus={{ kind: "idle" }}
+      />,
+    );
+    expect(screen.queryByText(/previewing…/)).toBeNull();
+    expect(screen.queryByText(/preview:/)).toBeNull();
+    expect(screen.queryByText(/preview failed:/)).toBeNull();
+  });
+
+  it("viewer mode hides preview button even when other props are valid", () => {
+    render(
+      <RunSummaryStrip
+        display={makeRun({
+          status: "complete",
+          summary: {
+            total_count: 3,
+            parsed_count: 3,
+            failed_count: 0,
+            skipped_count: 0,
+            pending_count: 0,
+            with_findings_count: 0,
+            clean_count: 3,
+            severity_counts: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+              info: 0,
+            },
+          },
+        })}
+        mode="viewer"
+        discoveryImportableCount={3}
+        activeEnvironmentId="env-123"
+        onPreviewDiscoveryImport={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: /Preview Discovery Import/i }),
+    ).toBeNull();
+  });
+});

@@ -102,6 +102,14 @@ empty `DiscoveryInventoryView`. No discovery I/O yet; `runDiscovery`, `latestFac
 and `evidence` are future surface. See `DISCOVERY_ENGINE_BOUNDARY.md` for ownership
 details and planned inventory evolution phases.
 
+### V1AH addition
+
+V1AH adds `preview_discovery_import(environment_id, candidates)` — a preview-only, non-mutating command
+that accepts INTAKE BatchRun-derived import candidates and returns typed acceptances + rejections + summary.
+Discovery now owns the import-candidate intake seam; deterministic record-ID derivation and rejection logic
+are engine-side. Persistence and actual inventory mutation remain future stages. See `DISCOVERY_ENGINE_BOUNDARY.md`
+V1AH section for the full pipe contract, rejection-reason enum, record-ID format, and DeviceModel carry-through.
+
 ---
 
 ## Topology Engine

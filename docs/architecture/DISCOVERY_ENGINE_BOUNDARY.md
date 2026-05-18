@@ -160,12 +160,117 @@ Discovery surfaces only through Ops Console in V1AG. Adding a `discoveryInventor
 
 ---
 
+## V1AH — INTAKE → Discovery Import Preview
+
+**Goal:** First real pipe from INTAKE BatchRun to Discovery — preview only, no mutation.
+
+**Pipe overview:**
+
+```
+BatchRun (in-memory, includes DeviceModel per device)
+  ↓
+buildDiscoveryImportCandidates(batchRun, environmentId)
+  ↓ [TS adapter: deterministic, pure]
+DiscoveryImportCandidate[]
+  ↓
+previewDiscoveryImport(environment_id, candidates)
+  ↓ [Rust command: deterministic, non-mutating]
+DiscoveryImportPreview
+  ├── accepted_records: DiscoveryImportPreviewRecord[]
+  ├── rejections: DiscoveryImportRejection[]
+  └── summary: DiscoveryImportSummary
+```
+
+**Why live BatchRun, not BatchRunExport?**
+
+`BatchRunExport` intentionally omits `DeviceModel` — it is a portable JSON snapshot for archival and sharing. The import preview **requires** the in-memory `BatchRunDevice.device_model` to evaluate candidates and build the canonical model that will be stored. Source of truth for the pipe is the live BatchRun state, not the export.
+
+**Preview-only contract:**
+
+- `preview_discovery_import(environment_id, candidates)` is deterministic and non-mutating.
+- No records are written to Discovery inventory.
+- `inventory_view()` returns empty before AND after preview calls.
+- Preview command may be called repeatedly on the same candidates; output is stable.
+- Preview result is local to INTAKE; no cross-mode state sharing (INTAKE → OpsConsole) in V1AH.
+
+**Rejection-reason enum (closed):**
+
+| Reason | Meaning |
+|--------|---------|
+| `missing_identity` | Candidate lacks a hostname or identity key; cannot derive record ID |
+| `environment_mismatch` | Candidate's target environment does not exist or is unavailable |
+| `duplicate_record_id` | Record ID already exists in Discovery inventory; first-wins, later candidates rejected |
+
+First rejection wins; subsequent candidates with the same ID are rejected on the `duplicate_record_id` reason.
+
+**Record-id derivation (deterministic, namespaced):**
+
+Format: `discovery::<sanitized-env-id>::<sanitized-hostname-or-candidate-id>`
+
+Sanitization rule: lowercase ASCII; replace non-`[a-z0-9-]` with `-` (collapsed; `---` → `-`).
+
+Example:
+- Environment: `PROD-HQ` → `prod-hq`
+- Hostname: `core-1a.dc01` → `core-1a-dc01`
+- Full ID: `discovery::prod-hq::core-1a-dc01`
+
+**DeviceModel carry-through:**
+
+- DeviceModel is the canonical model for device representation in Anthracite V1.
+- Discovery does **not** maintain a parallel DeviceModel fork.
+- The model is constructed by INTAKE's parser; Discovery stores records that **reference** the model unchanged.
+- DeviceModel schema is not extended in V1AH.
+- No DeviceModel field is added to Discovery's inventory record struct.
+
+**INTAKE surface (RunSummaryStrip affordance):**
+
+- "Preview Discovery Import" action appears in the existing actions row, **only when:**
+  - BatchRun is `complete` or `complete_with_failures`
+  - Active environment ID is provided
+  - At least one importable device exists in the run
+- Result line: `"X accepted · Y rejected"`
+- Wording is strictly "Preview" — never "Imported" or "Inventory updated"
+- Preview result stays local to INTAKE; no sync to Ops Console in V1AH
+
+**Future stages:**
+
+- **V1AI (or later):** Persistence — actual import command that **mutates** `inventory_view()` and stores records deterministically.
+- **Future Topology:** Consumes **persisted** Discovery records (not INTAKE receipts directly) as input facts for graph construction.
+- **Future OpsConsole:** May display cross-mode preview result, pending Bujar decision.
+
+**Rust additions:**
+
+- `src-tauri/src/engines/discovery.rs`:
+  - `DiscoveryImportCandidate` struct (hostname, environment_id, device_model)
+  - `DiscoveryImportRejectionReason` enum (missing_identity, environment_mismatch, duplicate_record_id)
+  - `DiscoveryImportRejection` struct (candidate_id, reason)
+  - `DiscoveryImportPreviewRecord` struct (record_id, device_model)
+  - `DiscoveryImportSummary` struct (total_candidates, accepted_count, rejected_count)
+  - `DiscoveryImportPreview` struct (accepted_records, rejections, summary)
+  - Engine method: `preview_import(environment_id, candidates) → DiscoveryImportPreview`
+- `src-tauri/src/commands/discovery.rs`:
+  - `preview_discovery_import(environment_id, candidates) → DiscoveryImportPreview` command
+
+**TypeScript types and API:**
+
+- `src/types/discovery.ts` — mirrors all 5 new wire shapes (Candidate, RejectionReason, Rejection, PreviewRecord, ImportPreview, Summary)
+- `src/api/discovery.ts` — `previewDiscoveryImport(environmentId, candidates)` wrapper
+
+**Frontend builder:**
+
+- `src/data/discoveryImport.ts` exports `buildDiscoveryImportCandidates(batchRun, environmentId): DiscoveryImportCandidate[]` (pure adapter, deterministic)
+- Tests at `src/data/__tests__/discoveryImport.test.ts`
+
+---
+
 ## Cross-links
 
-- `ENGINE_AND_API_BOUNDARIES.md` — Discovery section (V1AF status appended)
+- `ENGINE_AND_API_BOUNDARIES.md` — Discovery section (V1AF status; V1AH `preview_discovery_import` appended)
 - `HIERARCHY_HONESTY_CONTRACT.md` — DataSourceState definitions and block promotion rules
-- `src-tauri/src/engines/discovery.rs` — Rust implementation
+- `src-tauri/src/engines/discovery.rs` — Rust implementation (V1AF + V1AH)
+- `src-tauri/src/commands/discovery.rs` — Tauri command bindings (V1AF + V1AH)
 - `src/types/discovery.ts` — TypeScript type mirror (parallel)
 - `src/api/discovery.ts` — Tauri command binding (parallel)
-- `INTAKE_PARSER_CONTRACT.md` — DeviceModel spec (when written)
 - `src/data/discoverySource.ts` — Frontend adapter (V1AG)
+- `src/data/discoveryImport.ts` — Candidate builder (V1AH)
+- `obsidian/stages/V1AH-intake-to-discovery-import-preview.md` — stage note

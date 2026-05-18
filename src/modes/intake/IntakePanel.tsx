@@ -13,6 +13,9 @@ import { projectDeviceReceipt } from "../../api/receipt";
 import { validateDeviceModel } from "../../api/validator";
 import { listVendorPlatforms } from "../../api/vendor";
 import { splitConfigBatch } from "../../api/configBatch";
+import { previewDiscoveryImport } from "../../api/discovery";
+import { buildDiscoveryImportCandidates } from "../../data/discoveryImport";
+import type { DiscoveryImportPreview } from "../../types/discovery";
 import type {
   ArchiveEntry,
   ArchiveEntryRef,
@@ -66,6 +69,8 @@ import "./intake.css";
 export interface IntakePanelProps {
   /** Inject mocked API surface for tests; defaults to the real Tauri wrappers. */
   readonly api?: IntakeApi;
+  /** Active operator-environment id for V1AH discovery-import preview. */
+  readonly activeEnvironmentId?: string | null;
 }
 
 export interface IntakeApi {
@@ -79,6 +84,9 @@ export interface IntakeApi {
   // always includes the real wrapper. The trigger useEffect is a
   // no-op when this is undefined.
   readonly validateDeviceModel?: typeof validateDeviceModel;
+  // V1AH — optional so pre-V1AH tests can omit it. Production
+  // DEFAULT_API always includes the real wrapper.
+  readonly previewDiscoveryImport?: typeof previewDiscoveryImport;
 }
 
 const DEFAULT_API: IntakeApi = {
@@ -89,12 +97,25 @@ const DEFAULT_API: IntakeApi = {
   splitConfigBatch,
   archiveIntake,
   validateDeviceModel,
+  previewDiscoveryImport,
 };
 
-export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.Element {
+/** V1AH preview status — surfaced verbatim by RunSummaryStrip. */
+export type DiscoveryImportPreviewStatus =
+  | { readonly kind: "idle" }
+  | { readonly kind: "running" }
+  | { readonly kind: "ready"; readonly preview: DiscoveryImportPreview }
+  | { readonly kind: "failed"; readonly message: string };
+
+export function IntakePanel({
+  api = DEFAULT_API,
+  activeEnvironmentId = null,
+}: IntakePanelProps = {}): JSX.Element {
   const [state, dispatch] = useReducer(intakeReducer, initialIntakeState);
   const [exportStatus, setExportStatus] =
     useState<BatchRunExportStatus | null>(null);
+  const [discoveryPreview, setDiscoveryPreview] =
+    useState<DiscoveryImportPreviewStatus>({ kind: "idle" });
 
   // ---- Vendor registry load (once) -------------------------------
   useEffect(() => {
@@ -554,6 +575,31 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
     [],
   );
 
+  // V1AH — preview Discovery import from the live BatchRun + active env.
+  // Pure handler; no persistence, no mutation. Resets status on each call.
+  const onPreviewDiscoveryImport = useCallback(async (): Promise<void> => {
+    const previewFn = api.previewDiscoveryImport;
+    if (!previewFn) return;
+    const run = stateRef.current.batch?.batchRun ?? null;
+    if (!run || !activeEnvironmentId) return;
+    const built = buildDiscoveryImportCandidates(run, activeEnvironmentId);
+    if (built.candidates.length === 0) return;
+    setDiscoveryPreview({ kind: "running" });
+    try {
+      const preview = await previewFn(activeEnvironmentId, built.candidates);
+      setDiscoveryPreview({ kind: "ready", preview });
+    } catch (err) {
+      setDiscoveryPreview({ kind: "failed", message: describeError(err) });
+    }
+  }, [activeEnvironmentId, api]);
+
+  // Honest importable count from live BatchRun + env. 0 hides the action.
+  const discoveryImportableCount: number = (() => {
+    const run = state.batch?.batchRun ?? null;
+    if (!run || !activeEnvironmentId) return 0;
+    return buildDiscoveryImportCandidates(run, activeEnvironmentId).candidates.length;
+  })();
+
   const onCopyJson = useCallback((): void => {
     void onCopyBatchExport("json");
   }, [onCopyBatchExport]);
@@ -852,6 +898,10 @@ export function IntakePanel({ api = DEFAULT_API }: IntakePanelProps = {}): JSX.E
           onSaveJson={onSaveJson}
           onSaveMarkdown={onSaveMarkdown}
           exportStatus={exportStatus}
+          activeEnvironmentId={activeEnvironmentId}
+          discoveryImportableCount={discoveryImportableCount}
+          discoveryPreviewStatus={discoveryPreview}
+          onPreviewDiscoveryImport={() => void onPreviewDiscoveryImport()}
         />
       )}
 

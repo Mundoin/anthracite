@@ -30,6 +30,7 @@ import type {
   FindingsDisplayMode,
   FindingsDisplaySummary,
 } from "../../../types/findingsDisplay";
+import type { DiscoveryImportPreviewStatus } from "../IntakePanel";
 
 export type BatchRunExportFormat = "json" | "markdown";
 
@@ -53,6 +54,11 @@ export interface RunSummaryStripProps {
   readonly onSaveJson?: () => void;
   readonly onSaveMarkdown?: () => void;
   readonly exportStatus?: BatchRunExportStatus | null;
+  // V1AH — Discovery import preview.
+  readonly activeEnvironmentId?: string | null;
+  readonly discoveryImportableCount?: number;
+  readonly discoveryPreviewStatus?: DiscoveryImportPreviewStatus;
+  readonly onPreviewDiscoveryImport?: () => void;
 }
 
 export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
@@ -67,6 +73,10 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
     onSaveJson,
     onSaveMarkdown,
     exportStatus,
+    activeEnvironmentId,
+    discoveryImportableCount,
+    discoveryPreviewStatus,
+    onPreviewDiscoveryImport,
   } = props;
 
   const inProgress = display?.status === "in_progress";
@@ -80,6 +90,11 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
   const showExports =
     isAuthor && isComplete && onCopyJson != null && onCopyMarkdown != null;
   const buttonsDisabled = (disabled ?? false) || inProgress;
+  const showDiscoveryPreview =
+    isAuthor &&
+    isComplete &&
+    onPreviewDiscoveryImport != null &&
+    (activeEnvironmentId != null && (discoveryImportableCount ?? 0) > 0);
 
   return (
     <div
@@ -125,9 +140,24 @@ export function RunSummaryStrip(props: RunSummaryStripProps): JSX.Element {
             status={exportStatus ?? null}
           />
         )}
+        {showDiscoveryPreview && (
+          <DiscoveryImportPreviewAction
+            onPreviewDiscoveryImport={onPreviewDiscoveryImport!}
+            importableCount={discoveryImportableCount ?? 0}
+            status={discoveryPreviewStatus ?? { kind: "idle" }}
+            disabled={buttonsDisabled || discoveryPreviewStatus?.kind === "running"}
+          />
+        )}
       </div>
     </div>
   );
+}
+
+interface DiscoveryImportPreviewActionProps {
+  readonly onPreviewDiscoveryImport: () => void;
+  readonly importableCount: number;
+  readonly status: DiscoveryImportPreviewStatus;
+  readonly disabled: boolean;
 }
 
 interface BatchRunExportActionsProps {
@@ -185,6 +215,66 @@ function BatchRunExportActions(props: BatchRunExportActionsProps): JSX.Element {
       )}
       {status && <ExportStatusView status={status} />}
     </>
+  );
+}
+
+function DiscoveryImportPreviewAction(
+  props: DiscoveryImportPreviewActionProps,
+): JSX.Element {
+  const { onPreviewDiscoveryImport, importableCount, status, disabled } = props;
+  return (
+    <>
+      <button
+        type="button"
+        className="intake-btn intake-btn--tiny"
+        onClick={onPreviewDiscoveryImport}
+        disabled={disabled}
+        aria-label="Preview Discovery Import"
+      >
+        Preview Discovery Import ({importableCount})
+      </button>
+      <DiscoveryImportPreviewStatusView status={status} />
+    </>
+  );
+}
+
+function DiscoveryImportPreviewStatusView({
+  status,
+}: {
+  readonly status: DiscoveryImportPreviewStatus;
+}): JSX.Element | null {
+  if (status.kind === "idle") return null;
+  if (status.kind === "running") {
+    return (
+      <span
+        className="intake-run-export-status"
+        role="status"
+        aria-label="Discovery preview running"
+      >
+        previewing…
+      </span>
+    );
+  }
+  if (status.kind === "failed") {
+    return (
+      <span
+        className="intake-run-export-status intake-run-export-status--failed"
+        role="alert"
+      >
+        preview failed: {status.message}
+      </span>
+    );
+  }
+  // ready
+  const s = status.preview.summary;
+  return (
+    <span
+      className="intake-run-export-status intake-run-export-status--ok"
+      role="status"
+      aria-label="Discovery preview result"
+    >
+      preview: {s.accepted_count} accepted · {s.rejected_count} rejected
+    </span>
   );
 }
 

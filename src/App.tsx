@@ -296,7 +296,7 @@ export default function App(): JSX.Element {
           { id: "core", label: "rust-core · ok", signal: "ok" },
         ]}
       >
-        <IntakePanel />
+        <IntakePanel activeEnvironmentId={active?.id ?? null} />
       </AppShell>
     );
   }

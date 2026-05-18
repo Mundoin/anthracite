@@ -64,6 +64,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1AE  | complete · Arc-validation — settings mode body (FLIP 1: H8 flip-discipline); inspectorIdentity real promotion (FLIP 2: H7 boundary); first built mode without engine | [stages/V1AE-settings-and-identity-real.md](./stages/V1AE-settings-and-identity-real.md) |
 | V1AF  | complete · Discovery Engine spine — connected-but-empty, deterministic; device inventory boundary owned | [stages/V1AF-discovery-engine-spine.md](./stages/V1AF-discovery-engine-spine.md) |
 | V1AG  | complete · Discovery empty-state integration — frontend adapter, App fetch, OpsConsoleMode surface; Hierarchy untouched | [stages/V1AG-discovery-empty-state-integration.md](./stages/V1AG-discovery-empty-state-integration.md) |
+| V1AH  | complete · INTAKE → Discovery import preview pipe — first real pipe, preview-only, deterministic record-ID derivation | [stages/V1AH-intake-to-discovery-import-preview.md](./stages/V1AH-intake-to-discovery-import-preview.md) |
 
 ## V1J-A adaptation
 

@@ -16,6 +16,7 @@ import {
   RunSummaryStrip,
   type BatchRunExportStatus,
 } from "./RunSummaryStrip";
+import type { DiscoveryImportPreviewStatus } from "../IntakePanel";
 
 export interface BatchSummaryViewProps {
   readonly result: ConfigBatchSplitResult;
@@ -43,6 +44,11 @@ export interface BatchSummaryViewProps {
   readonly onSaveJson?: () => void;
   readonly onSaveMarkdown?: () => void;
   readonly exportStatus?: BatchRunExportStatus | null;
+  // V1AH — Discovery import preview.
+  readonly activeEnvironmentId?: string | null;
+  readonly discoveryImportableCount?: number;
+  readonly discoveryPreviewStatus?: DiscoveryImportPreviewStatus;
+  readonly onPreviewDiscoveryImport?: () => void;
 }
 
 export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
@@ -61,6 +67,10 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
     onSaveJson,
     onSaveMarkdown,
     exportStatus,
+    activeEnvironmentId,
+    discoveryImportableCount,
+    discoveryPreviewStatus,
+    onPreviewDiscoveryImport,
   } = props;
   const ambiguousOrLow = result.warnings.some(
     (w) =>
@@ -94,6 +104,10 @@ export function BatchSummaryView(props: BatchSummaryViewProps): JSX.Element {
           onSaveJson={onSaveJson}
           onSaveMarkdown={onSaveMarkdown}
           exportStatus={exportStatus}
+          activeEnvironmentId={activeEnvironmentId}
+          discoveryImportableCount={discoveryImportableCount}
+          discoveryPreviewStatus={discoveryPreviewStatus}
+          onPreviewDiscoveryImport={onPreviewDiscoveryImport}
         />
       )}
 
