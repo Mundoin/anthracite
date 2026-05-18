@@ -300,8 +300,19 @@ diagnostics. Remaining work in Stage Group 2:
   extractors. Call `TopologyEngine::project_with_neighbor_evidence(env, records, evidence)`.
   Flip `present: true` on relevant sources; state auto-transitions; edge count
   increments. No topology projection changes needed.
+- **COMPLETE (V1AS) — Topology Edge Review + Graph-Ready Surface.**
+  Pure-frontend review surface inside TopologyMode. Adds
+  `topologyReview.ts` adapter producing review rows, stats, aggregate
+  rejection summary, and a renderer-agnostic graph-ready contract
+  (`GraphReadyTopologyView`). UI adds stats strip, kind + text
+  filters, selected-edge inspector, evidence drilldown, rejection
+  summary, and a "renderer not attached" handoff note. Existing
+  `tm-edge-list` / `tm-edge-row-${id}` regression IDs preserved. No
+  Rust changes; no parser changes; no live collection; no graph
+  renderer.
 - **Edge Rendering.** Babylon.js integration for interactive 2D/3D topology
-  graph visualization; camera, node selection, drill-down.
+  graph visualization; camera, node selection, drill-down. Consumes
+  the V1AS `GraphReadyTopologyView` contract; no engine reshape required.
 
 ---
 

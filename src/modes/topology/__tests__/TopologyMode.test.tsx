@@ -3,11 +3,31 @@ import { render, screen, within, fireEvent } from "@testing-library/react";
 import { TopologyMode } from "../TopologyMode";
 import type { TopologySourceView } from "../../../data/topologySource";
 import type {
+  NeighborEvidenceMappingStats,
+  ProjectionStats,
   TopologyAdjacencyReadiness,
   RawNeighborEvidenceImportResult,
   TopologyEvidenceMutationResult,
   TopologyEvidenceSummary,
+  TopologyView,
 } from "../../../types/topology";
+
+const DEFAULT_PROJECTION_STATS: ProjectionStats = {
+  facts_total: 0,
+  facts_accepted: 0,
+  facts_rejected_unknown_node: 0,
+  facts_rejected_self_link: 0,
+  facts_collapsed_duplicate: 0,
+  per_kind_counts: [],
+};
+
+const DEFAULT_EVIDENCE_STATS: NeighborEvidenceMappingStats = {
+  evidence_total: 0,
+  accepted: 0,
+  rejected_unknown_local: 0,
+  rejected_unknown_remote: 0,
+  rejected_self_link: 0,
+};
 
 function defaultReadiness(
   eligibleNodeCount = 0
@@ -49,6 +69,34 @@ function defaultReadiness(
 function makeView(
   over: Partial<TopologySourceView> = {}
 ): TopologySourceView {
+  const baseView: TopologyView = {
+    environment_id: "env-core-eu1",
+    source_state: "empty",
+    nodes: [],
+    edges: [],
+    summary: {
+      environment_id: "env-core-eu1",
+      node_count: 0,
+      edge_count: 0,
+      source_record_count: 0,
+    },
+    message: "topology empty — no discovery records in scope",
+    adjacency_readiness: defaultReadiness(),
+    projection_stats: DEFAULT_PROJECTION_STATS,
+    evidence_stats: DEFAULT_EVIDENCE_STATS,
+  };
+  // Apply view override on top of base so V1AO/V1AS-required wire fields
+  // (projection_stats, evidence_stats) always exist at runtime even when
+  // older tests only override a subset of TopologyView.
+  const viewOverride = over.view;
+  const mergedView: TopologyView | null =
+    viewOverride === undefined
+      ? baseView
+      : viewOverride === null
+      ? null
+      : { ...baseView, ...viewOverride };
+  const { view: _ignoredView, ...restOverride } = over;
+  void _ignoredView;
   return {
     sourceState: "empty",
     environmentId: "env-core-eu1",
@@ -57,21 +105,10 @@ function makeView(
     sourceRecordCount: 0,
     message: "topology empty — no discovery records in scope",
     isEmpty: true,
-    view: {
-      environment_id: "env-core-eu1",
-      source_state: "empty",
-      nodes: [],
-      edges: [],
-      summary: {
-        environment_id: "env-core-eu1",
-        node_count: 0,
-        edge_count: 0,
-        source_record_count: 0,
-      },
-      message: "topology empty — no discovery records in scope",
-      adjacency_readiness: defaultReadiness(),
-    },
-    ...over,
+    projectionStats: null,
+    evidenceStats: null,
+    view: mergedView,
+    ...restOverride,
   };
 }
 
@@ -2061,6 +2098,336 @@ describe("TopologyMode", () => {
 
       expect(screen.getByTestId("tm-adjacency")).toBeInTheDocument();
       expect(screen.getByTestId("tm-summary")).toBeInTheDocument();
+    });
+  });
+
+  describe("V1AS — Topology Edge Review surface", () => {
+    function makeRealViewWithEdges() {
+      const nodeA = {
+        id: "topo::router-a",
+        label: "router-a",
+        device_record_id: "rec-a",
+        hostname: "router-a",
+        platform_id: "ios-xe",
+        vendor: "cisco",
+        role_hint: "device" as const,
+        layer: "inventory" as const,
+        source_kind: "discovery_inventory" as const,
+      };
+      const nodeB = {
+        id: "topo::router-b",
+        label: "router-b",
+        device_record_id: "rec-b",
+        hostname: "router-b",
+        platform_id: "junos",
+        vendor: "juniper",
+        role_hint: "device" as const,
+        layer: "inventory" as const,
+        source_kind: "discovery_inventory" as const,
+      };
+      const nodeC = {
+        id: "topo::router-c",
+        label: "router-c",
+        device_record_id: "rec-c",
+        hostname: "router-c",
+        platform_id: "eos",
+        vendor: "arista",
+        role_hint: "device" as const,
+        layer: "inventory" as const,
+        source_kind: "discovery_inventory" as const,
+      };
+      return makeView({
+        sourceState: "real",
+        nodeCount: 3,
+        edgeCount: 3,
+        sourceRecordCount: 3,
+        isEmpty: false,
+        evidenceStats: {
+          evidence_total: 5,
+          accepted: 3,
+          rejected_unknown_local: 1,
+          rejected_unknown_remote: 0,
+          rejected_self_link: 1,
+        },
+        projectionStats: {
+          facts_total: 4,
+          facts_accepted: 3,
+          facts_rejected_unknown_node: 0,
+          facts_rejected_self_link: 0,
+          facts_collapsed_duplicate: 1,
+          per_kind_counts: [
+            ["lldp", 2],
+            ["cdp", 1],
+          ],
+        },
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [nodeA, nodeB, nodeC],
+          edges: [
+            {
+              id: "edge-lldp-1",
+              source_node_id: "topo::router-a",
+              target_node_id: "topo::router-b",
+              kind: "lldp",
+              confidence: null,
+              source: "discovery_inventory",
+              local_interface: "Gi0/0",
+              remote_interface: "Gi0/1",
+              evidence: ["lldp:router-a Gi0/0 -> router-b Gi0/1"],
+            },
+            {
+              id: "edge-cdp-2",
+              source_node_id: "topo::router-b",
+              target_node_id: "topo::router-c",
+              kind: "cdp",
+              confidence: null,
+              source: "discovery_inventory",
+              local_interface: "Gi0/2",
+              remote_interface: "Gi0/3",
+              evidence: ["cdp:router-b Gi0/2 -> router-c Gi0/3"],
+            },
+            {
+              id: "edge-cfg-3",
+              source_node_id: "topo::router-a",
+              target_node_id: "topo::router-c",
+              kind: "config_neighbor",
+              confidence: null,
+              source: "discovery_inventory",
+              local_interface: null,
+              remote_interface: null,
+              evidence: ["config: neighbor router-a -> router-c"],
+            },
+          ],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 3,
+            edge_count: 3,
+            source_record_count: 3,
+          },
+          message: "ok",
+          adjacency_readiness: defaultReadiness(3),
+          projection_stats: {
+            facts_total: 4,
+            facts_accepted: 3,
+            facts_rejected_unknown_node: 0,
+            facts_rejected_self_link: 0,
+            facts_collapsed_duplicate: 1,
+            per_kind_counts: [
+              ["lldp", 2],
+              ["cdp", 1],
+            ],
+          },
+          evidence_stats: {
+            evidence_total: 5,
+            accepted: 3,
+            rejected_unknown_local: 1,
+            rejected_unknown_remote: 0,
+            rejected_self_link: 1,
+          },
+        },
+      });
+    }
+
+    it("renders review surface with stats strip cells", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      expect(screen.getByTestId("tm-review")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-review-stats")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("tm-review-stat-projected-edges"),
+      ).toHaveTextContent("3");
+      expect(
+        screen.getByTestId("tm-review-stat-accepted-evidence"),
+      ).toHaveTextContent("3");
+      expect(
+        screen.getByTestId("tm-review-stat-rejected-evidence"),
+      ).toHaveTextContent("2");
+      expect(
+        screen.getByTestId("tm-review-stat-facts-accepted"),
+      ).toHaveTextContent("3");
+      expect(
+        screen.getByTestId("tm-review-stat-facts-duplicate"),
+      ).toHaveTextContent("1");
+      expect(
+        screen.getByTestId("tm-review-stat-source-kinds"),
+      ).toHaveTextContent(/lldp:2/);
+    });
+
+    it("renders review filters and shows match count", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      expect(screen.getByTestId("tm-review-filters")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-review-filter-kind")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-review-filter-text")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-review-filter-count")).toHaveTextContent(
+        /3 of 3 shown/,
+      );
+    });
+
+    it("filters edges by source kind", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      const kindFilter = screen.getByTestId("tm-review-filter-kind");
+      fireEvent.change(kindFilter, { target: { value: "cdp" } });
+      expect(screen.getByTestId("tm-review-filter-count")).toHaveTextContent(
+        /1 of 3 shown/,
+      );
+      const list = screen.getByTestId("tm-edge-list");
+      expect(within(list).getByTestId("tm-edge-row-edge-cdp-2")).toBeInTheDocument();
+      expect(within(list).queryByTestId("tm-edge-row-edge-lldp-1")).toBeNull();
+    });
+
+    it("filters edges by text substring (case-insensitive)", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      const textFilter = screen.getByTestId("tm-review-filter-text");
+      fireEvent.change(textFilter, { target: { value: "ROUTER-C" } });
+      expect(screen.getByTestId("tm-review-filter-count")).toHaveTextContent(
+        /2 of 3 shown/,
+      );
+    });
+
+    it("inspector starts empty and shows hint", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      expect(screen.getByTestId("tm-review-inspector")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("tm-review-inspector-empty"),
+      ).toHaveTextContent(/Select an edge/);
+    });
+
+    it("selecting an edge opens inspector with evidence", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      const selectBtn = screen.getByTestId(
+        "tm-review-row-select-edge-lldp-1",
+      );
+      fireEvent.click(selectBtn);
+      expect(
+        screen.getByTestId("tm-review-inspector-id"),
+      ).toHaveTextContent("edge-lldp-1");
+      expect(
+        screen.getByTestId("tm-review-inspector-kind"),
+      ).toHaveTextContent("LLDP");
+      expect(
+        screen.getByTestId("tm-review-inspector-local-node"),
+      ).toHaveTextContent(/router-a/);
+      expect(
+        screen.getByTestId("tm-review-inspector-remote-node"),
+      ).toHaveTextContent(/router-b/);
+      expect(
+        screen.getByTestId("tm-review-inspector-evidence-0"),
+      ).toHaveTextContent(/lldp:router-a/);
+    });
+
+    it("selecting an edge with no evidence/iface flags honestly", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      const selectBtn = screen.getByTestId(
+        "tm-review-row-select-edge-cfg-3",
+      );
+      fireEvent.click(selectBtn);
+      expect(
+        screen.getByTestId("tm-review-inspector-status"),
+      ).toHaveTextContent(/local interface unknown/);
+      expect(
+        screen.getByTestId("tm-review-inspector-status"),
+      ).toHaveTextContent(/remote interface unknown/);
+    });
+
+    it("rejection summary shows aggregate counts and honest note", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      const summary = screen.getByTestId("tm-review-rejection-summary");
+      expect(summary).toBeInTheDocument();
+      expect(
+        within(summary).getByTestId("tm-review-rejection-evidence-unknown-local"),
+      ).toHaveTextContent(/1/);
+      expect(
+        within(summary).getByTestId("tm-review-rejection-evidence-self-link"),
+      ).toHaveTextContent(/1/);
+      expect(
+        within(summary).getByTestId("tm-review-rejection-facts-duplicate"),
+      ).toHaveTextContent(/1/);
+      expect(summary).toHaveTextContent(
+        /Per-entry rejected evidence is not retained/,
+      );
+    });
+
+    it("rejection summary renders honest 'none' when no rejections", () => {
+      const view = makeView({
+        sourceState: "real",
+        nodeCount: 1,
+        edgeCount: 0,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "topo::router-a",
+              label: "router-a",
+              device_record_id: "rec-a",
+              hostname: "router-a",
+              platform_id: "ios-xe",
+              vendor: "cisco",
+              role_hint: "device" as const,
+              layer: "inventory" as const,
+              source_kind: "discovery_inventory" as const,
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 1,
+            edge_count: 0,
+            source_record_count: 1,
+          },
+          message: "ok",
+          adjacency_readiness: defaultReadiness(1),
+          projection_stats: DEFAULT_PROJECTION_STATS,
+          evidence_stats: DEFAULT_EVIDENCE_STATS,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      expect(
+        screen.getByTestId("tm-review-rejection-none"),
+      ).toBeInTheDocument();
+    });
+
+    it("graph-ready note says renderer not attached", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      expect(
+        screen.getByTestId("tm-review-graph-ready-note"),
+      ).toHaveTextContent(/renderer not attached/);
+    });
+
+    it("preserves V1AO/V1AP/V1AQ/V1AR test IDs alongside review surface", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      // V1AO+ — always-present panel + tab IDs
+      expect(screen.getByTestId("tm-evidence-import")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-evidence-tab-json")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-evidence-tab-raw")).toBeInTheDocument();
+      // V1AR — always-present import mode radios + clear section
+      expect(screen.getByTestId("tm-import-mode-replace")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-import-mode-append")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-import-mode-merge")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-clear-evidence-section")).toBeInTheDocument();
+      // V1AM/V1AN — still always present
+      expect(screen.getByTestId("tm-adjacency")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-summary")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-projected-edges")).toBeInTheDocument();
+      // Existing edge-list testids still resolve inside the new review surface.
+      const list = screen.getByTestId("tm-edge-list");
+      expect(within(list).getByTestId("tm-edge-row-edge-lldp-1")).toBeInTheDocument();
+      expect(within(list).getByTestId("tm-edge-row-edge-cdp-2")).toBeInTheDocument();
+      expect(within(list).getByTestId("tm-edge-row-edge-cfg-3")).toBeInTheDocument();
+      // V1AP raw-tab testids are conditional (raw tab must be active);
+      // switching tabs verifies they still resolve.
+      fireEvent.click(screen.getByTestId("tm-evidence-tab-raw"));
+      expect(screen.getByTestId("tm-raw-platform-hint")).toBeInTheDocument();
+    });
+
+    it("empty filter result renders honest hidden count", () => {
+      render(<TopologyMode topology={makeRealViewWithEdges()} />);
+      const textFilter = screen.getByTestId("tm-review-filter-text");
+      fireEvent.change(textFilter, { target: { value: "nonexistent-xyzzy" } });
+      expect(
+        screen.getByTestId("tm-edge-list"),
+      ).toHaveTextContent(/No edges match the current filters/);
     });
   });
 });

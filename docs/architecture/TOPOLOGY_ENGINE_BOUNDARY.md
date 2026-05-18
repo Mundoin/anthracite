@@ -1127,6 +1127,91 @@ All plug into the same V1AP/V1AQ/V1AN/V1AM/V1AO pipeline. No orchestrator or res
 
 ---
 
+## V1AS — Topology Edge Review + Graph-Ready Surface
+
+V1AS sits entirely on the frontend. The Rust topology engine, the
+evidence store, and every projection rule stay unchanged. V1AS adds a
+pure adapter module and a UI surface that lets an operator review the
+edges the engine has projected, inspect their evidence, and see the
+honest aggregate rejection counters — all without inferring or
+inventing anything.
+
+### What V1AS adds
+
+- **`src/modes/topology/topologyReview.ts`** — pure adapter layer.
+  Builds a `TopologyReviewModel` (review rows + stats + rejection
+  summary + graph-ready projection) from a `TopologyView`. Provides
+  `filterTopologyReviewRows`, `findSelectedTopologyEdge`,
+  `deriveTopologyReviewStats`, `deriveRejectionSummary`, and
+  `buildGraphReadyTopologyView`. Deterministic, no I/O, fully unit
+  tested.
+- **Graph-ready display contract** — `GraphReadyTopologyView` carries
+  renderer-agnostic nodes + edges (no coordinates, no layout, no
+  physics). Future renderer stages consume this without touching
+  engine types. `renderer_attached: false` and the constant note
+  `"Graph-ready display contract active — renderer not attached."`
+  make the stage boundary explicit.
+- **TopologyMode review surface** — stats strip, kind + text filters,
+  selected-edge inspector, evidence drilldown, aggregate rejection
+  summary, graph-ready handoff note. Reuses the existing
+  `EdgeListTable` (and its `tm-edge-list` / `tm-edge-row-${id}` test
+  IDs) so all V1AO/V1AP/V1AQ/V1AR regression coverage stays green.
+
+### What V1AS does NOT add
+
+- No graph renderer (no D3, Cytoscape, Babylon, canvas, or force
+  layout).
+- No live SSH / SNMP / polling / scheduler.
+- No new dependency.
+- No parser, DeviceModel, validator, or rule-pack changes.
+- No evidence-store semantic changes.
+- No fuzzy matching, hostname substring matching, management-IP /
+  chassis-ID / interface-description promotion.
+- No hidden store mutation; review surface is read-only.
+
+### Honest wording
+
+- Edge Review · Projected edges · Accepted evidence · Rejected
+  evidence · Evidence-backed · Selected edge · Evidence drilldown ·
+  Graph-ready surface · No renderer yet.
+- Avoid: live discovery, polling, smart topology, smart merge,
+  inferred link, auto-detect topology, magic graph, AI topology.
+
+### Rejection honesty
+
+The engine retains aggregate rejection counters via `ProjectionStats`
+and `NeighborEvidenceMappingStats` but does not retain per-entry
+rejected evidence. The review surface surfaces every counter
+deterministically and prints the literal note: "Rejected entries are
+counted by the topology engine. Per-entry rejected evidence is not
+retained in this view yet." Honest aggregate beats fabricated detail.
+
+### Graph-ready boundary
+
+`GraphReadyTopologyView` is *display contract*, not a renderer. It
+contains:
+
+- `nodes`: id, label, vendor, platform_id, role_hint, layer — no
+  coordinates.
+- `edges`: id, source_node_id, target_node_id, kind, interfaces,
+  evidence_count — no styling, no layout.
+- `renderer_attached: false` (compile-time literal).
+- `note`: constant string asserting the boundary.
+
+A future renderer stage will consume this contract. Until then, no
+graph appears, no fake graph is rendered, and the contract makes the
+seam explicit.
+
+### Cross-links
+
+- [`TOPOLOGY_ENGINE_BOUNDARY.md`](./TOPOLOGY_ENGINE_BOUNDARY.md) — this doc.
+- `src/modes/topology/topologyReview.ts` — pure adapter + graph-ready contract.
+- `src/modes/topology/TopologyMode.tsx` — review surface integration.
+- `src/modes/topology/__tests__/topologyReview.test.ts` — adapter unit tests.
+- `obsidian/stages/V1AS-topology-edge-review-graph-ready-surface.md` — Stage note.
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine

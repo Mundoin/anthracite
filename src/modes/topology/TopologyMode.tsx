@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DataSourceTag } from "../../components/shell/DataSourceTag";
 import type { TopologySourceView } from "../../data/topologySource";
 import type {
@@ -14,6 +14,19 @@ import type {
   RawNeighborEvidenceImportResult,
   RawNeighborSourceKind,
 } from "../../types/topology";
+import {
+  DEFAULT_REVIEW_FILTERS,
+  GRAPH_READY_DISPLAY_NOTE,
+  TOPOLOGY_REVIEW_KIND_OPTIONS,
+  buildTopologyReviewModel,
+  filterTopologyReviewRows,
+  findSelectedTopologyEdge,
+  formatTopologyEdgeKind,
+  type TopologyReviewFilterState,
+  type TopologyReviewKindFilter,
+  type TopologyReviewModel,
+  type TopologyReviewRow,
+} from "./topologyReview";
 import "./TopologyMode.css";
 
 export interface TopologyModeProps {
@@ -576,10 +589,28 @@ function EvidenceRejectionBanner({
 interface EdgeListTableProps {
   readonly edges: readonly TopologyEdge[];
   readonly hasRejectedEvidence: boolean;
+  readonly selectedEdgeId?: string | null;
+  readonly onSelectEdge?: (edgeId: string) => void;
+  readonly filteredFromTotal?: number | null;
 }
 
-function EdgeListTable({ edges, hasRejectedEvidence }: EdgeListTableProps): JSX.Element {
+function EdgeListTable({
+  edges,
+  hasRejectedEvidence,
+  selectedEdgeId,
+  onSelectEdge,
+  filteredFromTotal,
+}: EdgeListTableProps): JSX.Element {
   if (edges.length === 0) {
+    if (filteredFromTotal !== null && filteredFromTotal !== undefined && filteredFromTotal > 0) {
+      return (
+        <div data-testid="tm-edge-list" className="tm-edge-list-empty">
+          <p className="tm-muted">
+            No edges match the current filters ({filteredFromTotal} hidden).
+          </p>
+        </div>
+      );
+    }
     if (hasRejectedEvidence) {
       return (
         <div
@@ -599,9 +630,17 @@ function EdgeListTable({ edges, hasRejectedEvidence }: EdgeListTableProps): JSX.
     );
   }
 
+  const headingSuffix =
+    filteredFromTotal !== null && filteredFromTotal !== undefined && filteredFromTotal !== edges.length
+      ? ` of ${filteredFromTotal}`
+      : "";
+
   return (
     <section data-testid="tm-edge-list" className="tm-edge-list">
-      <h3 className="tm-section-heading">Projected edges ({edges.length})</h3>
+      <h3 className="tm-section-heading">
+        Projected edges ({edges.length}
+        {headingSuffix})
+      </h3>
       <table className="tm-edge-table">
         <thead>
           <tr>
@@ -611,35 +650,395 @@ function EdgeListTable({ edges, hasRejectedEvidence }: EdgeListTableProps): JSX.
             <th>Target Node</th>
             <th>Remote Iface</th>
             <th>Evidence</th>
+            {onSelectEdge ? <th>Review</th> : null}
           </tr>
         </thead>
         <tbody>
-          {edges.map((edge) => (
-            <tr
-              key={edge.id}
-              data-testid={`tm-edge-row-${edge.id}`}
-              className="tm-edge-row"
-            >
-              <td className="tm-edge-kind">{edge.kind}</td>
-              <td className="tm-edge-node-id">
-                {edge.source_node_id.replace(/^topo::/, "")}
-              </td>
-              <td className="tm-edge-interface">
-                {edge.local_interface ?? "—"}
-              </td>
-              <td className="tm-edge-node-id">
-                {edge.target_node_id.replace(/^topo::/, "")}
-              </td>
-              <td className="tm-edge-interface">
-                {edge.remote_interface ?? "—"}
-              </td>
-              <td className="tm-edge-evidence">
-                {edge.evidence[0] ?? "—"}
-              </td>
-            </tr>
-          ))}
+          {edges.map((edge) => {
+            const isSelected = selectedEdgeId === edge.id;
+            return (
+              <tr
+                key={edge.id}
+                data-testid={`tm-edge-row-${edge.id}`}
+                className={
+                  isSelected ? "tm-edge-row tm-edge-row--selected" : "tm-edge-row"
+                }
+                aria-selected={onSelectEdge ? isSelected : undefined}
+              >
+                <td className="tm-edge-kind">{edge.kind}</td>
+                <td className="tm-edge-node-id">
+                  {edge.source_node_id.replace(/^topo::/, "")}
+                </td>
+                <td className="tm-edge-interface">
+                  {edge.local_interface ?? "—"}
+                </td>
+                <td className="tm-edge-node-id">
+                  {edge.target_node_id.replace(/^topo::/, "")}
+                </td>
+                <td className="tm-edge-interface">
+                  {edge.remote_interface ?? "—"}
+                </td>
+                <td className="tm-edge-evidence">
+                  {edge.evidence[0] ?? "—"}
+                </td>
+                {onSelectEdge ? (
+                  <td className="tm-edge-select-cell">
+                    <button
+                      type="button"
+                      data-testid={`tm-review-row-select-${edge.id}`}
+                      className={
+                        isSelected
+                          ? "tm-edge-select-button tm-edge-select-button--selected"
+                          : "tm-edge-select-button"
+                      }
+                      onClick={() => onSelectEdge(edge.id)}
+                    >
+                      {isSelected ? "Selected" : "Select"}
+                    </button>
+                  </td>
+                ) : null}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
+    </section>
+  );
+}
+
+// V1AS — Topology Edge Review surface: stats strip, filters, selected-edge
+// inspector, rejection drilldown, graph-ready handoff note. Renders above
+// the projected edge table and drives its selection state.
+
+interface TopologyReviewSurfaceProps {
+  readonly model: TopologyReviewModel;
+  readonly sourceEdges: readonly TopologyEdge[];
+  readonly hasRejectedEvidence: boolean;
+}
+
+function ReviewStatsStrip({
+  model,
+}: {
+  readonly model: TopologyReviewModel;
+}): JSX.Element {
+  const { stats } = model;
+  return (
+    <section
+      className="tm-review-stats"
+      data-testid="tm-review-stats"
+      aria-label="Topology edge review stats"
+    >
+      <span className="tm-review-stat" data-testid="tm-review-stat-projected-edges">
+        <span className="tm-review-stat-label">Projected edges</span>
+        <span className="tm-review-stat-value">{stats.projected_edge_count}</span>
+      </span>
+      <span className="tm-review-stat" data-testid="tm-review-stat-accepted-evidence">
+        <span className="tm-review-stat-label">Accepted evidence</span>
+        <span className="tm-review-stat-value">{stats.evidence_accepted}</span>
+      </span>
+      <span className="tm-review-stat" data-testid="tm-review-stat-rejected-evidence">
+        <span className="tm-review-stat-label">Rejected evidence</span>
+        <span className="tm-review-stat-value">{stats.evidence_rejected}</span>
+      </span>
+      <span className="tm-review-stat" data-testid="tm-review-stat-facts-accepted">
+        <span className="tm-review-stat-label">Facts accepted</span>
+        <span className="tm-review-stat-value">{stats.facts_accepted}</span>
+      </span>
+      <span className="tm-review-stat" data-testid="tm-review-stat-facts-duplicate">
+        <span className="tm-review-stat-label">Duplicate facts</span>
+        <span className="tm-review-stat-value">{stats.facts_collapsed_duplicate}</span>
+      </span>
+      <span className="tm-review-stat" data-testid="tm-review-stat-source-kinds">
+        <span className="tm-review-stat-label">By source kind</span>
+        <span className="tm-review-stat-value">
+          {stats.per_kind_counts.length === 0
+            ? "—"
+            : stats.per_kind_counts
+                .map((entry) => `${entry.kind}:${entry.count}`)
+                .join(" · ")}
+        </span>
+      </span>
+    </section>
+  );
+}
+
+function ReviewFilters({
+  filters,
+  onFiltersChange,
+  matchedCount,
+  totalCount,
+}: {
+  readonly filters: TopologyReviewFilterState;
+  readonly onFiltersChange: (next: TopologyReviewFilterState) => void;
+  readonly matchedCount: number;
+  readonly totalCount: number;
+}): JSX.Element {
+  return (
+    <section
+      className="tm-review-filters"
+      data-testid="tm-review-filters"
+      aria-label="Topology edge review filters"
+    >
+      <label className="tm-review-filter-field">
+        <span className="tm-review-filter-label">Source kind</span>
+        <select
+          data-testid="tm-review-filter-kind"
+          className="tm-review-filter-select"
+          value={filters.kind}
+          onChange={(e) =>
+            onFiltersChange({
+              ...filters,
+              kind: e.currentTarget.value as TopologyReviewKindFilter,
+            })
+          }
+        >
+          {TOPOLOGY_REVIEW_KIND_OPTIONS.map((kind) => (
+            <option key={kind} value={kind}>
+              {kind === "all" ? "All kinds" : kind}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="tm-review-filter-field tm-review-filter-field--grow">
+        <span className="tm-review-filter-label">Search</span>
+        <input
+          type="text"
+          data-testid="tm-review-filter-text"
+          className="tm-review-filter-input"
+          value={filters.text}
+          onChange={(e) =>
+            onFiltersChange({ ...filters, text: e.currentTarget.value })
+          }
+          placeholder="node, interface, evidence…"
+        />
+      </label>
+      <span className="tm-review-filter-count" data-testid="tm-review-filter-count">
+        {matchedCount} of {totalCount} shown
+      </span>
+    </section>
+  );
+}
+
+function ReviewInspector({
+  row,
+}: {
+  readonly row: TopologyReviewRow | null;
+}): JSX.Element {
+  if (row === null) {
+    return (
+      <section
+        className="tm-review-inspector tm-review-inspector--empty"
+        data-testid="tm-review-inspector"
+        aria-label="Selected edge inspector"
+      >
+        <p className="tm-muted" data-testid="tm-review-inspector-empty">
+          Select an edge to inspect its evidence and endpoints.
+        </p>
+      </section>
+    );
+  }
+  return (
+    <section
+      className="tm-review-inspector"
+      data-testid="tm-review-inspector"
+      aria-label="Selected edge inspector"
+    >
+      <header className="tm-review-inspector-header">
+        <h3 className="tm-section-heading">Selected edge</h3>
+        <span
+          className="tm-review-inspector-id"
+          data-testid="tm-review-inspector-id"
+        >
+          {row.edge_id}
+        </span>
+        <span
+          className="tm-review-inspector-kind"
+          data-testid="tm-review-inspector-kind"
+        >
+          {formatTopologyEdgeKind(row.kind)}
+        </span>
+      </header>
+      <dl className="tm-review-inspector-grid">
+        <div className="tm-review-inspector-row">
+          <dt>Local node</dt>
+          <dd data-testid="tm-review-inspector-local-node">
+            {row.local.node_label ?? "(unresolved)"} ·{" "}
+            <code>{row.local.node_id}</code>
+            {row.local.node_vendor !== null ? (
+              <span className="tm-review-inspector-meta">
+                {" "}
+                · {row.local.node_vendor}
+                {row.local.node_platform_id !== null
+                  ? ` / ${row.local.node_platform_id}`
+                  : ""}
+              </span>
+            ) : null}
+          </dd>
+        </div>
+        <div className="tm-review-inspector-row">
+          <dt>Local interface</dt>
+          <dd data-testid="tm-review-inspector-local-iface">
+            {row.local.interface ?? "—"}
+          </dd>
+        </div>
+        <div className="tm-review-inspector-row">
+          <dt>Remote node</dt>
+          <dd data-testid="tm-review-inspector-remote-node">
+            {row.remote.node_label ?? "(unresolved)"} ·{" "}
+            <code>{row.remote.node_id}</code>
+            {row.remote.node_vendor !== null ? (
+              <span className="tm-review-inspector-meta">
+                {" "}
+                · {row.remote.node_vendor}
+                {row.remote.node_platform_id !== null
+                  ? ` / ${row.remote.node_platform_id}`
+                  : ""}
+              </span>
+            ) : null}
+          </dd>
+        </div>
+        <div className="tm-review-inspector-row">
+          <dt>Remote interface</dt>
+          <dd data-testid="tm-review-inspector-remote-iface">
+            {row.remote.interface ?? "—"}
+          </dd>
+        </div>
+        <div className="tm-review-inspector-row">
+          <dt>Status</dt>
+          <dd data-testid="tm-review-inspector-status">{row.status_note}</dd>
+        </div>
+      </dl>
+      <section
+        className="tm-review-inspector-evidence"
+        data-testid="tm-review-inspector-evidence"
+      >
+        <h4 className="tm-review-inspector-subheading">Evidence</h4>
+        {row.evidence.length === 0 ? (
+          <p className="tm-muted">
+            No evidence string retained for this edge in the current view.
+          </p>
+        ) : (
+          <ul className="tm-review-inspector-evidence-list">
+            {row.evidence.map((item) => (
+              <li
+                key={item.index}
+                data-testid={`tm-review-inspector-evidence-${item.index}`}
+                className="tm-review-inspector-evidence-item"
+              >
+                <code>{item.text}</code>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </section>
+  );
+}
+
+function ReviewRejectionSummary({
+  model,
+}: {
+  readonly model: TopologyReviewModel;
+}): JSX.Element {
+  const { rejection_summary: summary } = model;
+  return (
+    <section
+      className="tm-review-rejection-summary"
+      data-testid="tm-review-rejection-summary"
+      aria-label="Rejected evidence summary"
+    >
+      <h3 className="tm-section-heading">Rejected evidence summary</h3>
+      {summary.has_rejections ? (
+        <ul className="tm-review-rejection-list">
+          <li data-testid="tm-review-rejection-evidence-unknown-local">
+            Evidence — unknown local node:{" "}
+            {summary.evidence_rejected_unknown_local}
+          </li>
+          <li data-testid="tm-review-rejection-evidence-unknown-remote">
+            Evidence — unknown remote node:{" "}
+            {summary.evidence_rejected_unknown_remote}
+          </li>
+          <li data-testid="tm-review-rejection-evidence-self-link">
+            Evidence — self-link: {summary.evidence_rejected_self_link}
+          </li>
+          <li data-testid="tm-review-rejection-facts-unknown-node">
+            Facts — unknown node: {summary.facts_rejected_unknown_node}
+          </li>
+          <li data-testid="tm-review-rejection-facts-self-link">
+            Facts — self-link: {summary.facts_rejected_self_link}
+          </li>
+          <li data-testid="tm-review-rejection-facts-duplicate">
+            Facts — collapsed duplicate: {summary.facts_collapsed_duplicate}
+          </li>
+        </ul>
+      ) : (
+        <p
+          className="tm-muted"
+          data-testid="tm-review-rejection-none"
+        >
+          No rejected evidence or facts in the current view.
+        </p>
+      )}
+      <p className="tm-review-rejection-honesty">
+        Rejected entries are counted by the topology engine. Per-entry
+        rejected evidence is not retained in this view yet.
+      </p>
+    </section>
+  );
+}
+
+function TopologyReviewSurface({
+  model,
+  sourceEdges,
+  hasRejectedEvidence,
+}: TopologyReviewSurfaceProps): JSX.Element {
+  const [filters, setFilters] = useState<TopologyReviewFilterState>(
+    DEFAULT_REVIEW_FILTERS,
+  );
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+
+  const filteredRows = useMemo(
+    () => filterTopologyReviewRows(model.rows, filters),
+    [model.rows, filters],
+  );
+  const filteredEdges = useMemo<readonly TopologyEdge[]>(() => {
+    const idSet = new Set(filteredRows.map((row) => row.edge_id));
+    return sourceEdges.filter((e) => idSet.has(e.id));
+  }, [filteredRows, sourceEdges]);
+
+  const selectedRow = findSelectedTopologyEdge(model, selectedEdgeId);
+
+  return (
+    <section
+      className="tm-review"
+      data-testid="tm-review"
+      aria-label="Topology edge review"
+    >
+      <header className="tm-review-header">
+        <h3 className="tm-section-heading">Topology edge review</h3>
+        <p
+          className="tm-review-graph-ready-note"
+          data-testid="tm-review-graph-ready-note"
+        >
+          {GRAPH_READY_DISPLAY_NOTE}
+        </p>
+      </header>
+      <ReviewStatsStrip model={model} />
+      <ReviewFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        matchedCount={filteredRows.length}
+        totalCount={model.rows.length}
+      />
+      <EdgeListTable
+        edges={filteredEdges}
+        hasRejectedEvidence={hasRejectedEvidence}
+        selectedEdgeId={selectedEdgeId}
+        onSelectEdge={setSelectedEdgeId}
+        filteredFromTotal={model.rows.length}
+      />
+      <ReviewInspector row={selectedRow} />
+      <ReviewRejectionSummary model={model} />
     </section>
   );
 }
@@ -843,8 +1242,9 @@ export function TopologyMode({
             />
           )}
 
-          <EdgeListTable
-            edges={topology.view.edges}
+          <TopologyReviewSurface
+            model={buildTopologyReviewModel(topology.view)}
+            sourceEdges={topology.view.edges}
             hasRejectedEvidence={
               topology.evidenceStats
                 ? topology.evidenceStats.evidence_total - topology.evidenceStats.accepted > 0

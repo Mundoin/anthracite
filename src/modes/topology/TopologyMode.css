@@ -644,3 +644,226 @@
   font-size: 11px;
   color: var(--anth-text-2);
 }
+
+/* V1AS — Topology Edge Review surface */
+
+.tm-review {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--anth-border);
+  padding: 10px 12px;
+  background: var(--anth-bg-2, var(--anth-bg));
+}
+
+.tm-review-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tm-review-graph-ready-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+
+.tm-review-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 6px 8px;
+  border: 1px dashed var(--anth-border);
+  background: var(--anth-bg, transparent);
+}
+
+.tm-review-stat {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 96px;
+}
+
+.tm-review-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--anth-text-3);
+}
+
+.tm-review-stat-value {
+  font-size: 12px;
+  color: var(--anth-text-1, var(--anth-text-2));
+  font-variant-numeric: tabular-nums;
+}
+
+.tm-review-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 12px;
+  padding: 6px 8px;
+}
+
+.tm-review-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.tm-review-filter-field--grow {
+  flex: 1 1 200px;
+}
+
+.tm-review-filter-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--anth-text-3);
+}
+
+.tm-review-filter-select,
+.tm-review-filter-input {
+  font-size: 11px;
+  padding: 3px 6px;
+  background: var(--anth-bg, transparent);
+  color: var(--anth-text-1, var(--anth-text-2));
+  border: 1px solid var(--anth-border);
+}
+
+.tm-review-filter-count {
+  font-size: 11px;
+  color: var(--anth-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.tm-edge-row--selected td {
+  background: var(--anth-bg-3, var(--anth-border));
+}
+
+.tm-edge-select-cell {
+  text-align: center;
+}
+
+.tm-edge-select-button {
+  padding: 2px 8px;
+  font-size: 11px;
+  background: var(--anth-bg-2, var(--anth-bg));
+  color: var(--anth-text-1, var(--anth-text-2));
+  border: 1px solid var(--anth-border);
+  cursor: pointer;
+}
+
+.tm-edge-select-button:hover:not(:disabled) {
+  background: var(--anth-bg-3, var(--anth-border));
+}
+
+.tm-edge-select-button--selected {
+  font-weight: 600;
+  background: var(--anth-bg-3, var(--anth-border));
+}
+
+.tm-review-inspector {
+  border: 1px solid var(--anth-border);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tm-review-inspector--empty {
+  font-style: italic;
+}
+
+.tm-review-inspector-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tm-review-inspector-id,
+.tm-review-inspector-kind {
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 11px;
+  color: var(--anth-text-2);
+}
+
+.tm-review-inspector-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.tm-review-inspector-row {
+  display: contents;
+}
+
+.tm-review-inspector-row dt {
+  color: var(--anth-text-3);
+  font-weight: 600;
+}
+
+.tm-review-inspector-row dd {
+  margin: 0;
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.tm-review-inspector-meta {
+  color: var(--anth-text-3);
+}
+
+.tm-review-inspector-evidence {
+  border-top: 1px dashed var(--anth-border);
+  padding-top: 6px;
+}
+
+.tm-review-inspector-subheading {
+  margin: 0 0 4px 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--anth-text-3);
+}
+
+.tm-review-inspector-evidence-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  color: var(--anth-text-2);
+}
+
+.tm-review-inspector-evidence-item code {
+  font-family: var(--anth-font-mono, monospace);
+}
+
+.tm-review-rejection-summary {
+  border: 1px solid var(--anth-border);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tm-review-rejection-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 11px;
+  color: var(--anth-text-2);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2px 12px;
+}
+
+.tm-review-rejection-honesty {
+  margin: 0;
+  font-size: 10px;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
