@@ -18,9 +18,9 @@ across the parser's lifetime. The version is written into:
 - `EvidenceMetadata.parser_version` (stringified, e.g. `"1"`).
 - `ParseConfidence.warnings` on mismatch / fallback scenarios.
 
-Versions are **per-vendor parser**, not global. The cisco-iosxe parser
-and the (future) juniper-junos parser have independent version
-counters; they evolve on independent maturity ladders.
+Versions are **per-vendor parser**, not global. Each parser family has
+an independent version counter; they evolve on independent maturity
+ladders.
 
 ## Bump policy
 
@@ -88,6 +88,15 @@ contract, not the parser interface.
 Per-vendor counters keep each parser's evolution legible. A bump on
 `cisco-iosxe` does not imply anything about `juniper-junos`.
 
+As of V1AV the shipped parser families are:
+
+- `cisco-iosxe`
+- `juniper-junos`
+- `arista-eos`
+- `cisco-nxos`
+- `huawei-vrp`
+- `fortinet-fortios`
+
 ## Shared infrastructure changes (V1M clarification)
 
 When a change lives in **shared** parser infrastructure
@@ -110,3 +119,5 @@ together.
 - [`PARSER_COMMAND_CONTRACT.md`](./PARSER_COMMAND_CONTRACT.md)
 - [`PARSER_COVERAGE_AREAS.md`](./PARSER_COVERAGE_AREAS.md)
 - [`CANONICAL_NETWORK_MODEL.md`](./CANONICAL_NETWORK_MODEL.md)
+- [`PARSER_HUAWEI_VRP.md`](./PARSER_HUAWEI_VRP.md)
+- [`PARSER_FORTINET_FORTIOS.md`](./PARSER_FORTINET_FORTIOS.md)

@@ -5,9 +5,9 @@ consumer may assume, and the few invariants the project locks in
 writing so they cannot drift unnoticed. Anchored by V1N-A after the
 V1M / V1N cross-vendor work.
 
-## Four-parser state (as of V1Z-A)
+## Four full L1/L2 parsers + two bounded slices (as of V1AV)
 
-Anthracite ships four L1/L2 parsers:
+Anthracite ships four full L1/L2 parsers:
 
 - `cisco-iosxe` (V1K + V1L + V1N-A + V1Z-A; current `PARSER_VERSION = 4`)
 - `juniper-junos` (V1M + V1N-A + V1Z-A; current `PARSER_VERSION = 3`)
@@ -22,10 +22,20 @@ on EOS). The Junos `NtpAccum` also aligned with NX-OS / EOS so an
 NTP `source-address` alone now produces an NTP `ServiceModel` —
 parity required by DIAG-HYG-004.
 
-All four populate the same `DeviceModel` shape and emit the same
-14-area coverage vocabulary (`services_telnet` added at V1Z-A) so
-receipt projection and cross-vendor consumers operate on one
+All four full parsers populate the same `DeviceModel` shape and emit
+the same 14-area coverage vocabulary (`services_telnet` added at
+V1Z-A) so receipt projection and cross-vendor consumers operate on one
 canonical space.
+
+Anthracite also ships two bounded parser slices as of V1AV:
+
+- `huawei-vrp` (V1AV v1; bounded VRP slice)
+- `fortinet-fortios` (V1AV v1; bounded FortiOS slice)
+
+These bounded slices use the same canonical model and deterministic
+parser contract, but they do **not** participate in the four-parser
+cross-vendor consistency harness yet. They carry their own fixture
+corpora and parser-version guards.
 
 ## Truth object
 
@@ -62,8 +72,9 @@ meaningfully; consolidation silently mis-models the minority vendor.
 
 ## Cross-vendor canonical consistency
 
-V1N proved (and V1N-A keeps proving) that three vendor parsers
-populate the same canonical L1/L2 facts for the same logical device.
+V1N proved (and V1N-A keeps proving) that the four full L1/L2 vendor
+parsers populate the same canonical L1/L2 facts for the same logical
+device.
 The invariant is enforced by
 `tests/cross_vendor_consistency::cross_vendor_equivalent_models_match`.
 
@@ -176,4 +187,6 @@ In a maintenance stage (V1L-A, V1N-A, future "letter" stages):
 - [JUNOS_CONFIG_STYLES.md](./JUNOS_CONFIG_STYLES.md)
 - [EOS_VS_IOSXE_DIVERGENCES.md](./EOS_VS_IOSXE_DIVERGENCES.md)
 - [INTERFACE_NAMING.md](./INTERFACE_NAMING.md)
+- [PARSER_HUAWEI_VRP.md](./PARSER_HUAWEI_VRP.md)
+- [PARSER_FORTINET_FORTIOS.md](./PARSER_FORTINET_FORTIOS.md)
 - V1N-A stage note: [`../../obsidian/stages/V1N-A-parser-contract-hardening.md`](../../obsidian/stages/V1N-A-parser-contract-hardening.md)

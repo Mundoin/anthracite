@@ -286,6 +286,94 @@ constant all agree.
 See [`NXOS_VS_IOSXE_DIVERGENCES.md`](./NXOS_VS_IOSXE_DIVERGENCES.md)
 for the full divergence catalogue.
 
+## huawei-vrp — bounded VRP parser (V1AV)
+
+In-scope areas:
+
+```
+identity
+platform
+interfaces
+ip_addressing
+static_routes
+services_telnet
+```
+
+Out-of-scope at V1AV (marked `not_in_scope`):
+
+```
+aaa_detail
+firewall_address_objects
+firewall_policy
+firewall_service_objects
+nat_rules
+qos_policies
+routing_protocols_bgp
+routing_protocols_eigrp
+routing_protocols_isis
+routing_protocols_ospf
+sdwan
+services_dns
+services_ntp
+services_snmp
+services_ssh
+services_syslog
+tunnels
+vpn_tunnels
+```
+
+Per-interface VRF binding is attached to `interfaces` in the canonical
+model; there is no standalone `vrfs` area in this bounded slice.
+
+The single source of truth for the corpus list is
+`src-tauri/tests/fixtures/huawei-vrp/_manifest.toml`. The
+`parser_version_guard` and `huawei_vrp_fixture_corpus` integration
+tests enforce that the manifest, the on-disk dirs, and the source
+constant all agree.
+
+## fortinet-fortios — bounded FortiOS parser (V1AV)
+
+In-scope areas:
+
+```
+identity
+platform
+interfaces
+ip_addressing
+vlans
+firewall_zones
+static_routes
+```
+
+Out-of-scope at V1AV (marked `not_in_scope`):
+
+```
+aaa_detail
+firewall_address_objects
+firewall_policy
+firewall_service_objects
+nat_rules
+qos_policies
+routing_protocols_bgp
+routing_protocols_eigrp
+routing_protocols_isis
+routing_protocols_ospf
+sdwan
+services_dns
+services_ntp
+services_snmp
+services_ssh
+services_syslog
+tunnels
+vpn_tunnels
+```
+
+The single source of truth for the corpus list is
+`src-tauri/tests/fixtures/fortinet-fortios/_manifest.toml`. The
+`parser_version_guard` and `fortinet_fortios_fixture_corpus`
+integration tests enforce that the manifest, the on-disk dirs, and the
+source constant all agree.
+
 ## Cross-vendor consistency invariant (V1N / V1U)
 
 `tests/cross_vendor_consistency.rs` parses one logically-equivalent
