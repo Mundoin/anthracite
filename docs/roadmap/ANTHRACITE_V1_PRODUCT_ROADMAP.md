@@ -300,6 +300,18 @@ diagnostics. Remaining work in Stage Group 2:
   extractors. Call `TopologyEngine::project_with_neighbor_evidence(env, records, evidence)`.
   Flip `present: true` on relevant sources; state auto-transitions; edge count
   increments. No topology projection changes needed.
+- **COMPLETE (V1AU) — Fixture-backed Live Collection Simulator.**
+  Frontend-only bridge that proves the V1AT → V1AP/V1AQ → V1AR →
+  V1AS flow end-to-end without any device contact. New
+  `liveCollectionSimulator.ts` + `liveCollectionSimulatorFixtures.ts`
+  (synthetic LLDP/CDP raw output for iosxe/nxos/eos × LLDP+CDP plus
+  junos LLDP and iosxr LLDP) feed a ready V1AT plan command through
+  the existing `importTopologyNeighborOutput` route. No SSH, no
+  credentials, no new Rust, no new Tauri command, no parser changes,
+  no V1AR semantic changes. Unsupported / deferred platforms cannot
+  simulate; not-ready plans cannot simulate; missing import callback
+  disables the simulator with an honest message. Bridge toward a
+  future real driver, not the driver.
 - **COMPLETE (V1AT) — Live Collection Safety Gate + Dry-Run Plan.**
   Pure Rust planning module (`live_collection_plan.rs`) +
   `plan_live_topology_collection_cmd` Tauri command + TS wire mirror

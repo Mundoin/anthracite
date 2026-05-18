@@ -12,14 +12,24 @@
  */
 
 import type { JSX } from "react";
-import { useState } from "react";
-import type { TopologyEvidenceImportMode } from "../../types/topology";
+import { useMemo, useState } from "react";
+import type {
+  RawNeighborEvidenceImportRequest,
+  RawNeighborEvidenceImportResult,
+  TopologyEvidenceImportMode,
+} from "../../types/topology";
 import type {
   LiveCollectionDryRunPlan,
   LiveCollectionDryRunRequest,
   LiveCollectionSafetyWarning,
   LiveCollectionSourceKind,
 } from "../../types/liveCollection";
+import {
+  LIVE_COLLECTION_SIMULATOR_HONESTY_NOTE,
+  buildRawNeighborImportFromSimulation,
+  canSimulateLiveCollectionPlan,
+  listSimulationPairs,
+} from "./liveCollectionSimulator";
 
 const HONESTY_HEADER_NOTE =
   "No device contact is performed in this stage.";
@@ -46,11 +56,19 @@ export interface LiveCollectionDryRunPanelProps {
   readonly onPlan?: (
     request: LiveCollectionDryRunRequest,
   ) => Promise<LiveCollectionDryRunPlan>;
+  /** V1AU — raw-output import callback. Threaded through from
+   *  TopologyMode so the fixture simulator can hand synthetic raw
+   *  output to the existing V1AP/V1AQ import path. When omitted the
+   *  Simulate button is disabled. */
+  readonly onImportRawNeighborOutput?: (
+    request: RawNeighborEvidenceImportRequest,
+  ) => Promise<RawNeighborEvidenceImportResult>;
 }
 
 export function LiveCollectionDryRunPanel({
   environmentId,
   onPlan,
+  onImportRawNeighborOutput,
 }: LiveCollectionDryRunPanelProps): JSX.Element {
   const [platformHint, setPlatformHint] = useState<string>("iosxe");
   const [includeLldp, setIncludeLldp] = useState(true);
@@ -61,6 +79,10 @@ export function LiveCollectionDryRunPanel({
   const [plan, setPlan] = useState<LiveCollectionDryRunPlan | null>(null);
   const [errorText, setErrorText] = useState<string>("");
   const [isPlanning, setIsPlanning] = useState(false);
+  const [selectedFixtureIndex, setSelectedFixtureIndex] = useState<number>(0);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationFeedback, setSimulationFeedback] = useState<string>("");
+  const [simulationError, setSimulationError] = useState<string>("");
 
   const handlePlan = async () => {
     if (!onPlan) {
@@ -91,6 +113,55 @@ export function LiveCollectionDryRunPanel({
   };
 
   const planDisabled = onPlan === undefined || isPlanning;
+
+  // V1AU — fixture simulator gating + pair selection. Pure derivations
+  // over the plan so the simulator never holds stale fixture data.
+  const simulationGate = canSimulateLiveCollectionPlan(plan, environmentId);
+  const simulationPairs = useMemo(
+    () => (plan === null ? [] : listSimulationPairs(plan)),
+    [plan],
+  );
+  const selectedPair =
+    simulationPairs.length > 0
+      ? simulationPairs[Math.min(selectedFixtureIndex, simulationPairs.length - 1)]
+      : null;
+  const simulateDisabled =
+    !simulationGate.can_simulate ||
+    onImportRawNeighborOutput === undefined ||
+    selectedPair === null ||
+    isSimulating;
+
+  const handleSimulate = async () => {
+    if (
+      !onImportRawNeighborOutput ||
+      plan === null ||
+      selectedPair === null ||
+      environmentId === null
+    ) {
+      return;
+    }
+    setIsSimulating(true);
+    setSimulationError("");
+    setSimulationFeedback("");
+    try {
+      const request = buildRawNeighborImportFromSimulation({
+        plan,
+        command: selectedPair.command,
+        fixture: selectedPair.fixture,
+        environmentId,
+        importMode: plan.planned_import_mode,
+      });
+      const result = await onImportRawNeighborOutput(request);
+      setSimulationFeedback(
+        `Parsed ${result.parsed_entries_total} · Accepted ${result.accepted_evidence_count} · Rejected ${result.rejected_count} · Unresolved ${result.unresolved_count} · Stored ${result.stored_evidence_count}`,
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setSimulationError(`Simulation import failed: ${msg}`);
+    } finally {
+      setIsSimulating(false);
+    }
+  };
 
   return (
     <section
@@ -320,6 +391,119 @@ export function LiveCollectionDryRunPanel({
             {plan.honesty_note} Operator review required before any future
             collection.
           </p>
+
+          <section
+            className="tm-live-simulator"
+            data-testid="tm-live-simulator"
+            aria-label="Fixture simulator"
+          >
+            <header className="tm-live-simulator-header">
+              <h4 className="tm-live-collection-subheading">
+                Fixture simulator
+              </h4>
+              <span
+                className="tm-live-simulator-honesty"
+                data-testid="tm-live-simulator-honesty"
+              >
+                {LIVE_COLLECTION_SIMULATOR_HONESTY_NOTE}
+              </span>
+            </header>
+
+            {!simulationGate.can_simulate ? (
+              <p
+                className="tm-muted"
+                data-testid="tm-live-simulator-unavailable"
+              >
+                {simulationGate.note}
+              </p>
+            ) : simulationPairs.length === 0 ? (
+              <p
+                className="tm-muted"
+                data-testid="tm-live-simulator-no-fixture"
+              >
+                Simulation unavailable: no fixture for the planned
+                platform/source pair.
+              </p>
+            ) : (
+              <>
+                <label className="tm-live-simulator-field">
+                  <span className="tm-live-collection-label">
+                    Fixture command
+                  </span>
+                  <select
+                    data-testid="tm-live-simulator-select"
+                    className="tm-live-collection-select"
+                    value={String(selectedFixtureIndex)}
+                    onChange={(e) =>
+                      setSelectedFixtureIndex(
+                        Number(e.currentTarget.value) || 0,
+                      )
+                    }
+                    disabled={isSimulating}
+                  >
+                    {simulationPairs.map((p, idx) => (
+                      <option key={p.fixture.label} value={String(idx)}>
+                        {p.fixture.label} — {p.command.command}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <p
+                  className="tm-live-simulator-route"
+                  data-testid="tm-live-simulator-route"
+                >
+                  Route:{" "}
+                  {selectedPair !== null
+                    ? selectedPair.fixture.expected_route_note
+                    : "—"}
+                </p>
+                <p
+                  className="tm-live-simulator-mode"
+                  data-testid="tm-live-simulator-mode"
+                >
+                  Planned import mode: {plan.planned_import_mode}
+                </p>
+
+                <button
+                  type="button"
+                  data-testid="tm-live-simulator-button"
+                  className="tm-live-collection-plan-button"
+                  onClick={handleSimulate}
+                  disabled={simulateDisabled}
+                >
+                  Simulate fixture import
+                </button>
+
+                {onImportRawNeighborOutput === undefined && (
+                  <p
+                    className="tm-muted"
+                    data-testid="tm-live-simulator-no-callback"
+                  >
+                    Simulation unavailable: raw-output import callback not
+                    wired.
+                  </p>
+                )}
+
+                {simulationFeedback !== "" && (
+                  <p
+                    className="tm-live-simulator-feedback"
+                    data-testid="tm-live-simulator-feedback"
+                  >
+                    {simulationFeedback}
+                  </p>
+                )}
+                {simulationError !== "" && (
+                  <p
+                    className="tm-live-simulator-error"
+                    data-testid="tm-live-simulator-error"
+                  >
+                    {simulationError}
+                  </p>
+                )}
+              </>
+            )}
+          </section>
         </section>
       )}
     </section>

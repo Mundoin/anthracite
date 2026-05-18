@@ -1192,6 +1192,7 @@ export function TopologyMode({
           <LiveCollectionDryRunPanel
             environmentId={topology.environmentId}
             onPlan={onPlanLiveCollection}
+            onImportRawNeighborOutput={onImportRawNeighborOutput}
           />
           {topology.view && (
             <AdjacencyReadinessSection
@@ -1249,6 +1250,7 @@ export function TopologyMode({
           <LiveCollectionDryRunPanel
             environmentId={topology.environmentId}
             onPlan={onPlanLiveCollection}
+            onImportRawNeighborOutput={onImportRawNeighborOutput}
           />
 
           {topology.evidenceStats && topology.evidenceStats.evidence_total > 0 && (

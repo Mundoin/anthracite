@@ -1311,6 +1311,81 @@ When a future stage adds a real driver:
 
 ---
 
+## V1AU — Fixture-backed Live Collection Simulator
+
+V1AU is a frontend-only bridge that proves the V1AT → V1AP/V1AQ →
+V1AR → V1AS flow end-to-end **without any device contact**. The
+simulator maps a ready V1AT dry-run plan to a synthetic raw
+neighbour output bundle and hands it to the existing
+`importTopologyNeighborOutput` route. No SSH, no credentials, no
+host/IP, no polling, no scheduler, no new Rust, no new Tauri
+command, no parser changes.
+
+### What V1AU adds
+
+- **`src/modes/topology/liveCollectionSimulatorFixtures.ts`** —
+  synthetic raw output snippets for iosxe/nxos/eos × LLDP+CDP,
+  junos LLDP, iosxr LLDP. Every fixture carries a synthetic local
+  node label (`sim-<platform>-a`) and an expected route note.
+  Unsupported / deferred platforms (FortiOS, MikroTik, Huawei VRP,
+  Nokia SR OS) have **no** fixtures by construction — verified in
+  tests.
+- **`src/modes/topology/liveCollectionSimulator.ts`** — pure
+  helpers:
+  - `canSimulateLiveCollectionPlan(plan, envId)` — closed-set gate
+    that mirrors V1AT readiness semantics.
+  - `findSimulationFixture(plan, command)` — null when no fixture
+    exists; no fabrication.
+  - `listSimulationPairs(plan)` — `(command, fixture)` pairs in plan
+    order.
+  - `buildRawNeighborImportFromSimulation({...})` — produces an
+    exact `RawNeighborEvidenceImportRequest` (existing V1AP wire
+    shape). No new fields.
+- **`LiveCollectionDryRunPanel`** gains an optional
+  `onImportRawNeighborOutput` prop and a new "Fixture simulator"
+  section that appears below the plan result. Operator picks a
+  planned `(command, fixture)` pair, presses Simulate, and the
+  panel calls the existing import callback with the synthetic raw
+  output bundle and the plan's planned import mode.
+- **TopologyMode** threads the existing
+  `onImportRawNeighborOutput` callback into the panel; no new
+  callback contract on `TopologyModeProps`.
+
+### What V1AU does NOT add
+
+- No SSH / NETCONF / RESTCONF / SNMP / gNMI library, code path, or
+  dependency.
+- No credentials, host/IP, or transport plumbing.
+- No new Rust engine, no new Tauri command.
+- No parser changes (V1AP/V1AQ untouched).
+- No V1AR evidence-store semantic changes.
+- No graph renderer, no fuzzy matching, no resolver changes.
+- No `parser-lab` edits, no `AGENTS.md` / `CLAUDE.md` edits.
+- No new runtime dependency.
+
+### Safety gates
+
+- Simulator is **disabled** when:
+  `plan.readiness !== "ready"` · plan is unsupported · environment
+  id is missing · plan has zero commands · selected command has no
+  fixture · raw-import callback is not wired.
+- Every blocked state prints an honest, named message
+  (`tm-live-simulator-unavailable`, `tm-live-simulator-no-fixture`,
+  `tm-live-simulator-no-callback`).
+- Simulator never bypasses the V1AP/V1AQ parser or the V1AR
+  evidence store; it only delivers the bytes the operator would
+  otherwise paste manually.
+
+### Cross-links
+
+- `src/modes/topology/liveCollectionSimulator.ts`
+- `src/modes/topology/liveCollectionSimulatorFixtures.ts`
+- `src/modes/topology/LiveCollectionDryRunPanel.tsx`
+- `src/modes/topology/__tests__/liveCollectionSimulator.test.ts`
+- `obsidian/stages/V1AU-fixture-backed-live-collection-simulator.md`
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine
