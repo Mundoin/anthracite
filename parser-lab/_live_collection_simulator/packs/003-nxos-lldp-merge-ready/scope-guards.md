@@ -1,0 +1,19 @@
+# 003-nxos-lldp-merge-ready scope guards
+
+- fixture-backed only
+- no device contact
+- no sockets
+- no credentials
+- no host/IP plumbing
+- no shell command execution
+- no external process
+- no polling
+- no scheduler
+- no background task
+- no hidden mutation
+- V1AR remains authoritative
+- V1AS review remains mandatory
+- never bypass V1AR or V1AS
+- The simulator stays fixture-only and never opens live transport.
+- Fixture path stays local and synthetic: `parser-lab/_raw_neighbor_import/nxos-lldp-detail-003/snippets/nxos-lldp-detail-003.txt`
+- Import is explicit and fixture-backed only.

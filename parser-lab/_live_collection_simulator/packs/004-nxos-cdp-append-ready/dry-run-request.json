@@ -1,0 +1,15 @@
+{
+  "stage_target": "V1AU",
+  "simulator_mode": "fixture-backed",
+  "planner_ref": "V1AT dry-run plan",
+  "platform_hint": "nxos",
+  "source_kind": "CDP",
+  "import_mode": "Append",
+  "fixture_ref": "parser-lab/_raw_neighbor_import/nxos-cdp-detail-004/snippets/nxos-cdp-detail-004.txt",
+  "review_target": "V1AS",
+  "device_contact": false,
+  "host": null,
+  "ip": null,
+  "credentials": null,
+  "expected_route": "V1AT dry-run plan -> fixture select -> V1AP/V1AQ raw import -> V1AR append -> V1AS review"
+}

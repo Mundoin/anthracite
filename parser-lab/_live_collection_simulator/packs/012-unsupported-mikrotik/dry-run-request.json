@@ -1,0 +1,15 @@
+{
+  "stage_target": "V1AU",
+  "simulator_mode": "fixture-backed",
+  "planner_ref": "V1AT dry-run plan",
+  "platform_hint": "mikrotik",
+  "source_kind": "neighbor-discovery",
+  "import_mode": "Merge",
+  "fixture_ref": "parser-lab/_raw_neighbor_import/mikrotik-neighbor-discovery-012/snippets/mikrotik-neighbor-discovery-012.txt",
+  "review_target": "V1AS",
+  "device_contact": false,
+  "host": null,
+  "ip": null,
+  "credentials": null,
+  "expected_route": "V1AT dry-run plan -> validate unsupported platform -> stop before import"
+}
