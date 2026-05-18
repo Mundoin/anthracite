@@ -409,6 +409,70 @@ When a fact-ingestion path lands (parser-derived neighbor facts likely first):
 
 ---
 
+## V1AM — Topology Link Fact Pipeline + First Edge Projection
+
+### Status
+V1AM lands the explicit-fact ingestion + edge projection layer in
+the Topology Engine. Live command path remains zero-fact until a
+later stage connects a real fact source. Engine and tests prove the
+pipeline works.
+
+### What V1AM adds
+- `TopologyLinkFact` (engine-owned model for explicit adjacency facts).
+- `project_edges_from_link_facts(nodes, facts) -> (edges, ProjectionStats)`
+  — deterministic projection helper.
+- `TopologyEngine::project_with_facts(env, records, facts)` — internal
+  overload. `project()` is now a thin wrapper that passes `&[]`.
+- `TopologyEdge` carries `local_interface`, `remote_interface`,
+  `evidence` (Vec<String>).
+- `compute_adjacency_readiness` is data-driven: per-source `present`
+  and `count` reflect real ingested facts.
+- `ProjectionStats` reports `facts_total`, `facts_accepted`,
+  `facts_rejected_unknown_node`, `facts_rejected_self_link`,
+  `facts_collapsed_duplicate`, and `per_kind_counts`.
+
+### Edge ID format (deterministic, symmetric-dedup-safe)
+`topo-edge::{kind}::{lo_node}::{lo_iface_or_*}::{hi_node}::{hi_iface_or_*}`
+where `(lo, hi)` is the lex-min normalisation of `(local, remote)`.
+`None` iface sorts as `"*"`. Reverse symmetric facts collapse to one
+edge.
+
+### Acceptance rules (engine-owned, no exceptions)
+- `local_node_id == remote_node_id` → self-link, rejected.
+- Either node id not in node set → unknown-node, rejected.
+- Same canonical edge ID seen again → collapsed; evidence appended
+  (deduped); `facts_collapsed_duplicate` increments.
+- Otherwise → new edge, `confidence = None`, evidence carried, per-
+  kind count incremented.
+- Final edge ordering: `(kind ordinal, id)` ascending. Kind ordinal:
+  Lldp=0, Cdp=1, ConfigNeighbor=2, Manual=3.
+
+### Live command path (V1AM)
+`get_topology_view` still calls `project()`, which passes zero facts.
+Live UI shows "0 reliable links" and NoneAvailable readiness. V1AM
+makes the socket; later stages plug in real facts.
+
+### Scope-out (V1AM strict)
+- No LLDP/CDP parser extraction (`parser-lab/_adjacency/` stays
+  prep-only).
+- No DeviceModel mutation.
+- No new Tauri command.
+- No live polling.
+- No fake inference (hostname / VLAN / iface-name guessing forbidden).
+- No graph visualisation library.
+
+### Future hook
+Parser-derived ingestion, manual UI, or imported fact files all
+produce `&[TopologyLinkFact]` and call `project_with_facts(env,
+records, facts)`. No engine change needed in those stages.
+
+### Cross-links
+- `docs/architecture/ENGINE_AND_API_BOUNDARIES.md`
+- `docs/roadmap/ANTHRACITE_V1_PRODUCT_ROADMAP.md`
+- `obsidian/stages/V1AM-topology-link-fact-pipeline.md`
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine

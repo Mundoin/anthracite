@@ -64,6 +64,11 @@ Everything else is a placeholder, an empty contract, or doctrine without code.
   manual). All sources ship V1AL with `present: false, count: 0`; state auto-transitions 
   when future fact-ingestion stages flip present. TopologyMode adds "Adjacency readiness" 
   section; honest "0 reliable links" preserved. No edge inference, no fake adjacency.
+- **Topology Link Fact Pipeline (V1AM).** Topology Engine gains `TopologyLinkFact` and 
+  `project_edges_from_link_facts(nodes, facts)`. `TopologyEdge` carries interface refs + 
+  evidence. Readiness is data-driven from real fact counts. Live `get_topology_view` still 
+  passes zero facts (no fact source connected yet) — engine is the socket future ingestion 
+  stages plug into.
 
 ---
 
@@ -227,9 +232,10 @@ OCC owns parser code; Codex owns fixture/coverage/intent prep.
 
 **Next in Stage Group 2:**
 
-- **Edge Inference.** Implement fact ingestion paths (parser-derived LLDP/CDP
-  neighbors likely first). Flip `present: true` on relevant sources; state
-  auto-transitions; edge count increments.
+- **Parser-Derived Ingestion.** LLDP/CDP/config-neighbor fact extraction from
+  vendor parsers. Produce `&[TopologyLinkFact]`, call `project_with_facts()`.
+  Flip `present: true` on relevant sources; state auto-transitions; edge count
+  increments.
 - **Edge Rendering.** Babylon.js integration for interactive 2D/3D topology
   graph visualization; camera, node selection, drill-down.
 

@@ -56,6 +56,9 @@ export interface TopologyEdge {
   readonly kind: TopologyEdgeKind;
   readonly confidence: number | null;
   readonly source: TopologyEdgeSource;
+  readonly local_interface: string | null;
+  readonly remote_interface: string | null;
+  readonly evidence: readonly string[];
 }
 
 export interface TopologySummary {
@@ -113,4 +116,38 @@ export interface TopologyAdjacencyReadiness {
   readonly fact_sources: readonly TopologyAdjacencyFactSource[];
   readonly accepted_kinds: readonly TopologyAdjacencyFactSourceKind[];
   readonly reason: string;
+}
+
+// -----------------------------------------------------------------------
+// V1AM — Link Fact Pipeline projection wire shapes.
+// Mirrors `TopologyLinkFact` and `ProjectionStats` in
+// src-tauri/src/engines/topology.rs. Introduces fact-source schema and
+// projection statistics as basis for edge reliability scoring.
+// -----------------------------------------------------------------------
+
+/** A single adjacency fact contributed by a source. Represents one observed
+ *  link between two nodes, traced to discovery data with optional interface
+ *  mapping and evidence (LLDP neighbor entry, config line, CDP packet, etc). */
+export interface TopologyLinkFact {
+  readonly source_kind: TopologyAdjacencyFactSourceKind;
+  readonly local_node_id: string;
+  readonly remote_node_id: string;
+  readonly local_interface: string | null;
+  readonly remote_interface: string | null;
+  readonly evidence: string;
+  readonly source_label: string | null;
+}
+
+/** Projection statistics from the link fact pipeline. Counts facts at each
+ *  stage (ingested, accepted, rejected) and per-source breakdowns. */
+export interface ProjectionStats {
+  readonly facts_total: number;
+  readonly facts_accepted: number;
+  readonly facts_rejected_unknown_node: number;
+  readonly facts_rejected_self_link: number;
+  readonly facts_collapsed_duplicate: number;
+  readonly per_kind_counts: readonly (readonly [
+    TopologyAdjacencyFactSourceKind,
+    number,
+  ])[];
 }

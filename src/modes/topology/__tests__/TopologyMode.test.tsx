@@ -99,6 +99,10 @@ describe("TopologyMode", () => {
             vendor: "arista",
             platform_id: "DCS-7050SX",
             layer: "core",
+            device_record_id: "rec-1",
+            hostname: "router-01.local",
+            role_hint: "device",
+            source_kind: "discovery_inventory",
           },
           {
             id: "node-2",
@@ -106,6 +110,10 @@ describe("TopologyMode", () => {
             vendor: "juniper",
             platform_id: "MX960",
             layer: "core",
+            device_record_id: "rec-2",
+            hostname: "router-02.local",
+            role_hint: "device",
+            source_kind: "discovery_inventory",
           },
           {
             id: "node-3",
@@ -113,6 +121,10 @@ describe("TopologyMode", () => {
             vendor: "cisco",
             platform_id: "Catalyst 9300",
             layer: "aggregation",
+            device_record_id: "rec-3",
+            hostname: "switch-01.local",
+            role_hint: "device",
+            source_kind: "discovery_inventory",
           },
         ],
         edges: [],
@@ -146,6 +158,10 @@ describe("TopologyMode", () => {
             vendor: "arista",
             platform_id: "DCS-7050SX",
             layer: "core",
+            device_record_id: "rec-1",
+            hostname: "router-01.local",
+            role_hint: "device",
+            source_kind: "discovery_inventory",
           },
         ],
         edges: [],
@@ -160,7 +176,10 @@ describe("TopologyMode", () => {
       },
     });
     render(<TopologyMode topology={view} />);
-    expect(screen.getByText(/0 reliable link/)).toBeInTheDocument();
+    expect(screen.getByTestId("tm-projected-edges")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("tm-projected-edges")
+    ).toHaveTextContent(/0 adjacency facts/);
   });
 
   it('shows scope label "All environments" when environmentId is null', () => {
@@ -188,6 +207,10 @@ describe("TopologyMode", () => {
           vendor: "vendor",
           platform_id: "platform",
           layer: "layer",
+          device_record_id: `rec-${i}`,
+          hostname: `device-${i}.local`,
+          role_hint: "device" as const,
+          source_kind: "discovery_inventory" as const,
         })),
         edges: [],
         summary: {
@@ -442,6 +465,577 @@ describe("TopologyMode", () => {
       expect(
         within(adjacencySection).getByText(/lldp.*cdp.*config_neighbor.*manual/)
       ).toBeInTheDocument();
+    });
+  });
+
+  describe("TopologyMode — V1AM Link Fact Pipeline projection (UI)", () => {
+    it("renders projected edges line when nodes exist with zero facts", () => {
+      const view = makeView({
+        nodeCount: 3,
+        edgeCount: 0,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "router-01",
+              vendor: "arista",
+              platform_id: "DCS-7050SX",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "router-01.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-2",
+              label: "router-02",
+              vendor: "juniper",
+              platform_id: "MX960",
+              layer: "core",
+              device_record_id: "rec-2",
+              hostname: "router-02.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-3",
+              label: "switch-01",
+              vendor: "cisco",
+              platform_id: "Catalyst 9300",
+              layer: "aggregation",
+              device_record_id: "rec-3",
+              hostname: "switch-01.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 3,
+            edge_count: 0,
+            source_record_count: 3,
+          },
+          message: "ok",
+          adjacency_readiness: defaultReadiness(3),
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      const projectedEdgesElement = screen.getByTestId("tm-projected-edges");
+      expect(projectedEdgesElement).toBeInTheDocument();
+      expect(projectedEdgesElement).toHaveTextContent("0 adjacency facts");
+    });
+
+    it("renders projected edges count when facts present", () => {
+      const readiness = {
+        eligible_node_count: 2,
+        fact_source_state: "partial" as const,
+        fact_sources: [
+          {
+            kind: "lldp" as const,
+            present: true,
+            count: 1,
+            note: "1 fact ingested",
+          },
+          {
+            kind: "cdp" as const,
+            present: false,
+            count: 0,
+            note: "CDP fact ingestion not implemented",
+          },
+          {
+            kind: "config_neighbor" as const,
+            present: false,
+            count: 0,
+            note: "Parser-derived neighbor facts not implemented",
+          },
+          {
+            kind: "manual" as const,
+            present: false,
+            count: 0,
+            note: "Manual adjacency entry surface not built",
+          },
+        ],
+        accepted_kinds: ["lldp", "cdp", "config_neighbor", "manual"],
+        reason: "1 adjacency fact source connected — edges available",
+      };
+      const view = makeView({
+        nodeCount: 2,
+        edgeCount: 1,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "router-01",
+              vendor: "arista",
+              platform_id: "DCS-7050SX",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "router-01.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-2",
+              label: "router-02",
+              vendor: "juniper",
+              platform_id: "MX960",
+              layer: "core",
+              device_record_id: "rec-2",
+              hostname: "router-02.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [
+            {
+              id: "edge-1-2",
+              source_node_id: "node-1",
+              target_node_id: "node-2",
+              kind: "lldp",
+              confidence: null,
+              source: "discovery_inventory",
+              local_interface: "Gi0/1",
+              remote_interface: "Gi0/2",
+              evidence: ["lldp neighbor table row"],
+            },
+          ],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 2,
+            edge_count: 1,
+            source_record_count: 2,
+          },
+          message: "ok",
+          adjacency_readiness: readiness,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      const projectedEdgesElement = screen.getByTestId("tm-projected-edges");
+      expect(projectedEdgesElement).toBeInTheDocument();
+      expect(projectedEdgesElement).toHaveTextContent("1");
+      expect(projectedEdgesElement).toHaveTextContent("1 adjacency fact");
+    });
+
+    it("lldp source row shows count when present", () => {
+      const readiness = {
+        eligible_node_count: 2,
+        fact_source_state: "partial" as const,
+        fact_sources: [
+          {
+            kind: "lldp" as const,
+            present: true,
+            count: 3,
+            note: "3 facts ingested",
+          },
+          {
+            kind: "cdp" as const,
+            present: false,
+            count: 0,
+            note: "CDP fact ingestion not implemented",
+          },
+          {
+            kind: "config_neighbor" as const,
+            present: false,
+            count: 0,
+            note: "Parser-derived neighbor facts not implemented",
+          },
+          {
+            kind: "manual" as const,
+            present: false,
+            count: 0,
+            note: "Manual adjacency entry surface not built",
+          },
+        ],
+        accepted_kinds: ["lldp", "cdp", "config_neighbor", "manual"],
+        reason: "1 adjacency fact source connected — partial coverage",
+      };
+      const view = makeView({
+        nodeCount: 2,
+        edgeCount: 0,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "router-01",
+              vendor: "arista",
+              platform_id: "DCS-7050SX",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "router-01.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-2",
+              label: "router-02",
+              vendor: "juniper",
+              platform_id: "MX960",
+              layer: "core",
+              device_record_id: "rec-2",
+              hostname: "router-02.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 2,
+            edge_count: 0,
+            source_record_count: 2,
+          },
+          message: "ok",
+          adjacency_readiness: readiness,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      const lldpRow = screen.getByTestId("tm-adjacency-source-lldp");
+      expect(within(lldpRow).getByText("3")).toBeInTheDocument();
+      expect(within(lldpRow).getByText("connected")).toBeInTheDocument();
+    });
+
+    it("state label flips to partial when one source present", () => {
+      const readiness = {
+        eligible_node_count: 2,
+        fact_source_state: "partial" as const,
+        fact_sources: [
+          {
+            kind: "lldp" as const,
+            present: true,
+            count: 1,
+            note: "1 fact ingested",
+          },
+          {
+            kind: "cdp" as const,
+            present: false,
+            count: 0,
+            note: "CDP fact ingestion not implemented",
+          },
+          {
+            kind: "config_neighbor" as const,
+            present: false,
+            count: 0,
+            note: "Parser-derived neighbor facts not implemented",
+          },
+          {
+            kind: "manual" as const,
+            present: false,
+            count: 0,
+            note: "Manual adjacency entry surface not built",
+          },
+        ],
+        accepted_kinds: ["lldp", "cdp", "config_neighbor", "manual"],
+        reason: "1 adjacency fact source connected — partial coverage",
+      };
+      const view = makeView({
+        nodeCount: 2,
+        edgeCount: 0,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "router-01",
+              vendor: "arista",
+              platform_id: "DCS-7050SX",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "router-01.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-2",
+              label: "router-02",
+              vendor: "juniper",
+              platform_id: "MX960",
+              layer: "core",
+              device_record_id: "rec-2",
+              hostname: "router-02.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 2,
+            edge_count: 0,
+            source_record_count: 2,
+          },
+          message: "ok",
+          adjacency_readiness: readiness,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      expect(
+        screen.getByText(/Adjacency readiness · partial coverage/)
+      ).toBeInTheDocument();
+    });
+
+    it("state label reads ready when all four sources present", () => {
+      const readiness = {
+        eligible_node_count: 2,
+        fact_source_state: "ready" as const,
+        fact_sources: [
+          {
+            kind: "lldp" as const,
+            present: true,
+            count: 2,
+            note: "2 facts ingested",
+          },
+          {
+            kind: "cdp" as const,
+            present: true,
+            count: 1,
+            note: "1 fact ingested",
+          },
+          {
+            kind: "config_neighbor" as const,
+            present: true,
+            count: 1,
+            note: "1 fact ingested",
+          },
+          {
+            kind: "manual" as const,
+            present: true,
+            count: 0,
+            note: "ready to accept",
+          },
+        ],
+        accepted_kinds: ["lldp", "cdp", "config_neighbor", "manual"],
+        reason: "4 adjacency fact sources connected — ready",
+      };
+      const view = makeView({
+        nodeCount: 2,
+        edgeCount: 4,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "router-01",
+              vendor: "arista",
+              platform_id: "DCS-7050SX",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "router-01.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-2",
+              label: "router-02",
+              vendor: "juniper",
+              platform_id: "MX960",
+              layer: "core",
+              device_record_id: "rec-2",
+              hostname: "router-02.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 2,
+            edge_count: 4,
+            source_record_count: 2,
+          },
+          message: "ok",
+          adjacency_readiness: readiness,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      expect(screen.getByText(/Adjacency readiness · ready/)).toBeInTheDocument();
+    });
+
+    it("edge metadata renders if exposed", () => {
+      const readiness = {
+        eligible_node_count: 2,
+        fact_source_state: "partial" as const,
+        fact_sources: [
+          {
+            kind: "lldp" as const,
+            present: true,
+            count: 1,
+            note: "1 fact ingested",
+          },
+          {
+            kind: "cdp" as const,
+            present: false,
+            count: 0,
+            note: "CDP fact ingestion not implemented",
+          },
+          {
+            kind: "config_neighbor" as const,
+            present: false,
+            count: 0,
+            note: "Parser-derived neighbor facts not implemented",
+          },
+          {
+            kind: "manual" as const,
+            present: false,
+            count: 0,
+            note: "Manual adjacency entry surface not built",
+          },
+        ],
+        accepted_kinds: ["lldp", "cdp", "config_neighbor", "manual"],
+        reason: "1 adjacency fact source connected — edges available",
+      };
+      const view = makeView({
+        nodeCount: 2,
+        edgeCount: 1,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "router-01",
+              vendor: "arista",
+              platform_id: "DCS-7050SX",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "router-01.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-2",
+              label: "router-02",
+              vendor: "juniper",
+              platform_id: "MX960",
+              layer: "core",
+              device_record_id: "rec-2",
+              hostname: "router-02.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [
+            {
+              id: "edge-1-2",
+              source_node_id: "node-1",
+              target_node_id: "node-2",
+              kind: "lldp",
+              confidence: null,
+              source: "discovery_inventory",
+              local_interface: "Gi0/1",
+              remote_interface: "Gi0/2",
+              evidence: ["lldp neighbor table row"],
+            },
+          ],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 2,
+            edge_count: 1,
+            source_record_count: 2,
+          },
+          message: "ok",
+          adjacency_readiness: readiness,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      const projectedEdgesElement = screen.getByTestId("tm-projected-edges");
+      expect(projectedEdgesElement).toBeInTheDocument();
+      expect(projectedEdgesElement).toHaveTextContent("1");
+    });
+
+    it("does not invent facts when sources empty", () => {
+      const readiness = {
+        eligible_node_count: 2,
+        fact_source_state: "none_available" as const,
+        fact_sources: [
+          {
+            kind: "lldp" as const,
+            present: false,
+            count: 0,
+            note: "LLDP fact ingestion not implemented",
+          },
+          {
+            kind: "cdp" as const,
+            present: false,
+            count: 0,
+            note: "CDP fact ingestion not implemented",
+          },
+          {
+            kind: "config_neighbor" as const,
+            present: false,
+            count: 0,
+            note: "Parser-derived neighbor facts not implemented",
+          },
+          {
+            kind: "manual" as const,
+            present: false,
+            count: 0,
+            note: "Manual adjacency entry surface not built",
+          },
+        ],
+        accepted_kinds: ["lldp", "cdp", "config_neighbor", "manual"],
+        reason: "no adjacency fact sources connected — edges remain empty",
+      };
+      const view = makeView({
+        nodeCount: 2,
+        edgeCount: 0,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "router-01",
+              vendor: "arista",
+              platform_id: "DCS-7050SX",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "router-01.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+            {
+              id: "node-2",
+              label: "router-02",
+              vendor: "juniper",
+              platform_id: "MX960",
+              layer: "core",
+              device_record_id: "rec-2",
+              hostname: "router-02.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 2,
+            edge_count: 0,
+            source_record_count: 2,
+          },
+          message: "ok",
+          adjacency_readiness: readiness,
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      const adjacencyTable = screen.getByTestId("tm-adjacency-table");
+      const counts = within(adjacencyTable).getAllByText("—");
+      expect(counts.length).toBeGreaterThan(0);
     });
   });
 });

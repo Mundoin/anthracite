@@ -167,6 +167,23 @@ No edge inference, no fake adjacency, no parser/DeviceModel/ModeRail changes. Sc
 strict: pure readiness visibility. See `TOPOLOGY_ENGINE_BOUNDARY.md` V1AL section for 
 types, state semantics, determinism, and future hook.
 
+### V1AM addition
+
+V1AM lands explicit link-fact ingestion pipeline in the Topology Engine. New Rust `TopologyLinkFact` 
+struct carries `source_kind`, `local_node_id`, `remote_node_id`, `local_interface`, 
+`remote_interface`, `evidence`, and `source_label`. New `project_edges_from_link_facts(nodes, facts) 
+-> (edges, ProjectionStats)` helper deterministically projects edges from facts, handling 
+self-link rejection, unknown-node rejection, and symmetric dedup via canonical edge ID format 
+(`topo-edge::{kind}::{lo_node}::{lo_iface_or_*}::{hi_node}::{hi_iface_or_*}`). `TopologyEngine::project_with_facts(env, 
+records, facts)` is the internal overload; `project()` becomes a thin wrapper calling it with 
+zero facts. `TopologyEdge` gains `local_interface`, `remote_interface`, and `evidence` fields 
+(additive). `ProjectionStats` reports counts by source kind; `compute_adjacency_readiness` 
+is now data-driven from real fact counts instead of hardcoded. Live command path (`get_topology_view`) 
+still passes zero facts — no fact source connected yet, engine is the socket future stages 
+plug into. No parser changes, no DeviceModel mutation, no new Tauri command. See 
+`TOPOLOGY_ENGINE_BOUNDARY.md` V1AM section for types, edge ID format, acceptance rules, 
+and future hook.
+
 ---
 
 ## Monitoring / Polling Engine

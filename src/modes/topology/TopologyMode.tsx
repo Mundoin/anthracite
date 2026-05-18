@@ -166,9 +166,23 @@ export function TopologyMode({ topology }: TopologyModeProps): JSX.Element {
                 </li>
               ))}
             </ul>
-            <p className="tm-edges-note">
-              Edges: {topology.edgeCount} reliable link
-              {topology.edgeCount === 1 ? "" : "s"}.
+            <p className="tm-edges-note" data-testid="tm-projected-edges">
+              Edges: {topology.edgeCount} (from{" "}
+              {topology.view
+                ? topology.view.adjacency_readiness.fact_sources.reduce(
+                    (a, s) => a + s.count,
+                    0
+                  )
+                : 0}{" "}
+              adjacency fact
+              {topology.view &&
+              topology.view.adjacency_readiness.fact_sources.reduce(
+                (a, s) => a + s.count,
+                0
+              ) === 1
+                ? ""
+                : "s"}{" "}
+              ingested)
             </p>
           </section>
           {topology.view && (
