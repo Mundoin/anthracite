@@ -1,0 +1,72 @@
+vendor: Huawei
+platform_family: vrp
+prep_batch: baseline
+fixtures:
+  - id: huawei-vrp-system-l2-001
+    filename: fixtures/huawei-vrp-system-l2-001.cfg
+    vendor: Huawei
+    platform_family: vrp
+    feature_tags:
+      - system
+      - hostname
+      - interface_basics
+      - vlanif
+      - access
+      - trunk
+      - static_routes
+      - stp_hint
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/huawei-vrp-system-l2-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: huawei-vrp-vlan-trunk-edge-002
+    filename: fixtures/huawei-vrp-vlan-trunk-edge-002.cfg
+    vendor: Huawei
+    platform_family: vrp
+    feature_tags:
+      - system
+      - hostname
+      - vlanif
+      - access
+      - trunk
+      - vlan_ranges
+      - routed_interface_edge
+      - subinterface_note
+      - static_routes
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/huawei-vrp-vlan-trunk-edge-002.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: huawei-vrp-system-note-rich-003
+    filename: fixtures/huawei-vrp-system-note-rich-003.cfg
+    vendor: Huawei
+    platform_family: vrp
+    feature_tags:
+      - system
+      - hostname
+      - interface_basics
+      - vlanif
+      - access
+      - trunk
+      - static_routes
+      - acl_note
+      - nat_note
+      - qos_note
+      - aaa_note
+      - vpn_note
+    sanitised: true
+    source: synthetic
+    intent_file: intent/huawei-vrp-system-note-rich-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+
