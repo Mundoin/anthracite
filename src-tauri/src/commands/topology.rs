@@ -9,7 +9,10 @@
 
 use crate::engines::discovery::DiscoveryEngine;
 use crate::engines::topology::{TopologyEngine, TopologyNeighborEvidence, TopologyView};
-use crate::engines::topology_evidence_store::{TopologyEvidenceStore, TopologyEvidenceSet};
+use crate::engines::topology_evidence_store::{
+    TopologyEvidenceStore, TopologyEvidenceImportMode, TopologyEvidenceMutationResult,
+    TopologyEvidenceSummary, apply_evidence_import, summarize_topology_evidence,
+};
 use crate::engines::topology_neighbor_output::{RawNeighborEvidenceImportRequest, RawNeighborEvidenceImportResult};
 use tauri::State;
 
@@ -34,10 +37,17 @@ pub fn import_topology_neighbor_evidence(
     environment_id: String,
     evidence: Vec<TopologyNeighborEvidence>,
     source_label: Option<String>,
-) -> Result<TopologyEvidenceSet, String> {
-    evidence_store
-        .store(&environment_id, evidence, source_label)
-        .map_err(|e| e.to_string())
+    mode: Option<TopologyEvidenceImportMode>,
+) -> Result<TopologyEvidenceMutationResult, String> {
+    let m = mode.unwrap_or_default();
+    apply_evidence_import(
+        &**evidence_store,
+        &environment_id,
+        evidence,
+        m,
+        source_label,
+    )
+    .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -49,11 +59,38 @@ pub fn get_topology_neighbor_evidence(
 }
 
 #[tauri::command]
+pub fn get_topology_evidence_summary(
+    evidence_store: State<'_, Box<dyn TopologyEvidenceStore>>,
+    environment_id: String,
+) -> TopologyEvidenceSummary {
+    let evidence = evidence_store.load(&environment_id);
+    summarize_topology_evidence(&environment_id, &evidence, None)
+}
+
+#[tauri::command]
 pub fn clear_topology_neighbor_evidence(
     evidence_store: State<'_, Box<dyn TopologyEvidenceStore>>,
     environment_id: String,
-) -> Result<(), String> {
-    evidence_store.clear(&environment_id).map_err(|e| e.to_string())
+) -> Result<TopologyEvidenceMutationResult, String> {
+    let existing = evidence_store.load(&environment_id);
+    let previous_count = existing.len() as u32;
+
+    evidence_store
+        .clear(&environment_id)
+        .map_err(|e| e.to_string())?;
+
+    Ok(TopologyEvidenceMutationResult {
+        mode: TopologyEvidenceImportMode::Replace,
+        previous_count,
+        incoming_count: 0,
+        added_count: 0,
+        replaced_count: previous_count,
+        ignored_duplicate_count: 0,
+        final_count: 0,
+        evidence_set_id: None,
+        source_labels: vec![],
+        store_mutated: true,
+    })
 }
 
 #[tauri::command]

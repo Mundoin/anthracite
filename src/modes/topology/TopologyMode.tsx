@@ -7,7 +7,9 @@ import type {
   TopologyAdjacencyReadiness,
   TopologyEdge,
   TopologyNeighborEvidence,
-  TopologyEvidenceSet,
+  TopologyEvidenceImportMode,
+  TopologyEvidenceMutationResult,
+  TopologyEvidenceSummary,
   RawNeighborEvidenceImportRequest,
   RawNeighborEvidenceImportResult,
   RawNeighborSourceKind,
@@ -19,10 +21,15 @@ export interface TopologyModeProps {
   readonly onImportEvidence?: (
     envId: string,
     evidence: readonly TopologyNeighborEvidence[],
-  ) => Promise<TopologyEvidenceSet>;
+    mode: TopologyEvidenceImportMode,
+  ) => Promise<TopologyEvidenceMutationResult>;
   readonly onImportRawNeighborOutput?: (
     request: RawNeighborEvidenceImportRequest,
   ) => Promise<RawNeighborEvidenceImportResult>;
+  readonly onClearEvidence?: (envId: string) => Promise<TopologyEvidenceMutationResult>;
+  readonly onFetchEvidenceSummary?: (envId: string) => Promise<TopologyEvidenceSummary>;
+  readonly evidenceSummary?: TopologyEvidenceSummary | null;
+  readonly lastMutation?: TopologyEvidenceMutationResult | null;
 }
 
 interface AdjacencyReadinessSectionProps {
@@ -34,18 +41,28 @@ interface EvidenceImportPanelProps {
   readonly onImportEvidence?: (
     envId: string,
     evidence: readonly TopologyNeighborEvidence[],
-  ) => Promise<TopologyEvidenceSet>;
+    mode: TopologyEvidenceImportMode,
+  ) => Promise<TopologyEvidenceMutationResult>;
   readonly onImportRawNeighborOutput?: (
     request: RawNeighborEvidenceImportRequest,
   ) => Promise<RawNeighborEvidenceImportResult>;
+  readonly onClearEvidence?: (envId: string) => Promise<TopologyEvidenceMutationResult>;
+  readonly onFetchEvidenceSummary?: (envId: string) => Promise<TopologyEvidenceSummary>;
+  readonly evidenceSummary?: TopologyEvidenceSummary | null;
+  readonly lastMutation?: TopologyEvidenceMutationResult | null;
 }
 
 function EvidenceImportPanel({
   environmentId,
   onImportEvidence,
   onImportRawNeighborOutput,
+  onClearEvidence,
+  onFetchEvidenceSummary,
+  evidenceSummary,
+  lastMutation,
 }: EvidenceImportPanelProps): JSX.Element {
-  const [mode, setMode] = useState<"json" | "raw">("json");
+  const [tabMode, setTabMode] = useState<"json" | "raw">("json");
+  const [importMode, setImportMode] = useState<TopologyEvidenceImportMode>("replace");
   const [jsonTextValue, setJsonTextValue] = useState("");
   const [jsonFeedback, setJsonFeedback] = useState("");
   const [jsonIsLoading, setJsonIsLoading] = useState(false);
@@ -55,6 +72,8 @@ function EvidenceImportPanel({
   const [rawFeedback, setRawFeedback] = useState("");
   const [rawIsLoading, setRawIsLoading] = useState(false);
   const [rawPlatformHint, setRawPlatformHint] = useState("");
+  const [clearConfirmed, setClearConfirmed] = useState(false);
+  const [clearFeedback, setClearFeedback] = useState("");
 
   const handleJsonImport = async () => {
     if (!environmentId || !onImportEvidence) {
@@ -72,11 +91,26 @@ function EvidenceImportPanel({
       const result = await onImportEvidence(
         environmentId,
         parsed as readonly TopologyNeighborEvidence[],
+        importMode,
       );
-      setJsonFeedback(
-        `Imported ${result.evidence_count} evidence records into ${environmentId}.`,
-      );
+
+      if (!result.store_mutated) {
+        setJsonFeedback("No store mutation — incoming empty or no change.");
+      } else {
+        setJsonFeedback(
+          `Imported ${result.added_count} evidence records into ${environmentId} (final: ${result.final_count}).`,
+        );
+      }
       setJsonTextValue("");
+
+      // Auto-refresh summary after successful import
+      if (onFetchEvidenceSummary) {
+        try {
+          await onFetchEvidenceSummary(environmentId);
+        } catch {
+          // Silently ignore fetch failure
+        }
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       if (message.includes("Unexpected token")) {
@@ -103,11 +137,21 @@ function EvidenceImportPanel({
         platform_hint: rawPlatformHint === "" ? null : rawPlatformHint,
         raw_text: rawTextValue,
         source_label: null,
+        mode: importMode,
       };
       const result = await onImportRawNeighborOutput(request);
       setRawFeedback(
         `Parsed: ${result.parsed_entries_total} · Accepted: ${result.accepted_evidence_count} · Rejected: ${result.rejected_count} · Unresolved: ${result.unresolved_count} · Stored: ${result.stored_evidence_count}`,
       );
+
+      // Auto-refresh summary after successful import
+      if (onFetchEvidenceSummary) {
+        try {
+          await onFetchEvidenceSummary(environmentId);
+        } catch {
+          // Silently ignore fetch failure
+        }
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setRawFeedback(`Import failed: ${message}`);
@@ -119,6 +163,34 @@ function EvidenceImportPanel({
   const jsonIsDisabled = !environmentId || jsonIsLoading;
   const rawIsDisabled =
     !environmentId || rawIsLoading || !rawLocalNode || !rawTextValue;
+  const clearIsDisabled =
+    !environmentId || !clearConfirmed || !onClearEvidence;
+
+  const handleClearEvidence = async () => {
+    if (!environmentId || !onClearEvidence) {
+      return;
+    }
+
+    try {
+      const result = await onClearEvidence(environmentId);
+      setClearFeedback(
+        `Cleared: previous=${result.previous_count} → final=0`,
+      );
+      setClearConfirmed(false);
+
+      // Auto-refresh summary after successful clear
+      if (onFetchEvidenceSummary) {
+        try {
+          await onFetchEvidenceSummary(environmentId);
+        } catch {
+          // Silently ignore fetch failure
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setClearFeedback(`Clear failed: ${message}`);
+    }
+  };
 
   return (
     <section
@@ -128,13 +200,61 @@ function EvidenceImportPanel({
     >
       <h3 className="tm-section-heading">Imported neighbour evidence</h3>
 
+      <fieldset
+        className="tm-import-mode-group"
+        data-testid="tm-import-mode-group"
+      >
+        <legend className="tm-import-mode-legend">Import mode</legend>
+        <div className="tm-import-mode-radios">
+          <label className="tm-import-mode-label">
+            <input
+              type="radio"
+              data-testid="tm-import-mode-replace"
+              name="importMode"
+              value="replace"
+              checked={importMode === "replace"}
+              onChange={(e) =>
+                setImportMode(e.currentTarget.value as TopologyEvidenceImportMode)
+              }
+            />
+            Replace current evidence
+          </label>
+          <label className="tm-import-mode-label">
+            <input
+              type="radio"
+              data-testid="tm-import-mode-append"
+              name="importMode"
+              value="append"
+              checked={importMode === "append"}
+              onChange={(e) =>
+                setImportMode(e.currentTarget.value as TopologyEvidenceImportMode)
+              }
+            />
+            Append to current evidence
+          </label>
+          <label className="tm-import-mode-label">
+            <input
+              type="radio"
+              data-testid="tm-import-mode-merge"
+              name="importMode"
+              value="merge"
+              checked={importMode === "merge"}
+              onChange={(e) =>
+                setImportMode(e.currentTarget.value as TopologyEvidenceImportMode)
+              }
+            />
+            Merge and deduplicate
+          </label>
+        </div>
+      </fieldset>
+
       <div className="tm-evidence-tabs" role="tablist">
         <button
           data-testid="tm-evidence-tab-json"
           className="tm-evidence-tab"
           role="tab"
-          aria-selected={mode === "json"}
-          onClick={() => setMode("json")}
+          aria-selected={tabMode === "json"}
+          onClick={() => setTabMode("json")}
         >
           Structured JSON
         </button>
@@ -142,14 +262,14 @@ function EvidenceImportPanel({
           data-testid="tm-evidence-tab-raw"
           className="tm-evidence-tab"
           role="tab"
-          aria-selected={mode === "raw"}
-          onClick={() => setMode("raw")}
+          aria-selected={tabMode === "raw"}
+          onClick={() => setTabMode("raw")}
         >
           Raw neighbour output
         </button>
       </div>
 
-      {mode === "json" ? (
+      {tabMode === "json" ? (
         <>
           <p className="tm-evidence-import-hint">
             Paste a JSON array of TopologyNeighborEvidence records. Schema: source_kind,
@@ -315,6 +435,82 @@ function EvidenceImportPanel({
           )}
         </>
       )}
+
+      <section
+        className="tm-evidence-summary"
+        data-testid="tm-evidence-summary"
+        aria-label="Evidence summary"
+      >
+        {evidenceSummary === null || evidenceSummary === undefined ? (
+          <p className="tm-muted">Summary not loaded.</p>
+        ) : (
+          <>
+            <p>
+              <strong>Active evidence count:</strong> {evidenceSummary.evidence_count}
+            </p>
+            <p>
+              <strong>Source labels:</strong>{" "}
+              {evidenceSummary.source_labels.length > 0
+                ? evidenceSummary.source_labels.join(", ")
+                : "—"}
+            </p>
+            <p>
+              <strong>Source kinds:</strong>{" "}
+              {(() => {
+                const kindsMap: Record<string, number> = {
+                  lldp: 0,
+                  cdp: 0,
+                  config_neighbor: 0,
+                  manual: 0,
+                };
+                evidenceSummary.source_kind_counts.forEach(([kind, count]) => {
+                  kindsMap[kind] = count;
+                });
+                return `lldp:${kindsMap.lldp} · cdp:${kindsMap.cdp} · config_neighbor:${kindsMap.config_neighbor} · manual:${kindsMap.manual}`;
+              })()}
+            </p>
+          </>
+        )}
+        {lastMutation && lastMutation.store_mutated && (
+          <p className="tm-last-mutation">
+            <strong>Last import:</strong> mode={lastMutation.mode} ·
+            previous={lastMutation.previous_count} ·
+            incoming={lastMutation.incoming_count} ·
+            added={lastMutation.added_count} ·
+            replaced={lastMutation.replaced_count} ·
+            ignored duplicate={lastMutation.ignored_duplicate_count} ·
+            final={lastMutation.final_count}
+          </p>
+        )}
+      </section>
+
+      <section className="tm-clear-evidence-section" data-testid="tm-clear-evidence-section">
+        <label className="tm-clear-confirm-label">
+          <input
+            type="checkbox"
+            data-testid="tm-clear-confirm"
+            checked={clearConfirmed}
+            onChange={(e) => setClearConfirmed(e.currentTarget.checked)}
+          />
+          I understand this will remove all evidence for this environment.
+        </label>
+        <button
+          data-testid="tm-clear-button"
+          className="tm-clear-button"
+          disabled={clearIsDisabled}
+          onClick={handleClearEvidence}
+        >
+          Clear evidence for this environment
+        </button>
+        {clearFeedback && (
+          <p
+            data-testid="tm-clear-feedback"
+            className="tm-clear-feedback"
+          >
+            {clearFeedback}
+          </p>
+        )}
+      </section>
     </section>
   );
 }
@@ -520,6 +716,10 @@ export function TopologyMode({
   topology,
   onImportEvidence,
   onImportRawNeighborOutput,
+  onClearEvidence,
+  onFetchEvidenceSummary,
+  evidenceSummary,
+  lastMutation,
 }: TopologyModeProps): JSX.Element {
   return (
     <div className="topology-mode">
@@ -575,6 +775,10 @@ export function TopologyMode({
             environmentId={topology.environmentId}
             onImportEvidence={onImportEvidence}
             onImportRawNeighborOutput={onImportRawNeighborOutput}
+            onClearEvidence={onClearEvidence}
+            onFetchEvidenceSummary={onFetchEvidenceSummary}
+            evidenceSummary={evidenceSummary}
+            lastMutation={lastMutation}
           />
           {topology.view && (
             <AdjacencyReadinessSection
@@ -623,6 +827,10 @@ export function TopologyMode({
             environmentId={topology.environmentId}
             onImportEvidence={onImportEvidence}
             onImportRawNeighborOutput={onImportRawNeighborOutput}
+            onClearEvidence={onClearEvidence}
+            onFetchEvidenceSummary={onFetchEvidenceSummary}
+            evidenceSummary={evidenceSummary}
+            lastMutation={lastMutation}
           />
 
           {topology.evidenceStats && topology.evidenceStats.evidence_total > 0 && (

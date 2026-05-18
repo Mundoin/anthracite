@@ -8,9 +8,11 @@ import { invoke } from "@tauri-apps/api/core";
 import type {
   TopologyView,
   TopologyNeighborEvidence,
-  TopologyEvidenceSet,
   RawNeighborEvidenceImportRequest,
   RawNeighborEvidenceImportResult,
+  TopologyEvidenceImportMode,
+  TopologyEvidenceMutationResult,
+  TopologyEvidenceSummary,
 } from "../types/topology";
 
 /**
@@ -27,19 +29,21 @@ export async function getTopologyView(
 }
 
 /**
- * V1AO — import persisted neighbor evidence into the topology engine for
- * a given environment. Returns the evidence set metadata and count of
- * successfully stored records.
+ * V1AO/V1AR — import persisted neighbor evidence into the topology engine for
+ * a given environment. Returns mutation result with counts and metadata.
+ * Mode defaults to "replace" if null.
  */
 export async function importTopologyNeighborEvidence(
   environmentId: string,
   evidence: readonly TopologyNeighborEvidence[],
   sourceLabel: string | null,
-): Promise<TopologyEvidenceSet> {
-  return invoke<TopologyEvidenceSet>("import_topology_neighbor_evidence", {
+  mode: TopologyEvidenceImportMode | null = null,
+): Promise<TopologyEvidenceMutationResult> {
+  return invoke<TopologyEvidenceMutationResult>("import_topology_neighbor_evidence", {
     environmentId,
     evidence,
     sourceLabel,
+    mode,
   });
 }
 
@@ -57,13 +61,13 @@ export async function getTopologyNeighborEvidence(
 }
 
 /**
- * V1AO — clear all persisted neighbor evidence for a given environment.
- * Idempotent — succeeds even if no evidence exists.
+ * V1AO/V1AR — clear all persisted neighbor evidence for a given environment.
+ * Idempotent — succeeds even if no evidence exists. Returns mutation result.
  */
 export async function clearTopologyNeighborEvidence(
   environmentId: string,
-): Promise<void> {
-  return invoke<void>("clear_topology_neighbor_evidence", { environmentId });
+): Promise<TopologyEvidenceMutationResult> {
+  return invoke<TopologyEvidenceMutationResult>("clear_topology_neighbor_evidence", { environmentId });
 }
 
 /**
@@ -76,4 +80,14 @@ export async function importTopologyNeighborOutput(
   return invoke<RawNeighborEvidenceImportResult>("import_topology_neighbor_output", {
     request,
   });
+}
+
+/**
+ * V1AR — retrieve summary metadata for persisted neighbor evidence in a given
+ * environment. Returns counts, source labels, and evidence set metadata.
+ */
+export async function getTopologyEvidenceSummary(
+  environmentId: string,
+): Promise<TopologyEvidenceSummary> {
+  return invoke<TopologyEvidenceSummary>("get_topology_evidence_summary", { environmentId });
 }

@@ -213,6 +213,7 @@ export interface ImportTopologyNeighborEvidenceRequest {
   readonly environment_id: string;
   readonly evidence: readonly TopologyNeighborEvidence[];
   readonly source_label: string | null;
+  readonly mode: TopologyEvidenceImportMode | null;
 }
 
 // -----------------------------------------------------------------------
@@ -237,6 +238,7 @@ export interface RawNeighborEvidenceImportRequest {
   readonly platform_hint: string | null;
   readonly raw_text: string;
   readonly source_label: string | null;
+  readonly mode: TopologyEvidenceImportMode | null;
 }
 
 export interface RawNeighborRejectedEntry {
@@ -254,4 +256,35 @@ export interface RawNeighborEvidenceImportResult {
   readonly evidence_set_id: string | null;
   readonly accepted_evidence: readonly TopologyNeighborEvidence[];
   readonly rejected_entries: readonly RawNeighborRejectedEntry[];
+}
+
+// -----------------------------------------------------------------------
+// V1AR — Evidence set management wire shapes.
+// Mirrors src-tauri/src/engines/topology_evidence_store.rs.
+// -----------------------------------------------------------------------
+
+export type TopologyEvidenceImportMode = "replace" | "append" | "merge";
+
+export interface TopologyEvidenceMutationResult {
+  readonly mode: TopologyEvidenceImportMode;
+  readonly previous_count: number;
+  readonly incoming_count: number;
+  readonly added_count: number;
+  readonly replaced_count: number;
+  readonly ignored_duplicate_count: number;
+  readonly final_count: number;
+  readonly evidence_set_id: string | null;
+  readonly source_labels: readonly string[];
+  readonly store_mutated: boolean;
+}
+
+export interface TopologyEvidenceSummary {
+  readonly environment_id: string;
+  readonly evidence_count: number;
+  readonly source_labels: readonly string[];
+  readonly source_kind_counts: readonly (readonly [
+    TopologyAdjacencyFactSourceKind,
+    number,
+  ])[];
+  readonly evidence_set_id: string | null;
 }

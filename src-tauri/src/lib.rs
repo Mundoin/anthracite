@@ -73,6 +73,7 @@ pub fn run() {
             commands::topology::get_topology_view,
             commands::topology::import_topology_neighbor_evidence,
             commands::topology::get_topology_neighbor_evidence,
+            commands::topology::get_topology_evidence_summary,
             commands::topology::clear_topology_neighbor_evidence,
             commands::topology::import_topology_neighbor_output,
             commands::validator::validate_device_model,

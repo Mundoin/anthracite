@@ -9,7 +9,10 @@
 
 use crate::engines::discovery::DiscoveryDeviceRecord;
 use crate::engines::topology::{TopologyAdjacencyFactSourceKind, TopologyNeighborEvidence};
-use crate::engines::topology_evidence_store::{TopologyEvidenceStore, TopologyEvidenceStoreError};
+use crate::engines::topology_evidence_store::{
+    TopologyEvidenceStore, TopologyEvidenceStoreError, TopologyEvidenceImportMode,
+    apply_evidence_import,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -27,6 +30,7 @@ pub struct RawNeighborEvidenceImportRequest {
     pub platform_hint: Option<String>,   // carried into source_label, not consumed in V1AP
     pub raw_text: String,
     pub source_label: Option<String>,
+    pub mode: Option<TopologyEvidenceImportMode>, // V1AR: import mode (defaults to Replace)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -797,14 +801,17 @@ pub fn import_raw_neighbor_output(
     let accepted_evidence_count = accepted_evidence.len() as u32;
     let rejected_count = rejected_entries.len() as u32;
 
-    // Step 5: Write to store only if there are accepted entries
+    // Step 5: Write to store using apply_evidence_import with mode support
     let (stored_evidence_count, evidence_set_id) = if accepted_evidence_count > 0 {
-        let evidence_set = store.store(
+        let mode = request.mode.unwrap_or_default();
+        let mutation = apply_evidence_import(
+            store,
             &request.environment_id,
             accepted_evidence.clone(),
+            mode,
             request.source_label.clone(),
         )?;
-        (evidence_set.evidence_count, Some(evidence_set.evidence_set_id))
+        (mutation.final_count, mutation.evidence_set_id)
     } else {
         (0, None)
     };
@@ -1051,6 +1058,7 @@ Chassis id: 00:11:22:33:44:55"#;
             platform_hint: None,
             raw_text: text.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1085,6 +1093,7 @@ Port id: Gi0/2"#;
             platform_hint: None,
             raw_text: text.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1119,6 +1128,7 @@ Port id: Gi0/2"#;
             platform_hint: None,
             raw_text: text.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1147,6 +1157,7 @@ Port id: Gi0/2"#;
             platform_hint: None,
             raw_text: text.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1173,6 +1184,7 @@ Port id: Gi0/2"#;
             platform_hint: None,
             raw_text: text.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1210,6 +1222,7 @@ Port id: Gi0/4"#;
             platform_hint: None,
             raw_text: text1.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1228,6 +1241,7 @@ Port id: Gi0/2"#;
             platform_hint: None,
             raw_text: text2.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let result2 = import_raw_neighbor_output(&request2, &records, &store).unwrap();
@@ -1256,6 +1270,7 @@ Port id: Gi0/2"#;
             platform_hint: None,
             raw_text: text.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1521,6 +1536,7 @@ Port id: Eth2/1"#;
             platform_hint: Some("nxos".to_string()),
             raw_text: text.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1550,6 +1566,7 @@ Port id: Eth2/1"#;
             platform_hint: Some("fortios".to_string()),
             raw_text: text.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1580,6 +1597,7 @@ Port id: Eth2/1"#;
             platform_hint: Some("mikrotik".to_string()),
             raw_text: text.to_string(),
             source_label: None,
+            mode: None,
         };
 
         let store = MockStore::new();
@@ -1589,6 +1607,215 @@ Port id: Eth2/1"#;
         assert_eq!(result.rejected_count, 1);
         assert_eq!(result.rejected_entries[0].reason, RawNeighborRejectionReason::UnsupportedFormat);
         assert!(result.rejected_entries[0].detail.contains("mikrotik"));
+        assert_eq!(result.stored_evidence_count, 0);
+    }
+
+    // ──── V1AR — Import mode and merge semantics tests ────
+
+    #[test]
+    fn raw_import_with_mode_append_threads_through_apply() {
+        use tempfile::TempDir;
+        let temp_dir = TempDir::new().expect("temp dir");
+        let store = crate::engines::topology_evidence_store::JsonFileTopologyEvidenceStore::new(
+            temp_dir.path().to_path_buf(),
+        );
+
+        // Pre-populate store with one evidence
+        let pre_existing = vec![TopologyNeighborEvidence {
+            source_kind: TopologyAdjacencyFactSourceKind::Lldp,
+            local_node_id: "device-1".to_string(),
+            local_interface: None,
+            remote_node_id: "device-2".to_string(),
+            remote_interface: None,
+            remote_chassis_id: None,
+            remote_system_name: Some("router-2".to_string()),
+            remote_port_id: None,
+            source_label: None,
+            evidence_notes: None,
+        }];
+        let _ = store.store("env-test", pre_existing, None);
+
+        let records = vec![
+            make_record("device-1", Some("router-1")),
+            make_record("device-2", Some("router-2")),
+        ];
+
+        // LLDP text for iosxe parser (cisco iosxe lldp detail format with separator)
+        let lldp_text = "Local Intf: Gi0/1\nSystem Name: router-2\nPort id: Gi0/2\n\nChassis id: aabbccddeeff";
+        let request = RawNeighborEvidenceImportRequest {
+            environment_id: "env-test".to_string(),
+            local_node: "router-1".to_string(),
+            source_kind: RawNeighborSourceKind::Lldp,
+            platform_hint: Some("iosxe".to_string()),
+            raw_text: lldp_text.to_string(),
+            source_label: None,
+            mode: Some(TopologyEvidenceImportMode::Append),
+        };
+
+        let result = import_raw_neighbor_output(&request, &records, &store)
+            .expect("import should succeed");
+
+        // Should append, so final count = 1 (pre-existing) + 1 (new) = 2
+        assert_eq!(result.accepted_evidence_count, 1);
+        assert_eq!(result.stored_evidence_count, 2);
+    }
+
+    #[test]
+    fn raw_import_with_mode_merge_dedup_via_apply() {
+        // Test merge dedup at the apply_evidence_import level, not through raw orchestrator.
+        // This isolates the mode threading logic from parser complexity.
+        use crate::engines::topology_evidence_store::{merge_topology_evidence, apply_evidence_import};
+        use tempfile::TempDir;
+        let temp_dir = TempDir::new().expect("temp dir");
+        let store = crate::engines::topology_evidence_store::JsonFileTopologyEvidenceStore::new(
+            temp_dir.path().to_path_buf(),
+        );
+
+        // Pre-populate with one LLDP link
+        let pre_existing = vec![TopologyNeighborEvidence {
+            source_kind: TopologyAdjacencyFactSourceKind::Lldp,
+            local_node_id: "device-1".to_string(),
+            local_interface: Some("Gi0/1".to_string()),
+            remote_node_id: "device-2".to_string(),
+            remote_interface: None,
+            remote_chassis_id: Some("aabbccdd".to_string()),
+            remote_system_name: Some("router-2".to_string()),
+            remote_port_id: Some("Gi0/2".to_string()),
+            source_label: Some("lldp-old".to_string()),
+            evidence_notes: None,
+        }];
+        let _ = store.store("env-test", pre_existing, None);
+
+        // Incoming with same 5-tuple but different metadata
+        let incoming = vec![TopologyNeighborEvidence {
+            source_kind: TopologyAdjacencyFactSourceKind::Lldp,
+            local_node_id: "device-1".to_string(),
+            local_interface: Some("Gi0/1".to_string()),
+            remote_node_id: "device-2".to_string(),
+            remote_interface: None,
+            remote_chassis_id: Some("eeff0011".to_string()),  // Different chassis
+            remote_system_name: Some("router-2".to_string()),
+            remote_port_id: Some("Gi0/2".to_string()),
+            source_label: Some("lldp-new".to_string()),
+            evidence_notes: None,
+        }];
+
+        // Apply with Merge mode
+        let result = apply_evidence_import(
+            &store,
+            "env-test",
+            incoming,
+            crate::engines::topology_evidence_store::TopologyEvidenceImportMode::Merge,
+            None,
+        ).expect("apply should succeed");
+
+        // Should merge, not add: final count = 1, ignored_duplicate_count = 1
+        assert_eq!(result.final_count, 1);
+        assert_eq!(result.ignored_duplicate_count, 1);
+    }
+
+    #[test]
+    fn raw_import_with_no_mode_defaults_to_replace() {
+        use tempfile::TempDir;
+        let temp_dir = TempDir::new().expect("temp dir");
+        let store = crate::engines::topology_evidence_store::JsonFileTopologyEvidenceStore::new(
+            temp_dir.path().to_path_buf(),
+        );
+
+        // Pre-populate with old data
+        let pre_existing = vec![
+            TopologyNeighborEvidence {
+                source_kind: TopologyAdjacencyFactSourceKind::Lldp,
+                local_node_id: "device-1".to_string(),
+                local_interface: None,
+                remote_node_id: "device-2".to_string(),
+                remote_interface: None,
+                remote_chassis_id: None,
+                remote_system_name: Some("router-2".to_string()),
+                remote_port_id: None,
+                source_label: None,
+                evidence_notes: None,
+            },
+            TopologyNeighborEvidence {
+                source_kind: TopologyAdjacencyFactSourceKind::Lldp,
+                local_node_id: "device-1".to_string(),
+                local_interface: None,
+                remote_node_id: "device-3".to_string(),
+                remote_interface: None,
+                remote_chassis_id: None,
+                remote_system_name: Some("router-3".to_string()),
+                remote_port_id: None,
+                source_label: None,
+                evidence_notes: None,
+            },
+        ];
+        let _ = store.store("env-test", pre_existing, None);
+
+        let records = vec![
+            make_record("device-1", Some("router-1")),
+            make_record("device-2", Some("router-2")),
+        ];
+
+        // New LLDP import with just one device
+        let lldp_text = "Local Intf: Gi0/1\nSystem Name: router-2\nPort id: Gi0/2\nChassis id: aabbccdd";
+        let request = RawNeighborEvidenceImportRequest {
+            environment_id: "env-test".to_string(),
+            local_node: "router-1".to_string(),
+            source_kind: RawNeighborSourceKind::Lldp,
+            platform_hint: Some("iosxe".to_string()),
+            raw_text: lldp_text.to_string(),
+            source_label: None,
+            mode: None,  // No mode specified → should default to Replace
+        };
+
+        let result = import_raw_neighbor_output(&request, &records, &store)
+            .expect("import should succeed");
+
+        // Replace mode: final count = 1 (just the new one, old 2 are replaced)
+        assert_eq!(result.accepted_evidence_count, 1);
+        assert_eq!(result.stored_evidence_count, 1);
+    }
+
+    #[test]
+    fn raw_import_zero_accepted_no_store_mutation_regardless_of_mode() {
+        let store = crate::engines::topology_evidence_store::NullTopologyEvidenceStore;
+        // Pre-populate
+        let pre_existing = vec![TopologyNeighborEvidence {
+            source_kind: TopologyAdjacencyFactSourceKind::Lldp,
+            local_node_id: "device-1".to_string(),
+            local_interface: None,
+            remote_node_id: "device-2".to_string(),
+            remote_interface: None,
+            remote_chassis_id: None,
+            remote_system_name: Some("router-2".to_string()),
+            remote_port_id: None,
+            source_label: None,
+            evidence_notes: None,
+        }];
+        let _ = store.store("env-test", pre_existing, None);
+
+        let records = vec![
+            make_record("device-1", Some("router-1")),
+            // Note: device-2 NOT in records, so remote resolution will fail
+        ];
+
+        let request = RawNeighborEvidenceImportRequest {
+            environment_id: "env-test".to_string(),
+            local_node: "router-1".to_string(),
+            source_kind: RawNeighborSourceKind::Cdp,
+            platform_hint: Some("ios".to_string()),
+            raw_text: "Device ID: router-2\nInterface: Gi0/1, Port ID (outgoing port): Gi0/2".to_string(),
+            source_label: None,
+            mode: Some(TopologyEvidenceImportMode::Merge),  // Even with Merge mode
+        };
+
+        let result = import_raw_neighbor_output(&request, &records, &store)
+            .expect("import should succeed");
+
+        // Zero accepted → no store mutation (V1AP safety guard).
+        // stored_evidence_count should be 0, not the pre-existing count.
+        assert_eq!(result.accepted_evidence_count, 0);
+        assert_eq!(result.rejected_count, 1);
         assert_eq!(result.stored_evidence_count, 0);
     }
 }

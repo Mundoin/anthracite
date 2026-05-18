@@ -5,6 +5,8 @@ import type { TopologySourceView } from "../../../data/topologySource";
 import type {
   TopologyAdjacencyReadiness,
   RawNeighborEvidenceImportResult,
+  TopologyEvidenceMutationResult,
+  TopologyEvidenceSummary,
 } from "../../../types/topology";
 
 function defaultReadiness(
@@ -326,15 +328,18 @@ describe("TopologyMode", () => {
     ).toBeInTheDocument();
   });
 
-  it("no interactive controls outside the V1AO evidence-import panel", () => {
+  it("no interactive controls outside the evidence-import + V1AR clear panels", () => {
     render(<TopologyMode topology={makeView()} />);
     // V1AO adds an evidence-import panel with a textarea + Import button.
+    // V1AR adds a Clear button with confirmation checkbox.
     // No interactive controls anywhere else on the surface.
     const buttons = screen.queryAllByRole("button");
-    expect(buttons).toHaveLength(1);
-    expect(buttons[0]).toHaveAttribute(
-      "data-testid",
-      "tm-evidence-import-button"
+    const testids = buttons.map((b) => b.getAttribute("data-testid")).sort();
+    expect(testids).toEqual(
+      [
+        "tm-clear-button",
+        "tm-evidence-import-button",
+      ].sort()
     );
     const textboxes = screen.queryAllByRole("textbox");
     expect(textboxes).toHaveLength(1);
@@ -1434,6 +1439,7 @@ describe("TopologyMode", () => {
         platform_hint: null,
         raw_text: "some raw output",
         source_label: null,
+        mode: "replace",
       });
 
       const result = screen.getByTestId("tm-raw-import-result");
@@ -1661,6 +1667,400 @@ describe("TopologyMode", () => {
       expect(screen.getByTestId("tm-raw-output-textarea")).toBeInTheDocument();
       expect(screen.getByTestId("tm-raw-import-button")).toBeInTheDocument();
       expect(screen.getByTestId("tm-raw-platform-hint")).toBeInTheDocument();
+    });
+  });
+
+  describe("TopologyMode — V1AR Import mode + evidence summary + clear (UI)", () => {
+    it("renders import mode radio group with replace default", () => {
+      render(<TopologyMode topology={makeView()} />);
+      expect(screen.getByTestId("tm-import-mode-group")).toBeInTheDocument();
+      const replaceRadio = screen.getByTestId("tm-import-mode-replace") as HTMLInputElement;
+      expect(replaceRadio.checked).toBe(true);
+      const appendRadio = screen.getByTestId("tm-import-mode-append") as HTMLInputElement;
+      const mergeRadio = screen.getByTestId("tm-import-mode-merge") as HTMLInputElement;
+      expect(appendRadio.checked).toBe(false);
+      expect(mergeRadio.checked).toBe(false);
+    });
+
+    it("selecting append mode switches the radio", () => {
+      render(<TopologyMode topology={makeView()} />);
+      const replaceRadio = screen.getByTestId("tm-import-mode-replace") as HTMLInputElement;
+      const appendRadio = screen.getByTestId("tm-import-mode-append") as HTMLInputElement;
+      expect(replaceRadio.checked).toBe(true);
+      fireEvent.click(appendRadio);
+      expect(replaceRadio.checked).toBe(false);
+      expect(appendRadio.checked).toBe(true);
+    });
+
+    it("JSON import sends selected mode to callback", async () => {
+      const mockImport = vi.fn().mockResolvedValue({
+        mode: "merge",
+        previous_count: 0,
+        incoming_count: 2,
+        added_count: 2,
+        replaced_count: 0,
+        ignored_duplicate_count: 0,
+        final_count: 2,
+        evidence_set_id: "evset-x",
+        source_labels: [],
+        store_mutated: true,
+      } as TopologyEvidenceMutationResult);
+
+      render(
+        <TopologyMode topology={makeView()} onImportEvidence={mockImport} />
+      );
+
+      // Select merge mode
+      const mergeRadio = screen.getByTestId("tm-import-mode-merge");
+      fireEvent.click(mergeRadio);
+
+      // Ensure JSON tab is active
+      expect(screen.getByTestId("tm-evidence-tab-json")).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
+
+      // Fill and import
+      const textarea = screen.getByTestId("tm-evidence-import-textarea");
+      const importBtn = screen.getByTestId("tm-evidence-import-button");
+      const evidence = [
+        {
+          source_kind: "lldp" as const,
+          local_node_id: "r1",
+          local_interface: null,
+          remote_node_id: "r2",
+          remote_interface: null,
+          remote_chassis_id: null,
+          remote_system_name: null,
+          remote_port_id: null,
+          source_label: null,
+          evidence_notes: null,
+        },
+      ];
+
+      fireEvent.change(textarea, { target: { value: JSON.stringify(evidence) } });
+      fireEvent.click(importBtn);
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockImport).toHaveBeenCalledOnce();
+      expect(mockImport).toHaveBeenCalledWith(
+        "env-core-eu1",
+        evidence,
+        "merge"
+      );
+    });
+
+    it("raw import sends selected mode in request", async () => {
+      const mockImport = vi.fn().mockResolvedValue({
+        parsed_entries_total: 1,
+        accepted_evidence_count: 1,
+        rejected_count: 0,
+        unresolved_count: 0,
+        stored_evidence_count: 1,
+        evidence_set_id: "evset-y",
+        accepted_evidence: [],
+        rejected_entries: [],
+      } as RawNeighborEvidenceImportResult);
+
+      render(
+        <TopologyMode topology={makeView()} onImportRawNeighborOutput={mockImport} />
+      );
+
+      // Switch to raw tab
+      fireEvent.click(screen.getByTestId("tm-evidence-tab-raw"));
+
+      // Select append mode
+      const appendRadio = screen.getByTestId("tm-import-mode-append");
+      fireEvent.click(appendRadio);
+
+      // Fill form
+      fireEvent.change(screen.getByTestId("tm-raw-local-node"), {
+        target: { value: "router-a" },
+      });
+      fireEvent.change(screen.getByTestId("tm-raw-output-textarea"), {
+        target: { value: "raw lldp output" },
+      });
+
+      // Import
+      fireEvent.click(screen.getByTestId("tm-raw-import-button"));
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockImport).toHaveBeenCalledOnce();
+      const callArg = mockImport.mock.calls[0][0];
+      expect(callArg.mode).toBe("append");
+    });
+
+    it("JSON success feedback uses final_count from mutation result", async () => {
+      const mockImport = vi.fn().mockResolvedValue({
+        mode: "replace",
+        previous_count: 0,
+        incoming_count: 2,
+        added_count: 2,
+        replaced_count: 0,
+        ignored_duplicate_count: 0,
+        final_count: 2,
+        evidence_set_id: "evset-x",
+        source_labels: [],
+        store_mutated: true,
+      } as TopologyEvidenceMutationResult);
+
+      render(
+        <TopologyMode topology={makeView()} onImportEvidence={mockImport} />
+      );
+
+      const textarea = screen.getByTestId("tm-evidence-import-textarea");
+      const importBtn = screen.getByTestId("tm-evidence-import-button");
+      const evidence = [
+        {
+          source_kind: "lldp" as const,
+          local_node_id: "r1",
+          local_interface: null,
+          remote_node_id: "r2",
+          remote_interface: null,
+          remote_chassis_id: null,
+          remote_system_name: null,
+          remote_port_id: null,
+          source_label: null,
+          evidence_notes: null,
+        },
+        {
+          source_kind: "lldp" as const,
+          local_node_id: "r2",
+          local_interface: null,
+          remote_node_id: "r3",
+          remote_interface: null,
+          remote_chassis_id: null,
+          remote_system_name: null,
+          remote_port_id: null,
+          source_label: null,
+          evidence_notes: null,
+        },
+      ];
+
+      fireEvent.change(textarea, { target: { value: JSON.stringify(evidence) } });
+      fireEvent.click(importBtn);
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const feedback = screen.getByTestId("tm-evidence-import-feedback");
+      expect(feedback).toHaveTextContent("Imported 2 evidence records");
+      expect(feedback).toHaveTextContent("final: 2");
+    });
+
+    it("evidence summary renders when provided", () => {
+      const summary: TopologyEvidenceSummary = {
+        environment_id: "env-a",
+        evidence_count: 5,
+        source_labels: ["parser:nxos lldp", "manual"],
+        source_kind_counts: [
+          ["lldp", 3],
+          ["cdp", 2],
+          ["config_neighbor", 0],
+          ["manual", 0],
+        ],
+        evidence_set_id: "evset-y",
+      };
+
+      render(
+        <TopologyMode topology={makeView()} evidenceSummary={summary} />
+      );
+
+      const summarySection = screen.getByTestId("tm-evidence-summary");
+      expect(summarySection).toHaveTextContent("Active evidence count:");
+      expect(summarySection).toHaveTextContent("5");
+      expect(summarySection).toHaveTextContent("parser:nxos lldp");
+      expect(summarySection).toHaveTextContent("manual");
+      expect(summarySection).toHaveTextContent("lldp:3");
+      expect(summarySection).toHaveTextContent("cdp:2");
+      expect(summarySection).toHaveTextContent("config_neighbor:0");
+      expect(summarySection).toHaveTextContent("manual:0");
+    });
+
+    it("last mutation delta line renders when lastMutation present and store_mutated", () => {
+      const mutation: TopologyEvidenceMutationResult = {
+        mode: "merge",
+        previous_count: 3,
+        incoming_count: 2,
+        added_count: 1,
+        replaced_count: 0,
+        ignored_duplicate_count: 1,
+        final_count: 4,
+        evidence_set_id: null,
+        source_labels: [],
+        store_mutated: true,
+      };
+
+      render(
+        <TopologyMode topology={makeView()} lastMutation={mutation} />
+      );
+
+      const summarySection = screen.getByTestId("tm-evidence-summary");
+      expect(summarySection).toHaveTextContent("Last import:");
+      expect(summarySection).toHaveTextContent("mode=merge");
+      expect(summarySection).toHaveTextContent("previous=3");
+      expect(summarySection).toHaveTextContent("incoming=2");
+      expect(summarySection).toHaveTextContent("added=1");
+      expect(summarySection).toHaveTextContent("replaced=0");
+      expect(summarySection).toHaveTextContent("ignored duplicate=1");
+      expect(summarySection).toHaveTextContent("final=4");
+    });
+
+    it("last mutation block hidden when store_mutated is false", () => {
+      const mutation: TopologyEvidenceMutationResult = {
+        mode: "replace",
+        previous_count: 0,
+        incoming_count: 0,
+        added_count: 0,
+        replaced_count: 0,
+        ignored_duplicate_count: 0,
+        final_count: 0,
+        evidence_set_id: null,
+        source_labels: [],
+        store_mutated: false,
+      };
+
+      render(
+        <TopologyMode topology={makeView()} lastMutation={mutation} />
+      );
+
+      const summarySection = screen.getByTestId("tm-evidence-summary");
+      expect(summarySection).not.toHaveTextContent("Last import:");
+    });
+
+    it("clear button disabled until confirmation checkbox is checked", () => {
+      const mockClear = vi.fn();
+      render(
+        <TopologyMode
+          topology={makeView()}
+          onClearEvidence={mockClear}
+        />
+      );
+
+      const button = screen.getByTestId("tm-clear-button");
+      expect(button).toBeDisabled();
+
+      const checkbox = screen.getByTestId("tm-clear-confirm");
+      fireEvent.click(checkbox);
+
+      expect(button).not.toBeDisabled();
+    });
+
+    it("clear calls onClearEvidence and shows feedback with previous count", async () => {
+      const mockClear = vi.fn().mockResolvedValue({
+        mode: "replace",
+        previous_count: 7,
+        incoming_count: 0,
+        added_count: 0,
+        replaced_count: 0,
+        ignored_duplicate_count: 0,
+        final_count: 0,
+        evidence_set_id: null,
+        source_labels: [],
+        store_mutated: true,
+      } as TopologyEvidenceMutationResult);
+
+      render(
+        <TopologyMode
+          topology={makeView()}
+          onClearEvidence={mockClear}
+        />
+      );
+
+      const checkbox = screen.getByTestId("tm-clear-confirm");
+      const button = screen.getByTestId("tm-clear-button");
+
+      fireEvent.click(checkbox);
+      fireEvent.click(button);
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockClear).toHaveBeenCalledOnce();
+      expect(mockClear).toHaveBeenCalledWith("env-core-eu1");
+
+      const feedback = screen.getByTestId("tm-clear-feedback");
+      expect(feedback).toHaveTextContent("Cleared: previous=7");
+      expect(feedback).toHaveTextContent("final=0");
+    });
+
+    it("clear button disabled when no environment", () => {
+      const mockClear = vi.fn();
+      render(
+        <TopologyMode
+          topology={makeView({ environmentId: null })}
+          onClearEvidence={mockClear}
+        />
+      );
+
+      const checkbox = screen.getByTestId("tm-clear-confirm");
+      const button = screen.getByTestId("tm-clear-button");
+
+      fireEvent.click(checkbox);
+
+      expect(button).toBeDisabled();
+    });
+
+    it("JSON success feedback shows 'No store mutation' when store_mutated is false", async () => {
+      const mockImport = vi.fn().mockResolvedValue({
+        mode: "replace",
+        previous_count: 2,
+        incoming_count: 0,
+        added_count: 0,
+        replaced_count: 0,
+        ignored_duplicate_count: 0,
+        final_count: 2,
+        evidence_set_id: null,
+        source_labels: [],
+        store_mutated: false,
+      } as TopologyEvidenceMutationResult);
+
+      render(
+        <TopologyMode topology={makeView()} onImportEvidence={mockImport} />
+      );
+
+      const textarea = screen.getByTestId("tm-evidence-import-textarea");
+      const importBtn = screen.getByTestId("tm-evidence-import-button");
+
+      fireEvent.change(textarea, { target: { value: "[]" } });
+      fireEvent.click(importBtn);
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const feedback = screen.getByTestId("tm-evidence-import-feedback");
+      expect(feedback).toHaveTextContent("No store mutation");
+    });
+
+    it("all V1AO/V1AP/V1AQ always-present testids preserved", () => {
+      render(<TopologyMode topology={makeView()} />);
+      // Always-present testids (panel container, JSON tab default contents, tabs)
+      expect(screen.getByTestId("tm-evidence-import")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-evidence-import-textarea")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-evidence-import-button")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-evidence-tab-json")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-evidence-tab-raw")).toBeInTheDocument();
+
+      // tm-evidence-import-feedback is conditional (env null or feedback set);
+      // tm-edge-list / tm-evidence-rejections are conditional (require edges/rejections);
+      // not asserted here. See dedicated tests for each conditional surface.
+
+      // Raw tab testids (after switching tabs)
+      fireEvent.click(screen.getByTestId("tm-evidence-tab-raw"));
+      expect(screen.getByTestId("tm-raw-source-kind-lldp")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-source-kind-cdp")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-local-node")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-output-textarea")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-import-button")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-platform-hint")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-raw-platform-hint-hint")).toBeInTheDocument();
+
+      expect(screen.getByTestId("tm-adjacency")).toBeInTheDocument();
+      expect(screen.getByTestId("tm-summary")).toBeInTheDocument();
     });
   });
 });

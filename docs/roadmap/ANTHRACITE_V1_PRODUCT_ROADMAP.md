@@ -282,7 +282,20 @@ diagnostics. Remaining work in Stage Group 2:
   behaviour. FortiOS and MikroTik are explicitly unsupported with
   honest UnsupportedFormat rejections. Exact resolver, V1AO store,
   V1AN mapper, V1AM projection all reused unchanged.
-- **Vendor Parser LLDP/CDP/Config-Neighbour Extraction (post-V1AQ).** Vendor parsers produce
+- **Evidence Set Management + Merge Semantics (V1AR).** Topology
+  evidence store gains explicit import modes (`replace` /
+  `append` / `merge`) with deterministic dedup on 5-tuple
+  `(source_kind, local_node, local_iface, remote_node, remote_iface)`.
+  Source labels and evidence notes merge with lex-sorted joins.
+  Empty incoming never wipes — only explicit
+  `clear_topology_neighbor_evidence` does. New
+  `get_topology_evidence_summary` exposes active counts, labels, and
+  per-kind breakdowns. TopologyMode adds mode radio, Evidence
+  Summary panel, and Clear-with-confirmation. V1AM/V1AN/V1AP/V1AQ
+  pipeline reused unchanged downstream; future live SSH and
+  automated parser ingestion plug into the managed store via
+  Append/Merge instead of blind REPLACE.
+- **Vendor Parser LLDP/CDP/Config-Neighbour Extraction (post-V1AR).** Vendor parsers produce
   `Vec<TopologyNeighborEvidence>` from their LLDP, CDP, and config-neighbour
   extractors. Call `TopologyEngine::project_with_neighbor_evidence(env, records, evidence)`.
   Flip `present: true` on relevant sources; state auto-transitions; edge count

@@ -270,6 +270,27 @@ no parser-lab edits, no DeviceModel mutation, no live polling, no fuzzy matching
 parser-driven extraction, broader vendor coverage, SSH-based live ingestion all plug into same pipeline. See
 `TOPOLOGY_ENGINE_BOUNDARY.md` V1AQ section for dispatcher routing rules, platform mismatch handling, and design decisions.
 
+### V1AR addition
+
+V1AR lands explicit import modes and deterministic merge semantics for the topology evidence store. New Rust types:
+`TopologyEvidenceImportMode` enum (Replace | Append | Merge), `TopologyEvidenceMutationResult` struct (mode, counts,
+set_id, store_mutated), `TopologyEvidenceSummary` struct (env_id, evidence_count, dedup'd labels, per-kind counts).
+New helpers: `replace_topology_evidence`, `append_topology_evidence`, `merge_topology_evidence`, `summarize_topology_evidence`,
+`apply_evidence_import`. Merge dedup key: 5-tuple `(source_kind, local_node_id, local_interface, remote_node_id,
+remote_interface)` with exact equality. Merge field policy: source_label and evidence_notes join with separators
+(lex-sorted); chassis/system/port prefer non-None. No-mutation safety guard: empty incoming never writes store, all
+modes. Tauri command changes: `import_topology_neighbor_evidence` return type → `TopologyEvidenceMutationResult`;
+`clear_topology_neighbor_evidence` return type → `TopologyEvidenceMutationResult`; `import_topology_neighbor_output`
+request gains `mode: Option<TopologyEvidenceImportMode>`; NEW `get_topology_evidence_summary(env) -> TopologyEvidenceSummary`.
+Default mode: Replace (backwards compat with V1AO/V1AP/V1AQ callers). UI: mode radio above tabs (Replace/Append/Merge);
+Evidence Summary panel (counts, labels, kinds, delta); Clear button with confirmation checkbox. Honest wording: "Replace
+current evidence", "Append", "Merge and deduplicate", never "Auto-merge"/"Smart dedup"/"Polling". Scope-out strict:
+no new store, no history, no timestamps, no vendor parser changes, no live polling, no fuzzy, no V1AM/V1AN/V1AQ logic
+changes. V1AO `TopologyEvidenceSet` fields unchanged. Same V1AM/V1AN/V1AP/V1AQ pipeline downstream. Future hook:
+live SSH and automated parser ingestion plug into managed store via Append/Merge instead of blind REPLACE. See
+`TOPOLOGY_ENGINE_BOUNDARY.md` V1AR section for modes, dedup key, field merge policy, safety guard, command signatures,
+summary contract, UI layout, and design decisions.
+
 ---
 
 ## Monitoring / Polling Engine

@@ -977,6 +977,156 @@ changes needed.
 
 ---
 
+## V1AR — Evidence Set Management + Merge Semantics
+
+### Status
+
+V1AR lands explicit import modes and deterministic merge semantics for the topology
+evidence store. Operators build evidence gradually: paste LLDP from one device, append
+CDP from another, merge duplicates with safe dedup. No-mutation safety guard prevents
+accidental wipes through the import path; only explicit `clear_topology_neighbor_evidence`
+wipes stored evidence. Evidence summary exposes active counts, dedup'd source labels, and
+per-kind breakdowns. Same V1AM/V1AN/V1AO/V1AP/V1AQ pipeline unchanged downstream; V1AR
+sits between import and store as a managed evidence layer ready for future live SSH and
+automated parser extraction.
+
+### What V1AR adds
+
+**New types in `src-tauri/src/engines/topology_evidence_store.rs`:**
+
+- `TopologyEvidenceImportMode` enum: `Replace`, `Append`, `Merge`.
+- `TopologyEvidenceMutationResult` struct carrying `mode`, `previous_count`, `incoming_count`,
+  `added_count`, `replaced_count`, `ignored_duplicate_count`, `final_count`, `evidence_set_id`,
+  `source_labels`, `store_mutated`.
+- `TopologyEvidenceSummary` struct carrying `environment_id`, `evidence_count`, `source_labels`,
+  `source_kind_counts`, `evidence_set_id`.
+
+**New helpers in `src-tauri/src/engines/topology_evidence_store.rs`:**
+
+- `replace_topology_evidence(existing, incoming) -> (Vec<TopologyNeighborEvidence>, MergeStats)`
+- `append_topology_evidence(existing, incoming) -> (Vec<TopologyNeighborEvidence>, MergeStats)`
+- `merge_topology_evidence(existing, incoming) -> (Vec<TopologyNeighborEvidence>, MergeStats)`
+- `summarize_topology_evidence(env_id, evidence, evidence_set_id) -> TopologyEvidenceSummary`
+- `apply_evidence_import(store, env_id, incoming, mode, source_label) -> Result<TopologyEvidenceMutationResult, ...>`
+
+**Updated Tauri commands:**
+
+- `import_topology_neighbor_evidence(env, evidence, source_label, mode: Option<TopologyEvidenceImportMode>) -> Result<TopologyEvidenceMutationResult, String>` — return type CHANGED.
+- `clear_topology_neighbor_evidence(env) -> Result<TopologyEvidenceMutationResult, String>` — return type CHANGED.
+- `import_topology_neighbor_output(request)` — `RawNeighborEvidenceImportRequest` gains `mode: Option<TopologyEvidenceImportMode>`; result shape unchanged.
+- NEW `get_topology_evidence_summary(env) -> TopologyEvidenceSummary`.
+- `get_topology_neighbor_evidence` UNCHANGED.
+
+### Import modes
+
+- **Replace:** Discard existing; incoming becomes final. Preserves V1AO behaviour when no mode passed (default).
+- **Append:** `existing + incoming` concatenated in order. No dedup at evidence layer. V1AM downstream still dedups at edge layer so visible edges stay stable; evidence list grows.
+- **Merge:** Iterate incoming in order; matching dedup-key against existing → merge in-place at existing position. Non-matching incoming → appended after all existing in incoming order.
+
+### Merge dedup key
+
+5-tuple exact equality: `(source_kind, local_node_id, local_interface, remote_node_id, remote_interface)`.
+Includes `Option::None == Option::None` for interface fields.
+
+### Merge field policy
+
+When duplicate found via 5-tuple match:
+
+- `source_label`: both Some + different → `"{a}; {b}"` lex-sorted. Identical → keep one. One Some, one None → Some. Both None → None.
+- `evidence_notes`: same policy with `" | "` separator.
+- `remote_chassis_id` / `remote_system_name` / `remote_port_id`: prefer existing if Some, else incoming if Some, else None.
+
+### No-mutation safety guard
+
+If `incoming.is_empty()` for ANY mode (Replace, Append, Merge), store is NOT mutated. Mutation result reflects no change. This tightens V1AO behaviour — previously `import([])` with Replace would wipe the store; V1AR forbids accidental wipes. Operators clear via explicit `clear_topology_neighbor_evidence` command.
+
+### Scope-out (V1AR strict)
+
+- **No new evidence store.** V1AO `JsonFileTopologyEvidenceStore` unchanged.
+- **No second persistence layer, no history database, no audit log.**
+- **No timestamps, no `imported_at`, no clock.** Deterministic only.
+- **No vendor parser engine changes.** `parser-lab/` unchanged.
+- **No `expected.json` changes, no parser version bumps.**
+- **No DeviceModel mutation, no Discovery semantic change.**
+- **No live polling / SSH / SNMP / scanning.**
+- **No graph visualisation library.**
+- **No fuzzy matching.** V1AP `resolve_node_id` UNCHANGED.
+- **No V1AM / V1AN / V1AQ logic change.**
+- **`TopologyEvidenceSet` (V1AO persisted shape) fields UNCHANGED.**
+- **No AGENTS.md / CLAUDE.md / validator / rule pack / parser-lab / `.codex/` touches.**
+
+### Design decisions
+
+**1. Deterministic dedup on 5-tuple, exact equality only.**
+
+Merge is deterministic: same evidence in same order → byte-identical result. No fuzzy, no
+heuristic matching. Dedup key captures the core adjacency fact: kind + local device + local
+iface + remote device + remote iface.
+
+**2. No-mutation safety guard prevents wipe-by-accident.**
+
+Empty incoming is rejected across all modes. Accidental clipboard clear or failed paste
+cannot trigger a silent store wipe. Only explicit `clear_topology_neighbor_evidence` wipes.
+
+**3. Merge field policy preserves evidence.**
+
+Both source_label and evidence_notes join with separators (lex-sorted for determinism).
+Chassis/system/port fields prefer non-None values. No lossy truncation.
+
+**4. Default mode is Replace for backwards compat.**
+
+V1AO / V1AP / V1AQ callers and tests that pass `mode: None` default to Replace, matching
+prior one-import-clears-all semantics. Explicit mode choice is optional.
+
+### Summary readback contract
+
+`get_topology_evidence_summary(env)` returns:
+
+- `environment_id`: active scope.
+- `evidence_count`: total rows in store.
+- `source_labels`: all unique labels, lex-sorted, dedup'd.
+- `source_kind_counts`: Vec of (Lldp/Cdp/ConfigNeighbor/Manual, count) in stable order.
+- `evidence_set_id`: None for V1AR (no set-id readback path through summary; mutation result carries id when written).
+
+### UI surface
+
+- **Mode radio** (Replace / Append / Merge) above import-panel tabs. Default Replace. Mode shared by JSON and Raw forms.
+- **Evidence Summary panel** showing active count, dedup'd source labels, per-kind counts, last mutation delta.
+- **Clear button** with confirmation checkbox. Checkbox must be checked to enable button.
+- **Auto-refresh** of summary after import/clear.
+- **Honest wording:** "Replace current evidence", "Append to current evidence", "Merge and deduplicate", "Active evidence", "Source labels", "Source kinds", "Last import", "Clear evidence for this environment" (confirmation: "I understand this will remove all evidence for this environment.").
+- **NEVER:** "Auto-merge", "Smart dedup", "Polling", "Live discovery".
+- All V1AO/V1AP/V1AQ testids preserved.
+
+### Default mode semantics
+
+When `mode: None` (legacy callers), behaves as Replace. Backwards compat preserved. Operator
+or caller chooses explicit mode for Append/Merge workflows.
+
+### Clear command contract
+
+`clear_topology_neighbor_evidence(env)` returns `TopologyEvidenceMutationResult` with
+`{ mode: Replace, previous_count: existing.len, replaced_count: existing.len, final_count: 0, store_mutated: true }`.
+
+### Future hook
+
+V1AR provides managed evidence store ready for:
+
+- Live SSH-driven evidence collection (driver stages call `import` with `mode: Append` or `Merge`).
+- Automated parser extraction (vendor parsers call same import path with explicit mode).
+- Evidence audit and rollback (future stage may add versioning on top of V1AR's deterministic merges).
+
+All plug into the same V1AP/V1AQ/V1AN/V1AM/V1AO pipeline. No orchestrator or resolver rework.
+
+### Cross-links
+
+- [`TOPOLOGY_ENGINE_BOUNDARY.md`](./TOPOLOGY_ENGINE_BOUNDARY.md) — Boundary and determinism.
+- [`ENGINE_AND_API_BOUNDARIES.md`](./ENGINE_AND_API_BOUNDARIES.md) — Topology Engine V1AR addition.
+- `src-tauri/src/engines/topology_evidence_store.rs` — Rust implementation + modes + helpers + summary.
+- `obsidian/stages/V1AR-evidence-set-management.md` — Stage note.
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine
