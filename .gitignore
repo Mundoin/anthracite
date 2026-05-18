@@ -83,3 +83,9 @@ obsidian/.obsidian/
 
 # claudestat auto-generated handoff (local tool, not repo artifact)
 HANDOFF.md
+
+# --- Local agent working surfaces (V1AI-A hygiene) ---
+# Codex's local working tree — never tracked.
+.codex/
+# Stray Windows redirect artifact.
+nul
