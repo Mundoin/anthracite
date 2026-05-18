@@ -69,6 +69,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1AI-A | complete · Product roadmap checkpoint + agent-local hygiene (docs-only) — 3-group roadmap, parser-prep lane, `.codex/`/`nul` ignored | [stages/V1AI-A-roadmap-checkpoint.md](./stages/V1AI-A-roadmap-checkpoint.md) |
 | V1AJ  | complete · Topology read model + workspace v1 — TopologyEngine spine, get_topology_view command, TopologyMode list/grid, source state honest | [stages/V1AJ-topology-read-model-and-workspace.md](./stages/V1AJ-topology-read-model-and-workspace.md) |
 | V1AK  | complete · Discovery Inventory Browser — operator-facing read-only browser inside Hierarchy Devices detail, live source state, three-body-state (unavailable/empty/loaded), record detail | [stages/V1AK-discovery-inventory-browser.md](./stages/V1AK-discovery-inventory-browser.md) |
+| V1AL  | complete · Topology Adjacency Readiness — 4 fact-source categories (LLDP/CDP/config-neighbor/manual) declared with present:false; state machine (NoneAvailable→Partial→Ready) auto-transitions on future ingestion; TopologyMode adds "Adjacency readiness" section; 0 reliable links honest | [stages/V1AL-topology-adjacency-readiness.md](./stages/V1AL-topology-adjacency-readiness.md) |
 
 ## V1J-A adaptation
 

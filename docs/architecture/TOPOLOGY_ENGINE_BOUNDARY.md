@@ -227,6 +227,188 @@ List/grid only. Graph rendering is deferred to a future stage with Babylon integ
 
 ---
 
+## V1AL — Adjacency Readiness Contract
+
+Topology projection needs to answer the operator question: **Why are there no edges, and
+what future link-fact sources will populate them?** V1AL introduces deterministic
+adjacency readiness tracking without inventing fake edges.
+
+### What V1AL adds
+
+**Four new Rust types:**
+
+```rust
+pub enum TopologyAdjacencyFactSourceState {
+    NoneAvailable,      // V1AL: all fact sources absent (present: false, count: 0)
+    Partial,             // Future: some sources ready, some absent
+    Ready,              // Future: all sources online and ingesting
+}
+
+pub enum TopologyAdjacencyFactSourceKind {
+    Lldp,               // LLDP neighbours from config parsing
+    Cdp,                // CDP neighbours from config parsing
+    ConfigNeighbor,     // Config-derived adjacency (static routes, BGP, OSPF, etc.)
+    Manual,             // Operator-created / imported links
+}
+
+pub struct TopologyAdjacencyFactSource {
+    pub kind: TopologyAdjacencyFactSourceKind,
+    pub present: bool,              // Is this source currently ingesting facts?
+    pub count: usize,               // How many adjacency facts from this source?
+    pub note: String,               // Human-readable status or reason
+}
+
+pub struct TopologyAdjacencyReadiness {
+    pub eligible_node_count: usize,
+    pub fact_source_state: TopologyAdjacencyFactSourceState,
+    pub fact_sources: Vec<TopologyAdjacencyFactSource>,
+    pub accepted_kinds: Vec<TopologyAdjacencyFactSourceKind>,  // Closed contract
+    pub reason: String,
+}
+```
+
+**V1AL engine behaviour:**
+
+- `compute_adjacency_readiness(node_count: usize) -> TopologyAdjacencyReadiness`
+  helper (pure function, no I/O).
+- All 4 fact sources ship with `present: false, count: 0`.
+- State derived generically:
+  - All absent → `NoneAvailable`.
+  - Mixed present/absent → `Partial` (future).
+  - All present → `Ready` (future).
+- `eligible_node_count = nodes.len()` in V1AL (every projected node can receive edges).
+  Future stages may tighten this once role/layer inference constrains eligibility.
+- `accepted_kinds` always lists all four — the closed contract: "Topology knows
+  these four link-fact categories; none ingested yet."
+- Reason strings are stable per state (e.g. `"No adjacency fact sources available yet"`).
+
+**TopologyView extension:**
+
+```rust
+pub struct TopologyView {
+    pub source_state: TopologySourceState,  // existing
+    pub summary: TopologySummary,           // existing
+    pub nodes: Vec<TopologyNode>,           // existing
+    pub edges: Vec<TopologyEdge>,           // existing (empty in V1AL)
+    pub layers: Vec<TopologyLayer>,         // existing
+    pub adjacency_readiness: TopologyAdjacencyReadiness,  // NEW
+}
+```
+
+**TypeScript mirror (src/types/topology.ts):**
+
+```typescript
+export enum TopologyAdjacencyFactSourceState {
+  NoneAvailable = "none_available",
+  Partial = "partial",
+  Ready = "ready",
+}
+
+export enum TopologyAdjacencyFactSourceKind {
+  Lldp = "lldp",
+  Cdp = "cdp",
+  ConfigNeighbor = "config_neighbor",
+  Manual = "manual",
+}
+
+export interface TopologyAdjacencyFactSource {
+  kind: TopologyAdjacencyFactSourceKind;
+  present: boolean;
+  count: number;
+  note: string;
+}
+
+export interface TopologyAdjacencyReadiness {
+  eligible_node_count: number;
+  fact_source_state: TopologyAdjacencyFactSourceState;
+  fact_sources: TopologyAdjacencyFactSource[];
+  accepted_kinds: TopologyAdjacencyFactSourceKind[];
+  reason: string;
+}
+
+export interface TopologyView {
+  source_state: TopologySourceState;
+  summary: TopologySummary;
+  nodes: TopologyNode[];
+  edges: TopologyEdge[];
+  layers: TopologyLayer[];
+  adjacency_readiness: TopologyAdjacencyReadiness;  // NEW
+}
+```
+
+**TS API (src/api/topology.ts):** No change — wire shape flows via existing
+`get_topology_view` command.
+
+**Frontend (src/modes/topology/TopologyMode.tsx):**
+
+New "Adjacency readiness" section renders per-source rows:
+
+```
+Adjacency readiness
+
+[LLDP]                absent     —
+[CDP]                 absent     —
+[Config neighbor]     absent     —
+[Manual]              absent     —
+
+Reason: No adjacency fact sources available yet
+Eligible nodes: 42
+```
+
+Honest "0 reliable links" line preserved below.
+
+### Determinism contract
+
+Same Discovery records → same adjacency readiness bytes. No clock, random seed,
+or I/O. Pure projection.
+
+### State semantics (V1AL)
+
+| State | Meaning | Future transition path |
+|-------|---------|---|
+| `NoneAvailable` | No adjacency fact sources online; 0 reliable links | Flip `present: true` on first ingestion source (likely parser-derived LLDP/CDP) → state → `Partial` |
+| `Partial` | Mixed sources; some absent, some online | Flip remaining sources as their pipelines land → state → `Ready` |
+| `Ready` | All four sources online; edge count is the sum of all four | (Terminal state in steady state) |
+
+### Future hook
+
+When a fact-ingestion path lands (parser-derived neighbor facts likely first):
+
+1. Update the relevant source's `present: true` and supply real `count`.
+2. Recompute state automatically (already transitions correctly).
+3. TopologyMode re-renders without schema migration.
+
+### Operator visibility
+
+- All 4 accepted kinds visible at stage one, all marked absent.
+- Operator sees the closed contract: "Topology knows what link facts look like."
+- No fake edges. Honest "0 reliable links" co-exists with the readiness section.
+- When facts arrive, count increments; state auto-transitions; operator reads
+  "partial" or "ready" with specific source counts.
+
+### Scope-out (V1AL strict)
+
+- No edge inference, no fake adjacency, no topology guessing.
+- No parser/validator/Discovery/Inventory-browser changes.
+- No DeviceModel schema changes.
+- No new Tauri command — existing `get_topology_view` passes the readiness field.
+- No graph viz library, no Babylon.
+- No live polling, SSH, SNMP.
+- No DataSourceState extension or union changes.
+- No ModeRail / MODE_STATUS changes.
+- No AGENTS.md / CLAUDE.md / parser-lab / `.codex/` touches.
+
+### Cross-links
+
+- [`TOPOLOGY_ENGINE_BOUNDARY.md`](./TOPOLOGY_ENGINE_BOUNDARY.md) — Boundary and determinism.
+- [`ENGINE_AND_API_BOUNDARIES.md`](./ENGINE_AND_API_BOUNDARIES.md) — Topology Engine
+  extension section.
+- `src-tauri/src/engines/topology.rs` — Rust implementation + adjacency readiness helper.
+- `src/types/topology.ts` — TypeScript mirror.
+- `src/modes/topology/TopologyMode.tsx` — UI section for readiness display.
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine

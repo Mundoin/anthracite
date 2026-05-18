@@ -151,6 +151,22 @@ Frontend TopologyMode v1 renders read-only node list, source state via `DataSour
 summary (nodes/edges/records). No graph viz library; Babylon rendering deferred. See 
 `TOPOLOGY_ENGINE_BOUNDARY.md` for ownership, determinism contract, and future stages.
 
+### V1AL addition
+
+V1AL extends `TopologyView` with `adjacency_readiness: TopologyAdjacencyReadiness` — a deterministic 
+contract explaining why edges are absent and which future link-fact sources will populate them. 
+Four new Rust types define the readiness state machine: `TopologyAdjacencyFactSourceState` 
+(NoneAvailable | Partial | Ready), `TopologyAdjacencyFactSourceKind` (Lldp | Cdp | 
+ConfigNeighbor | Manual), `TopologyAdjacencyFactSource`, and `TopologyAdjacencyReadiness`. 
+All 4 fact sources ship V1AL with `present: false, count: 0`; state transitions automatically 
+when future ingestion stages flip `present: true`. `eligible_node_count` (V1AL: all nodes) 
+supports future tightening via role/layer constraints. No new command; existing `get_topology_view` 
+passes adjacency readiness. TS types mirror the Rust contract. TopologyMode adds "Adjacency 
+readiness" section rendering per-source rows; existing "0 reliable links" line preserved. 
+No edge inference, no fake adjacency, no parser/DeviceModel/ModeRail changes. Scope-out 
+strict: pure readiness visibility. See `TOPOLOGY_ENGINE_BOUNDARY.md` V1AL section for 
+types, state semantics, determinism, and future hook.
+
 ---
 
 ## Monitoring / Polling Engine

@@ -7,7 +7,7 @@
  * edges. Edges are absent in V1AJ until reliable link facts land.
  *
  * Doctrine: `docs/architecture/TOPOLOGY_ENGINE_BOUNDARY.md`
- * Stage: V1AJ
+ * Stage: V1AJ (initial) · V1AL (adjacency readiness)
  */
 
 export type TopologySourceState = "empty" | "real" | "unavailable";
@@ -72,4 +72,45 @@ export interface TopologyView {
   readonly edges: readonly TopologyEdge[];
   readonly summary: TopologySummary;
   readonly message: string;
+  // V1AL — adjacency readiness contract. Explains why edges are or are not
+  // available and which fact sources would be accepted. See
+  // `docs/architecture/TOPOLOGY_ENGINE_BOUNDARY.md` V1AL section.
+  readonly adjacency_readiness: TopologyAdjacencyReadiness;
+}
+
+// ---------------------------------------------------------------------
+// V1AL — Adjacency readiness wire shapes.
+// Mirrors `TopologyAdjacency*` types in src-tauri/src/engines/topology.rs.
+// Engine ships V1AL with all sources `present: false` — no fact ingestion
+// path exists yet. Honest "0 reliable links" stays in place.
+// ---------------------------------------------------------------------
+
+/** Top-level state for the adjacency layer specifically. Distinct from
+ *  `TopologySourceState` which describes nodes. */
+export type TopologyAdjacencyFactSourceState =
+  | "none_available"
+  | "partial"
+  | "ready";
+
+/** Closed set of link-fact source categories. V1AL ships all four with
+ *  `present: false` — no source ingestion path exists yet. */
+export type TopologyAdjacencyFactSourceKind =
+  | "lldp"
+  | "cdp"
+  | "config_neighbor"
+  | "manual";
+
+export interface TopologyAdjacencyFactSource {
+  readonly kind: TopologyAdjacencyFactSourceKind;
+  readonly present: boolean;
+  readonly count: number;
+  readonly note: string;
+}
+
+export interface TopologyAdjacencyReadiness {
+  readonly eligible_node_count: number;
+  readonly fact_source_state: TopologyAdjacencyFactSourceState;
+  readonly fact_sources: readonly TopologyAdjacencyFactSource[];
+  readonly accepted_kinds: readonly TopologyAdjacencyFactSourceKind[];
+  readonly reason: string;
 }

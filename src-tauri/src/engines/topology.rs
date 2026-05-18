@@ -83,6 +83,52 @@ pub struct TopologyEdge {
     pub source: TopologyEdgeSource,
 }
 
+/// V1AL — top-level state for the adjacency layer specifically.
+/// Distinct from `TopologySourceState` which describes nodes.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TopologyAdjacencyFactSourceState {
+    NoneAvailable,
+    Partial,
+    Ready,
+}
+
+/// V1AL — closed set of link-fact source categories. Mirrors
+/// `TopologyEdgeKind` discipline so future edge ingestion lines up.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TopologyAdjacencyFactSourceKind {
+    Lldp,
+    Cdp,
+    ConfigNeighbor,
+    Manual,
+}
+
+/// V1AL — per-source breakdown for the adjacency readiness report.
+/// `present: false` is honest "not connected" for that source;
+/// `present: true, count: 0` means source connected but no facts ingested.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TopologyAdjacencyFactSource {
+    pub kind: TopologyAdjacencyFactSourceKind,
+    pub present: bool,
+    pub count: u32,
+    pub note: String,
+}
+
+/// V1AL — top-level adjacency readiness contract.
+/// `eligible_node_count` (V1AL definition): nodes that could receive
+/// adjacency facts. Currently == nodes.len() because every node has a
+/// stable id. Future stages may tighten this once role/layer inference
+/// adds eligibility constraints.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TopologyAdjacencyReadiness {
+    pub eligible_node_count: u32,
+    pub fact_source_state: TopologyAdjacencyFactSourceState,
+    pub fact_sources: Vec<TopologyAdjacencyFactSource>,
+    pub accepted_kinds: Vec<TopologyAdjacencyFactSourceKind>,
+    pub reason: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TopologySummary {
     pub environment_id: Option<String>,
@@ -100,6 +146,75 @@ pub struct TopologyView {
     pub edges: Vec<TopologyEdge>,
     pub summary: TopologySummary,
     pub message: String,
+    pub adjacency_readiness: TopologyAdjacencyReadiness,
+}
+
+/// V1AL — compute deterministic adjacency readiness given the node count.
+/// Pure function. No clock, no I/O. Used by `project()` only.
+fn compute_adjacency_readiness(node_count: u32) -> TopologyAdjacencyReadiness {
+    // V1AL: no fact ingestion path exists. All four sources ship with
+    // present=false. State derived generically so future stages that
+    // flip a source `present: true` transition automatically.
+    let fact_sources = vec![
+        TopologyAdjacencyFactSource {
+            kind: TopologyAdjacencyFactSourceKind::Lldp,
+            present: false,
+            count: 0,
+            note: "LLDP fact ingestion not implemented".to_string(),
+        },
+        TopologyAdjacencyFactSource {
+            kind: TopologyAdjacencyFactSourceKind::Cdp,
+            present: false,
+            count: 0,
+            note: "CDP fact ingestion not implemented".to_string(),
+        },
+        TopologyAdjacencyFactSource {
+            kind: TopologyAdjacencyFactSourceKind::ConfigNeighbor,
+            present: false,
+            count: 0,
+            note: "Parser-derived neighbor facts not implemented".to_string(),
+        },
+        TopologyAdjacencyFactSource {
+            kind: TopologyAdjacencyFactSourceKind::Manual,
+            present: false,
+            count: 0,
+            note: "Manual adjacency entry surface not built".to_string(),
+        },
+    ];
+
+    let any_present = fact_sources.iter().any(|s| s.present);
+    let all_present = fact_sources.iter().all(|s| s.present);
+    let fact_source_state = if all_present {
+        TopologyAdjacencyFactSourceState::Ready
+    } else if any_present {
+        TopologyAdjacencyFactSourceState::Partial
+    } else {
+        TopologyAdjacencyFactSourceState::NoneAvailable
+    };
+
+    let reason = match fact_source_state {
+        TopologyAdjacencyFactSourceState::NoneAvailable =>
+            "no adjacency fact sources connected — edges remain empty".to_string(),
+        TopologyAdjacencyFactSourceState::Partial =>
+            "some adjacency fact sources connected; coverage incomplete".to_string(),
+        TopologyAdjacencyFactSourceState::Ready =>
+            "adjacency fact sources connected".to_string(),
+    };
+
+    let accepted_kinds = vec![
+        TopologyAdjacencyFactSourceKind::Lldp,
+        TopologyAdjacencyFactSourceKind::Cdp,
+        TopologyAdjacencyFactSourceKind::ConfigNeighbor,
+        TopologyAdjacencyFactSourceKind::Manual,
+    ];
+
+    TopologyAdjacencyReadiness {
+        eligible_node_count: node_count,
+        fact_source_state,
+        fact_sources,
+        accepted_kinds,
+        reason,
+    }
 }
 
 /// Stateless engine. V1AJ has no projection state — same input → same output.
@@ -176,6 +291,8 @@ impl TopologyEngine {
             source_record_count,
         };
 
+        let adjacency_readiness = compute_adjacency_readiness(node_count);
+
         TopologyView {
             environment_id: environment_id.map(|s| s.to_string()),
             source_state,
@@ -183,6 +300,7 @@ impl TopologyEngine {
             edges,
             summary,
             message,
+            adjacency_readiness,
         }
     }
 }
@@ -417,5 +535,200 @@ mod tests {
         let state = TopologySourceState::Empty;
         let s = serde_json::to_string(&state).expect("serialization failed");
         assert_eq!(s, "\"empty\"");
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // V1AL — Adjacency Readiness Tests
+    // ────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn adjacency_readiness_present_when_no_records() {
+        let engine = TopologyEngine::new();
+        let view = engine.project(Some("env"), &[]);
+        assert_eq!(view.adjacency_readiness.eligible_node_count, 0);
+        assert_eq!(
+            view.adjacency_readiness.fact_source_state,
+            TopologyAdjacencyFactSourceState::NoneAvailable
+        );
+        assert_eq!(view.adjacency_readiness.fact_sources.len(), 4);
+        assert_eq!(view.adjacency_readiness.accepted_kinds.len(), 4);
+        assert!(view.adjacency_readiness.reason.contains("no adjacency fact sources connected"));
+        assert!(view.adjacency_readiness.reason.contains("edges remain empty"));
+    }
+
+    #[test]
+    fn adjacency_readiness_eligible_count_matches_nodes_in_v1al() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+            make_record("rec3", "env-a", Some("r3"), None, None),
+        ];
+        let view = engine.project(Some("env-a"), &records);
+        assert_eq!(view.adjacency_readiness.eligible_node_count, 3);
+        assert_eq!(view.nodes.len(), 3);
+        assert_eq!(view.adjacency_readiness.eligible_node_count as usize, view.nodes.len());
+    }
+
+    #[test]
+    fn adjacency_fact_sources_all_absent_in_v1al() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let view = engine.project(Some("env-a"), &records);
+        for source in &view.adjacency_readiness.fact_sources {
+            assert!(!source.present, "source {:?} should not be present", source.kind);
+            assert_eq!(source.count, 0, "source {:?} should have count 0", source.kind);
+        }
+    }
+
+    #[test]
+    fn adjacency_fact_source_state_is_none_available_in_v1al() {
+        let engine = TopologyEngine::new();
+        let record = make_record("rec1", "env-a", Some("router-1"), None, None);
+        let view = engine.project(Some("env-a"), &[record]);
+        assert_eq!(
+            view.adjacency_readiness.fact_source_state,
+            TopologyAdjacencyFactSourceState::NoneAvailable
+        );
+    }
+
+    #[test]
+    fn adjacency_fact_sources_ordered_stably() {
+        let engine = TopologyEngine::new();
+        let record = make_record("rec1", "env-a", Some("r1"), None, None);
+        let view = engine.project(Some("env-a"), &[record]);
+        // Fact sources must be: lldp, cdp, config_neighbor, manual (stable order)
+        assert_eq!(
+            view.adjacency_readiness.fact_sources[0].kind,
+            TopologyAdjacencyFactSourceKind::Lldp
+        );
+        assert_eq!(
+            view.adjacency_readiness.fact_sources[1].kind,
+            TopologyAdjacencyFactSourceKind::Cdp
+        );
+        assert_eq!(
+            view.adjacency_readiness.fact_sources[2].kind,
+            TopologyAdjacencyFactSourceKind::ConfigNeighbor
+        );
+        assert_eq!(
+            view.adjacency_readiness.fact_sources[3].kind,
+            TopologyAdjacencyFactSourceKind::Manual
+        );
+        // Same order for accepted_kinds
+        assert_eq!(
+            view.adjacency_readiness.accepted_kinds[0],
+            TopologyAdjacencyFactSourceKind::Lldp
+        );
+        assert_eq!(
+            view.adjacency_readiness.accepted_kinds[1],
+            TopologyAdjacencyFactSourceKind::Cdp
+        );
+        assert_eq!(
+            view.adjacency_readiness.accepted_kinds[2],
+            TopologyAdjacencyFactSourceKind::ConfigNeighbor
+        );
+        assert_eq!(
+            view.adjacency_readiness.accepted_kinds[3],
+            TopologyAdjacencyFactSourceKind::Manual
+        );
+    }
+
+    #[test]
+    fn adjacency_accepted_kinds_lists_all_four_categories() {
+        let engine = TopologyEngine::new();
+        let record = make_record("rec1", "env-a", Some("r1"), None, None);
+        let view = engine.project(Some("env-a"), &[record]);
+        assert_eq!(view.adjacency_readiness.accepted_kinds.len(), 4);
+        let contains_lldp = view
+            .adjacency_readiness
+            .accepted_kinds
+            .contains(&TopologyAdjacencyFactSourceKind::Lldp);
+        let contains_cdp = view
+            .adjacency_readiness
+            .accepted_kinds
+            .contains(&TopologyAdjacencyFactSourceKind::Cdp);
+        let contains_config = view
+            .adjacency_readiness
+            .accepted_kinds
+            .contains(&TopologyAdjacencyFactSourceKind::ConfigNeighbor);
+        let contains_manual = view
+            .adjacency_readiness
+            .accepted_kinds
+            .contains(&TopologyAdjacencyFactSourceKind::Manual);
+        assert!(contains_lldp && contains_cdp && contains_config && contains_manual);
+    }
+
+    #[test]
+    fn adjacency_reason_stable_string_when_none_available() {
+        let engine = TopologyEngine::new();
+        let record = make_record("rec1", "env-a", Some("r1"), None, None);
+        let view = engine.project(Some("env-a"), &[record]);
+        let reason = &view.adjacency_readiness.reason;
+        assert_eq!(
+            reason,
+            "no adjacency fact sources connected — edges remain empty"
+        );
+    }
+
+    #[test]
+    fn adjacency_readiness_serialises_snake_case_state_and_kinds() {
+        let state = TopologyAdjacencyFactSourceState::NoneAvailable;
+        let s = serde_json::to_string(&state).expect("serialization failed");
+        assert_eq!(s, "\"none_available\"");
+
+        let state = TopologyAdjacencyFactSourceState::Partial;
+        let s = serde_json::to_string(&state).expect("serialization failed");
+        assert_eq!(s, "\"partial\"");
+
+        let state = TopologyAdjacencyFactSourceState::Ready;
+        let s = serde_json::to_string(&state).expect("serialization failed");
+        assert_eq!(s, "\"ready\"");
+
+        let kind = TopologyAdjacencyFactSourceKind::ConfigNeighbor;
+        let s = serde_json::to_string(&kind).expect("serialization failed");
+        assert_eq!(s, "\"config_neighbor\"");
+
+        let kind = TopologyAdjacencyFactSourceKind::Lldp;
+        let s = serde_json::to_string(&kind).expect("serialization failed");
+        assert_eq!(s, "\"lldp\"");
+    }
+
+    #[test]
+    fn adjacency_readiness_is_deterministic_across_calls() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let view1 = engine.project(Some("env-a"), &records);
+        let view2 = engine.project(Some("env-a"), &records);
+        assert_eq!(
+            view1.adjacency_readiness,
+            view2.adjacency_readiness,
+            "adjacent readiness must be deterministic"
+        );
+    }
+
+    #[test]
+    fn adjacency_readiness_does_not_invent_edges() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+            make_record("rec3", "env-a", Some("r3"), None, None),
+        ];
+        let view = engine.project(Some("env-a"), &records);
+        assert!(view.edges.is_empty(), "edges must remain empty");
+        assert_eq!(view.summary.edge_count, 0);
+        for source in &view.adjacency_readiness.fact_sources {
+            assert_eq!(
+                source.count, 0,
+                "fact source {:?} must have count 0 in V1AL",
+                source.kind
+            );
+        }
     }
 }

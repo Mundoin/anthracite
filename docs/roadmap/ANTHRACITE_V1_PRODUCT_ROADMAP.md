@@ -59,6 +59,11 @@ Everything else is a placeholder, an empty contract, or doctrine without code.
   records with live source state and record detail. Three-state surface: unavailable /
   empty / loaded. No mutation semantics. DETAIL_SUBNAV count derives from live
   `sourceRecordCount` when real, falls back to seed otherwise.
+- **Topology Adjacency Readiness (V1AL).** TopologyView extended with deterministic 
+  adjacency readiness contract (4 fact-source categories: LLDP, CDP, config-neighbor, 
+  manual). All sources ship V1AL with `present: false, count: 0`; state auto-transitions 
+  when future fact-ingestion stages flip present. TopologyMode adds "Adjacency readiness" 
+  section; honest "0 reliable links" preserved. No edge inference, no fake adjacency.
 
 ---
 
@@ -184,10 +189,10 @@ OCC owns parser code; Codex owns fixture/coverage/intent prep.
 
 ### Stage Group 2 — Topology Comes Alive
 
-**Purpose.** Start consuming persisted Discovery inventory. Build the first
-topology read contract, then a visible topology workspace.
+**Status:** Adjacency readiness contract declared (V1AL). Remaining work: fact ingestion
+(parser-derived neighbor facts likely first) + future edge rendering.
 
-**Topology Engine spine:**
+**Topology Engine spine (V1AJ):**
 
 - Rust Topology Engine reads persisted Discovery records via
   `inventory_view(env)`.
@@ -199,7 +204,17 @@ topology read contract, then a visible topology workspace.
 - DeviceModel-backed Discovery records are the *only* source.
 - Engine is pure: same Discovery snapshot → same graph bytes.
 
-**Topology mode body v1:**
+**Adjacency Readiness (V1AL):**
+
+- TopologyView extended with deterministic adjacency readiness contract.
+- Four fact-source categories (LLDP, CDP, config-neighbor, manual) declared.
+- All sources ship V1AL with `present: false, count: 0`.
+- State machine (NoneAvailable → Partial → Ready) auto-transitions when future
+  fact ingestion stages flip `present: true` on sources.
+- TopologyMode adds "Adjacency readiness" section with per-source visibility.
+- Honest "0 reliable links" preserved; no fake edges.
+
+**Topology mode body v1 (V1AJ):**
 
 - Visible topology workspace rendered from the persisted Discovery
   records of the active environment.
@@ -209,6 +224,14 @@ topology read contract, then a visible topology workspace.
   already feel like Anthracite from stage one.
 - Honest empty / partial / loaded states surfaced with DataSourceTag.
 - No interactive editing in v1.
+
+**Next in Stage Group 2:**
+
+- **Edge Inference.** Implement fact ingestion paths (parser-derived LLDP/CDP
+  neighbors likely first). Flip `present: true` on relevant sources; state
+  auto-transitions; edge count increments.
+- **Edge Rendering.** Babylon.js integration for interactive 2D/3D topology
+  graph visualization; camera, node selection, drill-down.
 
 ---
 
