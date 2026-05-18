@@ -201,6 +201,28 @@ unchanged — still passes zero evidence, still shows zero edges and NoneAvailab
 no DeviceModel mutation, no new Tauri command. See `TOPOLOGY_ENGINE_BOUNDARY.md` V1AN section for evidence 
 model, acceptance rules, and future hook.
 
+### V1AO addition
+
+V1AO lands the first persisted explicit-evidence source for the topology pipeline. New Rust `TopologyEvidenceStore` 
+trait owns read/write/clear contract; `NullTopologyEvidenceStore` (no-op, tests/cold-start) and 
+`JsonFileTopologyEvidenceStore` (one JSON file per environment at `{app_data}/topology_evidence/{env_id}.json`, 
+schema-versioned `"v1"`, corrupt/missing → empty Vec, honest) provide implementations. New `TopologyEvidenceSet` 
+struct carries `schema_version`, `environment_id`, `evidence_set_id` (deterministic from env+content hash), 
+`source_label`, `evidence_count`, and `evidence` array. `TopologyView` gains two new required fields: 
+`projection_stats: ProjectionStats` and `evidence_stats: NeighborEvidenceMappingStats` (both surfaced to 
+operator/test layer, additive wire). Tauri builder registers `Box<dyn TopologyEvidenceStore>` as state; 
+three new commands: `import_topology_neighbor_evidence(environment_id, evidence, source_label) -> TopologyEvidenceSet`, 
+`get_topology_neighbor_evidence(environment_id) -> Vec<TopologyNeighborEvidence>`, 
+`clear_topology_neighbor_evidence(environment_id) -> Result<(), String>`. Existing `get_topology_view` 
+signature unchanged (adds injected store state internally); command path now reads from store and calls 
+`project_with_neighbor_evidence(env, records, &evidence)` (equivalent to V1AN with zero evidence when store empty). 
+Import REPLACES env's evidence (not append); `evidence_set_id` deterministic across runs. TopologyMode gains 
+"Imported neighbour evidence" panel (textarea + Import button, header intentionally "Imported" not "Live discovery"), 
+rejection-counts banner (accepted/total + per-category breakdown), and edge list/table (no graph viz library). 
+No parser changes, no parser-lab changes, no hostname matching, no background polling, no DeviceModel mutation, 
+no new validator/rule pack changes. Backwards-compat: empty store → V1AN behaviour. See `TOPOLOGY_ENGINE_BOUNDARY.md` 
+V1AO section for store contract, command surface, and operator UI surface.
+
 ---
 
 ## Monitoring / Polling Engine

@@ -203,6 +203,8 @@ pub struct TopologyView {
     pub summary: TopologySummary,
     pub message: String,
     pub adjacency_readiness: TopologyAdjacencyReadiness,
+    pub projection_stats: ProjectionStats,
+    pub evidence_stats: NeighborEvidenceMappingStats,
 }
 
 /// V1AM — compute deterministic adjacency readiness given node count and fact counts.
@@ -573,7 +575,7 @@ impl TopologyEngine {
     ) -> TopologyView {
         let nodes = build_nodes(records);
 
-        let (edges, stats) = project_edges_from_link_facts(&nodes, facts);
+        let (edges, projection_stats) = project_edges_from_link_facts(&nodes, facts);
 
         let node_count = nodes.len() as u32;
         let edge_count = edges.len() as u32;
@@ -608,7 +610,7 @@ impl TopologyEngine {
             source_record_count,
         };
 
-        let adjacency_readiness = compute_adjacency_readiness(node_count, &stats.per_kind_counts);
+        let adjacency_readiness = compute_adjacency_readiness(node_count, &projection_stats.per_kind_counts);
 
         TopologyView {
             environment_id: environment_id.map(|s| s.to_string()),
@@ -618,11 +620,13 @@ impl TopologyEngine {
             summary,
             message,
             adjacency_readiness,
+            projection_stats,
+            evidence_stats: NeighborEvidenceMappingStats::default(),
         }
     }
 
     /// V1AN — deterministic projection from Discovery records and neighbor evidence.
-    /// Maps evidence to facts, then projects using `project_with_facts`.
+    /// Maps evidence to facts, projects, and populates both projection_stats and evidence_stats.
     /// Pure function — no I/O, no clock, no random.
     pub fn project_with_neighbor_evidence(
         &self,
@@ -631,8 +635,56 @@ impl TopologyEngine {
         evidence: &[TopologyNeighborEvidence],
     ) -> TopologyView {
         let nodes = build_nodes(records);
-        let (facts, _stats) = map_neighbor_evidence_to_link_facts(&nodes, evidence);
-        self.project_with_facts(environment_id, records, &facts)
+        let (facts, evidence_stats) = map_neighbor_evidence_to_link_facts(&nodes, evidence);
+
+        let (edges, projection_stats) = project_edges_from_link_facts(&nodes, &facts);
+
+        let node_count = nodes.len() as u32;
+        let edge_count = edges.len() as u32;
+        let source_record_count = records.len() as u32;
+
+        let source_state = if node_count == 0 {
+            TopologySourceState::Empty
+        } else {
+            TopologySourceState::Real
+        };
+
+        let message = if node_count == 0 {
+            "topology empty — no discovery records in scope".to_string()
+        } else {
+            let link_text = if edge_count == 1 {
+                format!("{} reliable link", edge_count)
+            } else {
+                format!("{} reliable links", edge_count)
+            };
+            format!(
+                "topology has {} node{} from discovery inventory · {}",
+                node_count,
+                if node_count == 1 { "" } else { "s" },
+                link_text
+            )
+        };
+
+        let summary = TopologySummary {
+            environment_id: environment_id.map(|s| s.to_string()),
+            node_count,
+            edge_count,
+            source_record_count,
+        };
+
+        let adjacency_readiness = compute_adjacency_readiness(node_count, &projection_stats.per_kind_counts);
+
+        TopologyView {
+            environment_id: environment_id.map(|s| s.to_string()),
+            source_state,
+            nodes,
+            edges,
+            summary,
+            message,
+            adjacency_readiness,
+            projection_stats,
+            evidence_stats,
+        }
     }
 
     /// Thin wrapper around `project_with_facts` with empty facts.
@@ -2154,5 +2206,115 @@ mod tests {
         assert_eq!(stats.rejected_unknown_local, 1);
         assert_eq!(stats.rejected_unknown_remote, 1);
         assert_eq!(stats.rejected_self_link, 1);
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // V1AO — Persisted Evidence Store + TopologyView Stats Tests
+    // ────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn topology_view_carries_projection_and_evidence_stats_in_serde_shape() {
+        let engine = TopologyEngine::new();
+        let view = engine.project(Some("env-a"), &[]);
+        let value = serde_json::to_value(&view).expect("serialization failed");
+        let obj = value.as_object().expect("value must be an object");
+        assert!(obj.contains_key("projection_stats"));
+        assert!(obj.contains_key("evidence_stats"));
+    }
+
+    #[test]
+    fn evidence_stats_zero_when_no_evidence_supplied() {
+        let engine = TopologyEngine::new();
+        let record = make_record("rec1", "env-a", Some("r1"), None, None);
+        let view = engine.project(Some("env-a"), &[record]);
+        assert_eq!(view.evidence_stats.evidence_total, 0);
+        assert_eq!(view.evidence_stats.accepted, 0);
+        assert_eq!(view.evidence_stats.rejected_unknown_local, 0);
+        assert_eq!(view.evidence_stats.rejected_unknown_remote, 0);
+        assert_eq!(view.evidence_stats.rejected_self_link, 0);
+    }
+
+    #[test]
+    fn projection_stats_reflect_fact_counts() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let fact = make_fact(
+            TopologyAdjacencyFactSourceKind::Lldp,
+            "rec1",
+            "rec2",
+            None,
+            None,
+            "test evidence",
+        );
+        let view = engine.project_with_facts(Some("env-a"), &records, &[fact]);
+        assert_eq!(view.projection_stats.facts_total, 1);
+        assert_eq!(view.projection_stats.facts_accepted, 1);
+        assert_eq!(view.projection_stats.facts_rejected_unknown_node, 0);
+        assert_eq!(view.projection_stats.facts_rejected_self_link, 0);
+        assert_eq!(view.projection_stats.facts_collapsed_duplicate, 0);
+    }
+
+    #[test]
+    fn evidence_stats_reflect_rejections_in_neighbor_evidence() {
+        let engine = TopologyEngine::new();
+        let records = vec![
+            make_record("rec1", "env-a", Some("r1"), None, None),
+            make_record("rec2", "env-a", Some("r2"), None, None),
+        ];
+        let evidence = vec![
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Lldp,
+                "rec1",
+                "rec2",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::Cdp,
+                "rec1",
+                "ghost",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            make_evidence(
+                TopologyAdjacencyFactSourceKind::ConfigNeighbor,
+                "rec1",
+                "rec1",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+        ];
+        let view = engine.project_with_neighbor_evidence(Some("env-a"), &records, &evidence);
+        assert_eq!(view.evidence_stats.evidence_total, 3);
+        assert_eq!(view.evidence_stats.accepted, 1);
+        assert_eq!(view.evidence_stats.rejected_unknown_remote, 1);
+        assert_eq!(view.evidence_stats.rejected_self_link, 1);
+    }
+
+    #[test]
+    fn projection_stats_zero_when_no_facts_supplied() {
+        let engine = TopologyEngine::new();
+        let record = make_record("rec1", "env-a", Some("r1"), None, None);
+        let view = engine.project_with_facts(Some("env-a"), &[record], &[]);
+        assert_eq!(view.projection_stats.facts_total, 0);
+        assert_eq!(view.projection_stats.facts_accepted, 0);
     }
 }

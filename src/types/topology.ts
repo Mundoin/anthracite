@@ -79,6 +79,10 @@ export interface TopologyView {
   // available and which fact sources would be accepted. See
   // `docs/architecture/TOPOLOGY_ENGINE_BOUNDARY.md` V1AL section.
   readonly adjacency_readiness: TopologyAdjacencyReadiness;
+  // V1AO — projection statistics and evidence mapping statistics. Tracks
+  // facts through the pipeline and persisted evidence ingestion.
+  readonly projection_stats: ProjectionStats;
+  readonly evidence_stats: NeighborEvidenceMappingStats;
 }
 
 // ---------------------------------------------------------------------
@@ -186,4 +190,27 @@ export interface NeighborEvidenceMappingStats {
   readonly rejected_unknown_local: number;
   readonly rejected_unknown_remote: number;
   readonly rejected_self_link: number;
+}
+
+// -----------------------------------------------------------------------
+// V1AO — Evidence import API wire shapes.
+// Supports persisted import of TopologyNeighborEvidence records for
+// deterministic projection and edge generation.
+// -----------------------------------------------------------------------
+
+/** Container for imported evidence records with metadata. */
+export interface TopologyEvidenceSet {
+  readonly schema_version: string;
+  readonly environment_id: string;
+  readonly evidence_set_id: string;
+  readonly source_label: string | null;
+  readonly evidence_count: number;
+  readonly evidence: readonly TopologyNeighborEvidence[];
+}
+
+/** Request payload for importing topology neighbor evidence. */
+export interface ImportTopologyNeighborEvidenceRequest {
+  readonly environment_id: string;
+  readonly evidence: readonly TopologyNeighborEvidence[];
+  readonly source_label: string | null;
 }

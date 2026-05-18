@@ -78,6 +78,17 @@ Everything else is a placeholder, an empty contract, or doctrine without code.
   Unknown-remote and self-link evidence is rejected, not invented.
   Live `get_topology_view` still passes zero evidence — vendor
   parser ingestion is the next stage.
+- **Persisted Neighbour Evidence Store + Live Topology Edges
+  (V1AO).** `TopologyEvidenceStore` (trait + Null + JSON-file impls)
+  persists explicit `TopologyNeighborEvidence` per environment.
+  `get_topology_view` reads stored evidence and projects real
+  edges, real readiness counts, and rejection diagnostics. New
+  Tauri commands: `import_topology_neighbor_evidence`,
+  `get_topology_neighbor_evidence`,
+  `clear_topology_neighbor_evidence`. TopologyMode adds an
+  "Imported neighbour evidence" panel + rejection banner + edge
+  list. No vendor parser extraction yet — operator imports evidence
+  manually for now; parser stages follow in V1AP+.
 
 ---
 
@@ -241,7 +252,11 @@ OCC owns parser code; Codex owns fixture/coverage/intent prep.
 
 **Next in Stage Group 2:**
 
-- **Vendor Parser LLDP/CDP/Config-Neighbour Extraction.** Vendor parsers produce
+Stage Group 2's engine-alive arc (V1AJ → V1AN → V1AO) is now complete. Operator can 
+import explicit neighbour evidence and see real edges + readiness counts + rejection 
+diagnostics. Remaining work in Stage Group 2:
+
+- **Vendor Parser LLDP/CDP/Config-Neighbour Extraction (V1AP+).** Vendor parsers produce
   `Vec<TopologyNeighborEvidence>` from their LLDP, CDP, and config-neighbour
   extractors. Call `TopologyEngine::project_with_neighbor_evidence(env, records, evidence)`.
   Flip `present: true` on relevant sources; state auto-transitions; edge count

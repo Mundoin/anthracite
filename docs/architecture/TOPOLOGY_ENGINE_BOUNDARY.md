@@ -557,6 +557,103 @@ evidence between sessions, but neither is V1AN.
 
 ---
 
+## V1AO — Persisted Neighbour Evidence Store + Live Topology Edges
+
+### Status
+V1AO lands the first persisted explicit-evidence source for the
+topology pipeline. `TopologyEvidenceStore` (trait + Null + JSON-file
+implementations) holds explicit `TopologyNeighborEvidence` per
+environment. `get_topology_view` now reads from the store and pipes
+evidence → facts → V1AM edges. With no stored evidence, behaviour
+matches V1AN byte-for-byte; with valid evidence, Topology shows real
+edges, real readiness counts, and rejection diagnostics.
+
+### What V1AO adds
+- `TopologyEvidenceStore` trait — engine-owned read/write/clear
+  contract.
+- `NullTopologyEvidenceStore` — no-op default; tests and cold-start.
+- `JsonFileTopologyEvidenceStore` — one JSON file per environment
+  under `{app_data}/topology_evidence/{env_id}.json`, schema-versioned
+  (`"v1"`). Corrupt/missing → empty Vec (honest, no panic).
+- `TopologyEvidenceSet` — stored shape with `schema_version`,
+  `environment_id`, `evidence_set_id` (deterministic from env+content
+  hash), `source_label`, `evidence_count`, `evidence`.
+- `TopologyView.projection_stats` (`ProjectionStats`) — surfaced to
+  the operator/test layer.
+- `TopologyView.evidence_stats` (`NeighborEvidenceMappingStats`) —
+  surfaced to the operator/test layer.
+- Tauri commands: `import_topology_neighbor_evidence`,
+  `get_topology_neighbor_evidence`,
+  `clear_topology_neighbor_evidence`. Existing `get_topology_view`
+  signature unchanged (adds an injected store state; callers see no
+  difference).
+
+### Store contract
+- One JSON file per environment at
+  `{app_data}/topology_evidence/{env_id}.json`.
+- Schema version `"v1"` carried in stored set.
+- Corrupt / missing / schema-mismatched → load returns empty Vec.
+  Honest empty, not error.
+- Import REPLACES the environment's evidence (not append). Simpler
+  semantics, fewer foot-guns.
+- `evidence_set_id = "evset-{env_id}-{content_hash_hex}"` —
+  deterministic across runs for the same `(env, evidence)` input.
+
+### Live command path (V1AO)
+`get_topology_view` now:
+1. Loads inventory via Discovery.
+2. Loads evidence via `TopologyEvidenceStore::load(env_id)`.
+3. Calls `TopologyEngine::project_with_neighbor_evidence(env,
+   records, &evidence)`.
+4. Returns full `TopologyView` with `projection_stats` and
+   `evidence_stats` populated.
+
+With no environment scope, evidence load returns empty (honest
+unscoped behaviour). With env scope and empty store, output matches
+V1AN.
+
+### Operator-facing surface
+TopologyMode gains:
+- An "Imported neighbour evidence" panel (textarea + Import). Header
+  text intentionally says "Imported", never "Live discovery" — no
+  polling, no scanning, no SSH/SNMP.
+- A rejection-counts banner showing accepted vs total + per-category
+  rejection breakdown (`unknown_remote`, `unknown_local`,
+  `self_link`).
+- An edge list/table with one row per projected edge: kind, local
+  node, local interface, remote node, remote interface, evidence
+  note. No graph visualisation library.
+
+### Scope-out (V1AO strict)
+- No vendor parser changes; no LLDP/CDP/config-neighbour extractors
+  land here.
+- No `parser-lab/` changes — Codex prep packs stay untouched.
+- No live polling / SSH / SNMP / scanning.
+- No graph visualisation library (Babylon, Cytoscape, D3, etc.).
+- No hostname matching / no `remote_node_hint` resolution. Evidence
+  still requires concrete `remote_node_id`.
+- No DeviceModel mutation; no Discovery semantic change; no
+  `expected.json` or parser version changes; no validator / rule
+  pack changes.
+- Import does NOT trigger any background scanning, polling, or
+  device contact.
+
+### Future hook
+- Vendor parser stages (V1AP+) can write `TopologyNeighborEvidence`
+  records into the same store via the import command (or a future
+  parser-driven ingestion stage) without touching engine projection.
+- Manual operator workflow and automated parser ingestion converge
+  on the same evidence format.
+- A future stage may add per-evidence-set inspection, diff, audit,
+  or multi-set merging. Not V1AO.
+
+### Cross-links
+- `docs/architecture/ENGINE_AND_API_BOUNDARIES.md`
+- `docs/roadmap/ANTHRACITE_V1_PRODUCT_ROADMAP.md`
+- `obsidian/stages/V1AO-persisted-neighbour-evidence-store.md`
+
+---
+
 ## Cross-links
 
 - [`DISCOVERY_ENGINE_BOUNDARY.md`](./DISCOVERY_ENGINE_BOUNDARY.md) — Discovery Engine
