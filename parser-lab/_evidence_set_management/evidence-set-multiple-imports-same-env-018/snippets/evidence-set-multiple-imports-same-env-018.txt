@@ -1,0 +1,61 @@
+# synthetic evidence-set management bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-evidence
+# action: multiple-imports-same-env
+# note: synthetic evidence-set management corpus
+
+### section: first
+# source: synthetic
+# expected outcome: replaced
+# rejection/status reason: replace
+evidence_set_id: set-018
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: true
+rejected: false
+added: replaced
+replaced: true
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: replace
+
+Expected behaviour: replaced; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: second
+# source: synthetic
+# expected outcome: added
+# rejection/status reason: added
+evidence_set_id: set-018
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: true
+rejected: false
+added: added
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: added
+
+Expected behaviour: added; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: third
+# source: synthetic
+# expected outcome: ignored_duplicate
+# rejection/status reason: ignored_duplicate
+evidence_set_id: set-018
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: false
+added: ignored_duplicate
+replaced: false
+ignored_duplicate: true
+duplicate_collapsed: false
+rejection_reason: ignored_duplicate
+
+Expected behaviour: ignored_duplicate; exact inventory matching only; no_store_mutation when safety fails.
+

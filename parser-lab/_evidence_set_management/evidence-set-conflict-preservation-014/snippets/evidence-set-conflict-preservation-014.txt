@@ -1,0 +1,61 @@
+# synthetic evidence-set management bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-evidence
+# action: conflict-preservation
+# note: synthetic evidence-set management corpus
+
+### section: conflict
+# source: synthetic
+# expected outcome: conflicting_remote_endpoint
+# rejection/status reason: conflicting_remote_endpoint
+evidence_set_id: set-014
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: true
+added: conflicting_remote_endpoint
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: conflicting_remote_endpoint
+
+Expected behaviour: conflicting_remote_endpoint; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: duplicate
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# rejection/status reason: duplicate_collapsed
+evidence_set_id: set-014
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: false
+added: duplicate_collapsed
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: true
+rejection_reason: duplicate_collapsed
+
+Expected behaviour: duplicate_collapsed; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: audit
+# source: synthetic
+# expected outcome: accepted
+# rejection/status reason: accepted
+evidence_set_id: set-014
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: true
+rejected: false
+added: accepted
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: accepted
+
+Expected behaviour: accepted; exact inventory matching only; no_store_mutation when safety fails.
+

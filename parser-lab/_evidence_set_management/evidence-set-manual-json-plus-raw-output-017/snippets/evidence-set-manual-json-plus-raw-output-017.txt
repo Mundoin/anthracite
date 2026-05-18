@@ -1,0 +1,61 @@
+# synthetic evidence-set management bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-evidence
+# action: manual-json-plus-raw-output
+# note: synthetic evidence-set management corpus
+
+### section: raw
+# source: synthetic
+# expected outcome: accepted
+# rejection/status reason: accepted
+evidence_set_id: set-017
+source_label: raw-output
+current_evidence: present
+active_set: loaded
+accepted: true
+rejected: false
+added: accepted
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: accepted
+
+Expected behaviour: accepted; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: json
+# source: synthetic
+# expected outcome: accepted
+# rejection/status reason: accepted
+evidence_set_id: set-017
+source_label: structured-json
+current_evidence: present
+active_set: loaded
+accepted: true
+rejected: false
+added: accepted
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: accepted
+
+Expected behaviour: accepted; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: mixed
+# source: synthetic
+# expected outcome: unsupported_format
+# rejection/status reason: unsupported_format
+evidence_set_id: set-017
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: true
+added: unsupported_format
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: unsupported_format
+
+Expected behaviour: unsupported_format; exact inventory matching only; no_store_mutation when safety fails.
+

@@ -1,0 +1,61 @@
+# synthetic evidence-set management bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-evidence
+# action: corrupt-store-recovery
+# note: synthetic evidence-set management corpus
+
+### section: recovery
+# source: synthetic
+# expected outcome: corrupt_store_recovered
+# rejection/status reason: corrupt_store_recovered
+evidence_set_id: set-020
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: false
+added: corrupt_store_recovered
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: corrupt_store_recovered
+
+Expected behaviour: corrupt_store_recovered; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: audit
+# source: synthetic
+# expected outcome: accepted
+# rejection/status reason: accepted
+evidence_set_id: set-020
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: true
+rejected: false
+added: accepted
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: accepted
+
+Expected behaviour: accepted; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: protect
+# source: synthetic
+# expected outcome: no_store_mutation
+# rejection/status reason: no_store_mutation
+evidence_set_id: set-020
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: false
+added: no_store_mutation
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: no_store_mutation
+
+Expected behaviour: no_store_mutation; exact inventory matching only; no_store_mutation when safety fails.
+

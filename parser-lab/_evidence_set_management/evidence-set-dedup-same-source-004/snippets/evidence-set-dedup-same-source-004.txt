@@ -1,0 +1,61 @@
+# synthetic evidence-set management bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-evidence
+# action: dedup-same-source
+# note: synthetic evidence-set management corpus
+
+### section: same-source
+# source: synthetic
+# expected outcome: duplicate_collapsed
+# rejection/status reason: duplicate_collapsed
+evidence_set_id: set-004
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: false
+added: duplicate_collapsed
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: true
+rejection_reason: duplicate_collapsed
+
+Expected behaviour: duplicate_collapsed; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: ignored
+# source: synthetic
+# expected outcome: ignored_duplicate
+# rejection/status reason: ignored_duplicate
+evidence_set_id: set-004
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: false
+added: ignored_duplicate
+replaced: false
+ignored_duplicate: true
+duplicate_collapsed: false
+rejection_reason: ignored_duplicate
+
+Expected behaviour: ignored_duplicate; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: no-mutation
+# source: synthetic
+# expected outcome: no_store_mutation
+# rejection/status reason: no_store_mutation
+evidence_set_id: set-004
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: false
+added: no_store_mutation
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: no_store_mutation
+
+Expected behaviour: no_store_mutation; exact inventory matching only; no_store_mutation when safety fails.
+

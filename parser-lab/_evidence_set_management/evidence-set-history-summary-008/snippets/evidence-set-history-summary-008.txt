@@ -1,0 +1,61 @@
+# synthetic evidence-set management bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-evidence
+# action: history-summary
+# note: synthetic evidence-set management corpus
+
+### section: timeline
+# source: synthetic
+# expected outcome: accepted
+# rejection/status reason: accepted
+evidence_set_id: set-008
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: true
+rejected: false
+added: accepted
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: accepted
+
+Expected behaviour: accepted; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: rejected-retention
+# source: synthetic
+# expected outcome: rejected
+# rejection/status reason: rejected
+evidence_set_id: set-008
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: true
+added: rejected
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: rejected
+
+Expected behaviour: rejected; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: summary
+# source: synthetic
+# expected outcome: accepted
+# rejection/status reason: accepted
+evidence_set_id: set-008
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: true
+rejected: false
+added: accepted
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: accepted
+
+Expected behaviour: accepted; exact inventory matching only; no_store_mutation when safety fails.
+

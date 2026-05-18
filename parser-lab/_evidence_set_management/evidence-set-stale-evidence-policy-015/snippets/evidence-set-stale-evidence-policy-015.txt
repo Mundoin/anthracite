@@ -1,0 +1,61 @@
+# synthetic evidence-set management bundle
+# source: synthetic
+# vendor: Mixed
+# platform: topology-evidence
+# action: stale-policy
+# note: synthetic evidence-set management corpus
+
+### section: stale
+# source: synthetic
+# expected outcome: stale_evidence
+# rejection/status reason: stale_evidence
+evidence_set_id: set-015
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: true
+added: stale_evidence
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: stale_evidence
+
+Expected behaviour: stale_evidence; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: retention
+# source: synthetic
+# expected outcome: accepted
+# rejection/status reason: accepted
+evidence_set_id: set-015
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: true
+rejected: false
+added: accepted
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: accepted
+
+Expected behaviour: accepted; exact inventory matching only; no_store_mutation when safety fails.
+
+### section: refresh
+# source: synthetic
+# expected outcome: no_store_mutation
+# rejection/status reason: no_store_mutation
+evidence_set_id: set-015
+source_label: mixed-source
+current_evidence: present
+active_set: loaded
+accepted: false
+rejected: false
+added: no_store_mutation
+replaced: false
+ignored_duplicate: false
+duplicate_collapsed: false
+rejection_reason: no_store_mutation
+
+Expected behaviour: no_store_mutation; exact inventory matching only; no_store_mutation when safety fails.
+
