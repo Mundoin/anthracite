@@ -1,0 +1,47 @@
+pack: interface-peer-hints-003
+entries:
+  - id: peerhint-iosxr-001
+    snippet_file: snippets/interface-peer-hints-003.cfg
+    section: peerhint-iosxr-001
+    vendor: Cisco
+    platform: IOS-XR
+    platform_family: cisco-iosxr
+    feature_tags:
+      - interface-peer-hints
+      - routed-uplink
+      - adjacency-support
+    sanitised: true
+    source: synthetic
+    intent_file: intent/interface-peer-hints-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: peerhint-eos-002
+    snippet_file: snippets/interface-peer-hints-003.cfg
+    section: peerhint-eos-002
+    vendor: Arista
+    platform: EOS
+    platform_family: arista-eos
+    feature_tags:
+      - interface-peer-hints
+      - routed-uplink
+      - adjacency-support
+    sanitised: true
+    source: synthetic
+    intent_file: intent/interface-peer-hints-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: peerhint-sros-003
+    snippet_file: snippets/interface-peer-hints-003.cfg
+    section: peerhint-sros-003
+    vendor: Nokia
+    platform: SR OS
+    platform_family: nokia-sros
+    feature_tags:
+      - interface-peer-hints
+      - routed-uplink
+      - adjacency-support
+    sanitised: true
+    source: synthetic
+    intent_file: intent/interface-peer-hints-003.intent.md
+    status: prep_ready
+    integration_status: not_integrated

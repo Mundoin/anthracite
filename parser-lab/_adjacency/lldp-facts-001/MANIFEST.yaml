@@ -1,0 +1,47 @@
+pack: lldp-facts-001
+entries:
+  - id: lldp-iosxe-001
+    snippet_file: snippets/lldp-facts-001.cfg
+    section: lldp-iosxe-001
+    vendor: Cisco
+    platform: IOS-XE
+    platform_family: cisco-iosxe
+    feature_tags:
+      - lldp
+      - adjacency-support
+      - interface-peer-hints
+    sanitised: true
+    source: synthetic
+    intent_file: intent/lldp-facts-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: lldp-nxos-002
+    snippet_file: snippets/lldp-facts-001.cfg
+    section: lldp-nxos-002
+    vendor: Cisco
+    platform: NX-OS
+    platform_family: cisco-nxos
+    feature_tags:
+      - lldp
+      - adjacency-support
+      - interface-peer-hints
+    sanitised: true
+    source: synthetic
+    intent_file: intent/lldp-facts-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: lldp-junos-003
+    snippet_file: snippets/lldp-facts-001.cfg
+    section: lldp-junos-003
+    vendor: Juniper
+    platform: Junos
+    platform_family: juniper-junos
+    feature_tags:
+      - lldp
+      - adjacency-support
+      - interface-peer-hints
+    sanitised: true
+    source: synthetic
+    intent_file: intent/lldp-facts-001.intent.md
+    status: prep_ready
+    integration_status: not_integrated
