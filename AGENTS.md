@@ -240,3 +240,4 @@ Codex role:
 
 ```powershell
 node tools/project-map/build-project-map.mjs
+```

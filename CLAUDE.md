@@ -167,7 +167,6 @@ Rules:
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
 
 
-```md id="g6v2ex"
 ## Project Map
 
 Anthracite has a generated project map for planning and stage orientation.
@@ -186,3 +185,4 @@ Claude role:
 
 ```powershell
 node tools/project-map/build-project-map.mjs
+```
