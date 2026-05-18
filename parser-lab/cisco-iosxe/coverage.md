@@ -1,13 +1,16 @@
 # Cisco IOS-XE parser prep coverage
 
 Current vendor: Cisco IOS-XE
-Current prep batch: interface-depth
+Current prep batch: VLAN/L2 switching deeper
 
 ## Fixtures in this batch
 
 - `iosxe-interface-depth-001.cfg`
 - `iosxe-subinterface-dot1q-002.cfg`
 - `iosxe-portchannel-vlan-003.cfg`
+- `iosxe-vlan-database-004.cfg`
+- `iosxe-access-trunk-voice-005.cfg`
+- `iosxe-l2-edgecases-006.cfg`
 
 ## Feature coverage checklist
 
@@ -32,10 +35,14 @@ Current prep batch: interface-depth
 - [x] trunk native VLAN
 - [x] VLAN interface / SVI
 - [x] spanning-tree hint line
+- [x] VLAN database
+- [x] voice VLAN
+- [x] VLAN ranges
+- [x] SVI variants
+- [x] L2 edge-case lines
 
 ## Missing areas to prep later
 
-- VLAN / L2 deeper
 - static routes
 - OSPF / BGP basics
 - ACL
@@ -47,4 +54,3 @@ Current prep batch: interface-depth
 ## Integration readiness
 
 Ready for OCC review, not production-integrated.
-

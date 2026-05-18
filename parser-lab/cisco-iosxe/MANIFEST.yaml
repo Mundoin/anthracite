@@ -1,6 +1,6 @@
 vendor: Cisco
 platform_family: iosxe
-prep_batch: interface-depth
+prep_batch: vlan-l2-switching-deeper
 fixtures:
   - id: iosxe-interface-depth-001
     filename: fixtures/iosxe-interface-depth-001.cfg
@@ -64,4 +64,60 @@ fixtures:
     intent_file: intent/iosxe-portchannel-vlan-003.intent.md
     status: prep_ready
     integration_status: not_integrated
-
+  - id: iosxe-vlan-database-004
+    filename: fixtures/iosxe-vlan-database-004.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - vlan_database
+      - svi
+      - access_vlan
+      - trunk_vlan
+      - native_vlan
+      - voice_vlan
+      - spanning_tree_hint
+      - shutdown
+      - no_shutdown
+    sanitised: true
+    source: synthetic
+    intent_file: intent/iosxe-vlan-database-004.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: iosxe-access-trunk-voice-005
+    filename: fixtures/iosxe-access-trunk-voice-005.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - access_vlan
+      - voice_vlan
+      - trunk_native_vlan
+      - trunk_allowed_vlans
+      - vlan_ranges
+      - svi
+      - spanning_tree_hint
+      - shutdown
+      - no_shutdown
+    sanitised: true
+    source: synthetic
+    intent_file: intent/iosxe-access-trunk-voice-005.intent.md
+    status: prep_ready
+    integration_status: not_integrated
+  - id: iosxe-l2-edgecases-006
+    filename: fixtures/iosxe-l2-edgecases-006.cfg
+    vendor: Cisco
+    platform_family: iosxe
+    feature_tags:
+      - vlan_ranges
+      - svi
+      - access_vlan
+      - trunk_native_vlan
+      - trunk_allowed_vlans
+      - description
+      - optional_lines
+      - shutdown
+      - no_shutdown
+    sanitised: true
+    source: synthetic
+    intent_file: intent/iosxe-l2-edgecases-006.intent.md
+    status: prep_ready
+    integration_status: not_integrated

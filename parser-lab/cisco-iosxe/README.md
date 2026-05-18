@@ -1,11 +1,11 @@
 # Cisco IOS-XE parser prep
 
-This folder holds the first IOS-XE parser-depth prep batch.
+This folder holds the IOS-XE parser-depth prep batches.
 
 ## Batch status
 
 - Vendor: Cisco IOS-XE
-- Prep area: interface-depth
+- Prep areas: interface-depth, VLAN/L2 switching deeper
 - Status: ready for OCC review, not production-integrated
 
 ## Contents
@@ -23,4 +23,3 @@ This folder holds the first IOS-XE parser-depth prep batch.
 Interface depth is the highest parser-depth priority for IOS-XE, and the
 parser already exists. This pack gives OCC bounded source material for a
 future stage without forcing Codex into parser implementation work.
-

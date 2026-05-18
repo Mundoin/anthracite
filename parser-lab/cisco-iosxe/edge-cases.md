@@ -75,3 +75,12 @@ must not require IPv6 to succeed on the interface record.
 These may matter later, but they do not belong in the first interface-
 depth prep stage.
 
+## VLAN/L2 deeper cases now added
+
+- VLAN database entries with multiple named VLANs.
+- Voice VLAN on access ports.
+- Trunk native VLAN paired with both comma lists and range forms.
+- SVI variants with mixed shutdown states.
+- Spanning-tree hints that should remain metadata, not computed state.
+- `no cdp enable` as a line that should stay out of scope for this batch.
+
