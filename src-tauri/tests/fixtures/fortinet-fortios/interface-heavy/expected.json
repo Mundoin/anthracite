@@ -1,0 +1,631 @@
+{
+  "identity": {
+    "hostname": "fg-baseline-002",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "fortinet-fortios",
+    "vendor": "Fortinet",
+    "os_family": "FortiOS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 2983,
+    "line_count": 118
+  },
+  "interfaces": [
+    {
+      "name": "VLAN20",
+      "normalized_name": null,
+      "kind": "vlan",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": "app-vlan",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.0.2.20",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": "port4",
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": "role=lan; vdom=root"
+    },
+    {
+      "name": "VLAN30",
+      "normalized_name": null,
+      "kind": "vlan",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": "db-vlan",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.0.2.30",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": "port4",
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": "role=lan; vdom=root"
+    },
+    {
+      "name": "port3",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": "dmz-edge",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "203.0.113.2",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": "allowaccess=ping,ssh; role=wan; vdom=root"
+    },
+    {
+      "name": "port4",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": "server-trunk",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [
+        "VLAN20",
+        "VLAN30"
+      ],
+      "lag_membership": null,
+      "notes": "allowaccess=ping,https; role=lan; vdom=root"
+    }
+  ],
+  "vlans": [
+    {
+      "id": 20,
+      "name": "app-vlan",
+      "state": "active",
+      "interfaces": [
+        "VLAN20"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "db-vlan",
+      "state": "active",
+      "interfaces": [
+        "VLAN30"
+      ]
+    }
+  ],
+  "vrfs": [],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "203.0.113.1"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": null,
+      "name": null
+    },
+    {
+      "prefix": "192.0.2.0/24",
+      "next_hops": [
+        "192.0.2.1"
+      ],
+      "admin_distance": 10,
+      "metric": null,
+      "tag": null,
+      "vrf": null,
+      "name": null
+    }
+  ],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [
+    {
+      "name": "DMZ",
+      "interfaces": [
+        "port3"
+      ],
+      "default_action": null
+    },
+    {
+      "name": "SERVERS",
+      "interfaces": [
+        "VLAN20",
+        "VLAN30"
+      ],
+      "default_action": null
+    }
+  ],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 7,
+      "raw": "    set admintimeout 10",
+      "context_path": "config system global",
+      "reason": "unsupported_keyword"
+    },
+    {
+      "source": null,
+      "line_number": 48,
+      "raw": "config firewall address",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 49,
+      "raw": "    edit \"APP-SERVER\"",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 50,
+      "raw": "        set subnet 192.0.2.20 255.255.255.255",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 51,
+      "raw": "    next",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 52,
+      "raw": "    edit \"DB-SERVER\"",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 53,
+      "raw": "        set subnet 192.0.2.30 255.255.255.255",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 54,
+      "raw": "    next",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 55,
+      "raw": "    edit \"MGMT-NET\"",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 56,
+      "raw": "        set subnet 192.0.2.0 255.255.255.0",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 57,
+      "raw": "    next",
+      "context_path": "config firewall address",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 59,
+      "raw": "config firewall service custom",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 60,
+      "raw": "    edit \"HTTPS-MGMT\"",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 61,
+      "raw": "        set tcp-portrange 443",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 62,
+      "raw": "    next",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 63,
+      "raw": "    edit \"MYSQL\"",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 64,
+      "raw": "        set tcp-portrange 3306",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 65,
+      "raw": "    next",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 66,
+      "raw": "    edit \"RDP-ADMIN\"",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 67,
+      "raw": "        set tcp-portrange 3389",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 68,
+      "raw": "    next",
+      "context_path": "config firewall service custom",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 70,
+      "raw": "config firewall ippool",
+      "context_path": "config firewall ippool",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 71,
+      "raw": "    edit \"SNAT-POOL-002\"",
+      "context_path": "config firewall ippool",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 72,
+      "raw": "        set type overload",
+      "context_path": "config firewall ippool",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 73,
+      "raw": "        set startip 203.0.113.100",
+      "context_path": "config firewall ippool",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 74,
+      "raw": "        set endip 203.0.113.110",
+      "context_path": "config firewall ippool",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 75,
+      "raw": "    next",
+      "context_path": "config firewall ippool",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 77,
+      "raw": "config firewall policy",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 78,
+      "raw": "    edit 10",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 79,
+      "raw": "        set name \"servers-to-internet\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 80,
+      "raw": "        set srcintf \"SERVERS\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 81,
+      "raw": "        set dstintf \"DMZ\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 82,
+      "raw": "        set srcaddr \"APP-SERVER\" \"DB-SERVER\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 83,
+      "raw": "        set dstaddr \"all\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 84,
+      "raw": "        set action accept",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 85,
+      "raw": "        set schedule \"always\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 86,
+      "raw": "        set service \"HTTPS-MGMT\" \"MYSQL\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 87,
+      "raw": "        set nat enable",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 88,
+      "raw": "        set ippool enable",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 89,
+      "raw": "        set poolname \"SNAT-POOL-002\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 90,
+      "raw": "        set logtraffic all",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 91,
+      "raw": "    next",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 92,
+      "raw": "    edit 11",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 93,
+      "raw": "        set name \"mgmt-to-servers\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 94,
+      "raw": "        set srcintf \"DMZ\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 95,
+      "raw": "        set dstintf \"SERVERS\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 96,
+      "raw": "        set srcaddr \"MGMT-NET\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 97,
+      "raw": "        set dstaddr \"APP-SERVER\" \"DB-SERVER\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 98,
+      "raw": "        set action accept",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 99,
+      "raw": "        set schedule \"always\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 100,
+      "raw": "        set service \"RDP-ADMIN\"",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 101,
+      "raw": "        set logtraffic all",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 102,
+      "raw": "    next",
+      "context_path": "config firewall policy",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 108,
+      "raw": "        set device \"port3\"",
+      "context_path": "config router static",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 113,
+      "raw": "        set device \"VLAN20\"",
+      "context_path": "config router static",
+      "reason": "out_of_scope"
+    }
+  ],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.4638,
+    "parsed_line_count": 64,
+    "unknown_line_count": 55,
+    "warnings": [
+      "not_in_scope:aaa_detail",
+      "not_in_scope:firewall_address_objects",
+      "not_in_scope:firewall_policy",
+      "not_in_scope:firewall_service_objects",
+      "not_in_scope:nat_rules",
+      "not_in_scope:qos_policies",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:sdwan",
+      "not_in_scope:services_dns",
+      "not_in_scope:services_ntp",
+      "not_in_scope:services_snmp",
+      "not_in_scope:services_ssh",
+      "not_in_scope:services_syslog",
+      "not_in_scope:tunnels",
+      "not_in_scope:vpn_tunnels"
+    ]
+  }
+}

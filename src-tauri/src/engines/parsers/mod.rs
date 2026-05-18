@@ -8,7 +8,9 @@
 pub mod arista_eos;
 pub mod cisco_iosxe;
 pub mod cisco_nxos;
+pub mod fortinet_fortios;
 pub mod context;
+pub mod huawei_vrp;
 pub mod juniper_junos;
 pub mod normalize;
 
@@ -33,6 +35,8 @@ pub fn parse_device_config(
         "juniper-junos" => Ok(juniper_junos::parse(platform_ref, config_text)),
         "arista-eos" => Ok(arista_eos::parse(platform_ref, config_text)),
         "cisco-nxos" => Ok(cisco_nxos::parse(platform_ref, config_text)),
+        "fortinet-fortios" => Ok(fortinet_fortios::parse(platform_ref, config_text)),
+        "huawei-vrp" => Ok(huawei_vrp::parse(platform_ref, config_text)),
         other => Err(format!("unsupported platform: {other}")),
     }
 }
@@ -110,5 +114,25 @@ mod tests {
     fn known_platform_id_returns_ok() {
         let r = parse_device_config(pref(Some("cisco-iosxe")), "hostname foo\nend\n");
         assert!(r.is_ok());
+    }
+
+    #[test]
+    fn huawei_vrp_platform_id_dispatches_ok() {
+        let r = parse_device_config(
+            pref(Some("huawei-vrp")),
+            "sysname vrp-test\nreturn\n",
+        );
+        assert!(r.is_ok());
+        assert_eq!(r.unwrap().identity.hostname.as_deref(), Some("vrp-test"));
+    }
+
+    #[test]
+    fn fortios_platform_id_dispatches_ok() {
+        let r = parse_device_config(
+            pref(Some("fortinet-fortios")),
+            "config system global\n    set hostname \"fg-test\"\nend\n",
+        );
+        assert!(r.is_ok());
+        assert_eq!(r.unwrap().identity.hostname.as_deref(), Some("fg-test"));
     }
 }

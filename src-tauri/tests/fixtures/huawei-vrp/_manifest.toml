@@ -1,0 +1,24 @@
+# Huawei VRP fixture corpus manifest (V1AV).
+#
+# Single source of truth for which VRP fixtures the corpus harness
+# walks. `parser_version` must equal `huawei_vrp::PARSER_VERSION`;
+# the `parser_version_guard` integration test enforces equality.
+#
+# Every directory under `tests/fixtures/huawei-vrp/` (except this
+# manifest) must appear in `fixtures`, and every name here must exist
+# on disk. The corpus harness asserts both directions.
+#
+# To add a fixture:
+#   1. mkdir tests/fixtures/huawei-vrp/<name>/
+#   2. drop config.cfg in
+#   3. add <name> to `fixtures` below, alphabetically
+#   4. ANTHRACITE_UPDATE_FIXTURES=1 cargo test --test huawei_vrp_fixture_corpus
+#   5. hand-review expected.json before committing
+
+parser_version = 1
+
+fixtures = [
+    "near-empty",
+    "small",
+    "truncated",
+]

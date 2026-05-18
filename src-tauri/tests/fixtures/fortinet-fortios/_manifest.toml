@@ -1,0 +1,19 @@
+# Fortinet FortiOS fixture corpus manifest (V1AV).
+#
+# Single source of truth for which fixtures the corpus harness walks.
+# `parser_version` must equal `fortinet_fortios::PARSER_VERSION`; the
+# version guard and corpus harness enforce that equality.
+#
+# Every directory under `tests/fixtures/fortinet-fortios/` (except this
+# manifest) must appear in `fixtures`, and every name here must exist on
+# disk.
+
+parser_version = 1
+
+fixtures = [
+    "interface-heavy",
+    "near-empty",
+    "out-of-scope-vocabulary",
+    "small",
+    "truncated",
+]

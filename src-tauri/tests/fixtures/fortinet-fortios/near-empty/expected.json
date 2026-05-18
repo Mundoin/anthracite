@@ -1,0 +1,78 @@
+{
+  "identity": {
+    "hostname": "fg-near-empty",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "fortinet-fortios",
+    "vendor": "Fortinet",
+    "os_family": "FortiOS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 191,
+    "line_count": 7
+  },
+  "interfaces": [],
+  "vlans": [],
+  "vrfs": [],
+  "static_routes": [],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.1111,
+    "parsed_line_count": 3,
+    "unknown_line_count": 0,
+    "warnings": [
+      "absent:firewall_zones",
+      "absent:interfaces",
+      "absent:ip_addressing",
+      "absent:static_routes",
+      "absent:vlans",
+      "not_in_scope:aaa_detail",
+      "not_in_scope:firewall_address_objects",
+      "not_in_scope:firewall_policy",
+      "not_in_scope:firewall_service_objects",
+      "not_in_scope:nat_rules",
+      "not_in_scope:qos_policies",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:sdwan",
+      "not_in_scope:services_dns",
+      "not_in_scope:services_ntp",
+      "not_in_scope:services_snmp",
+      "not_in_scope:services_ssh",
+      "not_in_scope:services_syslog",
+      "not_in_scope:tunnels",
+      "not_in_scope:vpn_tunnels"
+    ]
+  }
+}
