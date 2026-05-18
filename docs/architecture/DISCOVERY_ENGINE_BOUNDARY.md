@@ -107,6 +107,59 @@ From `HIERARCHY_HONESTY_CONTRACT.md`:
 
 ---
 
+## V1AG — Frontend Wiring
+
+**Frontend adapter (`src/data/discoverySource.ts`):**
+
+New module exports `toDiscoverySourceView(view?: DiscoveryInventoryView, error?: Error): DiscoverySourceView`:
+
+```typescript
+type DiscoverySourceView = {
+  sourceState: DataSourceState;  // "empty" | "unavailable" | "not_connected"
+  environmentId?: string;
+  totalRecords: number;
+  message: string;
+  isEmpty: boolean;
+}
+```
+
+Mapping rules:
+
+| Input | Output sourceState | Behavior |
+|-------|-----|----------|
+| `view` with `source_state = "empty"` | `"empty"` | Pass through; `isEmpty = true`, `totalRecords = 0` |
+| `view` with any DiscoverySourceState | `"empty"` \| `"unavailable"` | Pass through; `isEmpty` per records array |
+| `view = null, error = null` | `"not_connected"` | Engine not wired; no surface in OpsConsoleMode yet |
+| `view = null, error != null` | `"unavailable"` | Fetch failed; surface error message |
+
+**Discovery never returns `"demo"`.** The adapter never synthesizes demo data.
+
+**App-side fetch policy:**
+
+- `src/App.tsx` calls `getDiscoveryInventory(activeEnvironmentId)` once per active-environment selection change.
+- No polling. No timers. One-shot fetch on selection change only.
+- Result passed into `OpsConsoleMode` as `discoverySourceView` prop.
+- Fetch failure (null view + error) surfaces as `sourceState = "unavailable"` in Ops Console; no silent degradation to demo.
+
+**Ops Console surface (`src/modes/opsConsole/OpsConsoleMode.tsx`):**
+
+- New "Discovery Inventory" read-only section renders `DiscoverySourceView`.
+- Displays: `<DataSourceTag state={view.sourceState} />`, scope (environment ID), state label, record count (0 in V1AG), and engine's stable message.
+- Real engine state, not static `MODE_STATUS` values. Hierarchy aggregate (`sourceState = "demo"`) remains untouched.
+- Tests cover all three mapping cases (empty, unavailable, not_connected).
+
+**Hierarchy contract unchanged in V1AG:**
+
+Discovery surfaces only through Ops Console in V1AG. Adding a `discoveryInventory` key to `HierarchyView.sourceStateByBlock` would create a rendered block with no visual surface (not rendered in any mode body yet). Per the v1AG prompt decision rule, document-skip is cleaner: hierarchy aggregate `sourceState` stays `"demo"`, and Inspector identity real-promotion (from V1AE) remains the only hierarchy boundary flip in V1AG. Hierarchy block entries (`D1`–`D8`) remain seeded demo, waiting for future mode bodies (Topology, Monitor, Operate) to wire their own inventory surfaces. Discovery's ownership boundary is intact; the frontend integration is partial and will deepen once mode bodies land.
+
+**DataSourceState contract:**
+
+- No new `DataSourceState` variants in V1AG. The type remains: `"demo"` | `"empty"` | `"unavailable"` | `"not_connected"`.
+- No DeviceModel field added to Discovery's inventory record struct. No fake device seeding. No SSH/SNMP/polling changes.
+- Frontend receives typed `DiscoverySourceView` mapped cleanly from the engine's response. State transitions are honest and deterministic.
+
+---
+
 ## Cross-links
 
 - `ENGINE_AND_API_BOUNDARIES.md` — Discovery section (V1AF status appended)
@@ -115,3 +168,4 @@ From `HIERARCHY_HONESTY_CONTRACT.md`:
 - `src/types/discovery.ts` — TypeScript type mirror (parallel)
 - `src/api/discovery.ts` — Tauri command binding (parallel)
 - `INTAKE_PARSER_CONTRACT.md` — DeviceModel spec (when written)
+- `src/data/discoverySource.ts` — Frontend adapter (V1AG)

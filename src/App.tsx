@@ -34,11 +34,16 @@ import {
   listEnvironments,
   setActiveEnvironment,
 } from "./api/environment";
+import { getDiscoveryInventory } from "./api/discovery";
 import type {
   Environment,
   EnvironmentReadiness,
   EnvironmentStatus,
 } from "./types/environment";
+import {
+  toDiscoverySourceView,
+  type DiscoverySourceView,
+} from "./data/discoverySource";
 import { getHierarchyView } from "./data/hierarchySource";
 import { ROW_SEEDS } from "./data/hierarchySeeds";
 
@@ -89,6 +94,18 @@ export default function App(): JSX.Element {
   const [envs, setEnvs] = useState<readonly Environment[]>([]);
   const [active, setActive] = useState<Environment | null>(null);
   const [readiness, setReadiness] = useState<EnvironmentReadiness | null>(null);
+  const [discovery, setDiscovery] = useState<DiscoverySourceView>(() =>
+    toDiscoverySourceView(null),
+  );
+
+  const fetchDiscovery = useCallback(async (envId: string | null) => {
+    try {
+      const view = await getDiscoveryInventory(envId);
+      setDiscovery(toDiscoverySourceView(view));
+    } catch (err) {
+      setDiscovery(toDiscoverySourceView(null, err));
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,6 +120,7 @@ export default function App(): JSX.Element {
         setEnvs(list);
         setActive(a);
         setReadiness(r);
+        await fetchDiscovery(r?.active_environment_id ?? null);
       } catch {
         if (cancelled) return;
       }
@@ -110,7 +128,7 @@ export default function App(): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetchDiscovery]);
 
   const refreshEngineState = useCallback(async () => {
     try {
@@ -120,10 +138,11 @@ export default function App(): JSX.Element {
       ]);
       setActive(a);
       setReadiness(r);
+      await fetchDiscovery(r?.active_environment_id ?? null);
     } catch {
       /* ignored — keep last good state */
     }
-  }, []);
+  }, [fetchDiscovery]);
 
   const selectEnv = useCallback(
     async (id: string, openDetail: boolean) => {
@@ -220,7 +239,7 @@ export default function App(): JSX.Element {
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
-        <OpsConsoleMode />
+        <OpsConsoleMode discovery={discovery} />
       </AppShell>
     );
   }

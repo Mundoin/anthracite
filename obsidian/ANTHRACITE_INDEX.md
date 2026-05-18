@@ -63,6 +63,7 @@ and to `PRODUCT.md` / `GOALS.md`.
 | V1AD  | complete · HONEST-HIERARCHY arc closed — 8 silent fall-through ModeIds replaced with `<ModeNotConnected />`; `MODE_STATUS` in `src/data/modeStatus.ts`; H8 added | [stages/V1AD-mode-fall-through-honesty.md](./stages/V1AD-mode-fall-through-honesty.md) |
 | V1AE  | complete · Arc-validation — settings mode body (FLIP 1: H8 flip-discipline); inspectorIdentity real promotion (FLIP 2: H7 boundary); first built mode without engine | [stages/V1AE-settings-and-identity-real.md](./stages/V1AE-settings-and-identity-real.md) |
 | V1AF  | complete · Discovery Engine spine — connected-but-empty, deterministic; device inventory boundary owned | [stages/V1AF-discovery-engine-spine.md](./stages/V1AF-discovery-engine-spine.md) |
+| V1AG  | complete · Discovery empty-state integration — frontend adapter, App fetch, OpsConsoleMode surface; Hierarchy untouched | [stages/V1AG-discovery-empty-state-integration.md](./stages/V1AG-discovery-empty-state-integration.md) |
 
 ## V1J-A adaptation
 
