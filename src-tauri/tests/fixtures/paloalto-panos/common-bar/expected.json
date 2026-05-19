@@ -1,0 +1,289 @@
+{
+  "identity": {
+    "hostname": "pa-core-01",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [
+      {
+        "family": "v4",
+        "address": "198.51.100.10",
+        "prefix_length": 24,
+        "secondary": false,
+        "vrf": null
+      }
+    ],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "paloalto-panos",
+    "vendor": "Palo Alto Networks",
+    "os_family": "PAN-OS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 1070,
+    "line_count": 15
+  },
+  "interfaces": [
+    {
+      "name": "ae1",
+      "normalized_name": null,
+      "kind": "lag",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "default",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "203.0.113.1",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "ethernet1/1",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "default",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "198.51.100.1",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [
+        "vlan.10"
+      ],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "ethernet1/2",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": "ae1",
+      "notes": null
+    },
+    {
+      "name": "vlan.10",
+      "normalized_name": null,
+      "kind": "vlan",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": 10,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "default",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.0.2.10",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": "ethernet1/1",
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": "tag=10"
+    }
+  ],
+  "vlans": [
+    {
+      "id": 10,
+      "name": null,
+      "state": "active",
+      "interfaces": [
+        "vlan.10"
+      ]
+    }
+  ],
+  "vrfs": [
+    {
+      "name": "default",
+      "route_distinguisher": null,
+      "route_targets_import": [],
+      "route_targets_export": [],
+      "interfaces": [
+        "ae1",
+        "ethernet1/1",
+        "vlan.10"
+      ],
+      "address_families": []
+    }
+  ],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "198.51.100.254"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": "default",
+      "name": "default-route"
+    }
+  ],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [
+    {
+      "name": "ae1",
+      "mode": "active",
+      "members": [
+        "ethernet1/2"
+      ],
+      "hashing_mode": null,
+      "min_links": null
+    }
+  ],
+  "services": [
+    {
+      "kind": "ssh",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "snmp",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "ntp",
+      "servers": [
+        "198.51.100.100",
+        "198.51.100.101"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "dns",
+      "servers": [
+        "198.51.100.53",
+        "198.51.100.54"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "syslog",
+      "servers": [
+        "198.51.100.200"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    }
+  ],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 15,
+      "raw": "set rulebase security rules allow-web from trust to untrust",
+      "context_path": "pan-os out-of-scope",
+      "reason": "out_of_scope"
+    }
+  ],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.5385,
+    "parsed_line_count": 14,
+    "unknown_line_count": 1,
+    "warnings": [
+      "not_in_scope:acl_firewall",
+      "not_in_scope:nat_rules",
+      "not_in_scope:qos_policies",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:rulebase_security_rules",
+      "not_in_scope:shared_objects",
+      "not_in_scope:vpn_tunnels"
+    ]
+  }
+}

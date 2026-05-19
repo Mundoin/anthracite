@@ -5,16 +5,17 @@ consumer may assume, and the few invariants the project locks in
 writing so they cannot drift unnoticed. Anchored by V1N-A after the
 V1M / V1N cross-vendor work.
 
-## Four full L1/L2 parsers + two bounded slices (as of V1AV)
+## Five full L1/L2 parsers + three bounded slices (as of V1BC)
 
-Anthracite ships four full L1/L2 parsers:
+Anthracite ships five full L1/L2 parsers:
 
+- `cisco-ios` (V1BC v1; IOS-classic / IOS-XE shared full-L2 bar)
 - `cisco-iosxe` (V1K + V1L + V1N-A + V1Z-A; current `PARSER_VERSION = 4`)
 - `juniper-junos` (V1M + V1N-A + V1Z-A; current `PARSER_VERSION = 3`)
 - `arista-eos` (V1N + V1N-A + V1Z-A; current `PARSER_VERSION = 3`)
 - `cisco-nxos` (V1U + V1Z-A; current `PARSER_VERSION = 2`)
 
-V1Z-A bumped every parser by one minor: all four families now emit
+V1Z-A bumped every parser by one minor: all five families now emit
 `ServiceKind::Telnet` for their vendor-native enabling syntax
 (`transport input telnet|all` on IOS-XE, `feature telnet` on NX-OS,
 `set system services telnet` on Junos, top-level `management telnet`
@@ -22,18 +23,19 @@ on EOS). The Junos `NtpAccum` also aligned with NX-OS / EOS so an
 NTP `source-address` alone now produces an NTP `ServiceModel` —
 parity required by DIAG-HYG-004.
 
-All four full parsers populate the same `DeviceModel` shape and emit
+All five full parsers populate the same `DeviceModel` shape and emit
 the same 14-area coverage vocabulary (`services_telnet` added at
 V1Z-A) so receipt projection and cross-vendor consumers operate on one
 canonical space.
 
-Anthracite also ships two bounded parser slices as of V1AV:
+Anthracite also ships three bounded parser slices as of V1BA:
 
 - `huawei-vrp` (V1AV v1; bounded VRP slice)
 - `fortinet-fortios` (V1AV v1; bounded FortiOS slice)
+- `mikrotik-routeros` (V1BA v1; bounded RouterOS baseline)
 
 These bounded slices use the same canonical model and deterministic
-parser contract, but they do **not** participate in the four-parser
+parser contract, but they do **not** participate in the five-parser
 cross-vendor consistency harness yet. They carry their own fixture
 corpora and parser-version guards.
 
@@ -57,7 +59,7 @@ Future surfaces (Config Intake, topology engine, baseline) consume
 
 ## Vendor parser modules stay separate
 
-`cisco_iosxe`, `juniper_junos`, and `arista_eos` are independent
+`cisco_ios`, `cisco_iosxe`, `juniper_junos`, and `arista_eos` are independent
 modules. Sharing infrastructure between them (`parsers::context`,
 `parsers::normalize`) is fine; sharing per-vendor dispatch logic is
 not. The EOS-vs-IOSXE divergences documented in
@@ -72,7 +74,7 @@ meaningfully; consolidation silently mis-models the minority vendor.
 
 ## Cross-vendor canonical consistency
 
-V1N proved (and V1N-A keeps proving) that the four full L1/L2 vendor
+V1N proved (and V1N-A keeps proving) that the five full L1/L2 vendor
 parsers populate the same canonical L1/L2 facts for the same logical
 device.
 The invariant is enforced by
@@ -189,4 +191,5 @@ In a maintenance stage (V1L-A, V1N-A, future "letter" stages):
 - [INTERFACE_NAMING.md](./INTERFACE_NAMING.md)
 - [PARSER_HUAWEI_VRP.md](./PARSER_HUAWEI_VRP.md)
 - [PARSER_FORTINET_FORTIOS.md](./PARSER_FORTINET_FORTIOS.md)
+- [PARSER_MIKROTIK_ROUTEROS.md](./PARSER_MIKROTIK_ROUTEROS.md)
 - V1N-A stage note: [`../../obsidian/stages/V1N-A-parser-contract-hardening.md`](../../obsidian/stages/V1N-A-parser-contract-hardening.md)

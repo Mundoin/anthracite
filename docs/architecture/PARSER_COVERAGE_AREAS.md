@@ -105,6 +105,70 @@ The single source of truth for the corpus list is
 tests enforce that the manifest, the on-disk dirs, and the source
 constant all agree.
 
+## cisco-ios — L1 inventory + L2 topology (V1BC)
+
+`cisco-ios` mirrors the IOS-XE area bar exactly at the current
+shipping level. The parser core currently reuses the shared IOS/XE
+shape, but the family boundary is separate: `platform_id`,
+`PARSER_VERSION`, manifest, fixtures, and cross-vendor comparisons all
+stay on the `cisco-ios` path.
+
+In-scope areas are the same 13-area set:
+
+```
+identity
+platform
+interfaces
+ip_addressing
+vlans
+vrfs
+static_routes
+lag_groups
+services_ssh
+services_snmp
+services_ntp
+services_dns
+services_syslog
+```
+
+Out-of-scope at L1/L2 matches IOS-XE as well:
+
+```
+acls
+nat_rules
+firewall_zones
+tunnels
+qos_policies
+routing_protocols_ospf
+routing_protocols_isis
+routing_protocols_eigrp
+routing_protocols_bgp
+aaa_detail
+route_maps
+prefix_lists
+community_lists
+mpls
+vxlan
+evpn
+segment_routing
+```
+
+Seed corpus fixtures:
+
+| Fixture | Exercises |
+|---|---|
+| `cross-vendor-equivalent-small` | canonical shared logical device |
+| `near-empty` | minimal viable input, score floor |
+| `services-snmp-ntp-ssh-syslog` | every `services_*` area in one fixture |
+| `small` | baseline routed switch/router posture |
+| `truncated` | truncated input warning |
+
+The single source of truth for the corpus list is
+`src-tauri/tests/fixtures/cisco-ios/_manifest.toml`. The
+`parser_version_guard` and `cisco_ios_fixture_corpus` integration
+tests enforce that the manifest, the on-disk dirs, and the source
+constant all agree.
+
 ## juniper-junos — L1 inventory + L2 topology (V1M)
 
 In-scope areas mirror the cisco-iosxe set exactly so receipt projection
@@ -374,6 +438,53 @@ The single source of truth for the corpus list is
 integration tests enforce that the manifest, the on-disk dirs, and the
 source constant all agree.
 
+## mikrotik-routeros — bounded RouterOS parser (V1BA)
+
+In-scope areas:
+
+```
+identity
+platform
+interfaces
+ip_addressing
+vlans
+static_routes
+services_ssh
+services_snmp
+services_ntp
+```
+
+RouterOS service lines can also surface telnet in the parser code, but
+the initial coverage denominator still tracks the SSH / SNMP / NTP trio
+for the first shipped slice.
+
+Out-of-scope at V1BA (marked `not_in_scope`):
+
+```
+aaa_detail
+firewall_address_objects
+firewall_policy
+firewall_service_objects
+nat_rules
+qos_policies
+routing_protocols_bgp
+routing_protocols_eigrp
+routing_protocols_isis
+routing_protocols_ospf
+sdwan
+services_dns
+services_syslog
+tunnels
+vpn_tunnels
+wireless
+```
+
+The single source of truth for the corpus list is
+`src-tauri/tests/fixtures/mikrotik-routeros/_manifest.toml`. The
+`parser_version_guard` and `mikrotik_routeros_fixture_corpus`
+integration tests enforce that the manifest, the on-disk dirs, and the
+source constant all agree.
+
 ## Cross-vendor consistency invariant (V1N / V1U)
 
 `tests/cross_vendor_consistency.rs` parses one logically-equivalent
@@ -390,7 +501,9 @@ note for the rationale; V1U extended the test to include cisco-nxos.
 
 Extended per-vendor as each parser ships. Same area names are reused
 across vendors so cross-vendor consumers compare scores on a single
-vocabulary.
+vocabulary. RouterOS uses the same convention, but it is tracked
+independently until it graduates into the cross-vendor consistency
+harness.
 
 ## Rationale
 
@@ -405,4 +518,5 @@ score a comparable number across vendors and across parser versions.
 - [`PARSER_VERSIONING.md`](./PARSER_VERSIONING.md)
 - [`PARSER_COMMAND_CONTRACT.md`](./PARSER_COMMAND_CONTRACT.md)
 - [`CANONICAL_NETWORK_MODEL.md`](./CANONICAL_NETWORK_MODEL.md)
+- [`PARSER_MIKROTIK_ROUTEROS.md`](./PARSER_MIKROTIK_ROUTEROS.md)
 - [`VENDOR_ENGINE_PLAN.md`](./VENDOR_ENGINE_PLAN.md)

@@ -1,0 +1,7 @@
+parser_version = 1
+
+fixtures = [
+    "routeros-note-rich-003",
+    "routeros-system-interface-001",
+    "routeros-vlan-bridge-002",
+]

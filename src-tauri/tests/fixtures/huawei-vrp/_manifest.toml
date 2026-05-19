@@ -15,9 +15,10 @@
 #   4. ANTHRACITE_UPDATE_FIXTURES=1 cargo test --test huawei_vrp_fixture_corpus
 #   5. hand-review expected.json before committing
 
-parser_version = 1
+parser_version = 2
 
 fixtures = [
+    "common-bar",
     "near-empty",
     "small",
     "truncated",

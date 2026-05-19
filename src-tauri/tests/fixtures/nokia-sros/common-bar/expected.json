@@ -1,0 +1,334 @@
+{
+  "identity": {
+    "hostname": "sros-01",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "nokia-sros",
+    "vendor": "Nokia",
+    "os_family": "SR OS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 957,
+    "line_count": 18
+  },
+  "interfaces": [
+    {
+      "name": "1/1/1",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "uplink",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": 10,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "198.51.100.2",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": "lag-1",
+      "notes": null
+    },
+    {
+      "name": "1/1/2",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": "lag-1",
+      "notes": null
+    },
+    {
+      "name": "1/1/3",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": "lag-1",
+      "notes": null
+    },
+    {
+      "name": "to-core",
+      "normalized_name": null,
+      "kind": "virtual",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "Base",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.0.1",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "to-cust",
+      "normalized_name": null,
+      "kind": "virtual",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "CUST-A",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.0.2.1",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [
+    {
+      "id": 10,
+      "name": "users",
+      "state": "active",
+      "interfaces": [
+        "1/1/1"
+      ]
+    }
+  ],
+  "vrfs": [
+    {
+      "name": "Base",
+      "route_distinguisher": null,
+      "route_targets_import": [],
+      "route_targets_export": [],
+      "interfaces": [
+        "to-core"
+      ],
+      "address_families": [
+        "ipv4-unicast"
+      ]
+    },
+    {
+      "name": "CUST-A",
+      "route_distinguisher": "65000:100",
+      "route_targets_import": [],
+      "route_targets_export": [],
+      "interfaces": [
+        "to-cust"
+      ],
+      "address_families": [
+        "ipv4-unicast"
+      ]
+    }
+  ],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "10.0.0.2"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": "Base",
+      "name": null
+    },
+    {
+      "prefix": "192.0.2.0/24",
+      "next_hops": [
+        "192.0.2.2"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": "CUST-A",
+      "name": null
+    }
+  ],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [
+    {
+      "name": "lag-1",
+      "mode": "active",
+      "members": [
+        "1/1/1",
+        "1/1/2",
+        "1/1/3"
+      ],
+      "hashing_mode": "src-dst-ip",
+      "min_links": 2
+    }
+  ],
+  "services": [
+    {
+      "kind": "ssh",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "snmp",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "ntp",
+      "servers": [
+        "192.0.2.100"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "dns",
+      "servers": [
+        "192.0.2.53"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "syslog",
+      "servers": [
+        "192.0.2.200"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    }
+  ],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 17,
+      "raw": "configure router bgp 65000",
+      "context_path": "nokia-sros out-of-scope",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 18,
+      "raw": "configure service vpls 200",
+      "context_path": "nokia-sros out-of-scope",
+      "reason": "out_of_scope"
+    }
+  ],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.5,
+    "parsed_line_count": 16,
+    "unknown_line_count": 2,
+    "warnings": [
+      "not_in_scope:aaa_detail",
+      "not_in_scope:firewall_policies",
+      "not_in_scope:mpls",
+      "not_in_scope:nat_rules",
+      "not_in_scope:policy_options",
+      "not_in_scope:qos_policies",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:service_epipe",
+      "not_in_scope:service_vpls",
+      "not_in_scope:tunnels",
+      "not_in_scope:vpn_tunnels"
+    ]
+  }
+}

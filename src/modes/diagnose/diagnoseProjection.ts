@@ -30,14 +30,13 @@ export interface DiagnoseProjectionInput {
   readonly devices: ReadonlyArray<DiscoveryDeviceRecord>;
   readonly topology: TopologyView | null;
   /** Optional override list — `platform_id` values currently known to
-   *  have no parser. Default mirrors the V1AV-era parser gap matrix:
-   *  `cisco-iosxr` and `mikrotik-routeros`. */
+   *  have no parser. Default mirrors the current parser gap matrix:
+   *  `cisco-iosxr`. */
   readonly known_unsupported_platforms?: ReadonlyArray<string>;
 }
 
 const DEFAULT_UNSUPPORTED_PLATFORMS: ReadonlyArray<string> = Object.freeze([
   "cisco-iosxr",
-  "mikrotik-routeros",
 ]);
 
 const EMPTY_MODEL: DiagnoseModel = Object.freeze({

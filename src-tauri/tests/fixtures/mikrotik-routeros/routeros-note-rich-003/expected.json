@@ -1,0 +1,244 @@
+{
+  "identity": {
+    "hostname": "ros-notes-003",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "mikrotik-routeros",
+    "vendor": "MikroTik",
+    "os_family": "RouterOS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 1460,
+    "line_count": 23
+  },
+  "interfaces": [
+    {
+      "name": "br-edge",
+      "normalized_name": null,
+      "kind": "virtual",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.0.2.6",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [
+        "vlan50"
+      ],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "lan",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": "default_name=ether2"
+    },
+    {
+      "name": "vlan50",
+      "normalized_name": null,
+      "kind": "vlan",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": 50,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.0.2.50",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": "br-edge",
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": "interface=br-edge; vlan_id=50"
+    },
+    {
+      "name": "wan",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "198.51.100.6",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": "default_name=ether1"
+    }
+  ],
+  "vlans": [
+    {
+      "id": 50,
+      "name": "vlan50",
+      "state": "active",
+      "interfaces": [
+        "br-edge",
+        "vlan50"
+      ]
+    }
+  ],
+  "vrfs": [],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "198.51.100.5"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": null,
+      "name": null
+    },
+    {
+      "prefix": "203.0.113.0/24",
+      "next_hops": [
+        "198.51.100.5"
+      ],
+      "admin_distance": 20,
+      "metric": null,
+      "tag": null,
+      "vrf": null,
+      "name": null
+    }
+  ],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [
+    {
+      "kind": "ssh",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "disabled=no; port=22"
+    },
+    {
+      "kind": "snmp",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "enabled=yes"
+    },
+    {
+      "kind": "ntp",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "enabled=yes"
+    }
+  ],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.4333,
+    "parsed_line_count": 13,
+    "unknown_line_count": 0,
+    "warnings": [
+      "not_in_scope:aaa_detail",
+      "not_in_scope:firewall_address_objects",
+      "not_in_scope:firewall_policy",
+      "not_in_scope:firewall_service_objects",
+      "not_in_scope:nat_rules",
+      "not_in_scope:qos_policies",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:sdwan",
+      "not_in_scope:services_dns",
+      "not_in_scope:services_syslog",
+      "not_in_scope:tunnels",
+      "not_in_scope:vpn_tunnels",
+      "not_in_scope:wireless"
+    ]
+  }
+}

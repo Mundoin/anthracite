@@ -18,7 +18,7 @@
     "source": null,
     "source_kind": "config_paste",
     "captured_at": null,
-    "parser_version": "1",
+    "parser_version": "2",
     "registry_version": null,
     "fixture_corpus_version": null,
     "byte_size": 3032,
@@ -35,7 +35,7 @@
       "mtu": null,
       "speed_mbps": null,
       "duplex": null,
-      "l2_mode": null,
+      "l2_mode": "access",
       "access_vlan": null,
       "allowed_vlans": [],
       "native_vlan": null,
@@ -65,7 +65,7 @@
       "mtu": null,
       "speed_mbps": null,
       "duplex": null,
-      "l2_mode": null,
+      "l2_mode": "access",
       "access_vlan": null,
       "allowed_vlans": [],
       "native_vlan": null,
@@ -218,7 +218,16 @@
   "tunnels": [],
   "qos_policies": [],
   "lag_groups": [],
-  "services": [],
+  "services": [
+    {
+      "kind": "ssh",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "allowaccess ssh"
+    }
+  ],
   "topology_hints": [],
   "findings": [],
   "unknown_lines": [
@@ -596,10 +605,14 @@
   ],
   "parse_confidence": {
     "maturity_observed": "l2topology",
-    "score": 0.4857,
+    "score": 0.4892,
     "parsed_line_count": 68,
     "unknown_line_count": 53,
     "warnings": [
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_syslog",
       "not_in_scope:aaa_detail",
       "not_in_scope:firewall_address_objects",
       "not_in_scope:firewall_policy",
@@ -611,11 +624,6 @@
       "not_in_scope:routing_protocols_isis",
       "not_in_scope:routing_protocols_ospf",
       "not_in_scope:sdwan",
-      "not_in_scope:services_dns",
-      "not_in_scope:services_ntp",
-      "not_in_scope:services_snmp",
-      "not_in_scope:services_ssh",
-      "not_in_scope:services_syslog",
       "not_in_scope:tunnels",
       "not_in_scope:vpn_tunnels"
     ]

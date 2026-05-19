@@ -9,12 +9,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::engines::network_model::{
     DeviceIdentity, DeviceModel, EvidenceMetadata, EvidenceSourceKind, FirewallZoneModel,
     InterfaceAdminState, InterfaceKind, InterfaceModel, IpAddressModel, IpFamily, L2Mode,
-    ParseConfidence, ParserMaturityObserved, PlatformRef, StaticRouteModel, UnknownConfigLine,
-    UnknownReason, VlanModel, VlanState,
+    ParseConfidence, ParserMaturityObserved, PlatformRef, ServiceKind, ServiceModel,
+    StaticRouteModel, UnknownConfigLine, UnknownReason, VlanModel, VlanState,
 };
 
 /// Monotonic parser version. Bump when any existing fixture output changes.
-pub const PARSER_VERSION: u32 = 1;
+pub const PARSER_VERSION: u32 = 2;
 
 /// In-scope areas for the FortiOS V1AV slice.
 #[allow(dead_code)]
@@ -26,6 +26,11 @@ pub const IN_SCOPE_AREAS: &[&str] = &[
     "vlans",
     "firewall_zones",
     "static_routes",
+    "services_ssh",
+    "services_snmp",
+    "services_ntp",
+    "services_dns",
+    "services_syslog",
 ];
 
 const OUT_OF_SCOPE_AREAS: &[&str] = &[
@@ -42,11 +47,6 @@ const OUT_OF_SCOPE_AREAS: &[&str] = &[
     "tunnels",
     "vpn_tunnels",
     "sdwan",
-    "services_ssh",
-    "services_snmp",
-    "services_ntp",
-    "services_dns",
-    "services_syslog",
 ];
 
 #[derive(Debug, Default)]
@@ -57,6 +57,8 @@ struct ParseState {
     vlans: BTreeMap<u16, VlanBuf>,
     zones: BTreeMap<String, ZoneBuf>,
     static_routes: Vec<StaticRouteModel>,
+    services: BTreeMap<ServiceKind, ServiceBuf>,
+    has_ssh: bool,
     unknown_lines: Vec<UnknownConfigLine>,
     parsed_line_count: u64,
     section: Section,
@@ -72,6 +74,10 @@ enum Section {
     SystemGlobal,
     SystemInterface,
     SystemZone,
+    SystemDns,
+    SystemNtp,
+    SystemSnmp,
+    LogSyslog,
     RouterStatic,
     Unsupported(String),
 }
@@ -110,6 +116,12 @@ struct ZoneBuf {
     interfaces: BTreeSet<String>,
 }
 
+#[derive(Debug, Default)]
+struct ServiceBuf {
+    servers: BTreeSet<String>,
+    notes: Vec<String>,
+}
+
 pub fn parse(platform_ref: PlatformRef, config_text: &str) -> DeviceModel {
     let lines: Vec<&str> = config_text.lines().collect();
     let byte_size = config_text.len() as u64;
@@ -136,6 +148,7 @@ pub fn parse(platform_ref: PlatformRef, config_text: &str) -> DeviceModel {
     model.vlans = state.take_vlans();
     model.firewall_zones = state.take_zones();
     model.static_routes = state.take_static_routes();
+    model.services = state.take_services();
     model.unknown_lines = state.take_unknown_lines();
     model.parse_confidence = parse_confidence;
     model
@@ -176,6 +189,10 @@ impl ParseState {
                     "system global" => Section::SystemGlobal,
                     "system interface" => Section::SystemInterface,
                     "system zone" => Section::SystemZone,
+                    "system dns" => Section::SystemDns,
+                    "system ntp" => Section::SystemNtp,
+                    "system snmp" | "system snmp community" => Section::SystemSnmp,
+                    "log syslogd setting" | "log syslogd2 setting" => Section::LogSyslog,
                     "router static" => Section::RouterStatic,
                     other => Section::Unsupported(format!("config {other}")),
                 };
@@ -191,6 +208,10 @@ impl ParseState {
                 Section::SystemGlobal => self.handle_system_global(line_no, line, trimmed),
                 Section::SystemInterface => self.handle_system_interface(line_no, line, trimmed),
                 Section::SystemZone => self.handle_system_zone(line_no, line, trimmed),
+                Section::SystemDns => self.handle_system_dns(line_no, line, trimmed),
+                Section::SystemNtp => self.handle_system_ntp(line_no, line, trimmed),
+                Section::SystemSnmp => self.handle_system_snmp(line_no, line, trimmed),
+                Section::LogSyslog => self.handle_log_syslog(line_no, line, trimmed),
                 Section::RouterStatic => self.handle_router_static(line_no, line, trimmed),
                 Section::Unsupported(block) => {
                     self.record_unknown(line_no, line, Some(block.as_str()), UnknownReason::OutOfScope);
@@ -287,7 +308,7 @@ impl ParseState {
                         _ => self.record_unknown(line_no, raw, Some(&format!("config system interface / edit {iface_name}")), UnknownReason::UnsupportedKeyword),
                     },
                     Some("ip") if tokens.len() >= 4 => {
-                        if let Some(addr) = parse_ip_address(&tokens[2..]) {
+                if let Some(addr) = parse_ip_address(&tokens[2..]) {
                             buf.ipv4_addresses.push(addr);
                         } else {
                             self.record_unknown(
@@ -328,6 +349,9 @@ impl ParseState {
                     }
                     Some("allowaccess") if tokens.len() >= 3 => {
                         buf.notes.push(format!("allowaccess={}", tokens[2..].join(",")));
+                        if tokens.iter().any(|t| t == "ssh") {
+                            self.has_ssh = true;
+                        }
                     }
                     Some("role") if tokens.len() >= 3 => {
                         buf.notes.push(format!("role={}", tokens[2..].join(" ")));
@@ -353,6 +377,87 @@ impl ParseState {
                 self.parsed_line_count += 1;
             }
         }
+    }
+
+    fn handle_system_dns(&mut self, line_no: u64, raw: &str, trimmed: &str) {
+        let tokens = split_args(trimmed);
+        if tokens.is_empty() {
+            return;
+        }
+        if tokens[0] == "set" && tokens.len() >= 3 && (tokens[1] == "primary" || tokens[1] == "secondary") {
+            self.ensure_service(ServiceKind::Dns)
+                .servers
+                .insert(tokens[2].trim_matches('"').to_string());
+            self.parsed_line_count += 1;
+            return;
+        }
+        if tokens[0] == "set" && tokens.len() >= 3 && tokens[1] == "dns-server1" {
+            self.ensure_service(ServiceKind::Dns)
+                .servers
+                .insert(tokens[2].trim_matches('"').to_string());
+            self.parsed_line_count += 1;
+            return;
+        }
+        self.record_unknown(line_no, raw, Some("config system dns"), UnknownReason::UnsupportedKeyword);
+        self.parsed_line_count += 1;
+    }
+
+    fn handle_system_ntp(&mut self, line_no: u64, raw: &str, trimmed: &str) {
+        let tokens = split_args(trimmed);
+        if tokens.is_empty() {
+            return;
+        }
+        if tokens[0] == "set" && tokens.len() >= 3 && (tokens[1] == "server" || tokens[1] == "source-ip") {
+            self.ensure_service(ServiceKind::Ntp)
+                .servers
+                .insert(tokens[2].trim_matches('"').to_string());
+            self.parsed_line_count += 1;
+            return;
+        }
+        self.record_unknown(line_no, raw, Some("config system ntp"), UnknownReason::UnsupportedKeyword);
+        self.parsed_line_count += 1;
+    }
+
+    fn handle_system_snmp(&mut self, line_no: u64, raw: &str, trimmed: &str) {
+        let tokens = split_args(trimmed);
+        if tokens.is_empty() {
+            return;
+        }
+        if tokens[0] == "set" && tokens.len() >= 2 {
+            if tokens[1] == "status" || tokens[1] == "contact" || tokens[1] == "location" {
+                self.ensure_service(ServiceKind::Snmp);
+                self.parsed_line_count += 1;
+                return;
+            }
+        }
+        if tokens[0] == "edit" && tokens.len() >= 2 {
+            self.ensure_service(ServiceKind::Snmp);
+            self.parsed_line_count += 1;
+            return;
+        }
+        self.record_unknown(line_no, raw, Some("config system snmp"), UnknownReason::UnsupportedKeyword);
+        self.parsed_line_count += 1;
+    }
+
+    fn handle_log_syslog(&mut self, line_no: u64, raw: &str, trimmed: &str) {
+        let tokens = split_args(trimmed);
+        if tokens.is_empty() {
+            return;
+        }
+        if tokens[0] == "set" && tokens.len() >= 3 && tokens[1] == "server" {
+            self.ensure_service(ServiceKind::Syslog)
+                .servers
+                .insert(tokens[2].trim_matches('"').to_string());
+            self.parsed_line_count += 1;
+            return;
+        }
+        if tokens[0] == "set" && tokens.len() >= 3 && tokens[1] == "status" {
+            self.ensure_service(ServiceKind::Syslog);
+            self.parsed_line_count += 1;
+            return;
+        }
+        self.record_unknown(line_no, raw, Some("config log syslogd setting"), UnknownReason::UnsupportedKeyword);
+        self.parsed_line_count += 1;
     }
 
     fn handle_system_zone(&mut self, line_no: u64, raw: &str, trimmed: &str) {
@@ -563,6 +668,44 @@ impl ParseState {
         out
     }
 
+    fn take_services(&mut self) -> Vec<ServiceModel> {
+        let mut out: Vec<ServiceModel> = self
+            .services
+            .iter()
+            .map(|(kind, buf)| {
+                let mut servers: Vec<String> = buf.servers.iter().cloned().collect();
+                servers.sort();
+                ServiceModel {
+                    kind: *kind,
+                    servers,
+                    source_interface: None,
+                    vrf: None,
+                    authentication_mode: None,
+                    notes: if buf.notes.is_empty() {
+                        None
+                    } else {
+                        let mut notes = buf.notes.clone();
+                        notes.sort();
+                        notes.dedup();
+                        Some(notes.join("; "))
+                    },
+                }
+            })
+            .collect();
+        if self.has_ssh {
+            out.push(ServiceModel {
+                kind: ServiceKind::Ssh,
+                servers: Vec::new(),
+                source_interface: None,
+                vrf: None,
+                authentication_mode: None,
+                notes: Some("allowaccess ssh".to_string()),
+            });
+        }
+        out.sort_by(|a, b| service_rank(a.kind).cmp(&service_rank(b.kind)));
+        out
+    }
+
     fn take_unknown_lines(&mut self) -> Vec<UnknownConfigLine> {
         let mut out = std::mem::take(&mut self.unknown_lines);
         out.sort_by_key(|l| l.line_number);
@@ -584,6 +727,10 @@ impl ParseState {
             reason: Some(reason),
         });
     }
+
+    fn ensure_service(&mut self, kind: ServiceKind) -> &mut ServiceBuf {
+        self.services.entry(kind).or_default()
+    }
 }
 
 impl InterfaceBuf {
@@ -601,7 +748,13 @@ impl InterfaceBuf {
             mtu: self.mtu,
             speed_mbps: self.speed_mbps,
             duplex: self.duplex,
-            l2_mode: self.l2_mode,
+            l2_mode: self.l2_mode.or_else(|| {
+                if self.vlan_id.is_some() {
+                    Some(L2Mode::Access)
+                } else {
+                    None
+                }
+            }),
             access_vlan: None,
             allowed_vlans: Vec::new(),
             native_vlan: None,
@@ -613,6 +766,17 @@ impl InterfaceBuf {
             lag_membership: None,
             notes: if notes.is_empty() { None } else { Some(notes.join("; ")) },
         }
+    }
+}
+
+fn service_rank(kind: ServiceKind) -> u8 {
+    match kind {
+        ServiceKind::Ssh => 0,
+        ServiceKind::Snmp => 1,
+        ServiceKind::Ntp => 2,
+        ServiceKind::Dns => 3,
+        ServiceKind::Syslog => 4,
+        _ => 99,
     }
 }
 
@@ -794,6 +958,21 @@ fn build_parse_confidence(state: &ParseState) -> ParseConfidence {
     if state.static_routes.is_empty() {
         warnings.push("absent:static_routes".to_string());
     }
+    if !state.has_ssh {
+        warnings.push("absent:services_ssh".to_string());
+    }
+    if !state.services.contains_key(&ServiceKind::Snmp) {
+        warnings.push("absent:services_snmp".to_string());
+    }
+    if !state.services.contains_key(&ServiceKind::Ntp) {
+        warnings.push("absent:services_ntp".to_string());
+    }
+    if !state.services.contains_key(&ServiceKind::Dns) {
+        warnings.push("absent:services_dns".to_string());
+    }
+    if !state.services.contains_key(&ServiceKind::Syslog) {
+        warnings.push("absent:services_syslog".to_string());
+    }
     for area in OUT_OF_SCOPE_AREAS {
         warnings.push(format!("not_in_scope:{area}"));
     }
@@ -831,8 +1010,8 @@ mod tests {
     }
 
     #[test]
-    fn parse_version_constant_is_one() {
-        assert_eq!(PARSER_VERSION, 1);
+    fn parse_version_constant_is_two() {
+        assert_eq!(PARSER_VERSION, 2);
     }
 
     #[test]
@@ -928,6 +1107,36 @@ end
         let m = parse(pref(), cfg);
         let parent = m.interfaces.iter().find(|iface| iface.name == "port2").unwrap();
         assert!(parent.child_interfaces.contains(&"VLAN20".to_string()));
+    }
+
+    #[test]
+    fn service_hints_parse_from_interfaces_and_service_sections() {
+        let cfg = r#"
+config system interface
+    edit "port1"
+        set allowaccess ping ssh
+    next
+end
+config system dns
+    set primary 192.0.2.53
+end
+config system ntp
+    set server 192.0.2.100
+end
+config system snmp
+    set status enable
+end
+config log syslogd setting
+    set server 192.0.2.200
+end
+"#;
+        let m = parse(pref(), cfg);
+        let kinds: Vec<ServiceKind> = m.services.iter().map(|s| s.kind).collect();
+        assert!(kinds.contains(&ServiceKind::Ssh));
+        assert!(kinds.contains(&ServiceKind::Dns));
+        assert!(kinds.contains(&ServiceKind::Ntp));
+        assert!(kinds.contains(&ServiceKind::Snmp));
+        assert!(kinds.contains(&ServiceKind::Syslog));
     }
 
     #[test]

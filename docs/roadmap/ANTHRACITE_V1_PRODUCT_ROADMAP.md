@@ -118,8 +118,13 @@ Everything else is a placeholder, an empty contract, or doctrine without code.
 - **Parser depth gaps.** L3/4 protocols (OSPF/BGP advanced, NAT, QoS,
   AAA, VPN, firewall, security objects) are shallow or absent across all
   vendors.
-- **Vendor coverage gaps.** Fortinet FortiOS, Huawei VRP, MikroTik RouterOS
-  not started.
+- **Vendor coverage gaps.** Remaining planned families are
+  `cisco-iosxr`, `paloalto-panos`, `nokia-sros`, `aruba-aoscx`,
+  `aruba-arubaos`, `dell-os10`, `extreme-exos`, `extreme-voss`,
+  `nvidia-cumulus`, `vyos`, `ubiquiti-edgeos`, `ubiquiti-unifi`, and
+  `checkpoint-gaia`. Cisco IOS now has a baseline parser alongside
+  IOS-XE. Fortinet FortiOS, Huawei VRP, and MikroTik RouterOS now have
+  baseline parsers.
 
 ---
 
@@ -208,13 +213,13 @@ parser-lab/
 
 **Vendor priority (top → bottom):**
 
-1. Cisco IOS-XE  *(parser exists; deepen)*
+1. Cisco IOS / IOS-XE  *(baseline landed; deepen both parser families)*
 2. Cisco NX-OS   *(parser exists; deepen)*
 3. Juniper Junos *(parser exists; deepen)*
 4. Arista EOS    *(parser exists; deepen)*
-5. Fortinet FortiOS *(not started)*
-6. Huawei VRP    *(not started)*
-7. MikroTik RouterOS *(not started)*
+5. Fortinet FortiOS *(baseline landed)*
+6. Huawei VRP    *(baseline landed)*
+7. MikroTik RouterOS *(baseline landed)*
 
 OCC owns parser code; Codex owns fixture/coverage/intent prep.
 

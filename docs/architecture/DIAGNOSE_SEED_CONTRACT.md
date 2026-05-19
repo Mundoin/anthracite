@@ -17,7 +17,7 @@ yield the same DiagnoseModel.
 |---|---|---|
 | `readonly DiscoveryDeviceRecord[]` | `discovery.view.records` (V1AF / V1AI / V1AK) | yes |
 | `TopologyView | null` | `topology.view` (V1AJ / V1AS) | optional |
-| `known_unsupported_platforms?: readonly string[]` | override | optional; default `["cisco-iosxr", "mikrotik-routeros"]` |
+| `known_unsupported_platforms?: readonly string[]` | override | optional; default `["cisco-iosxr"]` |
 
 The projector reads only fields already exposed by the canonical
 DeviceModel + TopologyView. No new wire types. No DeviceModel schema

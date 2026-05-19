@@ -1,0 +1,114 @@
+{
+  "identity": {
+    "hostname": "aoscx-trunc",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "aruba-aoscx",
+    "vendor": "HPE Aruba",
+    "os_family": "AOS-CX / ArubaOS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 108,
+    "line_count": 5
+  },
+  "interfaces": [
+    {
+      "name": "1/1/1",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": "uplink",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "198.51.100.2",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [],
+  "vrfs": [],
+  "static_routes": [],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 5,
+      "raw": "ip route 0.0.0.0/0",
+      "context_path": "ip route",
+      "reason": "parse_error"
+    }
+  ],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.1538,
+    "parsed_line_count": 4,
+    "unknown_line_count": 1,
+    "warnings": [
+      "absent:lag_groups",
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_ssh",
+      "absent:services_syslog",
+      "absent:static_routes",
+      "absent:vlans",
+      "absent:vrfs",
+      "not_in_scope:aaa_detail",
+      "not_in_scope:acls",
+      "not_in_scope:firewall_policies",
+      "not_in_scope:nat_rules",
+      "not_in_scope:qos_policies",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:spanning_tree_detail",
+      "not_in_scope:tunnels",
+      "not_in_scope:vsx"
+    ]
+  }
+}

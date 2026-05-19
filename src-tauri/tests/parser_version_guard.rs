@@ -1,4 +1,4 @@
-//! V1L / V1M / V1N / V1U / V1AV parser-version guard.
+//! V1K / V1L / V1M / V1N / V1U / V1AV / V1BA / V1BC parser-version guard.
 //!
 //! Per-parser focused gates that fire CI red whenever a parser's
 //! source `PARSER_VERSION`, its fixture manifest, and the on-disk
@@ -6,13 +6,16 @@
 //! harnesses so the failure surface speaks to "did the contract
 //! drift?" rather than "did one fixture's output drift?".
 //!
-//! Covers the shipped Anthracite parsers as of V1AV:
+//! Covers the shipped Anthracite parsers as of V1BC:
+//!   - cisco-ios     (V1BC v1)
 //!   - cisco-iosxe   (V1K + V1L bump to v2)
 //!   - juniper-junos (V1M v1)
 //!   - arista-eos    (V1N v1)
 //!   - cisco-nxos    (V1U v1)
 //!   - huawei-vrp    (V1AV v1)
 //!   - fortinet-fortios (V1AV v1)
+//!   - mikrotik-routeros (V1BA v1)
+//!   - paloalto-panos (V1BA v1)
 //!
 //! ## What this guards (per parser)
 //!
@@ -35,12 +38,20 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
+const CISCO_IOS_FIXTURE_ROOT: &str = "tests/fixtures/cisco-ios";
 const CISCO_FIXTURE_ROOT: &str = "tests/fixtures/cisco-iosxe";
 const JUNOS_FIXTURE_ROOT: &str = "tests/fixtures/juniper-junos";
 const EOS_FIXTURE_ROOT: &str = "tests/fixtures/arista-eos";
+const AOSCX_FIXTURE_ROOT: &str = "tests/fixtures/aruba-aoscx";
 const NXOS_FIXTURE_ROOT: &str = "tests/fixtures/cisco-nxos";
 const HUAWEI_FIXTURE_ROOT: &str = "tests/fixtures/huawei-vrp";
 const FORTIOS_FIXTURE_ROOT: &str = "tests/fixtures/fortinet-fortios";
+const NOKIA_FIXTURE_ROOT: &str = "tests/fixtures/nokia-sros";
+const MIKROTIK_FIXTURE_ROOT: &str = "tests/fixtures/mikrotik-routeros";
+const PALOALTO_FIXTURE_ROOT: &str = "tests/fixtures/paloalto-panos";
+const VYOS_FIXTURE_ROOT: &str = "tests/fixtures/vyos";
+const CHECKPOINT_FIXTURE_ROOT: &str = "tests/fixtures/checkpoint-gaia";
+const IOSXR_FIXTURE_ROOT: &str = "tests/fixtures/cisco-iosxr";
 const MANIFEST_FILE: &str = "_manifest.toml";
 
 fn manifest_path(root: &str) -> PathBuf {
@@ -127,6 +138,33 @@ fn assert_every_fixture_has_config(root: &str, listed: &[String]) {
 }
 
 // =====================================================================
+// cisco-ios
+// =====================================================================
+
+#[test]
+fn cisco_ios_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(CISCO_IOS_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::cisco_ios::PARSER_VERSION,
+        "DRIFT: cisco-ios manifest parser_version != cisco_ios::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn cisco_ios_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(CISCO_IOS_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(CISCO_IOS_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn cisco_ios_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(CISCO_IOS_FIXTURE_ROOT);
+    assert_every_fixture_has_config(CISCO_IOS_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
 // cisco-iosxe
 // =====================================================================
 
@@ -208,6 +246,114 @@ fn eos_every_listed_fixture_has_config_cfg() {
 }
 
 // =====================================================================
+// aruba-aoscx
+// =====================================================================
+
+#[test]
+fn aoscx_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(AOSCX_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::aruba_aoscx::PARSER_VERSION,
+        "DRIFT: aoscx manifest parser_version != aruba_aoscx::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn aoscx_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(AOSCX_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(AOSCX_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn aoscx_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(AOSCX_FIXTURE_ROOT);
+    assert_every_fixture_has_config(AOSCX_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
+// vyos
+// =====================================================================
+
+#[test]
+fn vyos_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(VYOS_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::vyos::PARSER_VERSION,
+        "DRIFT: vyos manifest parser_version != vyos::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn vyos_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(VYOS_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(VYOS_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn vyos_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(VYOS_FIXTURE_ROOT);
+    assert_every_fixture_has_config(VYOS_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
+// checkpoint-gaia
+// =====================================================================
+
+#[test]
+fn checkpoint_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(CHECKPOINT_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::checkpoint_gaia::PARSER_VERSION,
+        "DRIFT: checkpoint manifest parser_version != checkpoint_gaia::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn checkpoint_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(CHECKPOINT_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(CHECKPOINT_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn checkpoint_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(CHECKPOINT_FIXTURE_ROOT);
+    assert_every_fixture_has_config(CHECKPOINT_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
+// cisco-iosxr
+// =====================================================================
+
+#[test]
+fn iosxr_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(IOSXR_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::cisco_iosxr::PARSER_VERSION,
+        "DRIFT: iosxr manifest parser_version != cisco_iosxr::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn iosxr_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(IOSXR_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(IOSXR_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn iosxr_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(IOSXR_FIXTURE_ROOT);
+    assert_every_fixture_has_config(IOSXR_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
 // cisco-nxos
 // =====================================================================
 
@@ -286,4 +432,85 @@ fn fortios_on_disk_fixture_set_equals_manifest_fixture_set() {
 fn fortios_every_listed_fixture_has_config_cfg() {
     let (_, listed) = read_manifest_version_and_fixtures(FORTIOS_FIXTURE_ROOT);
     assert_every_fixture_has_config(FORTIOS_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
+// nokia-sros
+// =====================================================================
+
+#[test]
+fn nokia_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(NOKIA_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::nokia_sros::PARSER_VERSION,
+        "DRIFT: nokia manifest parser_version != nokia_sros::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn nokia_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(NOKIA_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(NOKIA_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn nokia_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(NOKIA_FIXTURE_ROOT);
+    assert_every_fixture_has_config(NOKIA_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
+// mikrotik-routeros
+// =====================================================================
+
+#[test]
+fn mikrotik_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(MIKROTIK_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::mikrotik_routeros::PARSER_VERSION,
+        "DRIFT: mikrotik manifest parser_version != mikrotik_routeros::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn mikrotik_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(MIKROTIK_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(MIKROTIK_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn mikrotik_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(MIKROTIK_FIXTURE_ROOT);
+    assert_every_fixture_has_config(MIKROTIK_FIXTURE_ROOT, &listed);
+}
+
+// =====================================================================
+// paloalto-panos
+// =====================================================================
+
+#[test]
+fn paloalto_manifest_parser_version_equals_source_constant() {
+    let (mv, _) = read_manifest_version_and_fixtures(PALOALTO_FIXTURE_ROOT);
+    assert_eq!(
+        mv,
+        anthracite_lib::engines::parsers::paloalto_panos::PARSER_VERSION,
+        "DRIFT: paloalto manifest parser_version != paloalto_panos::PARSER_VERSION. \
+         Bump both or neither; never one without the other."
+    );
+}
+
+#[test]
+fn paloalto_on_disk_fixture_set_equals_manifest_fixture_set() {
+    let (_, listed) = read_manifest_version_and_fixtures(PALOALTO_FIXTURE_ROOT);
+    assert_on_disk_matches_manifest(PALOALTO_FIXTURE_ROOT, &listed);
+}
+
+#[test]
+fn paloalto_every_listed_fixture_has_config_cfg() {
+    let (_, listed) = read_manifest_version_and_fixtures(PALOALTO_FIXTURE_ROOT);
+    assert_every_fixture_has_config(PALOALTO_FIXTURE_ROOT, &listed);
 }

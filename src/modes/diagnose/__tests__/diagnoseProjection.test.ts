@@ -293,7 +293,7 @@ describe("diagnoseProjection — interfaces", () => {
 });
 
 describe("diagnoseProjection — platform_support", () => {
-  it("flags known-unsupported platforms (default: iosxr, mikrotik)", () => {
+  it("flags known-unsupported platforms (default: iosxr only)", () => {
     const r = record("rec-1", "router-xr", {
       platform: {
         platform_id: "cisco-iosxr",
@@ -316,6 +316,21 @@ describe("diagnoseProjection — platform_support", () => {
         platform_id: "huawei-vrp",
         vendor: "Huawei",
         os_family: "VRP",
+        os_version_raw: null,
+        os_version_normalized: null,
+        detection_confidence: 0.9,
+      },
+    });
+    const m = projectDiagnose({ devices: [r], topology: null });
+    expect(m.answers.some((x) => x.category === "platform_support")).toBe(false);
+  });
+
+  it("does NOT flag mikrotik-routeros as unsupported by default", () => {
+    const r = record("rec-1", "router-1", {
+      platform: {
+        platform_id: "mikrotik-routeros",
+        vendor: "MikroTik",
+        os_family: "RouterOS",
         os_version_raw: null,
         os_version_normalized: null,
         detection_confidence: 0.9,

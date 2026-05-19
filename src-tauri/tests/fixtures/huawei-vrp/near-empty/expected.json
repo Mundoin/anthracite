@@ -18,7 +18,7 @@
     "source": null,
     "source_kind": "config_paste",
     "captured_at": null,
-    "parser_version": "1",
+    "parser_version": "2",
     "registry_version": null,
     "fixture_corpus_version": null,
     "byte_size": 44,
@@ -52,25 +52,25 @@
     "warnings": [
       "absent:interfaces",
       "absent:ip_addressing",
+      "absent:lag_groups",
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_ssh",
+      "absent:services_syslog",
       "absent:services_telnet",
       "absent:static_routes",
+      "absent:vlans",
+      "absent:vrfs",
       "not_in_scope:aaa_detail",
       "not_in_scope:acls",
       "not_in_scope:firewall_policies",
-      "not_in_scope:lag_groups",
       "not_in_scope:nat_rules",
       "not_in_scope:qos_policies",
       "not_in_scope:routing_protocols_bgp",
       "not_in_scope:routing_protocols_isis",
       "not_in_scope:routing_protocols_ospf",
-      "not_in_scope:services_dns",
-      "not_in_scope:services_ntp",
-      "not_in_scope:services_snmp",
-      "not_in_scope:services_ssh",
-      "not_in_scope:services_syslog",
-      "not_in_scope:tunnels",
-      "not_in_scope:vlans",
-      "not_in_scope:vrfs"
+      "not_in_scope:tunnels"
     ]
   }
 }

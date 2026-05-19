@@ -171,6 +171,17 @@ fn build_registry() -> Vec<VendorPlatform> {
 
     vec![
         p(
+            "cisco-ios",
+            "Cisco",
+            "IOS / IOS XE",
+            "enterprise router / switch",
+            "IOS-classic, indented",
+            T1,
+            L2Topology,
+            l1_l2_router_switch,
+            "Classic IOS shares the canonical L1/L2 bar with IOS-XE; platform id stays distinct.",
+        ),
+        p(
             "cisco-iosxe",
             "Cisco",
             "IOS / IOS XE",
@@ -366,6 +377,7 @@ mod tests {
     use std::collections::HashSet;
 
     const REQUIRED_IDS: &[&str] = &[
+        "cisco-ios",
         "cisco-iosxe",
         "cisco-iosxr",
         "cisco-nxos",
@@ -418,9 +430,11 @@ mod tests {
 
     #[test]
     fn get_by_valid_id_returns_platform() {
-        let p = get_platform("cisco-iosxe").expect("cisco-iosxe must exist");
-        assert_eq!(p.id, "cisco-iosxe");
-        assert_eq!(p.vendor, "Cisco");
+        for id in ["cisco-ios", "cisco-iosxe"] {
+            let p = get_platform(id).expect("platform must exist");
+            assert_eq!(p.id, id);
+            assert_eq!(p.vendor, "Cisco");
+        }
     }
 
     #[test]
@@ -437,7 +451,7 @@ mod tests {
     fn flagship_platforms_have_sensible_capability_families() {
         use CapabilityFamily::*;
         let must_have_routerish = [Interfaces, IpAddressing, Vlans, Vrfs];
-        for id in ["cisco-iosxe", "juniper-junos", "arista-eos"] {
+        for id in ["cisco-ios", "cisco-iosxe", "juniper-junos", "arista-eos"] {
             let p = get_platform(id).unwrap();
             for cap in &must_have_routerish {
                 assert!(

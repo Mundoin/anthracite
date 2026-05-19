@@ -1,0 +1,12 @@
+# Palo Alto PAN-OS fixture corpus manifest.
+#
+# `parser_version` must equal `paloalto_panos::PARSER_VERSION`.
+
+parser_version = 1
+
+fixtures = [
+    "common-bar",
+    "near-empty",
+    "small",
+    "truncated",
+]

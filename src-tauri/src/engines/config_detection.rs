@@ -129,6 +129,14 @@ fn signatures() -> &'static [Signature] {
     //   1.5  Moderately distinctive.
     //   0.5  Generic / shared across vendors.
     &[
+        // ---------- cisco-ios ----------
+        S { platform_id: "cisco-ios", signature_id: "ios.classic-boot-system", pattern: StartsWith("boot system "), category: Header, weight: 3.5 },
+        S { platform_id: "cisco-ios", signature_id: "ios.classic-service-pad", pattern: Equals("service pad"), category: Header, weight: 3.5 },
+        S { platform_id: "cisco-ios", signature_id: "ios.classic-interface-fastethernet", pattern: StartsWith("interface FastEthernet"), category: Distinctive, weight: 2.5 },
+        S { platform_id: "cisco-ios", signature_id: "ios.classic-interface-serial", pattern: StartsWith("interface Serial"), category: Distinctive, weight: 2.5 },
+        S { platform_id: "cisco-ios", signature_id: "ios.classic-line-aux", pattern: StartsWith("line aux "), category: Distinctive, weight: 2.5 },
+        S { platform_id: "cisco-ios", signature_id: "ios.classic-ip-classless", pattern: Equals("ip classless"), category: Generic, weight: 0.5 },
+
         // ---------- cisco-iosxe ----------
         S { platform_id: "cisco-iosxe", signature_id: "iosxe.service-timestamps", pattern: StartsWith("service timestamps "), category: Distinctive, weight: 2.5 },
         S { platform_id: "cisco-iosxe", signature_id: "iosxe.boot-start-marker", pattern: Equals("boot-start-marker"), category: Header, weight: 3.5 },
@@ -517,6 +525,24 @@ line vty 0 4
 end
 "#;
         assert_best(cfg, "cisco-iosxe");
+    }
+
+    #[test]
+    fn cisco_ios_sample_detects_cisco_ios() {
+        let cfg = r#"
+version 12.4
+service pad
+boot system flash:c2960-lanbasek9-mz.150-2.SE.bin
+hostname core-01
+ip classless
+interface FastEthernet0/0
+ ip address 10.0.0.1 255.255.255.0
+interface Serial0/0
+ ip address 192.0.2.1 255.255.255.252
+line aux 0
+ transport input none
+"#;
+        assert_best(cfg, "cisco-ios");
     }
 
     #[test]

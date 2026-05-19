@@ -1,0 +1,31 @@
+# Cisco IOS fixture corpus manifest (V1BC).
+#
+# The parser_version field must match `cisco_ios::PARSER_VERSION`;
+# the `parser_version_guard` integration test enforces that equality.
+#
+# `fixtures` is the deterministically-ordered list of fixture directory
+# names under `tests/fixtures/cisco-ios/`. Every directory under that
+# path (with the exception of this manifest file) must appear here, and
+# every entry here must exist on disk. The corpus harness asserts both
+# directions.
+#
+# When adding a fixture:
+#   1. mkdir tests/fixtures/cisco-ios/<name>/
+#   2. drop config.cfg in
+#   3. add <name> to `fixtures` below, alphabetically
+#   4. ANTHRACITE_UPDATE_FIXTURES=1 cargo test --test cisco_ios_fixture_corpus
+#   5. hand-review expected.json before committing
+#
+# When parser output diverges from any committed expected.json, bump
+# parser_version here AND in `cisco_ios::PARSER_VERSION`, then
+# regenerate. See PARSER_VERSIONING.md for the honest limitation.
+
+parser_version = 1
+
+fixtures = [
+    "cross-vendor-equivalent-small",
+    "near-empty",
+    "services-snmp-ntp-ssh-syslog",
+    "small",
+    "truncated",
+]

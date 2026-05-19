@@ -1,0 +1,8 @@
+parser_version = 1
+
+fixtures = [
+  "common-bar",
+  "near-empty",
+  "small",
+  "truncated",
+]

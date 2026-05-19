@@ -1,0 +1,337 @@
+{
+  "identity": {
+    "hostname": "core-01",
+    "chassis": "ASR1001-X",
+    "serial_numbers": [
+      "FOC2300ABCD"
+    ],
+    "management_ips": [],
+    "last_change_marker": "Last configuration change at 12:30:55 UTC Wed May 14 2026 by admin"
+  },
+  "platform": {
+    "platform_id": "cisco-ios",
+    "vendor": "Cisco",
+    "os_family": "IOS / IOS XE",
+    "os_version_raw": "17.9",
+    "os_version_normalized": "17.9",
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 1537,
+    "line_count": 72
+  },
+  "interfaces": [
+    {
+      "name": "GigabitEthernet0/0/0",
+      "normalized_name": "Gi0/0/0",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "WAN-uplink",
+      "mtu": 1500,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "192.0.2.1",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "GigabitEthernet0/0/1",
+      "normalized_name": "Gi0/0/1",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "access-port",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "access",
+      "access_vlan": 10,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "GigabitEthernet0/0/2",
+      "normalized_name": "Gi0/0/2",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "trunk-port",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "trunk",
+      "access_vlan": null,
+      "allowed_vlans": [
+        10,
+        20
+      ],
+      "native_vlan": 10,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "GigabitEthernet0/0/3",
+      "normalized_name": "Gi0/0/3",
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "bound-to-vrf",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "CUST-A",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.0.1",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": "CUST-A"
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "Loopback0",
+      "normalized_name": "Lo0",
+      "kind": "loopback",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": "router-id",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.255.0.1",
+          "prefix_length": 32,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [
+    {
+      "id": 10,
+      "name": "USERS",
+      "state": "active",
+      "interfaces": [
+        "Gi0/0/1",
+        "Gi0/0/2"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "VOICE",
+      "state": "active",
+      "interfaces": [
+        "Gi0/0/2"
+      ]
+    }
+  ],
+  "vrfs": [
+    {
+      "name": "CUST-A",
+      "route_distinguisher": "65000:100",
+      "route_targets_import": [
+        "65000:100"
+      ],
+      "route_targets_export": [
+        "65000:100"
+      ],
+      "interfaces": [
+        "Gi0/0/3"
+      ],
+      "address_families": [
+        "ipv4-unicast"
+      ]
+    }
+  ],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "192.0.2.2"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": null,
+      "name": "default-route"
+    },
+    {
+      "prefix": "10.10.0.0/16",
+      "next_hops": [
+        "10.0.0.254"
+      ],
+      "admin_distance": 200,
+      "metric": null,
+      "tag": null,
+      "vrf": "CUST-A",
+      "name": null
+    }
+  ],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [
+    {
+      "kind": "dns",
+      "servers": [
+        "8.8.8.8"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "domains=example.com"
+    },
+    {
+      "kind": "ntp",
+      "servers": [
+        "10.0.0.10"
+      ],
+      "source_interface": "Loopback0",
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "snmp",
+      "servers": [
+        "10.0.0.50"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "role=trap_hosts"
+    },
+    {
+      "kind": "snmp",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "role=agent;communities=public;location=rack-3;contact=noc@example.com"
+    },
+    {
+      "kind": "ssh",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "version=2;idle_timeout_seconds=60"
+    },
+    {
+      "kind": "syslog",
+      "servers": [
+        "10.0.0.99"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": "severity=informational;facility=local7"
+    }
+  ],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 5,
+      "raw": "service timestamps log datetime msec",
+      "context_path": null,
+      "reason": "unsupported_keyword"
+    }
+  ],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.8571,
+    "parsed_line_count": 59,
+    "unknown_line_count": 1,
+    "warnings": [
+      "absent:lag_groups",
+      "absent:services_telnet",
+      "not_in_scope:aaa_detail",
+      "not_in_scope:acls",
+      "not_in_scope:community_lists",
+      "not_in_scope:evpn",
+      "not_in_scope:firewall_zones",
+      "not_in_scope:mpls",
+      "not_in_scope:nat_rules",
+      "not_in_scope:prefix_lists",
+      "not_in_scope:qos_policies",
+      "not_in_scope:route_maps",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:segment_routing",
+      "not_in_scope:tunnels",
+      "not_in_scope:vxlan"
+    ]
+  }
+}

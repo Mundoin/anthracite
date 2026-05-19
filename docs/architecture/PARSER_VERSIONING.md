@@ -86,16 +86,19 @@ over-specification at this stage — the canonical model is the
 contract, not the parser interface.
 
 Per-vendor counters keep each parser's evolution legible. A bump on
-`cisco-iosxe` does not imply anything about `juniper-junos`.
+`cisco-ios` does not imply anything about `cisco-iosxe` or
+`juniper-junos`.
 
-As of V1AV the shipped parser families are:
+As of V1BC the shipped parser families are:
 
+- `cisco-ios`
 - `cisco-iosxe`
 - `juniper-junos`
 - `arista-eos`
 - `cisco-nxos`
 - `huawei-vrp`
 - `fortinet-fortios`
+- `mikrotik-routeros`
 
 ## Shared infrastructure changes (V1M clarification)
 
@@ -119,5 +122,7 @@ together.
 - [`PARSER_COMMAND_CONTRACT.md`](./PARSER_COMMAND_CONTRACT.md)
 - [`PARSER_COVERAGE_AREAS.md`](./PARSER_COVERAGE_AREAS.md)
 - [`CANONICAL_NETWORK_MODEL.md`](./CANONICAL_NETWORK_MODEL.md)
+- [`PARSER_CISCO_IOS.md`](./PARSER_CISCO_IOS.md)
 - [`PARSER_HUAWEI_VRP.md`](./PARSER_HUAWEI_VRP.md)
 - [`PARSER_FORTINET_FORTIOS.md`](./PARSER_FORTINET_FORTIOS.md)
+- [`PARSER_MIKROTIK_ROUTEROS.md`](./PARSER_MIKROTIK_ROUTEROS.md)

@@ -8,9 +8,10 @@
 # manifest) must appear in `fixtures`, and every name here must exist on
 # disk.
 
-parser_version = 1
+parser_version = 2
 
 fixtures = [
+    "common-bar",
     "interface-heavy",
     "near-empty",
     "out-of-scope-vocabulary",

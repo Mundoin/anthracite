@@ -1,0 +1,119 @@
+{
+  "identity": {
+    "hostname": "pa-trunc-01",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "paloalto-panos",
+    "vendor": "Palo Alto Networks",
+    "os_family": "PAN-OS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 239,
+    "line_count": 3
+  },
+  "interfaces": [
+    {
+      "name": "ethernet1/1",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "unknown",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "default",
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [],
+  "vrfs": [
+    {
+      "name": "default",
+      "route_distinguisher": null,
+      "route_targets_import": [],
+      "route_targets_export": [],
+      "interfaces": [
+        "ethernet1/1"
+      ],
+      "address_families": []
+    }
+  ],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "198.51.100.254"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": "default",
+      "name": "default-route"
+    }
+  ],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [],
+  "services": [],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.1364,
+    "parsed_line_count": 3,
+    "unknown_line_count": 0,
+    "warnings": [
+      "absent:ip_addressing",
+      "absent:lag_groups",
+      "absent:services_dns",
+      "absent:services_ntp",
+      "absent:services_snmp",
+      "absent:services_ssh",
+      "absent:services_syslog",
+      "absent:vlans",
+      "not_in_scope:acl_firewall",
+      "not_in_scope:nat_rules",
+      "not_in_scope:qos_policies",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_eigrp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:rulebase_security_rules",
+      "not_in_scope:shared_objects",
+      "not_in_scope:vpn_tunnels"
+    ]
+  }
+}

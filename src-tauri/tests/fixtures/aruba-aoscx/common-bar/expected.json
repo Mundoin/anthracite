@@ -1,0 +1,268 @@
+{
+  "identity": {
+    "hostname": "aoscx-01",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "aruba-aoscx",
+    "vendor": "HPE Aruba",
+    "os_family": "AOS-CX / ArubaOS",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 567,
+    "line_count": 29
+  },
+  "interfaces": [
+    {
+      "name": "1/1/1",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "uplink",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "trunk",
+      "access_vlan": null,
+      "allowed_vlans": [
+        10,
+        20
+      ],
+      "native_vlan": null,
+      "vrf": "MGMT",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "198.51.100.2",
+          "prefix_length": 30,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "1/1/2",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": "lag1",
+      "notes": null
+    },
+    {
+      "name": "lag 1",
+      "normalized_name": null,
+      "kind": "lag",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "access",
+      "access_vlan": 10,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": "lacp mode active"
+    }
+  ],
+  "vlans": [
+    {
+      "id": 10,
+      "name": "users",
+      "state": "active",
+      "interfaces": [
+        "1/1/1",
+        "lag 1"
+      ]
+    },
+    {
+      "id": 20,
+      "name": null,
+      "state": "active",
+      "interfaces": [
+        "1/1/1"
+      ]
+    }
+  ],
+  "vrfs": [
+    {
+      "name": "MGMT",
+      "route_distinguisher": "65000:10",
+      "route_targets_import": [
+        "65000:10"
+      ],
+      "route_targets_export": [],
+      "interfaces": [
+        "1/1/1"
+      ],
+      "address_families": [
+        "ipv4"
+      ]
+    }
+  ],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "198.51.100.1"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": null,
+      "name": null
+    }
+  ],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [
+    {
+      "name": "lag 1",
+      "mode": null,
+      "members": [],
+      "hashing_mode": null,
+      "min_links": null
+    },
+    {
+      "name": "lag1",
+      "mode": null,
+      "members": [
+        "1/1/2"
+      ],
+      "hashing_mode": null,
+      "min_links": null
+    }
+  ],
+  "services": [
+    {
+      "kind": "ssh",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "snmp",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "ntp",
+      "servers": [
+        "192.0.2.100"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "dns",
+      "servers": [
+        "192.0.2.53"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "syslog",
+      "servers": [
+        "192.0.2.200"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    }
+  ],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 28,
+      "raw": "vsx",
+      "context_path": "vsx",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 29,
+      "raw": "router ospfv3 1",
+      "context_path": "aruba-aoscx",
+      "reason": "unsupported_keyword"
+    }
+  ],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.65,
+    "parsed_line_count": 26,
+    "unknown_line_count": 2,
+    "warnings": [
+      "not_in_scope:aaa_detail",
+      "not_in_scope:acls",
+      "not_in_scope:firewall_policies",
+      "not_in_scope:nat_rules",
+      "not_in_scope:qos_policies",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:spanning_tree_detail",
+      "not_in_scope:tunnels",
+      "not_in_scope:vsx"
+    ]
+  }
+}

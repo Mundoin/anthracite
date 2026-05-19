@@ -1,0 +1,270 @@
+{
+  "identity": {
+    "hostname": "xr-core-01",
+    "chassis": null,
+    "serial_numbers": [],
+    "management_ips": [],
+    "last_change_marker": null
+  },
+  "platform": {
+    "platform_id": "cisco-iosxr",
+    "vendor": "Cisco",
+    "os_family": "IOS XR",
+    "os_version_raw": null,
+    "os_version_normalized": null,
+    "detection_confidence": 0.9
+  },
+  "evidence": {
+    "source": null,
+    "source_kind": "config_paste",
+    "captured_at": null,
+    "parser_version": "1",
+    "registry_version": null,
+    "fixture_corpus_version": null,
+    "byte_size": 662,
+    "line_count": 29
+  },
+  "interfaces": [
+    {
+      "name": "Bundle-Ether1",
+      "normalized_name": null,
+      "kind": "lag",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "core-bundle",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "MGMT",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.0.10.1",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [
+        "HundredGigE0/0/0/0"
+      ],
+      "lag_membership": null,
+      "notes": null
+    },
+    {
+      "name": "HundredGigE0/0/0/0",
+      "normalized_name": null,
+      "kind": "physical",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": "uplink",
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": null,
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": null,
+      "ipv4_addresses": [],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": "Bundle-Ether1",
+      "notes": null
+    },
+    {
+      "name": "Vlan10",
+      "normalized_name": null,
+      "kind": "vlan",
+      "admin_state": "up",
+      "oper_state": "unknown",
+      "description": null,
+      "mtu": null,
+      "speed_mbps": null,
+      "duplex": null,
+      "l2_mode": "routed",
+      "access_vlan": null,
+      "allowed_vlans": [],
+      "native_vlan": null,
+      "vrf": "MGMT",
+      "ipv4_addresses": [
+        {
+          "family": "v4",
+          "address": "10.10.10.1",
+          "prefix_length": 24,
+          "secondary": false,
+          "vrf": null
+        }
+      ],
+      "ipv6_addresses": [],
+      "parent_interface": null,
+      "child_interfaces": [],
+      "lag_membership": null,
+      "notes": null
+    }
+  ],
+  "vlans": [
+    {
+      "id": 10,
+      "name": null,
+      "state": "active",
+      "interfaces": [
+        "Vlan10"
+      ]
+    }
+  ],
+  "vrfs": [
+    {
+      "name": "MGMT",
+      "route_distinguisher": "65000:10",
+      "route_targets_import": [],
+      "route_targets_export": [],
+      "interfaces": [
+        "Bundle-Ether1",
+        "Vlan10"
+      ],
+      "address_families": []
+    }
+  ],
+  "static_routes": [
+    {
+      "prefix": "0.0.0.0/0",
+      "next_hops": [
+        "198.51.100.1"
+      ],
+      "admin_distance": null,
+      "metric": null,
+      "tag": null,
+      "vrf": null,
+      "name": null
+    }
+  ],
+  "routing_protocols": {
+    "ospf": [],
+    "isis": [],
+    "eigrp": [],
+    "bgp": []
+  },
+  "acls": [],
+  "firewall_zones": [],
+  "nat_rules": [],
+  "tunnels": [],
+  "qos_policies": [],
+  "lag_groups": [
+    {
+      "name": "Bundle-Ether1",
+      "mode": "active",
+      "members": [
+        "HundredGigE0/0/0/0"
+      ],
+      "hashing_mode": null,
+      "min_links": null
+    }
+  ],
+  "services": [
+    {
+      "kind": "ssh",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "snmp",
+      "servers": [],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "ntp",
+      "servers": [
+        "192.0.2.100"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "dns",
+      "servers": [
+        "192.0.2.53"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    },
+    {
+      "kind": "syslog",
+      "servers": [
+        "192.0.2.200"
+      ],
+      "source_interface": null,
+      "vrf": null,
+      "authentication_mode": null,
+      "notes": null
+    }
+  ],
+  "topology_hints": [],
+  "findings": [],
+  "unknown_lines": [
+    {
+      "source": null,
+      "line_number": 6,
+      "raw": " ipv4 address 198.51.100.2 255.255.255.252",
+      "context_path": "interface ipv4 address",
+      "reason": "parse_error"
+    },
+    {
+      "source": null,
+      "line_number": 27,
+      "raw": "route-policy DROP-ALL",
+      "context_path": "cisco-iosxr out-of-scope",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 28,
+      "raw": "prefix-set LOOPBACKS",
+      "context_path": "cisco-iosxr out-of-scope",
+      "reason": "out_of_scope"
+    },
+    {
+      "source": null,
+      "line_number": 29,
+      "raw": "router bgp 65000",
+      "context_path": "cisco-iosxr out-of-scope",
+      "reason": "out_of_scope"
+    }
+  ],
+  "parse_confidence": {
+    "maturity_observed": "l2topology",
+    "score": 0.6279,
+    "parsed_line_count": 27,
+    "unknown_line_count": 4,
+    "warnings": [
+      "not_in_scope:aaa_detail",
+      "not_in_scope:firewall_policies",
+      "not_in_scope:nat_rules",
+      "not_in_scope:prefix_set",
+      "not_in_scope:qos_policies",
+      "not_in_scope:route_policy",
+      "not_in_scope:routing_protocols_bgp",
+      "not_in_scope:routing_protocols_isis",
+      "not_in_scope:routing_protocols_ospf",
+      "not_in_scope:tunnels",
+      "not_in_scope:vpn_tunnels"
+    ]
+  }
+}
