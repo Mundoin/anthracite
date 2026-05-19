@@ -1635,9 +1635,9 @@ describe("TopologyMode", () => {
         ])
       );
       const fortiosOption = Array.from(select.options).find((o) => o.value === "fortios");
-      expect(fortiosOption?.textContent).toMatch(/unsupported/i);
+      expect(fortiosOption?.textContent).toMatch(/live collection deferred/i);
       const mikrotikOption = Array.from(select.options).find((o) => o.value === "mikrotik");
-      expect(mikrotikOption?.textContent).toMatch(/unsupported/i);
+      expect(mikrotikOption?.textContent).toMatch(/live collection deferred/i);
     });
 
     it("selecting nxos lldp and importing sends platform_hint nxos", async () => {

@@ -352,8 +352,8 @@ function EvidenceImportPanel({
                 <option value="junos">Juniper Junos</option>
                 <option value="huawei_vrp">Huawei VRP</option>
                 <option value="nokia_sros">Nokia SR OS</option>
-                <option value="fortios">FortiOS (unsupported)</option>
-                <option value="mikrotik">MikroTik (unsupported)</option>
+                <option value="fortios">FortiOS (live collection deferred)</option>
+                <option value="mikrotik">MikroTik (live collection deferred)</option>
               </select>
             </label>
             <p className="tm-raw-form-hint" data-testid="tm-raw-platform-hint-hint">

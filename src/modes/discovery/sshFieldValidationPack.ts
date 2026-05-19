@@ -145,12 +145,20 @@ function resolveNextAction(
   return "run_ssh_capture";
 }
 
+function buildTargetIdentity(target: DiscoveryTarget): string {
+  const host = target.host.trim();
+  const label = target.data_source_label.trim();
+  if (!host) return "no target selected";
+  const labelPart = label ? ` (${label})` : "";
+  return `${host}:${target.port}${labelPart}`;
+}
+
 export function buildSshFieldValidationPack(
   input: SshFieldValidationPackInput,
 ): SshFieldValidationPack {
   const { target, report, serverKeyPin, handoff, imports } = input;
 
-  const target_identity = `${target.host}:${target.port} (${target.data_source_label})`;
+  const target_identity = buildTargetIdentity(target);
   const planned_command_count = report?.planned_command_count ?? null;
   const run_outcome = report?.outcome.kind ?? null;
 

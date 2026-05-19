@@ -153,6 +153,46 @@ function failedImport(cmd = "show cdp neighbors detail"): FieldReceiptImportSumm
 }
 
 // ---------------------------------------------------------------------------
+// target_identity edge cases
+// ---------------------------------------------------------------------------
+
+describe("buildSshFieldValidationPack — target_identity", () => {
+  it("empty host → 'no target selected'", () => {
+    const pack = buildSshFieldValidationPack(
+      baseInput({ target: { ...BASE_TARGET, host: "" } }),
+    );
+    expect(pack.target_identity).toBe("no target selected");
+  });
+
+  it("whitespace-only host → 'no target selected'", () => {
+    const pack = buildSshFieldValidationPack(
+      baseInput({ target: { ...BASE_TARGET, host: "   " } }),
+    );
+    expect(pack.target_identity).toBe("no target selected");
+  });
+
+  it("host present, empty label → no parentheses", () => {
+    const pack = buildSshFieldValidationPack(
+      baseInput({ target: { ...BASE_TARGET, data_source_label: "" } }),
+    );
+    expect(pack.target_identity).toBe("192.0.2.1:22");
+    expect(pack.target_identity).not.toContain("()");
+  });
+
+  it("host and label present → 'host:port (label)'", () => {
+    const pack = buildSshFieldValidationPack(baseInput());
+    expect(pack.target_identity).toBe("192.0.2.1:22 (lab-router)");
+  });
+
+  it("non-standard port included in identity", () => {
+    const pack = buildSshFieldValidationPack(
+      baseInput({ target: { ...BASE_TARGET, port: 2222 } }),
+    );
+    expect(pack.target_identity).toBe("192.0.2.1:2222 (lab-router)");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // next_action rules
 // ---------------------------------------------------------------------------
 

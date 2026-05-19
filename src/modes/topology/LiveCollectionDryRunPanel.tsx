@@ -196,8 +196,8 @@ export function LiveCollectionDryRunPanel({
             <option value="junos">Juniper Junos</option>
             <option value="huawei_vrp">Huawei VRP (deferred)</option>
             <option value="nokia_sros">Nokia SR OS (deferred)</option>
-            <option value="fortios">FortiOS (unsupported)</option>
-            <option value="mikrotik">MikroTik (unsupported)</option>
+            <option value="fortios">FortiOS (live collection deferred)</option>
+            <option value="mikrotik">MikroTik (live collection deferred)</option>
           </select>
         </label>
 
@@ -362,7 +362,7 @@ export function LiveCollectionDryRunPanel({
               className="tm-live-collection-unsupported"
               data-testid="tm-live-collection-unsupported"
             >
-              Unsupported reason: {plan.unsupported_reason}
+              Live collection not available: {plan.unsupported_reason}
             </p>
           )}
 

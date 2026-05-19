@@ -207,3 +207,75 @@
   font-size: 0.8125rem !important;
   color: var(--anth-text-secondary);
 }
+
+/* V1BF — Field Validation Pack card */
+
+.dx-validation-pack {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--anth-border-default);
+  border-radius: 2px;
+  background-color: var(--anth-bg-panel);
+}
+
+.dx-validation-pack h3 {
+  margin: 0 0 0.625rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--anth-text-secondary);
+}
+
+.dx-vpack-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 1rem;
+  row-gap: 0.2rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8125rem;
+}
+
+.dx-vpack-grid dt {
+  font-weight: 500;
+  color: var(--anth-text-secondary);
+  white-space: nowrap;
+}
+
+.dx-vpack-grid dd {
+  margin: 0;
+  color: var(--anth-text-primary);
+  word-break: break-all;
+}
+
+.dx-vpack-next-action {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  border-left: 3px solid var(--anth-accent);
+  background-color: var(--anth-bg-subtle);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.dx-receipt-preview {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.dx-receipt-preview summary {
+  cursor: pointer;
+  color: var(--anth-text-secondary);
+  user-select: none;
+}
+
+.dx-receipt-md,
+.dx-receipt-json {
+  margin: 0.5rem 0 0 0;
+  padding: 0.5rem;
+  border: 1px solid var(--anth-border-subtle);
+  border-radius: 2px;
+  background-color: var(--anth-bg-code);
+  font-size: 0.75rem;
+  overflow-x: auto;
+  white-space: pre;
+}
