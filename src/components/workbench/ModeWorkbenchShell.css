@@ -74,15 +74,21 @@
 }
 
 .mwb-tool.is-active {
-  background: var(--anth-accent);
-  color: var(--anth-accent-ink);
-  border-color: var(--anth-accent);
+  background: var(--anth-bg-selected);
+  color: var(--anth-text);
+  border-color: var(--anth-border-focus);
+  box-shadow: inset 0 -2px 0 var(--anth-info);
+}
+
+.mwb-tool.is-active:hover:not(:disabled) {
+  background: var(--anth-bg-selected);
+  color: var(--anth-text);
 }
 
 .mwb-tool.is-active .mwb-tool-status,
 .mwb-tool.is-active .mwb-tool-badge {
-  border-color: rgba(248, 250, 252, 0.4);
-  color: var(--anth-accent-ink);
+  /* Active button uses the light selected background — status / badge keep
+     their own semantic tint and ink and remain readable as-is. */
 }
 
 .mwb-tool-label { white-space: nowrap; }

@@ -1,5 +1,7 @@
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { useMemo, useState } from "react";
+import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
+import type { ModeTool } from "../../components/workbench/types";
 import { DataSourceTag } from "../../components/shell/DataSourceTag";
 import type { TopologySourceView } from "../../data/topologySource";
 import type {
@@ -1132,17 +1134,13 @@ export function TopologyMode({
   lastMutation,
   onPlanLiveCollection,
 }: TopologyModeProps): JSX.Element {
-  return (
-    <div className="topology-mode">
-      <header className="tm-header">
-        <h2 className="tm-title">
-          Topology <DataSourceTag state={topology.sourceState} />
-        </h2>
-        <p className="tm-scope">
-          Scope: {topology.environmentId ?? "All environments"}
-        </p>
-      </header>
+  const [activeToolId, setActiveToolId] = useState<string>("graph_map");
 
+  const renderGraphMap = (): ReactNode => (
+    <>
+      <div className="tm-source-row">
+        <DataSourceTag state={topology.sourceState} />
+      </div>
       <section className="tm-summary" data-testid="tm-summary">
         <span className="tm-summary-cell">
           <span className="tm-summary-label">Nodes</span>
@@ -1301,6 +1299,138 @@ export function TopologyMode({
           )}
         </>
       )}
+    </>
+  );
+
+  const renderEvidenceImport = (): ReactNode => (
+    <>
+      <EvidenceImportPanel
+        environmentId={topology.environmentId}
+        onImportEvidence={onImportEvidence}
+        onImportRawNeighborOutput={onImportRawNeighborOutput}
+        onClearEvidence={onClearEvidence}
+        onFetchEvidenceSummary={onFetchEvidenceSummary}
+        evidenceSummary={evidenceSummary}
+        lastMutation={lastMutation}
+      />
+      {topology.evidenceStats &&
+        topology.evidenceStats.evidence_total > 0 && (
+          <EvidenceRejectionBanner
+            accepted={topology.evidenceStats.accepted}
+            total={topology.evidenceStats.evidence_total}
+            rejectedUnknownLocal={topology.evidenceStats.rejected_unknown_local}
+            rejectedUnknownRemote={topology.evidenceStats.rejected_unknown_remote}
+            rejectedSelfLink={topology.evidenceStats.rejected_self_link}
+          />
+        )}
+    </>
+  );
+
+  const renderCollectionPlan = (): ReactNode => (
+    <LiveCollectionDryRunPanel
+      environmentId={topology.environmentId}
+      onPlan={onPlanLiveCollection}
+      onImportRawNeighborOutput={onImportRawNeighborOutput}
+    />
+  );
+
+  const renderReadiness = (): ReactNode =>
+    topology.view ? (
+      <AdjacencyReadinessSection
+        readiness={topology.view.adjacency_readiness}
+      />
+    ) : (
+      <section
+        className="tm-body tm-body--unavailable"
+        role="status"
+        aria-label="Readiness unavailable"
+        data-testid="tm-readiness-unavailable"
+      >
+        <p>Readiness is not available — topology source has no view yet.</p>
+        <p className="tm-muted">{topology.message}</p>
+      </section>
+    );
+
+  const tools: ModeTool[] = [
+    {
+      id: "graph_map",
+      kind: "live",
+      label: "Graph / Map",
+      description:
+        "Inspect topology nodes, projected edges, and the underlying source/empty/unavailable state.",
+      group: "primary",
+      status: "available",
+      role: "engine_analysis",
+      render: renderGraphMap,
+    },
+    {
+      id: "evidence_import",
+      kind: "live",
+      label: "Evidence Import",
+      description:
+        "Import structured neighbour evidence or raw vendor output. No auto-import; no device contact.",
+      group: "evidence",
+      status: "available",
+      role: "evidence",
+      render: renderEvidenceImport,
+    },
+    {
+      id: "collection_plan",
+      kind: "live",
+      label: "Collection Plan",
+      description:
+        "Plan a read-only live-collection dry run for the selected platform. No device contact.",
+      group: "discovery",
+      status: "preview",
+      role: "live_collection",
+      render: renderCollectionPlan,
+    },
+    {
+      id: "readiness",
+      kind: "live",
+      label: "Readiness",
+      description:
+        "Adjacency readiness: which fact sources are connected and what edge kinds are accepted.",
+      group: "validation",
+      status: "preview",
+      role: "validation",
+      render: renderReadiness,
+    },
+    {
+      id: "canvas_3d",
+      kind: "deferred",
+      label: "3D / Canvas",
+      description:
+        "Future visual canvas / mini topology / 3D view. No scene implemented yet.",
+      group: "support",
+      status: "deferred",
+      role: "engine_analysis",
+      deferred: {
+        reason:
+          "No 3D scene is implemented. Anthracite will not invent topology — the future canvas tool will consume the existing graph-ready topology view plus imported evidence; until that pipeline lands, no fake graph is shown here.",
+        planned_controls: [
+          "Layout mode",
+          "Site / cluster view",
+          "Link type filter",
+          "Evidence overlay",
+          "Drift / breach overlay",
+        ],
+      },
+    },
+  ];
+
+  return (
+    <div className="topology-mode">
+      <ModeWorkbenchShell
+        model={{
+          title: "Topology",
+          tagline: `Scope: ${topology.environmentId ?? "All environments"}`,
+          tools,
+          active_id: activeToolId,
+          fallback_id: "graph_map",
+        }}
+        onSelectTool={setActiveToolId}
+      />
     </div>
   );
 }

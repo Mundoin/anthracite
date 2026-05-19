@@ -1,8 +1,20 @@
 .topology-mode {
-  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: var(--anth-gap-section);
+  height: 100%;
+  overflow: hidden;
+}
+
+.topology-mode > .mwb {
+  flex: 1;
+  min-height: 0;
+}
+
+.tm-source-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 0;
 }
 
 .tm-header {

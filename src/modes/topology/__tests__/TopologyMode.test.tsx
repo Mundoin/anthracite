@@ -373,7 +373,10 @@ describe("TopologyMode", () => {
     // No interactive controls anywhere else on the surface.
     const buttons = screen.queryAllByRole("button");
     const testids = buttons.map((b) => b.getAttribute("data-testid")).sort();
-    expect(testids).toEqual(
+    // V1BI: workbench rail adds tool-selector buttons (mwb-tool-*). They
+    // are navigation controls, not topology-data controls.
+    const dataControls = testids.filter((id) => !id?.startsWith("mwb-tool-"));
+    expect(dataControls).toEqual(
       [
         "tm-clear-button",
         "tm-evidence-import-button",
