@@ -13,7 +13,7 @@
  */
 
 import type { JSX } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   DiscoveryRunPlan,
   DiscoveryRunReport,
@@ -23,12 +23,22 @@ import type {
   CommandExecutionResult,
 } from "../../types/discoveryRunner";
 import type { LiveCollectionPlatform } from "../../types/liveCollection";
+import type {
+  RawNeighborEvidenceImportRequest,
+  RawNeighborEvidenceImportResult,
+} from "../../types/topology";
 import {
   attemptDiscoveryRun,
   executeDiscoveryRun,
   planDiscoveryRun,
   validateDiscoveryTarget,
 } from "../../api/discoveryRunner";
+import { importTopologyNeighborOutput } from "../../api/topology";
+import {
+  buildEvidenceHandoff,
+  buildImportRequest,
+  type EvidenceHandoffCandidate,
+} from "./sshEvidenceHandoff";
 import "./DiscoveryMode.css";
 
 export interface DiscoveryApi {
@@ -45,6 +55,9 @@ export interface DiscoveryApi {
     target: DiscoveryTarget,
     credentials: DiscoveryCredentials,
   ) => Promise<DiscoveryRunReport>;
+  readonly importTopologyNeighborOutput: (
+    request: RawNeighborEvidenceImportRequest,
+  ) => Promise<RawNeighborEvidenceImportResult>;
 }
 
 export interface DiscoveryModeProps {
@@ -68,7 +81,14 @@ const DEFAULT_API: DiscoveryApi = {
   planDiscoveryRun,
   attemptDiscoveryRun,
   executeDiscoveryRun,
+  importTopologyNeighborOutput,
 };
+
+type ImportStatus =
+  | { kind: "idle" }
+  | { kind: "importing" }
+  | { kind: "done"; result: RawNeighborEvidenceImportResult }
+  | { kind: "failed"; reason: string };
 
 type PlanStatus = "idle" | "planning" | "ready" | "failed";
 type RunStatus = "idle" | "attempting" | "executing" | "done" | "failed";
@@ -105,6 +125,13 @@ export function DiscoveryMode({
   const [privateKeyPem, setPrivateKeyPem] = useState("");
   const [passphrase, setPassphrase] = useState("");
 
+  // V1BA — evidence handoff state.
+  // Per-candidate import status is keyed by candidate index. Operator
+  // can override the local-node label per candidate before import.
+  const [handoffEnvId, setHandoffEnvId] = useState("");
+  const [handoffLocalNodes, setHandoffLocalNodes] = useState<Record<number, string>>({});
+  const [importStatuses, setImportStatuses] = useState<Record<number, ImportStatus>>({});
+
   useEffect(() => {
     return () => {
       // Defense in depth: scrub on unmount.
@@ -122,6 +149,40 @@ export function DiscoveryMode({
     transport: "ssh",
     data_source_label: dataSourceLabel,
   });
+
+  // V1BA — compute the evidence-handoff plan from the captured outcome.
+  // Memoised on (runReport, target.platform_hint, target.data_source_label,
+  // target.host) so per-render churn does not re-classify commands.
+  const handoffPlan = useMemo(() => {
+    if (!runReport) return null;
+    return buildEvidenceHandoff(buildTarget(), runReport);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runReport, platformHint, dataSourceLabel, host]);
+
+  const handleImportCandidate = async (
+    candidate: EvidenceHandoffCandidate,
+    index: number,
+  ): Promise<void> => {
+    const local = handoffLocalNodes[index] ?? null;
+    const request = buildImportRequest(candidate, handoffEnvId, local, null);
+    if (request === null) return;
+    setImportStatuses((prev) => ({ ...prev, [index]: { kind: "importing" } }));
+    try {
+      const result = await api.importTopologyNeighborOutput(request);
+      setImportStatuses((prev) => ({
+        ...prev,
+        [index]: { kind: "done", result },
+      }));
+    } catch (err: unknown) {
+      setImportStatuses((prev) => ({
+        ...prev,
+        [index]: {
+          kind: "failed",
+          reason: err instanceof Error ? err.message : "Import failed",
+        },
+      }));
+    }
+  };
 
   const buildCredentials = (): DiscoveryCredentials | null => {
     if (credentialMode === "password") {
@@ -528,6 +589,164 @@ export function DiscoveryMode({
                       ),
                     )}
                   </ol>
+
+                  {handoffPlan && handoffPlan.candidates.length > 0 && (
+                    <section
+                      className="dx-handoff-plan"
+                      data-testid="discovery-handoff-plan"
+                      aria-label="Evidence handoff plan"
+                    >
+                      <h3>Evidence handoff</h3>
+                      <p className="dx-handoff-note">
+                        Captured output is raw evidence, not verified
+                        topology. Importing flows raw text through the
+                        existing V1AP / V1AQ raw-import path; nothing is
+                        mutated until you click <em>Import</em>.
+                      </p>
+                      <p data-testid="discovery-handoff-counts">
+                        Importable: {handoffPlan.importable_count} ·
+                        Not importable: {handoffPlan.not_importable_count}
+                      </p>
+                      <div className="form-group">
+                        <label htmlFor="dx-handoff-env">Environment ID</label>
+                        <input
+                          id="dx-handoff-env"
+                          type="text"
+                          value={handoffEnvId}
+                          onChange={(e) => setHandoffEnvId(e.currentTarget.value)}
+                          placeholder="apex-prod-emea"
+                          data-testid="discovery-handoff-env"
+                        />
+                      </div>
+                      <ol className="dx-handoff-list">
+                        {handoffPlan.candidates.map((c, i) => {
+                          const status: ImportStatus =
+                            importStatuses[i] ?? { kind: "idle" };
+                          const localNode = handoffLocalNodes[i] ?? c.local_node_default;
+                          const canImport =
+                            c.importable &&
+                            handoffEnvId.trim().length > 0 &&
+                            localNode.trim().length > 0 &&
+                            status.kind !== "importing" &&
+                            status.kind !== "done";
+                          return (
+                            <li
+                              key={`${i}:${c.command}`}
+                              className={
+                                c.importable
+                                  ? "dx-handoff-row dx-handoff-row--importable"
+                                  : "dx-handoff-row dx-handoff-row--non-importable"
+                              }
+                              data-testid={`discovery-handoff-candidate-${i}`}
+                            >
+                              <div className="dx-handoff-head">
+                                <code>{c.command}</code>
+                                <span
+                                  className={
+                                    c.importable
+                                      ? "dx-handoff-badge dx-handoff-badge--importable"
+                                      : "dx-handoff-badge dx-handoff-badge--non-importable"
+                                  }
+                                  data-testid={`discovery-handoff-kind-${i}`}
+                                >
+                                  {c.source_kind}
+                                </span>
+                              </div>
+                              {!c.importable && c.reason !== null && (
+                                <p
+                                  className="dx-handoff-reason"
+                                  data-testid={`discovery-handoff-reason-${i}`}
+                                >
+                                  Not importable: {c.reason}
+                                </p>
+                              )}
+                              {c.importable && (
+                                <>
+                                  <div className="form-group">
+                                    <label htmlFor={`dx-handoff-local-${i}`}>
+                                      Local node
+                                    </label>
+                                    <input
+                                      id={`dx-handoff-local-${i}`}
+                                      type="text"
+                                      value={localNode}
+                                      onChange={(e) =>
+                                        setHandoffLocalNodes((prev) => ({
+                                          ...prev,
+                                          [i]: e.currentTarget.value,
+                                        }))
+                                      }
+                                      data-testid={`discovery-handoff-local-${i}`}
+                                    />
+                                  </div>
+                                  <p
+                                    className="dx-handoff-source-label"
+                                    data-testid={`discovery-handoff-source-label-${i}`}
+                                  >
+                                    Source label: <code>{c.source_label}</code>
+                                  </p>
+                                  <div className="dx-actions">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        void handleImportCandidate(c, i)
+                                      }
+                                      disabled={!canImport}
+                                      data-testid={`discovery-handoff-import-${i}`}
+                                    >
+                                      {status.kind === "importing"
+                                        ? "Importing..."
+                                        : status.kind === "done"
+                                          ? "Imported"
+                                          : "Import"}
+                                    </button>
+                                  </div>
+                                  {status.kind === "done" && (
+                                    <div
+                                      className="dx-handoff-imported"
+                                      data-testid={`discovery-handoff-imported-${i}`}
+                                    >
+                                      <p>
+                                        Accepted: {status.result.accepted_evidence_count}{" "}
+                                        · Rejected: {status.result.rejected_count} ·
+                                        Stored: {status.result.stored_evidence_count}
+                                      </p>
+                                      {status.result.evidence_set_id !== null && (
+                                        <p>
+                                          Evidence set:{" "}
+                                          <code>
+                                            {status.result.evidence_set_id}
+                                          </code>
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                  {status.kind === "failed" && (
+                                    <div
+                                      className="dx-handoff-failed"
+                                      data-testid={`discovery-handoff-failed-${i}`}
+                                    >
+                                      <p>Import failed: {status.reason}</p>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ol>
+                      {handoffPlan.importable_count === 0 && (
+                        <p
+                          className="dx-handoff-empty"
+                          data-testid="discovery-handoff-empty"
+                        >
+                          No commands in this capture map to a known
+                          neighbour-evidence importer (LLDP / CDP). Review
+                          the captured output, but no import is available.
+                        </p>
+                      )}
+                    </section>
+                  )}
                 </div>
               )}
 
