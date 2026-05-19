@@ -96,6 +96,209 @@
   --anth-role-status-idle:      var(--anth-border-strong);
   --anth-role-provenance:       var(--anth-copper);
   --anth-role-neutral-chrome:   var(--anth-border-strong);
+
+  /* V1BG legacy-alias map.
+     Earlier surfaces (Discovery, Topology, parts of Diagnose) were
+     authored against a draft token set that never landed verbatim.
+     The doctrine tokens above are the source of truth; these aliases
+     keep older CSS rendering correctly while V1BG converges naming.
+     New surfaces MUST use the doctrine names. */
+  --anth-bg:               var(--anth-bg-app);
+  --anth-bg-2:             var(--anth-bg-panel);
+  --anth-bg-3:             var(--anth-bg-sunken);
+  --anth-bg-input:         var(--anth-bg-panel);
+  --anth-bg-button:        var(--anth-bg-panel);
+  --anth-bg-button-hover:  var(--anth-bg-hover);
+  --anth-bg-disabled:      var(--anth-bg-sunken);
+  --anth-bg-subtle:        var(--anth-bg-sunken);
+  --anth-bg-code:          var(--anth-bg-sunken);
+  --anth-border-subtle:    var(--anth-border);
+  --anth-border-default:   var(--anth-border-strong);
+  --anth-text-primary:     var(--anth-text);
+  --anth-text-secondary:   var(--anth-text-2);
+  --anth-text-disabled:    var(--anth-text-muted);
+  --anth-text-1:           var(--anth-text);
+  --anth-mono:             var(--anth-font-mono);
+  --anth-role-info:        var(--anth-info);
+  --anth-role-success:     var(--anth-ok);
+  --anth-role-warning:     var(--anth-warn);
+  --anth-role-error:       var(--anth-err);
+  --anth-role-deferred:    var(--anth-copper);
+
+  /* V1BG rhythm tokens — shared spacing/density so every surface
+     converges on the same workstation cadence. */
+  --anth-gap-section:      12px;
+  --anth-gap-row:          8px;
+  --anth-gap-tight:        4px;
+  --anth-pad-card:         12px 14px;
+  --anth-pad-card-sm:      10px 12px;
+  --anth-section-hd-h:     34px;
+  --anth-pill-h:           20px;
+  --anth-badge-h:          18px;
+}
+
+/* V1BG shared visual primitives.
+   Section header chrome, card frames, pill/callout/empty-state
+   wrappers — used by every mode to converge the visual system. */
+.anth .anth-section {
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  display: flex;
+  flex-direction: column;
+}
+
+.anth .anth-section + .anth-section { margin-top: var(--anth-gap-section); }
+
+.anth .anth-section__hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: var(--anth-section-hd-h);
+  padding: 0 12px;
+  background: linear-gradient(180deg, #FAFCFE 0%, var(--anth-bg-sunken) 100%);
+  border-bottom: 1px solid var(--anth-border-strong);
+  border-left: 2px solid var(--anth-accent);
+}
+
+.anth .anth-section__hd--info  { border-left-color: var(--anth-info); }
+.anth .anth-section__hd--ok    { border-left-color: var(--anth-ok); }
+.anth .anth-section__hd--warn  { border-left-color: var(--anth-warn); }
+.anth .anth-section__hd--err   { border-left-color: var(--anth-err); }
+.anth .anth-section__hd--copper{ border-left-color: var(--anth-copper); }
+
+.anth .anth-section__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text);
+  margin: 0;
+}
+
+.anth .anth-section__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--anth-pill-h);
+  padding: 0 8px;
+  border: 1px solid var(--anth-border-strong);
+  background: var(--anth-bg-panel);
+  border-radius: 2px;
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  color: var(--anth-text-2);
+}
+
+.anth .anth-section__bd {
+  padding: var(--anth-pad-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--anth-gap-row);
+}
+
+.anth .anth-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--anth-info);
+  background: var(--anth-info-tint);
+  color: var(--anth-info-ink);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.anth .anth-callout--copper { border-left-color: var(--anth-copper); background: var(--anth-warn-tint); color: var(--anth-warn-ink); }
+.anth .anth-callout--ok     { border-left-color: var(--anth-ok); background: var(--anth-ok-tint); color: var(--anth-ok-ink); }
+.anth .anth-callout--warn   { border-left-color: var(--anth-warn); background: var(--anth-warn-tint); color: var(--anth-warn-ink); }
+.anth .anth-callout--err    { border-left-color: var(--anth-err); background: var(--anth-err-tint); color: var(--anth-err-ink); }
+.anth .anth-callout--idle   { border-left-color: var(--anth-border-strong); background: var(--anth-bg-sunken); color: var(--anth-text-2); }
+
+.anth .anth-callout__title {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 2px;
+}
+
+.anth .anth-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--anth-pill-h);
+  padding: 0 8px;
+  border: 1px solid var(--anth-border-strong);
+  background: var(--anth-bg-panel);
+  border-radius: 2px;
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  color: var(--anth-text-2);
+}
+
+.anth .anth-pill--mono { font-family: var(--anth-font-mono); }
+.anth .anth-pill--sans { font-family: var(--anth-font-ui); }
+
+.anth .anth-kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 14px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.anth .anth-kv dt {
+  color: var(--anth-text-3);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.anth .anth-kv dd {
+  margin: 0;
+  color: var(--anth-text);
+  font-family: var(--anth-font-mono);
+  word-break: break-all;
+}
+
+.anth .anth-kv dd.anth-kv__plain { font-family: var(--anth-font-ui); }
+
+.anth .anth-metric-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px;
+  background: var(--anth-border);
+  border: 1px solid var(--anth-border);
+}
+
+.anth .anth-metric {
+  background: var(--anth-bg-panel);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.anth .anth-metric__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+}
+
+.anth .anth-metric__value {
+  font-family: var(--anth-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  color: var(--anth-text);
+  line-height: 1.2;
+}
+
+.anth .anth-metric__sub {
+  font-size: 10.5px;
+  color: var(--anth-text-3);
 }
 
 /* Scoped class — every Anthracite surface roots under `.anth` so design-

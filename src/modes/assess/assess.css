@@ -104,9 +104,9 @@
 .assess-loaded__heading {
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 13px;
-  color: var(--anth-accent);
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  color: var(--anth-text);
 }
 
 /* ---- V1Z metadata header — neutral panel, JSON-backed rows ------ */
@@ -354,14 +354,15 @@
 .assess-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 22px;
-  padding: 0 9px;
+  gap: 6px;
+  height: var(--anth-badge-h);
+  padding: 0 7px;
   font-family: var(--anth-font-mono);
-  font-size: 11px;
+  font-size: 10.5px;
+  font-weight: 600;
   background: var(--anth-bg-panel);
   border: 1px solid var(--anth-border-strong);
-  border-radius: 11px;
+  border-radius: 2px;
   color: var(--anth-text-2);
   cursor: pointer;
   transition: none;
@@ -420,13 +421,13 @@
 .assess-sev-pill {
   display: inline-flex;
   align-items: center;
-  height: 18px;
+  height: var(--anth-badge-h);
   padding: 0 7px;
   font-family: var(--anth-font-mono);
   font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  border-radius: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: 2px;
   border: 1px solid var(--anth-border-strong);
   background: var(--anth-bg-panel);
   color: var(--anth-text-2);
@@ -575,9 +576,22 @@
   flex-direction: column;
   background: var(--anth-bg-panel);
   border: 1px solid var(--anth-border-strong);
+  border-left: 2px solid var(--anth-border-strong);
   border-radius: var(--anth-r-md);
   box-shadow: var(--anth-shadow-sm);
   overflow: hidden;
+}
+
+.assess-sev-group--fault {
+  border-left-color: var(--anth-err);
+}
+
+.assess-sev-group--warn {
+  border-left-color: var(--anth-warn);
+}
+
+.assess-sev-group--clean {
+  border-left-color: var(--anth-ok);
 }
 
 /* Group containers stay neutral; the severity badge inside the
@@ -589,7 +603,7 @@
   gap: 8px;
   padding: 8px 12px;
   background: var(--anth-bg-sunken);
-  border-bottom: 1px solid var(--anth-border);
+  border-bottom: 1px solid var(--anth-border-strong);
 }
 
 .assess-sev-group__count {
@@ -613,12 +627,22 @@
   align-items: baseline;
   gap: 10px;
   font-size: 12px;
-  padding: 5px 4px;
+  padding: 6px 8px;
   border-bottom: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+}
+
+.assess-sev-row:nth-child(odd) {
+  background: var(--anth-bg-panel);
 }
 
 .assess-sev-row:nth-child(even) {
   background: var(--anth-bg-sunken);
+}
+
+.assess-sev-row:first-child {
+  background: var(--anth-bg-sunken);
+  border-bottom: 1px solid var(--anth-border-strong);
 }
 
 .assess-sev-row:last-child {

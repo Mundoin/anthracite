@@ -41,7 +41,7 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
-  height: 34px;
+  height: var(--anth-section-hd-h);
   padding: 0 12px 0 10px;
   background:
     linear-gradient(
@@ -69,14 +69,14 @@
 .intake-section__meta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 20px;
+  gap: 6px;
+  height: var(--anth-pill-h);
   padding: 0 8px;
   font-family: var(--anth-font-mono);
   font-size: 10.5px;
-  color: var(--anth-text-3);
+  color: var(--anth-text-2);
   background: var(--anth-bg-panel);
-  border: 1px solid var(--anth-border);
+  border: 1px solid var(--anth-border-strong);
   border-radius: 2px;
   justify-self: end;
   white-space: nowrap;
@@ -112,13 +112,13 @@
 .intake-input__source {
   display: inline-flex;
   align-items: center;
-  height: 20px;
+  height: var(--anth-pill-h);
   padding: 0 8px;
   font-family: var(--anth-font-mono);
   font-size: 10.5px;
-  color: var(--anth-text-3);
+  color: var(--anth-text-2);
   background: var(--anth-bg-panel);
-  border: 1px solid var(--anth-border);
+  border: 1px solid var(--anth-border-strong);
   border-radius: 2px;
   max-width: 480px;
   overflow: hidden;
@@ -460,23 +460,23 @@
 .intake-status {
   display: inline-flex;
   align-items: center;
-  height: 18px;
-  padding: 0 9px;
+  height: var(--anth-badge-h);
+  padding: 0 7px;
   font-family: var(--anth-font-mono);
   font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   border-radius: 2px;
   border: 1px solid transparent;
 }
-.intake-status--idle        { color: var(--anth-text-3);   background: var(--anth-bg-sunken); border-color: var(--anth-border); }
-.intake-status--input_ready { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: rgba(49, 130, 206, 0.30); }
-.intake-status--detecting   { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: rgba(49, 130, 206, 0.30); }
-.intake-status--detected    { color: var(--anth-ok-ink);   background: var(--anth-ok-tint);   border-color: rgba(56, 161, 105, 0.30); }
-.intake-status--parsing     { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: rgba(49, 130, 206, 0.30); }
-.intake-status--parsed      { color: var(--anth-ok-ink);   background: var(--anth-ok-tint);   border-color: rgba(56, 161, 105, 0.30); }
-.intake-status--error       { color: var(--anth-err-ink);  background: var(--anth-err-tint);  border-color: rgba(229, 62, 62, 0.30); }
+.intake-status--idle        { color: var(--anth-text-3);   background: var(--anth-bg-sunken); border-color: var(--anth-border-strong); }
+.intake-status--input_ready { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: var(--anth-info); }
+.intake-status--detecting   { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: var(--anth-info); }
+.intake-status--detected    { color: var(--anth-ok-ink);   background: var(--anth-ok-tint);   border-color: var(--anth-ok); }
+.intake-status--parsing     { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: var(--anth-info); }
+.intake-status--parsed      { color: var(--anth-ok-ink);   background: var(--anth-ok-tint);   border-color: var(--anth-ok); }
+.intake-status--error       { color: var(--anth-err-ink);  background: var(--anth-err-tint);  border-color: var(--anth-err); }
 
 /* ---- V1O-A batch summary ------------------------------------------ */
 .intake-batch {

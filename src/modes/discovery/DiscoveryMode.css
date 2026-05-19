@@ -1,35 +1,64 @@
+/* DiscoveryMode — V1BG visual convergence.
+ * Uses shared .anth-section / .anth-callout / .anth-pill primitives from
+ * src/styles/tokens.css. Doctrine-aligned tokens (--anth-bg-panel,
+ * --anth-border, --anth-text*, --anth-font-mono). No raw hex. */
+
 .discovery-mode {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  background: var(--anth-bg-app);
 }
 
+/* ── Header band ─────────────────────────────────────────────── */
+
 .dx-header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--anth-border-subtle);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, var(--anth-bg-panel) 0%, var(--anth-bg-sunken) 100%);
+  border-bottom: 1px solid var(--anth-border-strong);
+}
+
+.dx-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .dx-title {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.125rem;
-  font-weight: 500;
-  line-height: 1.4;
+  margin: 0;
+  font-family: var(--anth-font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .dx-tagline {
-  margin: 0.5rem 0 0 0;
-  font-size: 0.875rem;
-  color: var(--anth-text-secondary);
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--anth-text-3);
+  line-height: 1.4;
 }
+
+/* ── Body grid ───────────────────────────────────────────────── */
 
 .dx-body {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 12px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--anth-gap-section);
 }
 
 .dx-body--empty {
@@ -38,73 +67,90 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  color: var(--anth-text-secondary);
+  color: var(--anth-text-3);
 }
 
 .dx-body--empty p {
-  margin: 0 0 0.5rem 0;
-  max-width: 400px;
+  margin: 0 0 8px 0;
+  max-width: 420px;
+  font-size: 12px;
 }
+
+/* ── Target form section ─────────────────────────────────────── */
 
 .dx-form {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 10px 14px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .form-group label {
-  margin-bottom: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
 }
 
 .form-group input,
 .form-group select {
-  padding: 0.5rem;
-  border: 1px solid var(--anth-border-default);
-  border-radius: 2px;
-  font-family: inherit;
-  font-size: 0.875rem;
-  background-color: var(--anth-bg-input);
-  color: var(--anth-text-primary);
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-sm);
+  font-family: var(--anth-font-mono);
+  font-size: 12px;
+  background: var(--anth-bg-panel);
+  color: var(--anth-text);
 }
+
+.form-group select { padding-right: 6px; }
 
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: var(--anth-accent);
+  border-color: var(--anth-border-focus);
+  box-shadow: 0 0 0 2px var(--anth-info-tint);
 }
 
-.form-group input:disabled {
-  background-color: var(--anth-bg-disabled);
-  color: var(--anth-text-disabled);
+.form-group input:disabled,
+.form-group select:disabled {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-3);
+  cursor: not-allowed;
 }
+
+/* ── Action button row ───────────────────────────────────────── */
 
 .dx-actions {
-  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .dx-actions button {
-  padding: 0.5rem 1rem;
-  margin-right: 0.5rem;
-  border: 1px solid var(--anth-border-default);
-  border-radius: 2px;
-  background-color: var(--anth-bg-button);
-  color: var(--anth-text-primary);
-  font-size: 0.875rem;
+  height: 26px;
+  padding: 0 12px;
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-md);
+  background: var(--anth-bg-panel);
+  color: var(--anth-text);
+  font-family: var(--anth-font-ui);
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  letter-spacing: 0.01em;
 }
 
 .dx-actions button:hover:not(:disabled) {
-  background-color: var(--anth-bg-button-hover);
+  background: var(--anth-bg-hover);
 }
 
 .dx-actions button:disabled {
@@ -112,170 +158,244 @@
   cursor: not-allowed;
 }
 
+.dx-actions .dx-btn-primary {
+  background: var(--anth-accent);
+  color: var(--anth-accent-ink);
+  border-color: var(--anth-accent);
+}
+
+.dx-actions .dx-btn-primary:hover:not(:disabled) {
+  background: #2D3748;
+}
+
+/* ── Generic info/plan/run blocks ────────────────────────────── */
+
 .dx-validation,
 .dx-plan-summary,
 .dx-run-outcome,
 .dx-error {
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  border: 1px solid var(--anth-border-subtle);
-  border-radius: 2px;
-  background-color: var(--anth-bg-panel);
+  padding: 10px 12px;
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-panel);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .dx-error {
-  border-color: var(--anth-role-error);
-  color: var(--anth-role-error);
+  border-color: var(--anth-err);
+  border-left: 3px solid var(--anth-err);
+  background: var(--anth-err-tint);
+  color: var(--anth-err-ink);
 }
 
-.dx-issues {
-  margin: 0;
-}
+.dx-issues { margin: 0; }
 
 .dx-issues h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.875rem;
-  font-weight: 500;
+  margin: 0 0 6px 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
 }
 
 .dx-issues ul {
   margin: 0;
-  padding-left: 1.5rem;
-  font-size: 0.875rem;
+  padding-left: 18px;
+  font-size: 11.5px;
 }
 
-.dx-issues li {
-  margin-bottom: 0.25rem;
-}
-
-.dx-badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  margin-bottom: 0.5rem;
-  border-radius: 2px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.dx-badge--valid {
-  background-color: var(--anth-role-success);
-  color: white;
-}
-
-.dx-badge--read-only {
-  background-color: var(--anth-role-info);
-  color: white;
-}
-
-.dx-badge--write {
-  background-color: var(--anth-role-warning);
-  color: white;
-}
-
-.dx-badge--deferred {
-  background-color: var(--anth-role-deferred);
-  color: white;
-}
-
-.dx-badge--refused {
-  background-color: var(--anth-role-error);
-  color: white;
-}
+.dx-issues li { margin-bottom: 2px; }
 
 .dx-plan-summary h3,
 .dx-run-outcome h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.95rem;
-  font-weight: 500;
+  margin: 0 0 6px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
 }
 
 .dx-plan-summary p,
 .dx-run-outcome p {
-  margin: 0.25rem 0;
-  font-size: 0.875rem;
+  margin: 2px 0;
+  font-size: 12px;
 }
 
 .dx-deferred,
 .dx-refused {
-  margin-top: 0.5rem;
+  margin-top: 6px;
 }
 
 .dx-reason {
-  margin-top: 0.25rem !important;
-  font-size: 0.8125rem !important;
-  color: var(--anth-text-secondary);
+  margin-top: 4px !important;
+  font-size: 11.5px !important;
+  color: var(--anth-text-3);
+  font-style: italic;
 }
 
-/* V1BF — Field Validation Pack card */
+/* ── Status badges (chip-aligned) ────────────────────────────── */
+
+.dx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 18px;
+  padding: 0 7px;
+  border-radius: 2px;
+  font-family: var(--anth-font-ui);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dx-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.dx-badge--valid    { color: var(--anth-ok-ink);   background: var(--anth-ok-tint); }
+.dx-badge--read-only{ color: var(--anth-info-ink); background: var(--anth-info-tint); }
+.dx-badge--write    { color: var(--anth-warn-ink); background: var(--anth-warn-tint); }
+.dx-badge--deferred { color: var(--anth-warn-ink); background: var(--anth-warn-tint); }
+.dx-badge--refused  { color: var(--anth-err-ink);  background: var(--anth-err-tint); }
+
+/* ── Validation pack (the V1BE/V1BF showcase card) ───────────── */
 
 .dx-validation-pack {
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  border: 1px solid var(--anth-border-default);
-  border-radius: 2px;
-  background-color: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid var(--anth-copper);
 }
 
-.dx-validation-pack h3 {
-  margin: 0 0 0.625rem 0;
-  font-size: 0.875rem;
-  font-weight: 600;
+.dx-validation-pack > h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  min-height: var(--anth-section-hd-h);
+  padding: 0 12px;
+  background: linear-gradient(180deg, #FAFCFE 0%, var(--anth-bg-sunken) 100%);
+  border-bottom: 1px solid var(--anth-border-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--anth-text-secondary);
+  color: var(--anth-text);
 }
+
+.dx-validation-pack > .dx-vpack-grid,
+.dx-validation-pack > .dx-vpack-next-action,
+.dx-validation-pack > .dx-receipt-preview,
+.dx-validation-pack > button {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
+.dx-validation-pack > .dx-vpack-grid { margin-top: 12px; }
+.dx-validation-pack > .dx-vpack-next-action { margin-top: 10px; }
+.dx-validation-pack > button { margin-top: 10px; align-self: flex-start; }
+.dx-validation-pack > .dx-receipt-preview { margin-top: 10px; margin-bottom: 12px; }
 
 .dx-vpack-grid {
   display: grid;
   grid-template-columns: max-content 1fr;
-  column-gap: 1rem;
-  row-gap: 0.2rem;
-  margin: 0 0 0.75rem 0;
-  font-size: 0.8125rem;
+  column-gap: 16px;
+  row-gap: 4px;
+  margin: 0;
+  font-size: 12px;
 }
 
 .dx-vpack-grid dt {
-  font-weight: 500;
-  color: var(--anth-text-secondary);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
   white-space: nowrap;
+  align-self: center;
 }
 
 .dx-vpack-grid dd {
   margin: 0;
-  color: var(--anth-text-primary);
+  color: var(--anth-text);
+  font-family: var(--anth-font-mono);
+  font-size: 12px;
   word-break: break-all;
+  align-self: center;
 }
 
 .dx-vpack-next-action {
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 0.625rem;
-  border-left: 3px solid var(--anth-accent);
-  background-color: var(--anth-bg-subtle);
-  font-size: 0.8125rem;
-  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--anth-copper);
+  background: var(--anth-warn-tint);
+  color: var(--anth-warn-ink);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
+.dx-vpack-next-action-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dx-vpack-copy {
+  align-self: flex-start;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-panel);
+  color: var(--anth-text);
+  font-family: var(--anth-font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dx-vpack-copy:hover:not(:disabled) { background: var(--anth-bg-hover); }
+
 .dx-receipt-preview {
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 12px;
 }
 
 .dx-receipt-preview summary {
   cursor: pointer;
-  color: var(--anth-text-secondary);
   user-select: none;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+  padding: 4px 0;
 }
+
+.dx-receipt-preview summary:hover { color: var(--anth-text-2); }
 
 .dx-receipt-md,
 .dx-receipt-json {
-  margin: 0.5rem 0 0 0;
-  padding: 0.5rem;
-  border: 1px solid var(--anth-border-subtle);
-  border-radius: 2px;
-  background-color: var(--anth-bg-code);
-  font-size: 0.75rem;
+  margin: 6px 0 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-sunken);
+  font-family: var(--anth-font-mono);
+  font-size: 11.5px;
+  color: var(--anth-text);
   overflow-x: auto;
   white-space: pre;
+  line-height: 1.5;
 }
