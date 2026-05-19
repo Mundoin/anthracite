@@ -39,7 +39,36 @@ import {
   buildImportRequest,
   type EvidenceHandoffCandidate,
 } from "./sshEvidenceHandoff";
+import {
+  buildFieldReceipt,
+  importDoneSummary,
+  importFailedSummary,
+  toReceiptJSON,
+  toReceiptMarkdown,
+  type FieldReceiptImportSummary,
+} from "./sshFieldReceipt";
 import "./DiscoveryMode.css";
+
+export interface DiscoveryClock {
+  /** Returns an ISO 8601 timestamp. Injectable for tests. */
+  readonly now: () => string;
+}
+
+const DEFAULT_CLOCK: DiscoveryClock = {
+  now: () => new Date().toISOString(),
+};
+
+export interface DiscoveryClipboard {
+  readonly writeText: (text: string) => Promise<void>;
+}
+
+const DEFAULT_CLIPBOARD: DiscoveryClipboard = {
+  writeText: async (text) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    }
+  },
+};
 
 export interface DiscoveryApi {
   readonly validateDiscoveryTarget: (
@@ -62,6 +91,10 @@ export interface DiscoveryApi {
 
 export interface DiscoveryModeProps {
   readonly api?: DiscoveryApi;
+  /** Injectable clock for deterministic field-receipt timestamps in tests. */
+  readonly clock?: DiscoveryClock;
+  /** Injectable clipboard for testing the Copy buttons. */
+  readonly clipboard?: DiscoveryClipboard;
 }
 
 const PLATFORMS: readonly LiveCollectionPlatform[] = [
@@ -96,6 +129,8 @@ type CredentialMode = "password" | "private_key";
 
 export function DiscoveryMode({
   api = DEFAULT_API,
+  clock = DEFAULT_CLOCK,
+  clipboard = DEFAULT_CLIPBOARD,
 }: DiscoveryModeProps): JSX.Element {
   // Target form
   const [host, setHost] = useState("");
@@ -131,6 +166,15 @@ export function DiscoveryMode({
   const [handoffEnvId, setHandoffEnvId] = useState("");
   const [handoffLocalNodes, setHandoffLocalNodes] = useState<Record<number, string>>({});
   const [importStatuses, setImportStatuses] = useState<Record<number, ImportStatus>>({});
+
+  // V1BB — field-receipt state.
+  // Append-only chronological log of explicit operator import attempts.
+  // Receipt view is rendered when a run report exists; copy buttons
+  // call the injectable clipboard.
+  const [importSummaries, setImportSummaries] = useState<
+    ReadonlyArray<FieldReceiptImportSummary>
+  >([]);
+  const [receiptCopied, setReceiptCopied] = useState<"none" | "markdown" | "json">("none");
 
   useEffect(() => {
     return () => {
@@ -173,14 +217,86 @@ export function DiscoveryMode({
         ...prev,
         [index]: { kind: "done", result },
       }));
+      setImportSummaries((prev) => [
+        ...prev,
+        importDoneSummary(candidate.command, result),
+      ]);
     } catch (err: unknown) {
+      const reason = err instanceof Error ? err.message : "Import failed";
       setImportStatuses((prev) => ({
         ...prev,
-        [index]: {
-          kind: "failed",
-          reason: err instanceof Error ? err.message : "Import failed",
-        },
+        [index]: { kind: "failed", reason },
       }));
+      setImportSummaries((prev) => [
+        ...prev,
+        importFailedSummary(candidate.command, reason),
+      ]);
+    }
+  };
+
+  // Approved commands list extracted from the V1AT-generated plan so
+  // the receipt records what the operator authorised the runner to
+  // attempt, regardless of which ones returned data.
+  const approvedCommands: ReadonlyArray<string> = useMemo(() => {
+    const dryRun = plan?.dry_run as { readonly commands?: ReadonlyArray<unknown> } | undefined;
+    if (!dryRun || !Array.isArray(dryRun.commands)) return [];
+    const out: string[] = [];
+    for (const entry of dryRun.commands) {
+      if (typeof entry === "string") {
+        out.push(entry);
+      } else if (entry && typeof entry === "object" && "command" in entry) {
+        const c = (entry as { command: unknown }).command;
+        if (typeof c === "string") out.push(c);
+      }
+    }
+    return out;
+  }, [plan]);
+
+  const fieldReceipt = useMemo(() => {
+    if (runReport === null) return null;
+    return buildFieldReceipt({
+      target: buildTarget(),
+      approved_commands: approvedCommands,
+      report: runReport,
+      handoff: handoffPlan,
+      imports: importSummaries,
+      generated_at: clock.now(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    runReport,
+    handoffPlan,
+    importSummaries,
+    approvedCommands,
+    host,
+    port,
+    username,
+    platformHint,
+    dataSourceLabel,
+    clock,
+  ]);
+
+  const receiptJson = useMemo(
+    () => (fieldReceipt ? toReceiptJSON(fieldReceipt) : ""),
+    [fieldReceipt],
+  );
+  const receiptMarkdown = useMemo(
+    () => (fieldReceipt ? toReceiptMarkdown(fieldReceipt) : ""),
+    [fieldReceipt],
+  );
+
+  const handleCopyReceipt = async (
+    format: "markdown" | "json",
+  ): Promise<void> => {
+    const text = format === "markdown" ? receiptMarkdown : receiptJson;
+    if (text.length === 0) return;
+    try {
+      await clipboard.writeText(text);
+      setReceiptCopied(format);
+    } catch {
+      // Surfaces visually as no "Copied" indicator. Intentional —
+      // a failed clipboard write should not crash the receipt view.
+      setReceiptCopied("none");
     }
   };
 
@@ -804,6 +920,56 @@ export function DiscoveryMode({
                     )}
                   </ol>
                 </div>
+              )}
+
+              {fieldReceipt && (
+                <section
+                  className="dx-receipt"
+                  data-testid="discovery-receipt"
+                  aria-label="Field smoke receipt"
+                >
+                  <h3>Field smoke receipt</h3>
+                  <p className="dx-receipt-note">
+                    Sanitized receipt of this SSH run + any operator
+                    import attempts. Raw stdout / stderr and all
+                    credential bytes are omitted. Safe to paste into
+                    a ticket or chat.
+                  </p>
+                  <div className="dx-actions">
+                    <button
+                      type="button"
+                      onClick={() => void handleCopyReceipt("markdown")}
+                      data-testid="discovery-receipt-copy-md"
+                    >
+                      {receiptCopied === "markdown" ? "Copied (Markdown)" : "Copy Markdown"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleCopyReceipt("json")}
+                      data-testid="discovery-receipt-copy-json"
+                    >
+                      {receiptCopied === "json" ? "Copied (JSON)" : "Copy JSON"}
+                    </button>
+                  </div>
+                  <details className="dx-receipt-preview">
+                    <summary>Preview (Markdown)</summary>
+                    <pre
+                      className="dx-receipt-md"
+                      data-testid="discovery-receipt-md"
+                    >
+                      {receiptMarkdown}
+                    </pre>
+                  </details>
+                  <details className="dx-receipt-preview">
+                    <summary>Preview (JSON)</summary>
+                    <pre
+                      className="dx-receipt-json"
+                      data-testid="discovery-receipt-json"
+                    >
+                      {receiptJson}
+                    </pre>
+                  </details>
+                </section>
               )}
             </section>
           )}
