@@ -13,6 +13,7 @@ import type {
   DiscoveryRunOutcome,
   DiscoveryRunReport,
   DiscoveryTarget,
+  ServerKeyObservation,
 } from "../../../types/discoveryRunner";
 import type { RawNeighborEvidenceImportResult } from "../../../types/topology";
 
@@ -43,14 +44,24 @@ function cr(
   };
 }
 
-function report(outcome: DiscoveryRunOutcome): DiscoveryRunReport {
+function report(
+  outcome: DiscoveryRunOutcome,
+  server_key: ServerKeyObservation | null = null,
+): DiscoveryRunReport {
   return {
     target_label: TARGET.data_source_label,
     platform_hint: TARGET.platform_hint,
     planned_command_count: 1,
     outcome,
+    server_key,
   };
 }
+
+const OBSERVED_KEY: ServerKeyObservation = {
+  algorithm: "ssh-ed25519",
+  fingerprint_sha256: "SHA256:test-fingerprint-base64nopad",
+  trust_mode: "tofu_session",
+};
 
 const APPROVED = ["show lldp neighbors detail", "show version"];
 
@@ -265,7 +276,7 @@ describe("receipt sanitization invariants", () => {
 });
 
 describe("toReceiptMarkdown", () => {
-  it("renders sections: target / commands / handoff / imports / redaction", () => {
+  it("renders sections: target / commands / server key / handoff / imports / redaction", () => {
     const r = report({
       kind: "captured",
       command_results: [cr("show lldp neighbors detail", "data")],
@@ -283,8 +294,156 @@ describe("toReceiptMarkdown", () => {
     expect(md).toContain("## Target");
     expect(md).toContain("## Approved commands");
     expect(md).toContain("## Command results");
+    expect(md).toContain("## Server key trust");
     expect(md).toContain("## Evidence handoff");
     expect(md).toContain("## Imports");
     expect(md).toContain("## Redaction");
+  });
+});
+
+describe("server_key_trust (V1BC)", () => {
+  it("captured + observed key → server_key_trust.observed = true with fingerprint", () => {
+    const r = report(
+      {
+        kind: "captured",
+        command_results: [cr("show lldp neighbors detail", "data")],
+      },
+      OBSERVED_KEY,
+    );
+    const receipt = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+    });
+    expect(receipt.server_key_trust.observed).toBe(true);
+    if (receipt.server_key_trust.observed) {
+      expect(receipt.server_key_trust.algorithm).toBe("ssh-ed25519");
+      expect(receipt.server_key_trust.fingerprint_sha256).toBe(
+        "SHA256:test-fingerprint-base64nopad",
+      );
+      expect(receipt.server_key_trust.trust_mode).toBe("tofu_session");
+      expect(receipt.server_key_trust.persistence_note).toMatch(/TOFU/);
+      expect(receipt.server_key_trust.persistence_note).toMatch(/not persisted/);
+    }
+  });
+
+  it("missing server_key → observed = false with honest no-key note", () => {
+    const r = report({ kind: "connection_failed", reason_redacted: "host unreachable" }, null);
+    const receipt = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+    });
+    expect(receipt.server_key_trust.observed).toBe(false);
+    if (!receipt.server_key_trust.observed) {
+      expect(receipt.server_key_trust.note).toMatch(/No server key/);
+    }
+  });
+
+  it("auth_failed retains observed server key (handshake reached host-key step)", () => {
+    const r = report(
+      { kind: "auth_failed", reason_redacted: "authentication rejected" },
+      OBSERVED_KEY,
+    );
+    const receipt = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+    });
+    expect(receipt.server_key_trust.observed).toBe(true);
+  });
+
+  it("fingerprint appears in Markdown body when observed", () => {
+    const r = report(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "data")] },
+      OBSERVED_KEY,
+    );
+    const receipt = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+    });
+    const md = toReceiptMarkdown(receipt);
+    expect(md).toContain("SHA256:test-fingerprint-base64nopad");
+    expect(md).toContain("ssh-ed25519");
+    expect(md).toContain("tofu_session");
+  });
+
+  it("Markdown renders observed:no path without leaking a fingerprint", () => {
+    const r = report({ kind: "connection_failed", reason_redacted: "host unreachable" }, null);
+    const receipt = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+    });
+    const md = toReceiptMarkdown(receipt);
+    expect(md).toContain("Observed**: no");
+    expect(md).not.toContain("SHA256:");
+  });
+
+  it("credentials still absent when server key is present", () => {
+    const r = report(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "data")] },
+      OBSERVED_KEY,
+    );
+    const receipt = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+    });
+    const json = toReceiptJSON(receipt);
+    // password / private_key / passphrase must remain only in fields_omitted.
+    expect(
+      json.split("\n").filter((line) => /\bpassword\b/.test(line)).length,
+    ).toBeLessThanOrEqual(1);
+    expect(
+      json.split("\n").filter((line) => /\bprivate_key_pem\b/.test(line)).length,
+    ).toBeLessThanOrEqual(1);
+    expect(
+      json.split("\n").filter((line) => /\bpassphrase\b/.test(line)).length,
+    ).toBeLessThanOrEqual(1);
+  });
+
+  it("is deterministic with identical server_key + pinned timestamp", () => {
+    const r = report(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "abc")] },
+      OBSERVED_KEY,
+    );
+    const a = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+    });
+    const b = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+    });
+    expect(toReceiptJSON(a)).toBe(toReceiptJSON(b));
+    expect(toReceiptMarkdown(a)).toBe(toReceiptMarkdown(b));
   });
 });

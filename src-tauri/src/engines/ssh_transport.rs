@@ -2,8 +2,12 @@
 //!
 //! V1AZ implements read-only SSH execution against discovery targets.
 //! Credentials are session-only in-memory (password or PEM-encoded private key).
-//! All output is utf8-lossy decoded and size-limited. Server key pinning deferred
-//! to V1BA; current impl uses TOFU (trust on first use).
+//! All output is utf8-lossy decoded and size-limited.
+//!
+//! V1BC adds a per-attempt server-key observation (algorithm + SHA256
+//! fingerprint + trust_mode) captured at TOFU handshake. Persistence of
+//! pinned keys (known_hosts-style) is still deferred — current trust_mode
+//! is always `tofu_session`.
 //!
 //! Invariants:
 //!   - No credential persistence. Dropped immediately after use.
@@ -100,6 +104,35 @@ pub struct CommandExecutionResult {
     pub output_truncated: bool,
 }
 
+/// Trust-mode of a server-key observation. V1BC ships `TofuSession` only —
+/// the fingerprint is observed and surfaced for the duration of the attempt
+/// but is NOT persisted; a future stage adds pinning/known-hosts.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ServerKeyTrustMode {
+    TofuSession,
+}
+
+/// One observation of the remote server's host key, captured at handshake.
+/// Carries algorithm name (e.g. `ssh-ed25519`) and a `SHA256:<base64-nopad>`
+/// fingerprint matching the OpenSSH `-E sha256` format.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ServerKeyObservation {
+    pub algorithm: String,
+    pub fingerprint_sha256: String,
+    pub trust_mode: ServerKeyTrustMode,
+}
+
+/// Wrapper carrying both the outcome and any server-key observation captured
+/// during the attempt. server_key is None when the connection failed before
+/// the handshake reached the host-key step (or in Refused / pre-flight gate
+/// rejections).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SshAttemptResult {
+    pub outcome: SshExecutionOutcome,
+    pub server_key: Option<ServerKeyObservation>,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum SshExecutionOutcome {
@@ -136,7 +169,7 @@ pub trait SshTransport: Send + Sync {
         credentials: &DiscoveryCredentials,
         commands: &[String],
         limits: SshExecutionLimits,
-    ) -> SshExecutionOutcome;
+    ) -> SshAttemptResult;
 }
 
 /// Real SSH transport implementation using russh (pure-Rust async).
@@ -155,18 +188,41 @@ pub trait SshTransport: Send + Sync {
 /// module behind the SshTransport trait.
 pub struct RealRusshTransport;
 
-struct TofuClient;
+struct TofuClient {
+    observed: std::sync::Arc<tokio::sync::Mutex<Option<ServerKeyObservation>>>,
+}
+
+impl TofuClient {
+    fn new() -> (Self, std::sync::Arc<tokio::sync::Mutex<Option<ServerKeyObservation>>>) {
+        let observed = std::sync::Arc::new(tokio::sync::Mutex::new(None));
+        (Self { observed: observed.clone() }, observed)
+    }
+}
+
+/// Builds an OpenSSH-style fingerprint `SHA256:<base64-nopad>` plus algorithm
+/// label for an observed server public key. Pure function; testable.
+pub fn observe_server_key(public_key: &russh_keys::key::PublicKey) -> ServerKeyObservation {
+    ServerKeyObservation {
+        algorithm: public_key.name().to_string(),
+        fingerprint_sha256: format!("SHA256:{}", public_key.fingerprint()),
+        trust_mode: ServerKeyTrustMode::TofuSession,
+    }
+}
 
 #[async_trait::async_trait]
 impl russh::client::Handler for TofuClient {
     type Error = russh::Error;
 
-    // TOFU — V1AZ accepts any server key. Pinning + TOFU-with-confirm
-    // lands in V1BA. Documented as a known limitation in the contract doc.
+    // TOFU — accepts any server key, but captures algorithm + SHA256
+    // fingerprint so the operator can see what we connected to (V1BC).
+    // Persistence/pinning (known_hosts) is deferred to a future stage.
     async fn check_server_key(
         &mut self,
-        _server_public_key: &russh_keys::key::PublicKey,
+        server_public_key: &russh_keys::key::PublicKey,
     ) -> Result<bool, Self::Error> {
+        let obs = observe_server_key(server_public_key);
+        let mut guard = self.observed.lock().await;
+        *guard = Some(obs);
         Ok(true)
     }
 }
@@ -193,26 +249,39 @@ impl SshTransport for RealRusshTransport {
         credentials: &DiscoveryCredentials,
         commands: &[String],
         limits: SshExecutionLimits,
-    ) -> SshExecutionOutcome {
+    ) -> SshAttemptResult {
         // Verify all commands are read-only before any network I/O.
         if let Err(e) = verify_read_only(commands) {
-            return SshExecutionOutcome::Refused { reason: e };
+            return SshAttemptResult {
+                outcome: SshExecutionOutcome::Refused { reason: e },
+                server_key: None,
+            };
         }
 
         let config = std::sync::Arc::new(russh::client::Config::default());
         let connect_timeout = std::time::Duration::from_millis(limits.connect_timeout_ms as u64);
 
         // -----------------------------------------------------------------
-        // Connect (bounded by connect_timeout)
+        // Connect (bounded by connect_timeout). TofuClient observes the
+        // server host key into `observed` during the handshake.
         // -----------------------------------------------------------------
-        let connect_fut = russh::client::connect(config, (host, port), TofuClient);
+        let (tofu, observed) = TofuClient::new();
+        let connect_fut = russh::client::connect(config, (host, port), tofu);
         let mut handle = match tokio::time::timeout(connect_timeout, connect_fut).await {
-            Err(_) => return SshExecutionOutcome::Timeout { stage: "connect".to_string() },
-            Ok(Err(e)) => return SshExecutionOutcome::ConnectionFailed {
-                reason_redacted: redact_error(&e.to_string()),
+            Err(_) => return SshAttemptResult {
+                outcome: SshExecutionOutcome::Timeout { stage: "connect".to_string() },
+                server_key: observed.lock().await.clone(),
+            },
+            Ok(Err(e)) => return SshAttemptResult {
+                outcome: SshExecutionOutcome::ConnectionFailed {
+                    reason_redacted: redact_error(&e.to_string()),
+                },
+                server_key: observed.lock().await.clone(),
             },
             Ok(Ok(h)) => h,
         };
+        // Snapshot the observation now — the handshake reached check_server_key.
+        let server_key_snapshot: Option<ServerKeyObservation> = observed.lock().await.clone();
 
         // -----------------------------------------------------------------
         // Authenticate (password OR private key). Bounded by connect_timeout
@@ -222,7 +291,10 @@ impl SshTransport for RealRusshTransport {
             DiscoveryAuthMaterial::Password { password } => {
                 let auth_fut = handle.authenticate_password(username, password.expose());
                 match tokio::time::timeout(connect_timeout, auth_fut).await {
-                    Err(_) => return SshExecutionOutcome::Timeout { stage: "authenticate".to_string() },
+                    Err(_) => return SshAttemptResult {
+                        outcome: SshExecutionOutcome::Timeout { stage: "authenticate".to_string() },
+                        server_key: server_key_snapshot,
+                    },
                     Ok(r) => r,
                 }
             }
@@ -230,23 +302,35 @@ impl SshTransport for RealRusshTransport {
                 let pass_opt = passphrase.as_ref().map(|p| p.expose());
                 let keypair = match russh_keys::decode_secret_key(private_key_pem.expose(), pass_opt) {
                     Ok(k) => k,
-                    Err(e) => return SshExecutionOutcome::AuthFailed {
-                        reason_redacted: redact_error(&format!("private key parse failed: {}", e)),
+                    Err(e) => return SshAttemptResult {
+                        outcome: SshExecutionOutcome::AuthFailed {
+                            reason_redacted: redact_error(&format!("private key parse failed: {}", e)),
+                        },
+                        server_key: server_key_snapshot,
                     },
                 };
                 let auth_fut = handle.authenticate_publickey(username, std::sync::Arc::new(keypair));
                 match tokio::time::timeout(connect_timeout, auth_fut).await {
-                    Err(_) => return SshExecutionOutcome::Timeout { stage: "authenticate".to_string() },
+                    Err(_) => return SshAttemptResult {
+                        outcome: SshExecutionOutcome::Timeout { stage: "authenticate".to_string() },
+                        server_key: server_key_snapshot,
+                    },
                     Ok(r) => r,
                 }
             }
         };
         match auth_result {
-            Err(e) => return SshExecutionOutcome::AuthFailed {
-                reason_redacted: redact_error(&e.to_string()),
+            Err(e) => return SshAttemptResult {
+                outcome: SshExecutionOutcome::AuthFailed {
+                    reason_redacted: redact_error(&e.to_string()),
+                },
+                server_key: server_key_snapshot,
             },
-            Ok(false) => return SshExecutionOutcome::AuthFailed {
-                reason_redacted: "authentication rejected".to_string(),
+            Ok(false) => return SshAttemptResult {
+                outcome: SshExecutionOutcome::AuthFailed {
+                    reason_redacted: "authentication rejected".to_string(),
+                },
+                server_key: server_key_snapshot,
             },
             Ok(true) => {}
         }
@@ -265,8 +349,11 @@ impl SshTransport for RealRusshTransport {
             let outcome = match tokio::time::timeout(per_cmd_timeout, exec_fut).await {
                 Err(_) => {
                     let _ = handle.disconnect(russh::Disconnect::ByApplication, "", "").await;
-                    return SshExecutionOutcome::Timeout {
-                        stage: format!("command:{}", command),
+                    return SshAttemptResult {
+                        outcome: SshExecutionOutcome::Timeout {
+                            stage: format!("command:{}", command),
+                        },
+                        server_key: server_key_snapshot,
                     };
                 }
                 Ok(r) => r,
@@ -280,9 +367,12 @@ impl SshTransport for RealRusshTransport {
                 }
                 Err(err) => {
                     let _ = handle.disconnect(russh::Disconnect::ByApplication, "", "").await;
-                    return SshExecutionOutcome::CommandFailed {
-                        partial_results: results,
-                        reason_redacted: redact_error(&err),
+                    return SshAttemptResult {
+                        outcome: SshExecutionOutcome::CommandFailed {
+                            partial_results: results,
+                            reason_redacted: redact_error(&err),
+                        },
+                        server_key: server_key_snapshot,
                     };
                 }
             }
@@ -292,7 +382,10 @@ impl SshTransport for RealRusshTransport {
         }
 
         let _ = handle.disconnect(russh::Disconnect::ByApplication, "", "").await;
-        SshExecutionOutcome::Success { command_results: results }
+        SshAttemptResult {
+            outcome: SshExecutionOutcome::Success { command_results: results },
+            server_key: server_key_snapshot,
+        }
     }
 }
 
@@ -530,5 +623,55 @@ mod tests {
         };
         let json = serde_json::to_string(&outcome).expect("serialize");
         assert!(json.contains("auth_failed"));
+    }
+
+    #[test]
+    fn server_key_observation_serializes_as_expected() {
+        let obs = ServerKeyObservation {
+            algorithm: "ssh-ed25519".to_string(),
+            fingerprint_sha256: "SHA256:abc123".to_string(),
+            trust_mode: ServerKeyTrustMode::TofuSession,
+        };
+        let json = serde_json::to_string(&obs).expect("serialize");
+        assert!(json.contains("ssh-ed25519"));
+        assert!(json.contains("SHA256:abc123"));
+        assert!(json.contains("tofu_session"));
+    }
+
+    #[test]
+    fn ssh_attempt_result_carries_outcome_and_server_key() {
+        let result = SshAttemptResult {
+            outcome: SshExecutionOutcome::Success { command_results: vec![] },
+            server_key: Some(ServerKeyObservation {
+                algorithm: "ssh-ed25519".to_string(),
+                fingerprint_sha256: "SHA256:xyz".to_string(),
+                trust_mode: ServerKeyTrustMode::TofuSession,
+            }),
+        };
+        let json = serde_json::to_string(&result).expect("serialize");
+        assert!(json.contains("success"));
+        assert!(json.contains("SHA256:xyz"));
+        assert!(json.contains("tofu_session"));
+    }
+
+    #[test]
+    fn ssh_attempt_result_server_key_none_serializes_null() {
+        let result = SshAttemptResult {
+            outcome: SshExecutionOutcome::ConnectionFailed {
+                reason_redacted: "host unreachable".to_string(),
+            },
+            server_key: None,
+        };
+        let json = serde_json::to_string(&result).expect("serialize");
+        assert!(json.contains("\"server_key\":null"));
+        assert!(json.contains("connection_failed"));
+    }
+
+    #[test]
+    fn server_key_trust_mode_only_emits_tofu_session_today() {
+        // Lock the V1BC contract: only one trust mode ships. A future
+        // stage extending this enum must also extend the receipt + UI.
+        let json = serde_json::to_string(&ServerKeyTrustMode::TofuSession).expect("serialize");
+        assert_eq!(json, "\"tofu_session\"");
     }
 }

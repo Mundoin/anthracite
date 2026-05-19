@@ -22,7 +22,7 @@ use crate::engines::live_collection_plan::{
 use crate::engines::topology_evidence_store::TopologyEvidenceImportMode;
 use crate::engines::ssh_transport::{
     SshTransport, DiscoveryCredentials, SshExecutionLimits,
-    SshExecutionOutcome,
+    SshExecutionOutcome, ServerKeyObservation,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -82,6 +82,11 @@ pub struct DiscoveryRunReport {
     pub platform_hint: LiveCollectionPlatform,
     pub planned_command_count: u32,
     pub outcome: DiscoveryRunOutcome,
+    /// V1BC: server-key observation captured at TOFU handshake. None when
+    /// the transport never reached the host-key step (Refused, pre-flight
+    /// failure, or planner-only `TransportDeferred`).
+    #[serde(default)]
+    pub server_key: Option<ServerKeyObservation>,
 }
 
 /// Validates a discovery target. Checks host non-empty after trim,
@@ -154,6 +159,7 @@ pub fn attempt_discovery(target: &DiscoveryTarget) -> DiscoveryRunReport {
             platform_hint: target.platform_hint,
             planned_command_count: 0,
             outcome: DiscoveryRunOutcome::Refused { reason },
+            server_key: None,
         };
     }
 
@@ -166,6 +172,7 @@ pub fn attempt_discovery(target: &DiscoveryTarget) -> DiscoveryRunReport {
             outcome: DiscoveryRunOutcome::Refused {
                 reason: "plan contains a non-read-only command".to_string(),
             },
+            server_key: None,
         };
     }
 
@@ -176,6 +183,7 @@ pub fn attempt_discovery(target: &DiscoveryTarget) -> DiscoveryRunReport {
         outcome: DiscoveryRunOutcome::TransportDeferred {
             reason: "ssh transport not yet implemented; V1AX is planner + boundary only".to_string(),
         },
+        server_key: None,
     }
 }
 
@@ -200,6 +208,7 @@ pub async fn execute_discovery(
             platform_hint: target.platform_hint,
             planned_command_count: 0,
             outcome: DiscoveryRunOutcome::Refused { reason },
+            server_key: None,
         };
     }
 
@@ -213,6 +222,7 @@ pub async fn execute_discovery(
             outcome: DiscoveryRunOutcome::Refused {
                 reason: "plan contains a non-read-only command".to_string(),
             },
+            server_key: None,
         };
     }
 
@@ -227,13 +237,14 @@ pub async fn execute_discovery(
             outcome: DiscoveryRunOutcome::Refused {
                 reason: "plan contains no commands".to_string(),
             },
+            server_key: None,
         };
     }
 
     // Execute via SSH transport with credentials.
     // Credentials are borrowed here; dropped at end of this function.
     let execution_limits = limits.unwrap_or_default();
-    let outcome = transport.execute_read_only(
+    let attempt = transport.execute_read_only(
         &target.host,
         target.port,
         &target.username,
@@ -242,8 +253,9 @@ pub async fn execute_discovery(
         execution_limits,
     ).await;
 
-    // Map the SSH execution outcome to a DiscoveryRunOutcome.
-    let discovery_outcome = match outcome {
+    // Map the SSH execution outcome to a DiscoveryRunOutcome. server_key
+    // observation is preserved verbatim from the transport attempt.
+    let discovery_outcome = match attempt.outcome {
         SshExecutionOutcome::Success { command_results } => {
             DiscoveryRunOutcome::Captured { command_results }
         }
@@ -269,6 +281,7 @@ pub async fn execute_discovery(
         platform_hint: target.platform_hint,
         planned_command_count: plan.dry_run.commands.len() as u32,
         outcome: discovery_outcome,
+        server_key: attempt.server_key,
     }
 }
 
@@ -494,6 +507,132 @@ mod tests {
         };
         let report = attempt_discovery(&target);
         assert_eq!(report.target_label, target.data_source_label);
+    }
+
+    #[test]
+    fn attempt_discovery_report_has_none_server_key() {
+        // Planner-only path never observes a host key.
+        let target = DiscoveryTarget {
+            host: "10.0.0.1".to_string(),
+            port: 22,
+            username: "admin".to_string(),
+            platform_hint: LiveCollectionPlatform::Iosxe,
+            transport: DiscoveryTransport::Ssh,
+            data_source_label: "lab-spine-01".to_string(),
+        };
+        let report = attempt_discovery(&target);
+        assert!(report.server_key.is_none());
+    }
+
+    #[test]
+    fn refused_report_has_none_server_key() {
+        let target = DiscoveryTarget {
+            host: "".to_string(),
+            port: 22,
+            username: "admin".to_string(),
+            platform_hint: LiveCollectionPlatform::Iosxe,
+            transport: DiscoveryTransport::Ssh,
+            data_source_label: "lab-spine-01".to_string(),
+        };
+        let report = attempt_discovery(&target);
+        assert!(report.server_key.is_none());
+    }
+
+    // ------------------------------------------------------------------
+    // Mock SshTransport — verifies execute_discovery propagates an
+    // observed ServerKeyObservation from transport into the report
+    // verbatim (V1BC).
+    // ------------------------------------------------------------------
+    use crate::engines::ssh_transport::{
+        ServerKeyObservation, ServerKeyTrustMode, SshAttemptResult,
+    };
+
+    struct MockTransport {
+        result: SshAttemptResult,
+    }
+
+    #[async_trait::async_trait]
+    impl SshTransport for MockTransport {
+        async fn execute_read_only(
+            &self,
+            _host: &str,
+            _port: u16,
+            _username: &str,
+            _credentials: &DiscoveryCredentials,
+            _commands: &[String],
+            _limits: SshExecutionLimits,
+        ) -> SshAttemptResult {
+            self.result.clone()
+        }
+    }
+
+    fn good_target() -> DiscoveryTarget {
+        DiscoveryTarget {
+            host: "10.0.0.1".to_string(),
+            port: 22,
+            username: "admin".to_string(),
+            platform_hint: LiveCollectionPlatform::Iosxe,
+            transport: DiscoveryTransport::Ssh,
+            data_source_label: "lab-spine-01".to_string(),
+        }
+    }
+
+    fn dummy_creds() -> DiscoveryCredentials {
+        DiscoveryCredentials {
+            auth: crate::engines::ssh_transport::DiscoveryAuthMaterial::Password {
+                password: crate::engines::ssh_transport::SecretString::new("p".into()),
+            },
+        }
+    }
+
+    fn obs() -> ServerKeyObservation {
+        ServerKeyObservation {
+            algorithm: "ssh-ed25519".to_string(),
+            fingerprint_sha256: "SHA256:MOCK".to_string(),
+            trust_mode: ServerKeyTrustMode::TofuSession,
+        }
+    }
+
+    #[tokio::test]
+    async fn execute_discovery_propagates_server_key_on_success() {
+        let mock = MockTransport {
+            result: SshAttemptResult {
+                outcome: SshExecutionOutcome::Success { command_results: vec![] },
+                server_key: Some(obs()),
+            },
+        };
+        let report = execute_discovery(&good_target(), dummy_creds(), &mock, None).await;
+        assert!(matches!(report.outcome, DiscoveryRunOutcome::Captured { .. }));
+        assert_eq!(report.server_key.as_ref().map(|s| &s.fingerprint_sha256[..]), Some("SHA256:MOCK"));
+    }
+
+    #[tokio::test]
+    async fn execute_discovery_propagates_server_key_on_auth_failed() {
+        let mock = MockTransport {
+            result: SshAttemptResult {
+                outcome: SshExecutionOutcome::AuthFailed {
+                    reason_redacted: "auth rejected".to_string(),
+                },
+                server_key: Some(obs()),
+            },
+        };
+        let report = execute_discovery(&good_target(), dummy_creds(), &mock, None).await;
+        assert!(matches!(report.outcome, DiscoveryRunOutcome::AuthFailed { .. }));
+        assert!(report.server_key.is_some());
+    }
+
+    #[tokio::test]
+    async fn execute_discovery_keeps_none_server_key_on_connection_failed() {
+        let mock = MockTransport {
+            result: SshAttemptResult {
+                outcome: SshExecutionOutcome::ConnectionFailed {
+                    reason_redacted: "host unreachable".to_string(),
+                },
+                server_key: None,
+            },
+        };
+        let report = execute_discovery(&good_target(), dummy_creds(), &mock, None).await;
+        assert!(report.server_key.is_none());
     }
 
     #[test]

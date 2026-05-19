@@ -26,6 +26,8 @@ import type {
   DiscoveryRunOutcome,
   DiscoveryRunReport,
   DiscoveryTarget,
+  ServerKeyObservation,
+  ServerKeyTrustMode,
 } from "../../types/discoveryRunner";
 import type { RawNeighborEvidenceImportResult } from "../../types/topology";
 import type {
@@ -90,6 +92,27 @@ export interface FieldReceiptImportSummary {
   readonly failure_reason: string | null;
 }
 
+/**
+ * V1BC: sanitized server-key trust summary lifted from
+ * `DiscoveryRunReport.server_key`. `observed: false` when no host key
+ * was seen during the attempt (refused, pre-handshake failure, planner-
+ * only path). The fingerprint is the OpenSSH-style
+ * `SHA256:<base64-nopad>` form and contains no credential material.
+ */
+export type FieldReceiptServerKeyTrust =
+  | {
+      readonly observed: false;
+      readonly note: string;
+    }
+  | {
+      readonly observed: true;
+      readonly algorithm: string;
+      readonly fingerprint_sha256: string;
+      readonly trust_mode: ServerKeyTrustMode;
+      /** Honest one-liner stating the current persistence boundary. */
+      readonly persistence_note: string;
+    };
+
 export interface FieldReceiptRedaction {
   readonly applied: true;
   readonly fields_omitted: ReadonlyArray<
@@ -108,10 +131,17 @@ export interface FieldReceipt {
   readonly approved_commands: ReadonlyArray<string>;
   readonly outcome: FieldReceiptOutcomeSummary;
   readonly command_summaries: ReadonlyArray<FieldReceiptCommandSummary>;
+  readonly server_key_trust: FieldReceiptServerKeyTrust;
   readonly handoff: FieldReceiptHandoffSummary;
   readonly imports: ReadonlyArray<FieldReceiptImportSummary>;
   readonly redaction: FieldReceiptRedaction;
 }
+
+const TOFU_SESSION_NOTE =
+  "TOFU session only. Fingerprint observed for this attempt; not persisted.";
+
+const NO_KEY_OBSERVED_NOTE =
+  "No server key observed for this attempt (transport stopped before handshake or planner-only).";
 
 const OMITTED_FIELDS: FieldReceiptRedaction["fields_omitted"] = Object.freeze([
   "command_stdout",
@@ -148,6 +178,7 @@ export function buildFieldReceipt(input: BuildFieldReceiptInput): FieldReceipt {
   const outcome = summariseOutcome(input.report?.outcome ?? null);
   const command_summaries = summariseCommands(input.report?.outcome ?? null);
   const handoff = summariseHandoff(input.handoff);
+  const server_key_trust = summariseServerKeyTrust(input.report?.server_key ?? null);
 
   return Object.freeze({
     schema_version: FIELD_RECEIPT_SCHEMA_VERSION,
@@ -156,10 +187,26 @@ export function buildFieldReceipt(input: BuildFieldReceiptInput): FieldReceipt {
     approved_commands: Object.freeze([...input.approved_commands]),
     outcome,
     command_summaries: Object.freeze(command_summaries),
+    server_key_trust,
     handoff,
     imports: Object.freeze([...input.imports]),
     redaction: { applied: true as const, fields_omitted: OMITTED_FIELDS },
   });
+}
+
+function summariseServerKeyTrust(
+  observation: ServerKeyObservation | null | undefined,
+): FieldReceiptServerKeyTrust {
+  if (!observation) {
+    return { observed: false, note: NO_KEY_OBSERVED_NOTE };
+  }
+  return {
+    observed: true,
+    algorithm: observation.algorithm,
+    fingerprint_sha256: observation.fingerprint_sha256,
+    trust_mode: observation.trust_mode,
+    persistence_note: TOFU_SESSION_NOTE,
+  };
 }
 
 function summariseOutcome(
@@ -354,6 +401,21 @@ export function toReceiptMarkdown(receipt: FieldReceipt): string {
         `| \`${cs.command}\` | ${cs.exit_code ?? "?"} | ${cs.duration_ms} | ${cs.stdout_byte_length} | ${cs.stderr_byte_length} | ${cs.output_truncated ? "yes" : "no"} |`,
       );
     }
+  }
+  lines.push("");
+  lines.push(`## Server key trust`);
+  lines.push("");
+  if (receipt.server_key_trust.observed) {
+    lines.push(`- **Observed**: yes`);
+    lines.push(`- **Algorithm**: \`${receipt.server_key_trust.algorithm}\``);
+    lines.push(
+      `- **Fingerprint (SHA256)**: \`${receipt.server_key_trust.fingerprint_sha256}\``,
+    );
+    lines.push(`- **Trust mode**: \`${receipt.server_key_trust.trust_mode}\``);
+    lines.push(`- **Note**: ${receipt.server_key_trust.persistence_note}`);
+  } else {
+    lines.push(`- **Observed**: no`);
+    lines.push(`- **Note**: ${receipt.server_key_trust.note}`);
   }
   lines.push("");
   lines.push(`## Evidence handoff`);

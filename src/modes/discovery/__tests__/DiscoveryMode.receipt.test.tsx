@@ -13,6 +13,7 @@ import type {
   DiscoveryRunReport,
   DiscoveryTarget,
   DiscoveryTargetValidation,
+  ServerKeyObservation,
 } from "../../../types/discoveryRunner";
 import type {
   RawNeighborEvidenceImportRequest,
@@ -50,14 +51,24 @@ const IMPORT_OK: RawNeighborEvidenceImportResult = {
 };
 const PINNED_TS = "2026-05-19T13:00:00.000Z";
 
-function makeReport(outcome: DiscoveryRunOutcome): DiscoveryRunReport {
+function makeReport(
+  outcome: DiscoveryRunOutcome,
+  server_key: ServerKeyObservation | null = null,
+): DiscoveryRunReport {
   return {
     target_label: VALID_TARGET.data_source_label,
     platform_hint: VALID_TARGET.platform_hint,
     planned_command_count: 2,
     outcome,
+    server_key,
   };
 }
+
+const OBSERVED_KEY: ServerKeyObservation = {
+  algorithm: "ssh-ed25519",
+  fingerprint_sha256: "SHA256:ui-test-fingerprint",
+  trust_mode: "tofu_session",
+};
 function cr(
   command: string,
   stdout: string,
@@ -78,6 +89,7 @@ function makeApi(
   importOverride?: (
     req: RawNeighborEvidenceImportRequest,
   ) => Promise<RawNeighborEvidenceImportResult>,
+  server_key: ServerKeyObservation | null = null,
 ): DiscoveryApi {
   return {
     validateDiscoveryTarget: vi.fn(async () => VALIDATION_OK),
@@ -85,7 +97,7 @@ function makeApi(
     attemptDiscoveryRun: vi.fn(async () =>
       makeReport({ kind: "transport_deferred", reason: "deferred" }),
     ),
-    executeDiscoveryRun: vi.fn(async () => makeReport(outcome)),
+    executeDiscoveryRun: vi.fn(async () => makeReport(outcome, server_key)),
     importTopologyNeighborOutput:
       importOverride ?? vi.fn(async () => IMPORT_OK),
   };
@@ -340,5 +352,96 @@ describe("DiscoveryMode — V1BB field smoke receipt", () => {
     expect(importFn).toHaveBeenCalledTimes(0);
     const md = screen.getByTestId("discovery-receipt-md").textContent ?? "";
     expect(md).toContain("_(no operator import attempts recorded)_");
+  });
+});
+
+describe("DiscoveryMode — V1BC server key trust", () => {
+  it("captured run with observed key shows algorithm + fingerprint + trust mode", async () => {
+    const api = makeApi(
+      {
+        kind: "captured",
+        command_results: [cr("show lldp neighbors detail", "data")],
+      },
+      undefined,
+      OBSERVED_KEY,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    expect(screen.getByTestId("discovery-server-key-observed")).toBeTruthy();
+    expect(
+      screen.getByTestId("discovery-server-key-algorithm").textContent,
+    ).toContain("ssh-ed25519");
+    expect(
+      screen.getByTestId("discovery-server-key-fingerprint").textContent,
+    ).toContain("SHA256:ui-test-fingerprint");
+    expect(
+      screen.getByTestId("discovery-server-key-trust-mode").textContent,
+    ).toContain("tofu_session");
+    expect(
+      screen.getByTestId("discovery-server-key-note").textContent,
+    ).toMatch(/TOFU/);
+  });
+
+  it("auth_failed with observed key still renders fingerprint", async () => {
+    const api = makeApi(
+      { kind: "auth_failed", reason_redacted: "authentication rejected" },
+      undefined,
+      OBSERVED_KEY,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    expect(
+      screen.getByTestId("discovery-server-key-fingerprint").textContent,
+    ).toContain("SHA256:ui-test-fingerprint");
+  });
+
+  it("connection_failed with no observed key shows honest absent message", async () => {
+    const api = makeApi(
+      { kind: "connection_failed", reason_redacted: "host unreachable" },
+      undefined,
+      null,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    expect(screen.getByTestId("discovery-server-key-absent")).toBeTruthy();
+    expect(screen.queryByTestId("discovery-server-key-fingerprint")).toBeNull();
+  });
+
+  it("receipt Markdown carries the fingerprint when observed", async () => {
+    const api = makeApi(
+      {
+        kind: "captured",
+        command_results: [cr("show lldp neighbors detail", "data")],
+      },
+      undefined,
+      OBSERVED_KEY,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    const md = screen.getByTestId("discovery-receipt-md").textContent ?? "";
+    expect(md).toContain("SHA256:ui-test-fingerprint");
+    expect(md).toContain("tofu_session");
+    expect(md).toContain("ssh-ed25519");
+  });
+
+  it("DOM never contains operator password even when server key is shown", async () => {
+    const api = makeApi(
+      {
+        kind: "captured",
+        command_results: [cr("show lldp neighbors detail", "data")],
+      },
+      undefined,
+      OBSERVED_KEY,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    expect(screen.getByTestId("discovery-server-key-observed")).toBeTruthy();
+    // runUntilCaptured types this password into the credential input.
+    expect(document.body.innerHTML).not.toContain("secret-DO-NOT-LEAK");
   });
 });

@@ -922,6 +922,51 @@ export function DiscoveryMode({
                 </div>
               )}
 
+              <section
+                className="dx-server-key"
+                data-testid="discovery-server-key"
+                aria-label="Server key trust"
+              >
+                <h3>Server key trust</h3>
+                {runReport.server_key ? (
+                  <>
+                    <p data-testid="discovery-server-key-observed">
+                      Server key observed.
+                    </p>
+                    <dl className="dx-server-key-grid">
+                      <dt>Algorithm</dt>
+                      <dd data-testid="discovery-server-key-algorithm">
+                        <code>{runReport.server_key.algorithm}</code>
+                      </dd>
+                      <dt>Fingerprint (SHA256)</dt>
+                      <dd data-testid="discovery-server-key-fingerprint">
+                        <code>{runReport.server_key.fingerprint_sha256}</code>
+                      </dd>
+                      <dt>Trust mode</dt>
+                      <dd data-testid="discovery-server-key-trust-mode">
+                        <code>{runReport.server_key.trust_mode}</code>
+                      </dd>
+                    </dl>
+                    <p
+                      className="dx-server-key-note"
+                      data-testid="discovery-server-key-note"
+                    >
+                      TOFU session only — fingerprint observed for this
+                      attempt and not persisted. Pinning / known_hosts
+                      arrives in a later stage.
+                    </p>
+                  </>
+                ) : (
+                  <p
+                    className="dx-server-key-note"
+                    data-testid="discovery-server-key-absent"
+                  >
+                    No server key observed for this attempt (transport
+                    stopped before the handshake).
+                  </p>
+                )}
+              </section>
+
               {fieldReceipt && (
                 <section
                   className="dx-receipt"

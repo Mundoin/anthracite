@@ -72,9 +72,23 @@ export type DiscoveryRunOutcome =
   | { readonly kind: "timeout"; readonly stage: string }
   | { readonly kind: "command_failed"; readonly partial_results: ReadonlyArray<CommandExecutionResult>; readonly reason_redacted: string };
 
+export type ServerKeyTrustMode = "tofu_session";
+
+export interface ServerKeyObservation {
+  readonly algorithm: string;
+  readonly fingerprint_sha256: string;
+  readonly trust_mode: ServerKeyTrustMode;
+}
+
 export interface DiscoveryRunReport {
   readonly target_label: string;
   readonly platform_hint: LiveCollectionPlatform;
   readonly planned_command_count: number;
   readonly outcome: DiscoveryRunOutcome;
+  /**
+   * V1BC: observed server host key (algorithm + SHA256 fingerprint + trust mode).
+   * `null`/absent when the transport never reached the host-key step (refused,
+   * pre-flight failure, planner-only path, or connection_failed before TOFU).
+   */
+  readonly server_key?: ServerKeyObservation | null;
 }
