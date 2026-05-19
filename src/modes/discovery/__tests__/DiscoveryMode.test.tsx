@@ -70,7 +70,7 @@ describe("DiscoveryMode", () => {
     };
     const { container } = render(<DiscoveryMode api={api} />);
     expect(screen.getByText("Discovery")).toBeInTheDocument();
-    expect(container.querySelector(".dx-header")).toBeInTheDocument();
+    expect(container.querySelector(".mwb-header")).toBeInTheDocument();
   });
 
   it("renders with proper structure and testids", () => {
@@ -82,7 +82,7 @@ describe("DiscoveryMode", () => {
     const { container } = render(<DiscoveryMode api={api} />);
     // Main component structure is present
     expect(container.querySelector(".discovery-mode")).toBeInTheDocument();
-    expect(container.querySelector(".dx-header")).toBeInTheDocument();
+    expect(container.querySelector(".mwb-header")).toBeInTheDocument();
   });
 
   it("never shows a fake success when transport is deferred", () => {

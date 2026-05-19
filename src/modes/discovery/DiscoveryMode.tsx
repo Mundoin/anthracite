@@ -12,8 +12,10 @@
  *   - docs/architecture/SSH_TRANSPORT_V1_CONTRACT.md (V1AZ)
  */
 
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
+import type { ModeTool } from "../../components/workbench/types";
 import type {
   DiscoveryRunPlan,
   DiscoveryRunReport,
@@ -193,6 +195,7 @@ export function DiscoveryMode({
   >([]);
   const [receiptCopied, setReceiptCopied] = useState<"none" | "markdown" | "json">("none");
   const [validationPackCopied, setValidationPackCopied] = useState(false);
+  const [activeToolId, setActiveToolId] = useState<string>("target_capture");
 
   // V1BD — server-key pin state.
   // Loaded after each run; cleared when host/port changes.
@@ -479,15 +482,8 @@ export function DiscoveryMode({
     ((credentialMode === "password" && password.length > 0) ||
       (credentialMode === "private_key" && privateKeyPem.length > 0));
 
-  return (
-    <div className="discovery-mode">
-      <header className="dx-header">
-        <h2 className="dx-title">Discovery</h2>
-        <p className="dx-tagline">
-          Define a target, validate, plan, then attempt a read-only discovery run.
-        </p>
-      </header>
-
+  const renderTargetCapture = (): ReactNode => (
+    <>
       {isEmpty && (
         <section
           className="dx-body dx-body--empty"
@@ -1232,6 +1228,106 @@ export function DiscoveryMode({
             </section>
           )}
         </section>
+    </>
+  );
+
+  const tools: ModeTool[] = [
+    {
+      id: "target_capture",
+      kind: "live",
+      label: "Target Capture",
+      description:
+        "Validate a target, plan a read-only SSH discovery run, capture evidence, and produce a sanitised receipt.",
+      group: "primary",
+      status: "available",
+      role: "live_collection",
+      render: renderTargetCapture,
+    },
+    {
+      id: "seed_planner",
+      kind: "deferred",
+      label: "Seed Planner",
+      description:
+        "Plan discovery seeds before any device contact.",
+      group: "discovery",
+      status: "deferred",
+      role: "operator_choice",
+      deferred: {
+        reason:
+          "Seed planner will let the operator stage seed targets, vendor hints, and credential profiles for a future discovery run. No device contact happens here. The crawler engine that consumes seeds is not built yet.",
+        planned_inputs: [
+          "Seed IP / CIDR range",
+          "Platform hint per seed",
+          "Credential profile reference",
+          "Source kind (managed device, neighbor evidence, manual import)",
+        ],
+      },
+    },
+    {
+      id: "recursive_crawl",
+      kind: "deferred",
+      label: "Recursive Crawl",
+      description:
+        "Expand from a seed through LLDP / CDP neighbors with explicit stop rules.",
+      group: "discovery",
+      status: "deferred",
+      role: "live_collection",
+      deferred: {
+        reason:
+          "Recursive crawler will walk from a seed device, collect neighbor evidence (LLDP / CDP), expand the frontier, and stop when limits are reached. No transport, no crawler engine, no neighbor parsing wired yet.",
+        planned_controls: [
+          "Max depth",
+          "Max nodes",
+          "Allowlist / denylist (subnet, name, vendor)",
+          "Per-vendor read-only command plan",
+          "Stop rules (timeout, evidence quota, error budget)",
+        ],
+      },
+    },
+    {
+      id: "import_evidence",
+      kind: "deferred",
+      label: "Import / Evidence",
+      description:
+        "Import raw configs or neighbor output captured outside Anthracite.",
+      group: "evidence",
+      status: "preview",
+      role: "evidence",
+      deferred: {
+        reason:
+          "Discovery does not own the import engine — raw evidence ingestion lives under Topology today. Use the Topology evidence import card to ingest config text or neighbor output captured outside a discovery run.",
+        route_hint: { label: "Topology → Evidence import" },
+      },
+    },
+    {
+      id: "field_receipts",
+      kind: "deferred",
+      label: "Field Receipts",
+      description:
+        "Inspect, copy, and export sanitised receipts from completed discovery runs.",
+      group: "validation",
+      status: "preview",
+      role: "validation",
+      deferred: {
+        reason:
+          "Field receipts and the validation pack are exposed inside Target Capture after a run finishes. A dedicated receipts tool will collocate the validation pack, the field smoke receipt, and copy / export actions across multiple past runs.",
+      },
+    },
+  ];
+
+  return (
+    <div className="discovery-mode">
+      <ModeWorkbenchShell
+        model={{
+          title: "Discovery",
+          tagline:
+            "Define a target, validate, plan, then attempt a read-only discovery run.",
+          tools,
+          active_id: activeToolId,
+          fallback_id: "target_capture",
+        }}
+        onSelectTool={setActiveToolId}
+      />
     </div>
   );
 }

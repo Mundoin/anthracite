@@ -1,0 +1,258 @@
+/* V1BH — ModeWorkbenchShell styles.
+ * Scoped under .mwb. Doctrine tokens only. */
+
+.mwb {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--anth-bg-app);
+}
+
+.mwb-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px 8px;
+  background: linear-gradient(180deg, var(--anth-bg-panel) 0%, var(--anth-bg-sunken) 100%);
+  border-bottom: 1px solid var(--anth-border-strong);
+}
+
+.mwb-title {
+  margin: 0;
+  font-family: var(--anth-font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text);
+}
+
+.mwb-tagline {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--anth-text-3);
+  line-height: 1.4;
+}
+
+/* ── Tool rail ───────────────────────────────────────────────── */
+
+.mwb-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  padding: 8px 12px;
+  background: var(--anth-bg-sunken);
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.mwb-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-panel);
+  color: var(--anth-text-2);
+  font-family: var(--anth-font-ui);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.mwb-tool:hover:not(:disabled) {
+  background: var(--anth-bg-hover);
+  color: var(--anth-text);
+}
+
+.mwb-tool:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mwb-tool.is-active {
+  background: var(--anth-accent);
+  color: var(--anth-accent-ink);
+  border-color: var(--anth-accent);
+}
+
+.mwb-tool.is-active .mwb-tool-status,
+.mwb-tool.is-active .mwb-tool-badge {
+  border-color: rgba(248, 250, 252, 0.4);
+  color: var(--anth-accent-ink);
+}
+
+.mwb-tool-label { white-space: nowrap; }
+
+.mwb-tool-status {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 5px;
+  border: 1px solid var(--anth-border);
+  border-radius: 2px;
+  background: var(--anth-bg-panel);
+  font-family: var(--anth-font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mwb-tool-status--ok   { color: var(--anth-ok-ink);   background: var(--anth-ok-tint);   border-color: var(--anth-ok-tint); }
+.mwb-tool-status--info { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: var(--anth-info-tint); }
+.mwb-tool-status--warn { color: var(--anth-warn-ink); background: var(--anth-warn-tint); border-color: var(--anth-warn-tint); }
+.mwb-tool-status--idle { color: var(--anth-text-3);   background: var(--anth-bg-sunken); border-color: var(--anth-border); }
+
+.mwb-tool-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border: 1px solid var(--anth-border);
+  border-radius: 8px;
+  background: var(--anth-bg-panel);
+  font-family: var(--anth-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--anth-text-2);
+}
+
+/* ── Active tool surface ─────────────────────────────────────── */
+
+.mwb-active {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mwb-active-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--anth-bg-panel);
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.mwb-active-hd-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mwb-active-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text);
+}
+
+.mwb-active-desc {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--anth-text-3);
+  line-height: 1.4;
+}
+
+.mwb-active-status {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid var(--anth-border-strong);
+  border-radius: 2px;
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mwb-active-status--ok   { color: var(--anth-ok-ink);   background: var(--anth-ok-tint);   border-color: var(--anth-ok-tint); }
+.mwb-active-status--info { color: var(--anth-info-ink); background: var(--anth-info-tint); border-color: var(--anth-info-tint); }
+.mwb-active-status--warn { color: var(--anth-warn-ink); background: var(--anth-warn-tint); border-color: var(--anth-warn-tint); }
+.mwb-active-status--idle { color: var(--anth-text-3);   background: var(--anth-bg-sunken); border-color: var(--anth-border); }
+
+.mwb-active-body {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--anth-bg-app);
+}
+
+/* ── Deferred state ──────────────────────────────────────────── */
+
+.mwb-deferred {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px;
+  max-width: 760px;
+}
+
+.mwb-deferred-reason {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--anth-text);
+}
+
+.mwb-deferred-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--anth-border);
+  border-left: 2px solid var(--anth-info);
+  background: var(--anth-bg-panel);
+}
+
+.mwb-deferred-block-title {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+}
+
+.mwb-deferred-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--anth-text);
+  line-height: 1.5;
+}
+
+.mwb-deferred-route {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--anth-copper);
+  background: var(--anth-warn-tint);
+  color: var(--anth-warn-ink);
+  font-size: 11.5px;
+}
+
+.mwb-deferred-honesty {
+  margin: 0;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--anth-text-3);
+}
+
+.mwb-missing {
+  padding: 20px;
+  color: var(--anth-text-3);
+  font-size: 12px;
+}
