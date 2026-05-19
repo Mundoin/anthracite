@@ -3,6 +3,7 @@ import { TitleBar, type TitleBarEnv } from "./TitleBar";
 import { ModeRail, type ModeId } from "./ModeRail";
 import { OpsStrip } from "./OpsStrip";
 import { StatusBar, type StatusCell } from "./StatusBar";
+import { ModeErrorBoundary } from "./ModeErrorBoundary";
 
 export interface AppShellProps {
   readonly env: TitleBarEnv | null;
@@ -63,7 +64,11 @@ export function AppShell({
       <ModeRail active={activeMode} onChange={onModeChange} />
       {secondary}
       <main className="anth-work" aria-label="Workspace">
-        <div className="anth-work__content">{children}</div>
+        <div className="anth-work__content">
+          <ModeErrorBoundary key={activeMode} modeId={activeMode}>
+            {children}
+          </ModeErrorBoundary>
+        </div>
       </main>
       {inspector}
 

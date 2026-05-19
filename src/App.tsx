@@ -252,6 +252,22 @@ export default function App(): JSX.Element {
 
   const inListView = layoutView === "list";
 
+  // V1AK — devices count derives from real Discovery inventory when source is
+  // "real"; falls back to the existing seeded "2,184" otherwise. Honest count.
+  // MUST stay above every early-return mode branch so hook order is stable
+  // across mode switches (Rules of Hooks); previously below the branches,
+  // which caused "Rendered fewer hooks than expected" on top-level mode
+  // change and unmounted the React root (V1AW white-screen).
+  const detailSubnav = useMemo<readonly SubNavItem[]>(
+    () =>
+      DETAIL_SUBNAV_BASE.map((item) =>
+        item.id === "devices" && discovery.sourceState === "real"
+          ? { ...item, count: discovery.totalRecords.toLocaleString("en-US") }
+          : item,
+      ),
+    [discovery.sourceState, discovery.totalRecords],
+  );
+
   if (activeMode === "opsConsole") {
     return (
       <AppShell
@@ -382,18 +398,6 @@ export default function App(): JSX.Element {
   const crumbs = inListView
     ? ["Hierarchy", "Environments"]
     : ["Hierarchy", activeRow?.id ?? selectedRowId, detailSegmentLabel(detailSegment)];
-
-  // V1AK — devices count derives from real Discovery inventory when source is
-  // "real"; falls back to the existing seeded "2,184" otherwise. Honest count.
-  const detailSubnav = useMemo<readonly SubNavItem[]>(
-    () =>
-      DETAIL_SUBNAV_BASE.map((item) =>
-        item.id === "devices" && discovery.sourceState === "real"
-          ? { ...item, count: discovery.totalRecords.toLocaleString("en-US") }
-          : item,
-      ),
-    [discovery.sourceState, discovery.totalRecords],
-  );
 
   const subNav = inListView ? (
     <SubNav items={LIST_SUBNAV} activeId={listSegment} onChange={setListSegment} />

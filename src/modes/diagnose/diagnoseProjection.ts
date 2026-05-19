@@ -57,10 +57,13 @@ const EMPTY_MODEL: DiagnoseModel = Object.freeze({
 // ---------------------------------------------------------------------
 
 export function projectDiagnose(input: DiagnoseProjectionInput): DiagnoseModel {
+  const devices = Array.isArray(input.devices) ? input.devices : [];
+  const topology = input.topology ?? null;
+
   // Empty iff truly nothing to project over. A non-null TopologyView is
   // worth running even when its nodes/edges are empty — projection_stats
   // and evidence_stats may still expose rejections worth surfacing.
-  if (input.devices.length === 0 && input.topology === null) {
+  if (devices.length === 0 && topology === null) {
     return EMPTY_MODEL;
   }
 
@@ -69,7 +72,8 @@ export function projectDiagnose(input: DiagnoseProjectionInput): DiagnoseModel {
   );
 
   const answers: DiagnoseAnswer[] = [];
-  for (const device of input.devices) {
+  for (const device of devices) {
+    if (!device || !device.device_model) continue;
     pushTelnetEnabled(device, answers);
     pushMissingHostname(device, answers);
     pushUnknownAdminStateInterfaces(device, answers);
@@ -77,7 +81,7 @@ export function projectDiagnose(input: DiagnoseProjectionInput): DiagnoseModel {
     pushUnsupportedPlatform(device, unsupportedSet, answers);
     pushOutOfScopeParserEvidence(device, answers);
   }
-  pushTopologyEvidenceAnswers(input.topology, answers);
+  pushTopologyEvidenceAnswers(topology, answers);
 
   answers.sort(compareAnswers);
   return {
@@ -92,9 +96,9 @@ export function projectDiagnose(input: DiagnoseProjectionInput): DiagnoseModel {
 // ---------------------------------------------------------------------
 
 function deviceLabel(record: DiscoveryDeviceRecord): string {
-  const m: DeviceModel = record.device_model;
+  const m: DeviceModel | undefined = record.device_model;
   return (
-    m.identity.hostname?.trim() ||
+    m?.identity?.hostname?.trim() ||
     record.source_label?.trim() ||
     record.id
   );
@@ -151,8 +155,10 @@ function pushTelnetEnabled(
   record: DiscoveryDeviceRecord,
   out: DiagnoseAnswer[],
 ): void {
-  const telnet = record.device_model.services.find(
-    (s): s is { readonly kind: ServiceKind } & typeof s => s.kind === "telnet",
+  const services = record.device_model?.services;
+  if (!Array.isArray(services)) return;
+  const telnet = services.find(
+    (s): s is { readonly kind: ServiceKind } & typeof s => s?.kind === "telnet",
   );
   if (!telnet) return;
   const label = deviceLabel(record);
@@ -186,7 +192,7 @@ function pushMissingHostname(
   record: DiscoveryDeviceRecord,
   out: DiagnoseAnswer[],
 ): void {
-  const h = record.device_model.identity.hostname;
+  const h = record.device_model?.identity?.hostname ?? null;
   if (h !== null && h.trim() !== "") return;
   const label = record.source_label?.trim() || record.id;
   out.push({
@@ -218,8 +224,10 @@ function pushUnknownAdminStateInterfaces(
   record: DiscoveryDeviceRecord,
   out: DiagnoseAnswer[],
 ): void {
-  const unknown = record.device_model.interfaces
-    .filter((i) => i.admin_state === "unknown")
+  const interfaces = record.device_model?.interfaces;
+  if (!Array.isArray(interfaces)) return;
+  const unknown = interfaces
+    .filter((i) => i?.admin_state === "unknown")
     .map((i) => i.name);
   if (unknown.length === 0) return;
   const label = deviceLabel(record);
@@ -252,12 +260,16 @@ function pushDescribedInterfacesWithoutAddressing(
   record: DiscoveryDeviceRecord,
   out: DiagnoseAnswer[],
 ): void {
-  const matches = record.device_model.interfaces.filter(
+  const interfaces = record.device_model?.interfaces;
+  if (!Array.isArray(interfaces)) return;
+  const matches = interfaces.filter(
     (i) =>
+      !!i &&
       i.description !== null &&
+      i.description !== undefined &&
       i.description.trim() !== "" &&
-      i.ipv4_addresses.length === 0 &&
-      i.ipv6_addresses.length === 0,
+      (i.ipv4_addresses?.length ?? 0) === 0 &&
+      (i.ipv6_addresses?.length ?? 0) === 0,
   );
   if (matches.length === 0) return;
   const label = deviceLabel(record);
@@ -291,7 +303,8 @@ function pushUnsupportedPlatform(
   unsupported: ReadonlySet<string>,
   out: DiagnoseAnswer[],
 ): void {
-  const platformId = record.device_model.platform.platform_id;
+  const platform = record.device_model?.platform;
+  const platformId = platform?.platform_id ?? null;
   if (platformId === null) return;
   if (!unsupported.has(platformId)) return;
   const label = deviceLabel(record);
@@ -311,7 +324,7 @@ function pushUnsupportedPlatform(
       },
       {
         label: "vendor",
-        value: record.device_model.platform.vendor ?? "(unknown)",
+        value: platform?.vendor ?? "(unknown)",
         source: "device_model.platform",
       },
     ],
@@ -329,12 +342,14 @@ function pushOutOfScopeParserEvidence(
   record: DiscoveryDeviceRecord,
   out: DiagnoseAnswer[],
 ): void {
-  const oosCount = record.device_model.unknown_lines.filter(
-    (u) => u.reason === "out_of_scope",
+  const unknownLines = record.device_model?.unknown_lines;
+  if (!Array.isArray(unknownLines)) return;
+  const oosCount = unknownLines.filter(
+    (u) => u?.reason === "out_of_scope",
   ).length;
   if (oosCount === 0) return;
   const label = deviceLabel(record);
-  const platformId = record.device_model.platform.platform_id ?? "unknown";
+  const platformId = record.device_model?.platform?.platform_id ?? "unknown";
   out.push({
     id: `parser_scope:out_of_scope_evidence:${record.id}`,
     severity: "info",
@@ -368,17 +383,19 @@ function pushTopologyEvidenceAnswers(
   view: TopologyView | null,
   out: DiagnoseAnswer[],
 ): void {
-  if (view === null) return;
+  if (view === null || view === undefined) return;
   const evidence = view.evidence_stats;
   const projection = view.projection_stats;
+  const nodes = Array.isArray(view.nodes) ? view.nodes : [];
+  const edges = Array.isArray(view.edges) ? view.edges : [];
 
   const evidenceRejected =
-    evidence.rejected_unknown_local +
-    evidence.rejected_unknown_remote +
-    evidence.rejected_self_link;
+    (evidence?.rejected_unknown_local ?? 0) +
+    (evidence?.rejected_unknown_remote ?? 0) +
+    (evidence?.rejected_self_link ?? 0);
   const factsRejected =
-    projection.facts_rejected_unknown_node +
-    projection.facts_rejected_self_link;
+    (projection?.facts_rejected_unknown_node ?? 0) +
+    (projection?.facts_rejected_self_link ?? 0);
 
   if (evidenceRejected > 0 || factsRejected > 0) {
     out.push({
@@ -407,7 +424,8 @@ function pushTopologyEvidenceAnswers(
     });
   }
 
-  if (evidence.accepted > 0 && view.edges.length === 0) {
+  const evidenceAccepted = evidence?.accepted ?? 0;
+  if (evidenceAccepted > 0 && edges.length === 0) {
     out.push({
       id: `topology_evidence:accepted_but_no_edges:${view.environment_id ?? "all"}`,
       severity: "warning",
@@ -419,7 +437,7 @@ function pushTopologyEvidenceAnswers(
       evidence: [
         {
           label: "evidence_accepted",
-          value: String(evidence.accepted),
+          value: String(evidenceAccepted),
           source: "topology_view.evidence_stats",
         },
         {
@@ -435,8 +453,8 @@ function pushTopologyEvidenceAnswers(
   }
 
   if (
-    view.adjacency_readiness.fact_source_state === "none_available" &&
-    view.nodes.length > 0
+    view.adjacency_readiness?.fact_source_state === "none_available" &&
+    nodes.length > 0
   ) {
     out.push({
       id: `topology_evidence:no_adjacency_sources:${view.environment_id ?? "all"}`,
@@ -449,7 +467,7 @@ function pushTopologyEvidenceAnswers(
       evidence: [
         {
           label: "node_count",
-          value: String(view.nodes.length),
+          value: String(nodes.length),
           source: "topology_view.nodes",
         },
         {

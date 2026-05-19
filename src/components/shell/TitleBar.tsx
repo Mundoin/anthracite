@@ -1,5 +1,22 @@
 import { useCallback, useEffect, useState, type JSX, type MouseEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+
+/**
+ * Wraps `getCurrentWindow()` so a missing or transient
+ * `window.__TAURI_INTERNALS__` (e.g. dev HMR mid-reload, jsdom in
+ * tests, broken bridge) returns null instead of throwing during
+ * render/effect. Without this guard a throw here escapes the
+ * ModeErrorBoundary (which lives below the shell) and unmounts the
+ * whole React root to a blank window.
+ */
+function safeGetCurrentWindow(): ReturnType<typeof getCurrentWindow> | null {
+  try {
+    return getCurrentWindow();
+  } catch (err) {
+    console.error("[TitleBar] getCurrentWindow unavailable:", err);
+    return null;
+  }
+}
 import {
   AnthMark,
   IcoBell,
@@ -52,7 +69,12 @@ export function TitleBar({
 
   useEffect(() => {
     let cancelled = false;
-    const win = getCurrentWindow();
+    const win = safeGetCurrentWindow();
+    if (win === null) {
+      return () => {
+        cancelled = true;
+      };
+    }
     void win
       .isMaximized()
       .then((v) => {
@@ -77,27 +99,37 @@ export function TitleBar({
     if (e.button !== 0) return;
     if (isInteractiveTarget(e.target)) return;
     e.preventDefault();
-    void getCurrentWindow().startDragging().catch((err) => { console.error("[TitleBar] window call failed", err); });
+    const win = safeGetCurrentWindow();
+    if (win === null) return;
+    void win.startDragging().catch((err) => { console.error("[TitleBar] window call failed", err); });
   }, []);
 
   const onTitlebarDoubleClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
     if (isInteractiveTarget(e.target)) return;
-    void getCurrentWindow().toggleMaximize().catch((err) => { console.error("[TitleBar] window call failed", err); });
+    const win = safeGetCurrentWindow();
+    if (win === null) return;
+    void win.toggleMaximize().catch((err) => { console.error("[TitleBar] window call failed", err); });
   }, []);
 
   const onMinimize = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    void getCurrentWindow().minimize().catch((err) => { console.error("[TitleBar] window call failed", err); });
+    const win = safeGetCurrentWindow();
+    if (win === null) return;
+    void win.minimize().catch((err) => { console.error("[TitleBar] window call failed", err); });
   }, []);
 
   const onToggleMaximize = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    void getCurrentWindow().toggleMaximize().catch((err) => { console.error("[TitleBar] window call failed", err); });
+    const win = safeGetCurrentWindow();
+    if (win === null) return;
+    void win.toggleMaximize().catch((err) => { console.error("[TitleBar] window call failed", err); });
   }, []);
 
   const onClose = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    void getCurrentWindow().close().catch((err) => { console.error("[TitleBar] window call failed", err); });
+    const win = safeGetCurrentWindow();
+    if (win === null) return;
+    void win.close().catch((err) => { console.error("[TitleBar] window call failed", err); });
   }, []);
 
   return (
