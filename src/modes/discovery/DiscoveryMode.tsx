@@ -50,6 +50,10 @@ import {
   toReceiptMarkdown,
   type FieldReceiptImportSummary,
 } from "./sshFieldReceipt";
+import {
+  buildSshFieldValidationPack,
+  toValidationPackMarkdown,
+} from "./sshFieldValidationPack";
 import "./DiscoveryMode.css";
 
 export interface DiscoveryClock {
@@ -188,6 +192,7 @@ export function DiscoveryMode({
     ReadonlyArray<FieldReceiptImportSummary>
   >([]);
   const [receiptCopied, setReceiptCopied] = useState<"none" | "markdown" | "json">("none");
+  const [validationPackCopied, setValidationPackCopied] = useState(false);
 
   // V1BD — server-key pin state.
   // Loaded after each run; cleared when host/port changes.
@@ -305,6 +310,33 @@ export function DiscoveryMode({
     () => (fieldReceipt ? toReceiptMarkdown(fieldReceipt) : ""),
     [fieldReceipt],
   );
+
+  const validationPack = useMemo(
+    () =>
+      buildSshFieldValidationPack({
+        target: buildTarget(),
+        report: runReport,
+        serverKeyPin,
+        handoff: handoffPlan,
+        imports: importSummaries,
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [runReport, serverKeyPin, handoffPlan, importSummaries, host, port, platformHint, dataSourceLabel],
+  );
+  const validationPackMd = useMemo(
+    () => toValidationPackMarkdown(validationPack),
+    [validationPack],
+  );
+
+  const handleCopyValidationPack = async (): Promise<void> => {
+    if (validationPackMd.length === 0) return;
+    try {
+      await clipboard.writeText(validationPackMd);
+      setValidationPackCopied(true);
+    } catch {
+      setValidationPackCopied(false);
+    }
+  };
 
   const handleCopyReceipt = async (
     format: "markdown" | "json",
@@ -702,6 +734,82 @@ export function DiscoveryMode({
               <p>Run failed: {runFailureMessage}</p>
             </section>
           )}
+
+          <section
+            className="dx-validation-pack"
+            data-testid="discovery-validation-pack"
+            aria-label="Field validation pack"
+          >
+            <h3>Field Validation Pack</h3>
+            <dl className="dx-vpack-grid">
+              <dt>Target</dt>
+              <dd data-testid="discovery-vpack-target">{validationPack.target_identity}</dd>
+              <dt>Platform</dt>
+              <dd data-testid="discovery-vpack-platform">{validationPack.platform_hint}</dd>
+              <dt>Run outcome</dt>
+              <dd data-testid="discovery-vpack-outcome">
+                <code>{validationPack.run_outcome ?? "no run"}</code>
+              </dd>
+              <dt>Server key</dt>
+              <dd data-testid="discovery-vpack-key">
+                {validationPack.server_key_observed ? (
+                  <>
+                    <code>{validationPack.server_key_algorithm}</code>{" "}
+                    <code>{validationPack.server_key_fingerprint}</code>
+                  </>
+                ) : (
+                  "not observed"
+                )}
+              </dd>
+              {validationPack.server_key_observed && (
+                <>
+                  <dt>Pin status</dt>
+                  <dd data-testid="discovery-vpack-pin-status">
+                    <code>{validationPack.server_key_pin_status}</code>
+                  </dd>
+                </>
+              )}
+              <dt>Importable candidates</dt>
+              <dd data-testid="discovery-vpack-importable">
+                {validationPack.importable_candidate_count}
+              </dd>
+              <dt>Imports</dt>
+              <dd data-testid="discovery-vpack-imports">
+                {validationPack.import_success_count} done ·{" "}
+                {validationPack.import_failure_count} failed
+              </dd>
+            </dl>
+
+            <div
+              className="dx-vpack-next-action"
+              data-testid="discovery-vpack-next-action"
+            >
+              <strong>Next: </strong>
+              <code>{validationPack.next_action}</code>
+              {" — "}
+              {validationPack.next_action_detail}
+            </div>
+
+            <div className="dx-actions">
+              <button
+                type="button"
+                onClick={() => void handleCopyValidationPack()}
+                data-testid="discovery-vpack-copy-btn"
+              >
+                {validationPackCopied ? "Copied (Markdown)" : "Copy Validation Pack"}
+              </button>
+            </div>
+
+            <details className="dx-receipt-preview">
+              <summary>Preview (Markdown)</summary>
+              <pre
+                className="dx-receipt-md"
+                data-testid="discovery-vpack-md-preview"
+              >
+                {validationPackMd}
+              </pre>
+            </details>
+          </section>
 
           {runReport && (
             <section className="dx-run-outcome" data-testid="discovery-run-outcome">
