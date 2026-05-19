@@ -32,6 +32,8 @@ import {
   type TopologyReviewModel,
   type TopologyReviewRow,
 } from "./topologyReview";
+import { TopologyGraphPanel } from "./TopologyGraphPanel";
+import type { RenderGraphDataSource } from "./renderGraph";
 import "./TopologyMode.css";
 
 export interface TopologyModeProps {
@@ -1272,6 +1274,25 @@ export function TopologyMode({
                 : false
             }
           />
+
+          {topology.view && (() => {
+            const reviewModel = buildTopologyReviewModel(topology.view);
+            // Determine data source honestly from topology state
+            const dataSource: RenderGraphDataSource =
+              topology.sourceState === "real"
+                ? "imported"
+                : topology.sourceState === "empty"
+                  ? "unknown"
+                  : topology.sourceState === "unavailable"
+                    ? "unknown"
+                    : "demo";
+            return (
+              <TopologyGraphPanel
+                view={reviewModel.graph_ready}
+                data_source={dataSource}
+              />
+            );
+          })()}
 
           {topology.view && (
             <AdjacencyReadinessSection
