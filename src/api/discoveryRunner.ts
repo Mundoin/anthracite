@@ -1,15 +1,17 @@
 /**
- * Discovery Runner API — Tauri command wrappers (V1AX).
+ * Discovery Runner API — Tauri command wrappers (V1AX + V1AZ).
  *
  * Keep names aligned with `src-tauri/src/commands/discovery_runner.rs`.
  */
 
 import { invoke } from "@tauri-apps/api/core";
 import type {
+  DiscoveryCredentials,
   DiscoveryRunPlan,
   DiscoveryRunReport,
   DiscoveryTarget,
   DiscoveryTargetValidation,
+  SshExecutionLimits,
 } from "../types/discoveryRunner";
 
 /**
@@ -45,5 +47,19 @@ export async function attemptDiscoveryRun(
   return invoke<DiscoveryRunReport>(
     "attempt_discovery_run",
     { target },
+  );
+}
+
+/**
+ * V1AZ — execute a discovery run with credentials and optional limits.
+ */
+export async function executeDiscoveryRun(
+  target: DiscoveryTarget,
+  credentials: DiscoveryCredentials,
+  limits?: SshExecutionLimits,
+): Promise<DiscoveryRunReport> {
+  return invoke<DiscoveryRunReport>(
+    "execute_discovery_run",
+    { target, credentials, limits: limits ?? null },
   );
 }

@@ -12,6 +12,7 @@ pub mod environment;
 pub mod live_collection;
 pub mod parser;
 pub mod receipt;
+pub mod ssh_execute;
 pub mod topology;
 pub mod validator;
 pub mod vendor_registry;

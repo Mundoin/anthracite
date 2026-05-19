@@ -84,6 +84,7 @@ pub fn run() {
             commands::discovery_runner::validate_discovery_target,
             commands::discovery_runner::plan_discovery_run,
             commands::discovery_runner::attempt_discovery_run,
+            commands::ssh_execute::execute_discovery_run,
         ])
         .run(tauri::generate_context!())
         .expect("error while running anthracite tauri application");

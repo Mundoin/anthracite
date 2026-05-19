@@ -26,6 +26,16 @@ serde_json = "1"
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
 tar = { version = "0.4", default-features = false }
 flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] }
+# V1AZ SSH Transport v1: pure-Rust async SSH client + async runtime.
+# - russh / russh-keys: pure-Rust SSH client and key-PEM parser.
+# - tokio: async runtime (Tauri 2 also uses tokio internally; pinned features only).
+# - async-trait: lets the SshTransport boundary be a trait object for tests.
+# Boundary contract kept narrow — russh types never appear in any public
+# DiscoveryTarget / DiscoveryRunOutcome / frontend type.
+async-trait = "0.1"
+russh = "0.45"
+russh-keys = "0.45"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "io-util", "sync", "net"] }
 
 [dev-dependencies]
 tempfile = "3"

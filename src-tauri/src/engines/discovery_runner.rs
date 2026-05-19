@@ -20,6 +20,10 @@ use crate::engines::live_collection_plan::{
     plan_live_topology_collection,
 };
 use crate::engines::topology_evidence_store::TopologyEvidenceImportMode;
+use crate::engines::ssh_transport::{
+    SshTransport, DiscoveryCredentials, SshExecutionLimits,
+    SshExecutionOutcome,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -63,8 +67,13 @@ pub struct DiscoveryRunPlan {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum DiscoveryRunOutcome {
-    TransportDeferred { reason: String },          // present implementation always returns this
+    TransportDeferred { reason: String },          // planner-only path (V1AX); transport not attempted
     Refused { reason: String },                    // contract violation (write cmd, invalid target, plan unsafe)
+    Captured { command_results: Vec<crate::engines::ssh_transport::CommandExecutionResult> }, // SSH execution succeeded
+    AuthFailed { reason_redacted: String },        // authentication failed
+    ConnectionFailed { reason_redacted: String },  // connection failed
+    Timeout { stage: String },                     // timeout during connect or command
+    CommandFailed { partial_results: Vec<crate::engines::ssh_transport::CommandExecutionResult>, reason_redacted: String }, // command execution failed
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -167,6 +176,99 @@ pub fn attempt_discovery(target: &DiscoveryTarget) -> DiscoveryRunReport {
         outcome: DiscoveryRunOutcome::TransportDeferred {
             reason: "ssh transport not yet implemented; V1AX is planner + boundary only".to_string(),
         },
+    }
+}
+
+/// Executes a discovery run with SSH transport. Validates target, plans, and executes.
+/// Returns a report with the outcome (success, auth failed, connection failed, etc.).
+/// Credentials are dropped immediately after use and never persisted.
+pub async fn execute_discovery(
+    target: &DiscoveryTarget,
+    credentials: DiscoveryCredentials,
+    transport: &dyn SshTransport,
+    limits: Option<SshExecutionLimits>,
+) -> DiscoveryRunReport {
+    // Validate target.
+    let validation = validate_target(target);
+    if !validation.is_valid {
+        let reason = format!(
+            "invalid target: {:?}",
+            validation.issues
+        );
+        return DiscoveryRunReport {
+            target_label: target.data_source_label.clone(),
+            platform_hint: target.platform_hint,
+            planned_command_count: 0,
+            outcome: DiscoveryRunOutcome::Refused { reason },
+        };
+    }
+
+    // Plan the discovery.
+    let plan = plan_discovery(target);
+    if !plan.all_commands_read_only {
+        return DiscoveryRunReport {
+            target_label: target.data_source_label.clone(),
+            platform_hint: target.platform_hint,
+            planned_command_count: plan.dry_run.commands.len() as u32,
+            outcome: DiscoveryRunOutcome::Refused {
+                reason: "plan contains a non-read-only command".to_string(),
+            },
+        };
+    }
+
+    // Extract commands from the plan.
+    let commands: Vec<String> = plan.dry_run.commands.iter().map(|c| c.command.clone()).collect();
+
+    if commands.is_empty() {
+        return DiscoveryRunReport {
+            target_label: target.data_source_label.clone(),
+            platform_hint: target.platform_hint,
+            planned_command_count: 0,
+            outcome: DiscoveryRunOutcome::Refused {
+                reason: "plan contains no commands".to_string(),
+            },
+        };
+    }
+
+    // Execute via SSH transport with credentials.
+    // Credentials are borrowed here; dropped at end of this function.
+    let execution_limits = limits.unwrap_or_default();
+    let outcome = transport.execute_read_only(
+        &target.host,
+        target.port,
+        &target.username,
+        &credentials,
+        &commands,
+        execution_limits,
+    ).await;
+
+    // Map the SSH execution outcome to a DiscoveryRunOutcome.
+    let discovery_outcome = match outcome {
+        SshExecutionOutcome::Success { command_results } => {
+            DiscoveryRunOutcome::Captured { command_results }
+        }
+        SshExecutionOutcome::AuthFailed { reason_redacted } => {
+            DiscoveryRunOutcome::AuthFailed { reason_redacted }
+        }
+        SshExecutionOutcome::ConnectionFailed { reason_redacted } => {
+            DiscoveryRunOutcome::ConnectionFailed { reason_redacted }
+        }
+        SshExecutionOutcome::Timeout { stage } => {
+            DiscoveryRunOutcome::Timeout { stage }
+        }
+        SshExecutionOutcome::CommandFailed { partial_results, reason_redacted } => {
+            DiscoveryRunOutcome::CommandFailed { partial_results, reason_redacted }
+        }
+        SshExecutionOutcome::Refused { reason } => {
+            DiscoveryRunOutcome::Refused { reason }
+        }
+    };
+
+    DiscoveryRunReport {
+        target_label: target.data_source_label.clone(),
+        platform_hint: target.platform_hint,
+        planned_command_count: plan.dry_run.commands.len() as u32,
+        outcome: discovery_outcome,
     }
 }
 

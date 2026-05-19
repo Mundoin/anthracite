@@ -1,23 +1,31 @@
 /**
- * Discovery Mode — target validation, planning, and run attempt (V1AX).
+ * Discovery Mode — target validation, planning, deferred attempt, and
+ * real read-only SSH execution.
  *
- * Surfaces a form-driven surface for SSH discovery planning.
- * Honest about transport constraints: deferred or refused outcomes only.
+ * V1AX shipped the Validate -> Plan -> Attempt (transport-deferred) flow.
+ * V1AZ adds a session-only credential form and a real SSH execution path
+ * via `executeDiscoveryRun`. Credentials live in component state only,
+ * are scrubbed after every attempt, and are cleared on unmount.
  *
- * Doctrine: `docs/architecture/DISCOVERY_ENGINE_BOUNDARY.md` V1AX.
+ * Doctrine:
+ *   - docs/architecture/DISCOVERY_FOUNDATION_V1.md (V1AX)
+ *   - docs/architecture/SSH_TRANSPORT_V1_CONTRACT.md (V1AZ)
  */
 
 import type { JSX } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   DiscoveryRunPlan,
   DiscoveryRunReport,
   DiscoveryTarget,
   DiscoveryTargetValidation,
+  DiscoveryCredentials,
+  CommandExecutionResult,
 } from "../../types/discoveryRunner";
 import type { LiveCollectionPlatform } from "../../types/liveCollection";
 import {
   attemptDiscoveryRun,
+  executeDiscoveryRun,
   planDiscoveryRun,
   validateDiscoveryTarget,
 } from "../../api/discoveryRunner";
@@ -32,6 +40,10 @@ export interface DiscoveryApi {
   ) => Promise<DiscoveryRunPlan>;
   readonly attemptDiscoveryRun: (
     target: DiscoveryTarget,
+  ) => Promise<DiscoveryRunReport>;
+  readonly executeDiscoveryRun: (
+    target: DiscoveryTarget,
+    credentials: DiscoveryCredentials,
   ) => Promise<DiscoveryRunReport>;
 }
 
@@ -55,34 +67,52 @@ const DEFAULT_API: DiscoveryApi = {
   validateDiscoveryTarget,
   planDiscoveryRun,
   attemptDiscoveryRun,
+  executeDiscoveryRun,
 };
 
 type PlanStatus = "idle" | "planning" | "ready" | "failed";
-type RunStatus = "idle" | "attempting" | "done" | "failed";
+type RunStatus = "idle" | "attempting" | "executing" | "done" | "failed";
+type CredentialMode = "password" | "private_key";
 
 export function DiscoveryMode({
   api = DEFAULT_API,
 }: DiscoveryModeProps): JSX.Element {
-  // Form state
+  // Target form
   const [host, setHost] = useState("");
   const [port, setPort] = useState("22");
   const [username, setUsername] = useState("");
   const [platformHint, setPlatformHint] = useState<LiveCollectionPlatform>("iosxe");
   const [dataSourceLabel, setDataSourceLabel] = useState("");
 
-  // Validation state
+  // Validation / plan / run state
   const [validationResult, setValidationResult] =
     useState<DiscoveryTargetValidation | null>(null);
-
-  // Planning state
   const [plan, setPlan] = useState<DiscoveryRunPlan | null>(null);
   const [planStatus, setPlanStatus] = useState<PlanStatus>("idle");
   const [planFailureMessage, setPlanFailureMessage] = useState("");
-
-  // Run state
   const [runReport, setRunReport] = useState<DiscoveryRunReport | null>(null);
   const [runStatus, setRunStatus] = useState<RunStatus>("idle");
   const [runFailureMessage, setRunFailureMessage] = useState("");
+
+  // Session-only credential state.
+  // INVARIANTS:
+  //  - Never persisted anywhere.
+  //  - Cleared immediately after every SSH attempt (success or failure).
+  //  - Cleared on unmount.
+  //  - Never rendered into JSX or attributes.
+  const [credentialMode, setCredentialMode] = useState<CredentialMode>("password");
+  const [password, setPassword] = useState("");
+  const [privateKeyPem, setPrivateKeyPem] = useState("");
+  const [passphrase, setPassphrase] = useState("");
+
+  useEffect(() => {
+    return () => {
+      // Defense in depth: scrub on unmount.
+      setPassword("");
+      setPrivateKeyPem("");
+      setPassphrase("");
+    };
+  }, []);
 
   const buildTarget = (): DiscoveryTarget => ({
     host,
@@ -93,54 +123,91 @@ export function DiscoveryMode({
     data_source_label: dataSourceLabel,
   });
 
-  const handleValidate = async () => {
+  const buildCredentials = (): DiscoveryCredentials | null => {
+    if (credentialMode === "password") {
+      if (password.length === 0) return null;
+      return { auth: { kind: "password", password } };
+    }
+    if (privateKeyPem.length === 0) return null;
+    return {
+      auth: {
+        kind: "private_key",
+        private_key_pem: privateKeyPem,
+        passphrase: passphrase.length === 0 ? null : passphrase,
+      },
+    };
+  };
+
+  const scrubCredentials = (): void => {
+    setPassword("");
+    setPrivateKeyPem("");
+    setPassphrase("");
+  };
+
+  const handleValidate = async (): Promise<void> => {
     const target = buildTarget();
     const result = await api.validateDiscoveryTarget(target);
     setValidationResult(result);
   };
 
-  const handlePlan = async () => {
-    if (!validationResult?.is_valid) {
-      return;
-    }
+  const handlePlan = async (): Promise<void> => {
+    if (!validationResult?.is_valid) return;
     setPlanStatus("planning");
     setPlanFailureMessage("");
     setPlan(null);
     try {
-      const target = buildTarget();
-      const result = await api.planDiscoveryRun(target);
+      const result = await api.planDiscoveryRun(buildTarget());
       setPlan(result);
       setPlanStatus("ready");
     } catch (err: unknown) {
-      setPlanFailureMessage(
-        err instanceof Error ? err.message : "Plan failed",
-      );
+      setPlanFailureMessage(err instanceof Error ? err.message : "Plan failed");
       setPlanStatus("failed");
     }
   };
 
-  const handleAttemptRun = async () => {
-    if (!plan || !plan.all_commands_read_only) {
-      return;
-    }
+  const handleAttemptRun = async (): Promise<void> => {
+    if (!plan || !plan.all_commands_read_only) return;
     setRunStatus("attempting");
     setRunFailureMessage("");
     setRunReport(null);
     try {
-      const target = buildTarget();
-      const result = await api.attemptDiscoveryRun(target);
+      const result = await api.attemptDiscoveryRun(buildTarget());
       setRunReport(result);
       setRunStatus("done");
     } catch (err: unknown) {
-      setRunFailureMessage(
-        err instanceof Error ? err.message : "Run failed",
-      );
+      setRunFailureMessage(err instanceof Error ? err.message : "Run failed");
       setRunStatus("failed");
+    }
+  };
+
+  const handleSshRun = async (): Promise<void> => {
+    if (!plan || !plan.all_commands_read_only) return;
+    const credentials = buildCredentials();
+    if (credentials === null) return;
+    setRunStatus("executing");
+    setRunFailureMessage("");
+    setRunReport(null);
+    try {
+      const result = await api.executeDiscoveryRun(buildTarget(), credentials);
+      setRunReport(result);
+      setRunStatus("done");
+    } catch (err: unknown) {
+      setRunFailureMessage(err instanceof Error ? err.message : "SSH run failed");
+      setRunStatus("failed");
+    } finally {
+      // Hard invariant: credentials are scrubbed regardless of outcome.
+      scrubCredentials();
     }
   };
 
   const isValidationValid = validationResult?.is_valid ?? false;
   const isEmpty = !host && !username && !dataSourceLabel;
+  const canSshRun =
+    !!plan &&
+    plan.all_commands_read_only &&
+    runStatus !== "executing" &&
+    ((credentialMode === "password" && password.length > 0) ||
+      (credentialMode === "private_key" && privateKeyPem.length > 0));
 
   return (
     <div className="discovery-mode">
@@ -151,7 +218,7 @@ export function DiscoveryMode({
         </p>
       </header>
 
-      {isEmpty ? (
+      {isEmpty && (
         <section
           className="dx-body dx-body--empty"
           role="status"
@@ -162,9 +229,9 @@ export function DiscoveryMode({
             Define a target, validate, plan, then attempt a read-only discovery run.
           </p>
         </section>
-      ) : (
+      )}
         <section className="dx-body" data-testid="dx-form">
-          <div className="dx-form" data-testid="dx-form">
+          <div className="dx-form">
             <div className="form-group">
               <label htmlFor="dx-host">Host</label>
               <input
@@ -204,7 +271,9 @@ export function DiscoveryMode({
               <select
                 id="dx-platform"
                 value={platformHint}
-                onChange={(e) => setPlatformHint(e.currentTarget.value as LiveCollectionPlatform)}
+                onChange={(e) =>
+                  setPlatformHint(e.currentTarget.value as LiveCollectionPlatform)
+                }
               >
                 {PLATFORMS.map((p) => (
                   <option key={p} value={p}>
@@ -216,13 +285,7 @@ export function DiscoveryMode({
 
             <div className="form-group">
               <label htmlFor="dx-transport">Transport</label>
-              <input
-                id="dx-transport"
-                type="text"
-                value="SSH"
-                disabled
-                readOnly
-              />
+              <input id="dx-transport" type="text" value="SSH" disabled readOnly />
             </div>
 
             <div className="form-group">
@@ -252,10 +315,7 @@ export function DiscoveryMode({
               {validationResult.is_valid ? (
                 <div className="dx-badge dx-badge--valid">Valid</div>
               ) : (
-                <div
-                  className="dx-issues"
-                  data-testid="discovery-issues"
-                >
+                <div className="dx-issues" data-testid="discovery-issues">
                   <h3>Issues:</h3>
                   <ul>
                     {validationResult.issues.map((issue) => (
@@ -287,10 +347,7 @@ export function DiscoveryMode({
           )}
 
           {plan && (
-            <section
-              className="dx-plan-summary"
-              data-testid="discovery-plan-summary"
-            >
+            <section className="dx-plan-summary" data-testid="discovery-plan-summary">
               <h3>Plan Summary</h3>
               <div
                 className={
@@ -309,12 +366,97 @@ export function DiscoveryMode({
               <button
                 type="button"
                 onClick={handleAttemptRun}
-                disabled={runStatus === "attempting"}
+                disabled={runStatus === "attempting" || runStatus === "executing"}
                 data-testid="discovery-attempt-btn"
               >
                 {runStatus === "attempting" ? "Running..." : "Attempt Run"}
               </button>
             </div>
+          )}
+
+          {plan && plan.all_commands_read_only && (
+            <section className="dx-credentials" data-testid="discovery-credentials">
+              <h3>Credentials (session only)</h3>
+              <p className="dx-credentials-note">
+                Held in memory only for this run. Never saved, never logged.
+              </p>
+              <div className="dx-credential-tabs">
+                <button
+                  type="button"
+                  className={
+                    credentialMode === "password"
+                      ? "dx-tab dx-tab--active"
+                      : "dx-tab"
+                  }
+                  onClick={() => setCredentialMode("password")}
+                  data-testid="discovery-credential-mode-password"
+                >
+                  Password
+                </button>
+                <button
+                  type="button"
+                  className={
+                    credentialMode === "private_key"
+                      ? "dx-tab dx-tab--active"
+                      : "dx-tab"
+                  }
+                  onClick={() => setCredentialMode("private_key")}
+                  data-testid="discovery-credential-mode-key"
+                >
+                  Private key
+                </button>
+              </div>
+
+              {credentialMode === "password" ? (
+                <div className="form-group">
+                  <label htmlFor="dx-password">Password</label>
+                  <input
+                    id="dx-password"
+                    type="password"
+                    autoComplete="off"
+                    value={password}
+                    onChange={(e) => setPassword(e.currentTarget.value)}
+                    data-testid="discovery-credential-password"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="form-group">
+                    <label htmlFor="dx-key">Private key (PEM)</label>
+                    <textarea
+                      id="dx-key"
+                      rows={6}
+                      value={privateKeyPem}
+                      onChange={(e) => setPrivateKeyPem(e.currentTarget.value)}
+                      placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
+                      data-testid="discovery-credential-key"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="dx-passphrase">Passphrase (optional)</label>
+                    <input
+                      id="dx-passphrase"
+                      type="password"
+                      autoComplete="off"
+                      value={passphrase}
+                      onChange={(e) => setPassphrase(e.currentTarget.value)}
+                      data-testid="discovery-credential-passphrase"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="dx-actions">
+                <button
+                  type="button"
+                  onClick={handleSshRun}
+                  disabled={!canSshRun}
+                  data-testid="discovery-ssh-run-btn"
+                >
+                  {runStatus === "executing" ? "Running SSH..." : "Run via SSH"}
+                </button>
+              </div>
+            </section>
           )}
 
           {runStatus === "failed" && (
@@ -324,30 +466,129 @@ export function DiscoveryMode({
           )}
 
           {runReport && (
-            <section
-              className="dx-run-outcome"
-              data-testid="discovery-run-outcome"
-            >
+            <section className="dx-run-outcome" data-testid="discovery-run-outcome">
               <h3>Run Outcome</h3>
               <p>Target: {runReport.target_label}</p>
               <p>Platform: {runReport.platform_hint}</p>
               <p>Planned command count: {runReport.planned_command_count}</p>
+
               {runReport.outcome.kind === "transport_deferred" && (
                 <div className="dx-deferred" data-testid="discovery-deferred">
                   <p className="dx-badge dx-badge--deferred">Transport Deferred</p>
                   <p className="dx-reason">{runReport.outcome.reason}</p>
                 </div>
               )}
+
               {runReport.outcome.kind === "refused" && (
                 <div className="dx-refused" data-testid="discovery-refused">
                   <p className="dx-badge dx-badge--refused">Refused</p>
                   <p className="dx-reason">{runReport.outcome.reason}</p>
                 </div>
               )}
+
+              {runReport.outcome.kind === "captured" && (
+                <div className="dx-captured" data-testid="discovery-ssh-captured">
+                  <p className="dx-badge dx-badge--captured">
+                    Captured (live_ssh_captured)
+                  </p>
+                  <p className="dx-handoff" data-testid="discovery-ssh-handoff">
+                    Next: import via Topology Evidence Import to attach this
+                    raw output to the managed evidence store.
+                  </p>
+                  <ol className="dx-results">
+                    {runReport.outcome.command_results.map(
+                      (cr: CommandExecutionResult, i: number) => (
+                        <li
+                          key={`${i}:${cr.command}`}
+                          className="dx-result"
+                          data-testid={`discovery-ssh-result-${i}`}
+                        >
+                          <div className="dx-result-head">
+                            <code>{cr.command}</code>
+                            <span className="dx-result-exit">
+                              exit={cr.exit_code ?? "?"}
+                            </span>
+                            <span className="dx-result-dur">
+                              {cr.duration_ms} ms
+                            </span>
+                            {cr.output_truncated && (
+                              <span
+                                className="dx-result-trunc"
+                                data-testid={`discovery-ssh-trunc-${i}`}
+                              >
+                                Output truncated
+                              </span>
+                            )}
+                          </div>
+                          <pre className="dx-stdout">{cr.stdout}</pre>
+                          {cr.stderr.length > 0 && (
+                            <pre className="dx-stderr">{cr.stderr}</pre>
+                          )}
+                        </li>
+                      ),
+                    )}
+                  </ol>
+                </div>
+              )}
+
+              {runReport.outcome.kind === "auth_failed" && (
+                <div
+                  className="dx-auth-failed"
+                  data-testid="discovery-ssh-auth-failed"
+                >
+                  <p className="dx-badge dx-badge--auth-failed">Auth Failed</p>
+                  <p className="dx-reason">{runReport.outcome.reason_redacted}</p>
+                </div>
+              )}
+
+              {runReport.outcome.kind === "connection_failed" && (
+                <div
+                  className="dx-conn-failed"
+                  data-testid="discovery-ssh-conn-failed"
+                >
+                  <p className="dx-badge dx-badge--conn-failed">
+                    Connection Failed
+                  </p>
+                  <p className="dx-reason">{runReport.outcome.reason_redacted}</p>
+                </div>
+              )}
+
+              {runReport.outcome.kind === "timeout" && (
+                <div className="dx-timeout" data-testid="discovery-ssh-timeout">
+                  <p className="dx-badge dx-badge--timeout">Timeout</p>
+                  <p className="dx-reason">stage: {runReport.outcome.stage}</p>
+                </div>
+              )}
+
+              {runReport.outcome.kind === "command_failed" && (
+                <div
+                  className="dx-cmd-failed"
+                  data-testid="discovery-ssh-cmd-failed"
+                >
+                  <p className="dx-badge dx-badge--cmd-failed">Command Failed</p>
+                  <p className="dx-reason">{runReport.outcome.reason_redacted}</p>
+                  <ol className="dx-results">
+                    {runReport.outcome.partial_results.map(
+                      (cr: CommandExecutionResult, i: number) => (
+                        <li
+                          key={`${i}:${cr.command}`}
+                          className="dx-result"
+                          data-testid={`discovery-ssh-partial-${i}`}
+                        >
+                          <code>{cr.command}</code>
+                          <pre className="dx-stdout">{cr.stdout}</pre>
+                          {cr.stderr.length > 0 && (
+                            <pre className="dx-stderr">{cr.stderr}</pre>
+                          )}
+                        </li>
+                      ),
+                    )}
+                  </ol>
+                </div>
+              )}
             </section>
           )}
         </section>
-      )}
     </div>
   );
 }
