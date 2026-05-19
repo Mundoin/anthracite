@@ -16,6 +16,7 @@ pub mod engines;
 
 use engines::discovery::{DiscoveryEngine, JsonDiscoveryFileStore};
 use engines::environment::{EnvironmentEngine, JsonFileStore};
+use engines::server_key_store::ServerKeyStore;
 use engines::topology::TopologyEngine;
 use engines::topology_evidence_store::{TopologyEvidenceStore, JsonFileTopologyEvidenceStore};
 
@@ -55,6 +56,7 @@ pub fn run() {
             let evidence_store: Box<dyn TopologyEvidenceStore> =
                 Box::new(JsonFileTopologyEvidenceStore::new(data_dir.clone()));
             app.manage(evidence_store);
+            app.manage(ServerKeyStore::new(data_dir.join("server_keys.json")));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -85,6 +87,8 @@ pub fn run() {
             commands::discovery_runner::plan_discovery_run,
             commands::discovery_runner::attempt_discovery_run,
             commands::ssh_execute::execute_discovery_run,
+            commands::server_key::get_server_key_pin,
+            commands::server_key::pin_server_key,
         ])
         .run(tauri::generate_context!())
         .expect("error while running anthracite tauri application");

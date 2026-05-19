@@ -14,6 +14,7 @@ import type {
   DiscoveryRunReport,
   DiscoveryTarget,
   ServerKeyObservation,
+  ServerKeyPin,
 } from "../../../types/discoveryRunner";
 import type { RawNeighborEvidenceImportResult } from "../../../types/topology";
 
@@ -422,6 +423,25 @@ describe("server_key_trust (V1BC)", () => {
     ).toBeLessThanOrEqual(1);
   });
 
+  it("no pin → pin_status is unpinned", () => {
+    const r = report(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "data")] },
+      OBSERVED_KEY,
+    );
+    const receipt = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+      server_key_pin: null,
+    });
+    if (receipt.server_key_trust.observed) {
+      expect(receipt.server_key_trust.pin_status).toBe("unpinned");
+    }
+  });
+
   it("is deterministic with identical server_key + pinned timestamp", () => {
     const r = report(
       { kind: "captured", command_results: [cr("show lldp neighbors detail", "abc")] },
@@ -445,5 +465,91 @@ describe("server_key_trust (V1BC)", () => {
     });
     expect(toReceiptJSON(a)).toBe(toReceiptJSON(b));
     expect(toReceiptMarkdown(a)).toBe(toReceiptMarkdown(b));
+  });
+});
+
+const MATCHING_PIN: ServerKeyPin = {
+  algorithm: "ssh-ed25519",
+  fingerprint_sha256: "SHA256:test-fingerprint-base64nopad",
+  first_seen_at: "2026-05-19T00:00:00.000Z",
+  last_seen_at: "2026-05-19T00:00:00.000Z",
+};
+
+const DIFFERENT_PIN: ServerKeyPin = {
+  algorithm: "ssh-ed25519",
+  fingerprint_sha256: "SHA256:different-fingerprint",
+  first_seen_at: "2026-05-18T00:00:00.000Z",
+  last_seen_at: "2026-05-18T00:00:00.000Z",
+};
+
+describe("server_key pin_status (V1BD)", () => {
+  function build(pin: ServerKeyPin | null) {
+    const r = report(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "data")] },
+      OBSERVED_KEY,
+    );
+    return buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+      server_key_pin: pin,
+    });
+  }
+
+  it("null pin → unpinned", () => {
+    const receipt = build(null);
+    if (receipt.server_key_trust.observed) {
+      expect(receipt.server_key_trust.pin_status).toBe("unpinned");
+    }
+  });
+
+  it("matching pin → matched", () => {
+    const receipt = build(MATCHING_PIN);
+    if (receipt.server_key_trust.observed) {
+      expect(receipt.server_key_trust.pin_status).toBe("matched");
+    }
+  });
+
+  it("different fingerprint → changed", () => {
+    const receipt = build(DIFFERENT_PIN);
+    if (receipt.server_key_trust.observed) {
+      expect(receipt.server_key_trust.pin_status).toBe("changed");
+    }
+  });
+
+  it("different algorithm → changed", () => {
+    const altAlgPin: ServerKeyPin = {
+      ...MATCHING_PIN,
+      algorithm: "ssh-rsa",
+    };
+    const receipt = build(altAlgPin);
+    if (receipt.server_key_trust.observed) {
+      expect(receipt.server_key_trust.pin_status).toBe("changed");
+    }
+  });
+
+  it("pin_status appears in Markdown", () => {
+    const md = toReceiptMarkdown(build(MATCHING_PIN));
+    expect(md).toContain("Pin status");
+    expect(md).toContain("matched");
+  });
+
+  it("unobserved key has no pin_status field", () => {
+    const r = report({ kind: "connection_failed", reason_redacted: "refused" }, null);
+    const receipt = buildFieldReceipt({
+      target: TARGET,
+      approved_commands: APPROVED,
+      report: r,
+      handoff: buildEvidenceHandoff(TARGET, r),
+      imports: [],
+      generated_at: PINNED_TS,
+      server_key_pin: MATCHING_PIN,
+    });
+    expect(receipt.server_key_trust.observed).toBe(false);
+    // Confirm no pin_status property bleeds through on the unobserved branch.
+    expect("pin_status" in receipt.server_key_trust).toBe(false);
   });
 });

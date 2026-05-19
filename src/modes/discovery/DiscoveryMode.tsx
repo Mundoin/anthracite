@@ -21,6 +21,8 @@ import type {
   DiscoveryTargetValidation,
   DiscoveryCredentials,
   CommandExecutionResult,
+  ServerKeyPin,
+  ServerKeyPinStatus,
 } from "../../types/discoveryRunner";
 import type { LiveCollectionPlatform } from "../../types/liveCollection";
 import type {
@@ -33,6 +35,7 @@ import {
   planDiscoveryRun,
   validateDiscoveryTarget,
 } from "../../api/discoveryRunner";
+import { getServerKeyPin, pinServerKey } from "../../api/serverKey";
 import { importTopologyNeighborOutput } from "../../api/topology";
 import {
   buildEvidenceHandoff,
@@ -87,6 +90,14 @@ export interface DiscoveryApi {
   readonly importTopologyNeighborOutput: (
     request: RawNeighborEvidenceImportRequest,
   ) => Promise<RawNeighborEvidenceImportResult>;
+  readonly getServerKeyPin: (host: string, port: number) => Promise<ServerKeyPin | null>;
+  readonly pinServerKey: (
+    host: string,
+    port: number,
+    algorithm: string,
+    fingerprint_sha256: string,
+    pinned_at: string,
+  ) => Promise<ServerKeyPin>;
 }
 
 export interface DiscoveryModeProps {
@@ -115,6 +126,8 @@ const DEFAULT_API: DiscoveryApi = {
   attemptDiscoveryRun,
   executeDiscoveryRun,
   importTopologyNeighborOutput,
+  getServerKeyPin,
+  pinServerKey,
 };
 
 type ImportStatus =
@@ -175,6 +188,12 @@ export function DiscoveryMode({
     ReadonlyArray<FieldReceiptImportSummary>
   >([]);
   const [receiptCopied, setReceiptCopied] = useState<"none" | "markdown" | "json">("none");
+
+  // V1BD — server-key pin state.
+  // Loaded after each run; cleared when host/port changes.
+  const [serverKeyPin, setServerKeyPin] = useState<ServerKeyPin | null>(null);
+  const [pinning, setPinning] = useState(false);
+  const [pinError, setPinError] = useState("");
 
   useEffect(() => {
     return () => {
@@ -261,6 +280,7 @@ export function DiscoveryMode({
       handoff: handoffPlan,
       imports: importSummaries,
       generated_at: clock.now(),
+      server_key_pin: serverKeyPin,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -268,6 +288,7 @@ export function DiscoveryMode({
     handoffPlan,
     importSummaries,
     approvedCommands,
+    serverKeyPin,
     host,
     port,
     username,
@@ -347,10 +368,19 @@ export function DiscoveryMode({
     setRunStatus("attempting");
     setRunFailureMessage("");
     setRunReport(null);
+    setServerKeyPin(null);
+    setPinError("");
     try {
-      const result = await api.attemptDiscoveryRun(buildTarget());
+      const target = buildTarget();
+      const result = await api.attemptDiscoveryRun(target);
       setRunReport(result);
       setRunStatus("done");
+      try {
+        const pin = await api.getServerKeyPin(target.host, target.port);
+        setServerKeyPin(pin);
+      } catch {
+        // Pin fetch is best-effort; UI degrades to "unavailable".
+      }
     } catch (err: unknown) {
       setRunFailureMessage(err instanceof Error ? err.message : "Run failed");
       setRunStatus("failed");
@@ -364,16 +394,47 @@ export function DiscoveryMode({
     setRunStatus("executing");
     setRunFailureMessage("");
     setRunReport(null);
+    setServerKeyPin(null);
+    setPinError("");
     try {
-      const result = await api.executeDiscoveryRun(buildTarget(), credentials);
+      const target = buildTarget();
+      const result = await api.executeDiscoveryRun(target, credentials);
       setRunReport(result);
       setRunStatus("done");
+      try {
+        const pin = await api.getServerKeyPin(target.host, target.port);
+        setServerKeyPin(pin);
+      } catch {
+        // Pin fetch is best-effort; UI degrades to "unavailable".
+      }
     } catch (err: unknown) {
       setRunFailureMessage(err instanceof Error ? err.message : "SSH run failed");
       setRunStatus("failed");
     } finally {
       // Hard invariant: credentials are scrubbed regardless of outcome.
       scrubCredentials();
+    }
+  };
+
+  const handlePinKey = async (): Promise<void> => {
+    const sk = runReport?.server_key;
+    if (!sk) return;
+    setPinning(true);
+    setPinError("");
+    try {
+      const target = buildTarget();
+      const pin = await api.pinServerKey(
+        target.host,
+        target.port,
+        sk.algorithm,
+        sk.fingerprint_sha256,
+        clock.now(),
+      );
+      setServerKeyPin(pin);
+    } catch (err: unknown) {
+      setPinError(err instanceof Error ? err.message : "Pin failed");
+    } finally {
+      setPinning(false);
     }
   };
 
@@ -946,15 +1007,59 @@ export function DiscoveryMode({
                       <dd data-testid="discovery-server-key-trust-mode">
                         <code>{runReport.server_key.trust_mode}</code>
                       </dd>
+                      <dt>Pin status</dt>
+                      <dd data-testid="discovery-server-key-pin-status">
+                        <code>
+                          {((): ServerKeyPinStatus => {
+                            if (!serverKeyPin) return "unpinned";
+                            if (
+                              serverKeyPin.fingerprint_sha256 ===
+                                runReport.server_key!.fingerprint_sha256 &&
+                              serverKeyPin.algorithm ===
+                                runReport.server_key!.algorithm
+                            )
+                              return "matched";
+                            return "changed";
+                          })()}
+                        </code>
+                      </dd>
                     </dl>
+                    {serverKeyPin &&
+                      serverKeyPin.fingerprint_sha256 !==
+                        runReport.server_key.fingerprint_sha256 && (
+                        <p
+                          className="dx-server-key-warn"
+                          data-testid="discovery-server-key-changed-warning"
+                        >
+                          WARNING: fingerprint differs from stored pin.
+                          Investigate before trusting this host.
+                        </p>
+                      )}
                     <p
                       className="dx-server-key-note"
                       data-testid="discovery-server-key-note"
                     >
                       TOFU session only — fingerprint observed for this
-                      attempt and not persisted. Pinning / known_hosts
-                      arrives in a later stage.
+                      attempt and not persisted to known_hosts.
                     </p>
+                    <div className="dx-actions">
+                      <button
+                        type="button"
+                        onClick={() => void handlePinKey()}
+                        disabled={pinning}
+                        data-testid="discovery-server-key-pin-button"
+                      >
+                        {pinning ? "Pinning…" : "Pin this key"}
+                      </button>
+                    </div>
+                    {pinError && (
+                      <p
+                        className="dx-error"
+                        data-testid="discovery-server-key-pin-error"
+                      >
+                        {pinError}
+                      </p>
+                    )}
                   </>
                 ) : (
                   <p

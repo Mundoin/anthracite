@@ -14,6 +14,7 @@ import type {
   DiscoveryTarget,
   DiscoveryTargetValidation,
   ServerKeyObservation,
+  ServerKeyPin,
 } from "../../../types/discoveryRunner";
 import type {
   RawNeighborEvidenceImportRequest,
@@ -90,6 +91,7 @@ function makeApi(
     req: RawNeighborEvidenceImportRequest,
   ) => Promise<RawNeighborEvidenceImportResult>,
   server_key: ServerKeyObservation | null = null,
+  storedPin: ServerKeyPin | null = null,
 ): DiscoveryApi {
   return {
     validateDiscoveryTarget: vi.fn(async () => VALIDATION_OK),
@@ -100,6 +102,13 @@ function makeApi(
     executeDiscoveryRun: vi.fn(async () => makeReport(outcome, server_key)),
     importTopologyNeighborOutput:
       importOverride ?? vi.fn(async () => IMPORT_OK),
+    getServerKeyPin: vi.fn(async () => storedPin),
+    pinServerKey: vi.fn(async (_host, _port, algorithm, fingerprint_sha256, pinned_at) => ({
+      algorithm,
+      fingerprint_sha256,
+      first_seen_at: pinned_at,
+      last_seen_at: pinned_at,
+    })),
   };
 }
 
@@ -443,5 +452,108 @@ describe("DiscoveryMode — V1BC server key trust", () => {
     expect(screen.getByTestId("discovery-server-key-observed")).toBeTruthy();
     // runUntilCaptured types this password into the credential input.
     expect(document.body.innerHTML).not.toContain("secret-DO-NOT-LEAK");
+  });
+});
+
+const STORED_PIN: ServerKeyPin = {
+  algorithm: "ssh-ed25519",
+  fingerprint_sha256: "SHA256:ui-test-fingerprint",
+  first_seen_at: "2026-05-19T00:00:00.000Z",
+  last_seen_at: "2026-05-19T00:00:00.000Z",
+};
+
+describe("DiscoveryMode — V1BD server key pinning", () => {
+  it("no stored pin → pin status shows unpinned", async () => {
+    const api = makeApi(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "data")] },
+      undefined,
+      OBSERVED_KEY,
+      null,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    await waitFor(() => {
+      expect(screen.getByTestId("discovery-server-key-pin-status").textContent).toContain(
+        "unpinned",
+      );
+    });
+  });
+
+  it("stored pin with matching fingerprint → pin status shows matched", async () => {
+    const api = makeApi(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "data")] },
+      undefined,
+      OBSERVED_KEY,
+      STORED_PIN,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    await waitFor(() => {
+      expect(screen.getByTestId("discovery-server-key-pin-status").textContent).toContain(
+        "matched",
+      );
+    });
+  });
+
+  it("stored pin with different fingerprint → pin status shows changed + warning", async () => {
+    const changedPin: ServerKeyPin = {
+      ...STORED_PIN,
+      fingerprint_sha256: "SHA256:old-different-fingerprint",
+    };
+    const api = makeApi(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "data")] },
+      undefined,
+      OBSERVED_KEY,
+      changedPin,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    await waitFor(() => {
+      expect(screen.getByTestId("discovery-server-key-pin-status").textContent).toContain(
+        "changed",
+      );
+      expect(screen.getByTestId("discovery-server-key-changed-warning")).toBeTruthy();
+    });
+  });
+
+  it("Pin this key button is present when server key observed", async () => {
+    const api = makeApi(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "data")] },
+      undefined,
+      OBSERVED_KEY,
+      null,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    expect(screen.getByTestId("discovery-server-key-pin-button")).toBeTruthy();
+  });
+
+  it("clicking Pin this key calls pinServerKey and updates status to matched", async () => {
+    const api = makeApi(
+      { kind: "captured", command_results: [cr("show lldp neighbors detail", "data")] },
+      undefined,
+      OBSERVED_KEY,
+      null,
+    );
+    const clock = makeClock();
+    const clip = makeClipboard();
+    await runUntilCaptured(api, clip, clock);
+    fireEvent.click(screen.getByTestId("discovery-server-key-pin-button"));
+    await waitFor(() => {
+      expect(api.pinServerKey).toHaveBeenCalledWith(
+        VALID_TARGET.host,
+        VALID_TARGET.port,
+        OBSERVED_KEY.algorithm,
+        OBSERVED_KEY.fingerprint_sha256,
+        PINNED_TS,
+      );
+      expect(screen.getByTestId("discovery-server-key-pin-status").textContent).toContain(
+        "matched",
+      );
+    });
   });
 });

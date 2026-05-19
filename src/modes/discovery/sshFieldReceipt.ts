@@ -27,6 +27,8 @@ import type {
   DiscoveryRunReport,
   DiscoveryTarget,
   ServerKeyObservation,
+  ServerKeyPin,
+  ServerKeyPinStatus,
   ServerKeyTrustMode,
 } from "../../types/discoveryRunner";
 import type { RawNeighborEvidenceImportResult } from "../../types/topology";
@@ -111,6 +113,8 @@ export type FieldReceiptServerKeyTrust =
       readonly trust_mode: ServerKeyTrustMode;
       /** Honest one-liner stating the current persistence boundary. */
       readonly persistence_note: string;
+      /** V1BD: pin match status for this attempt. */
+      readonly pin_status: ServerKeyPinStatus;
     };
 
 export interface FieldReceiptRedaction {
@@ -159,6 +163,8 @@ export interface BuildFieldReceiptInput {
   readonly imports: ReadonlyArray<FieldReceiptImportSummary>;
   /** ISO 8601 timestamp. Caller controls so tests can pin it. */
   readonly generated_at: string;
+  /** V1BD: stored pin for the target host:port at receipt-build time. */
+  readonly server_key_pin?: ServerKeyPin | null;
 }
 
 /**
@@ -178,7 +184,10 @@ export function buildFieldReceipt(input: BuildFieldReceiptInput): FieldReceipt {
   const outcome = summariseOutcome(input.report?.outcome ?? null);
   const command_summaries = summariseCommands(input.report?.outcome ?? null);
   const handoff = summariseHandoff(input.handoff);
-  const server_key_trust = summariseServerKeyTrust(input.report?.server_key ?? null);
+  const server_key_trust = summariseServerKeyTrust(
+    input.report?.server_key ?? null,
+    input.server_key_pin ?? null,
+  );
 
   return Object.freeze({
     schema_version: FIELD_RECEIPT_SCHEMA_VERSION,
@@ -194,8 +203,23 @@ export function buildFieldReceipt(input: BuildFieldReceiptInput): FieldReceipt {
   });
 }
 
+function computePinStatus(
+  observation: ServerKeyObservation,
+  pin: ServerKeyPin | null,
+): ServerKeyPinStatus {
+  if (!pin) return "unpinned";
+  if (
+    pin.fingerprint_sha256 === observation.fingerprint_sha256 &&
+    pin.algorithm === observation.algorithm
+  ) {
+    return "matched";
+  }
+  return "changed";
+}
+
 function summariseServerKeyTrust(
   observation: ServerKeyObservation | null | undefined,
+  pin: ServerKeyPin | null,
 ): FieldReceiptServerKeyTrust {
   if (!observation) {
     return { observed: false, note: NO_KEY_OBSERVED_NOTE };
@@ -206,6 +230,7 @@ function summariseServerKeyTrust(
     fingerprint_sha256: observation.fingerprint_sha256,
     trust_mode: observation.trust_mode,
     persistence_note: TOFU_SESSION_NOTE,
+    pin_status: computePinStatus(observation, pin),
   };
 }
 
@@ -412,6 +437,7 @@ export function toReceiptMarkdown(receipt: FieldReceipt): string {
       `- **Fingerprint (SHA256)**: \`${receipt.server_key_trust.fingerprint_sha256}\``,
     );
     lines.push(`- **Trust mode**: \`${receipt.server_key_trust.trust_mode}\``);
+    lines.push(`- **Pin status**: \`${receipt.server_key_trust.pin_status}\``);
     lines.push(`- **Note**: ${receipt.server_key_trust.persistence_note}`);
   } else {
     lines.push(`- **Observed**: no`);

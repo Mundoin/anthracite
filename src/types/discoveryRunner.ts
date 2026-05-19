@@ -74,6 +74,23 @@ export type DiscoveryRunOutcome =
 
 export type ServerKeyTrustMode = "tofu_session";
 
+/**
+ * V1BD: pin status for a server key observed in an SSH attempt.
+ * - `unpinned`   — no stored pin for this host:port.
+ * - `matched`    — observed fingerprint matches the stored pin.
+ * - `changed`    — observed fingerprint differs from the stored pin (warning).
+ * - `unavailable` — pin lookup could not run (store error or pre-handshake exit).
+ */
+export type ServerKeyPinStatus = "unpinned" | "matched" | "changed" | "unavailable";
+
+/** V1BD: a stored server-key pin for one host:port identity. */
+export interface ServerKeyPin {
+  readonly algorithm: string;
+  readonly fingerprint_sha256: string;
+  readonly first_seen_at: string;
+  readonly last_seen_at: string;
+}
+
 export interface ServerKeyObservation {
   readonly algorithm: string;
   readonly fingerprint_sha256: string;

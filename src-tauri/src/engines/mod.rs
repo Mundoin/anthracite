@@ -15,6 +15,7 @@ pub mod parsers;
 pub mod receipt;
 pub mod ssh_transport;
 pub mod topology;
+pub mod server_key_store;
 pub mod topology_evidence_store;
 pub mod topology_neighbor_output;
 pub mod validator;
