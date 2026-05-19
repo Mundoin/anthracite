@@ -11,6 +11,7 @@ export interface ModeStatus {
 export const MODE_STATUS: Record<ModeId, ModeStatus> = {
   hierarchy:    { state: "built",         engineName: "Environment Engine" },
   intake:       { state: "built",         engineName: "Intake / Parser" },
+  discovery:    { state: "built",         engineName: "Discovery Runner" }, // Added V1AX
   assess:       { state: "built",         engineName: "Validator / Receipt" },
   provisioning: { state: "not_connected", engineName: "Provisioning Engine" },
   operate:      { state: "not_connected", engineName: "Monitoring / Sentinel Engine" },

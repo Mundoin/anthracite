@@ -43,6 +43,7 @@ describe("ModeRail — no-navigation guarantees", () => {
     const validIds: readonly string[] = [
       "hierarchy",
       "intake",
+      "discovery",
       "provisioning",
       "operate",
       "topology",

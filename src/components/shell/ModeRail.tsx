@@ -4,6 +4,7 @@ import {
   IcoBuild,
   IcoDashboards,
   IcoDiagnose,
+  IcoDiscovery,
   IcoHierarchy,
   IcoIntake,
   IcoOperate,
@@ -17,6 +18,7 @@ import {
 export type ModeId =
   | "hierarchy"
   | "intake"
+  | "discovery"
   | "provisioning"
   | "operate"
   | "topology"
@@ -50,6 +52,7 @@ const MODE_GROUPS: readonly ModeGroup[] = [
     modes: [
       { id: "hierarchy",    label: "Hierarchy",    icon: IcoHierarchy },
       { id: "intake",       label: "Intake",       icon: IcoIntake },
+      { id: "discovery",    label: "Discovery",    icon: IcoDiscovery },
       { id: "provisioning", label: "Provisioning", icon: IcoProvision },
     ],
   },
