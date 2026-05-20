@@ -1,11 +1,11 @@
 /* V1AW — Diagnose Mode styles. NOC-light industrial palette. */
+/* V1BJ — Wrapped in ModeWorkbenchShell. */
 
 .diagnose-mode {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px 20px 60px;
-  background: var(--anth-bg, transparent);
+  height: 100%;
+  overflow: hidden;
 }
 
 .dx-header {

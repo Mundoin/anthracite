@@ -45,6 +45,7 @@ graphify-out/
 
 # --- Build / scratch ---
 build/
+!src/modes/build/
 out/
 coverage/
 

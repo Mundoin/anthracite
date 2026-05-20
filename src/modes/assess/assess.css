@@ -7,19 +7,25 @@
  * (steel / graphite / white) so the operator's eye lands on real
  * findings, not on decorative chrome.
  *
+ * V1BJ: Wrapped in ModeWorkbenchShell.
+ *
  * Reuses --anth-* tokens from src/styles/tokens.css. No new tokens.
  */
 
 .assess-root {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 14px;
+  height: 100%;
+  overflow: hidden;
   font-family: var(--anth-font-ui);
   font-size: 12.5px;
   color: var(--anth-text);
   background: var(--anth-bg-app);
-  height: 100%;
+}
+
+.assess-root .mwb-active-body {
+  gap: 14px;
+  padding: 14px;
   overflow: auto;
 }
 

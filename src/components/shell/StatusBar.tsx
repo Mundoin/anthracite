@@ -17,9 +17,7 @@ const DEFAULT_LEFT: readonly StatusCell[] = [
   { id: "engine", label: "engines online", signal: "ok" },
 ];
 
-const DEFAULT_RIGHT: readonly StatusCell[] = [
-  { id: "core", label: "rust-core · ok", signal: "ok" },
-];
+const DEFAULT_RIGHT: readonly StatusCell[] = [];
 
 /** Persistent 24 px bottom status bar (mono, low contrast). */
 export function StatusBar({
