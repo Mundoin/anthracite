@@ -16,7 +16,7 @@ import {
   type SecondaryNavGroup,
 } from "./components/shell/SecondaryNav";
 import type { StatusCell, StatusSignal } from "./components/shell/StatusBar";
-import { IntakePanel } from "./modes/intake/IntakePanel";
+import { IntakeMode } from "./modes/intake/IntakeMode";
 import { AssessPanel } from "./modes/assess/AssessPanel";
 import { SettingsMode } from "./modes/settings/SettingsMode";
 import { OpsConsoleMode } from "./modes/opsConsole/OpsConsoleMode";
@@ -54,10 +54,14 @@ import { DiagnoseMode } from "./modes/diagnose/DiagnoseMode";
 import { DiscoveryMode } from "./modes/discovery/DiscoveryMode";
 import { BuildMode } from "./modes/build/BuildMode";
 import { OperateMode } from "./modes/operate/OperateMode";
+import type { OperateOverviewInputs } from "./modes/operate/operateOverview";
 import { planLiveTopologyCollection } from "./api/liveCollection";
 import { HierarchyMode } from "./modes/hierarchy/HierarchyMode";
 import { getHierarchyView } from "./data/hierarchySource";
 import { ROW_SEEDS } from "./data/hierarchySeeds";
+import { emptyHistory, type DiscoveryRunHistory } from "./modes/discovery/discoveryRunHistory";
+import { buildDiscoveryPlanningSummary } from "./modes/discovery/discoveryPlanningSummary";
+import type { SeedEntry } from "./modes/discovery/seedPlanner";
 
 type View = "list" | "detail";
 
@@ -111,6 +115,13 @@ export default function App(): JSX.Element {
   );
   const [topology, setTopology] = useState<TopologySourceView>(() =>
     toTopologySourceView(null),
+  );
+
+  // V1BN — hoisted Discovery planning state (seeds + history).
+  // Passed to DiscoveryMode as controlled props and wired to OperateMode via inputs.
+  const [discoverySeeds, setDiscoverySeeds] = useState<ReadonlyArray<SeedEntry>>([]);
+  const [discoveryHistory, setDiscoveryHistory] = useState<DiscoveryRunHistory>(
+    emptyHistory(),
   );
 
   const fetchDiscovery = useCallback(async (envId: string | null) => {
@@ -271,6 +282,20 @@ export default function App(): JSX.Element {
     [discovery.sourceState, discovery.totalRecords],
   );
 
+  // V1BN — derive Operate overview inputs from Discovery planning state.
+  // Must live above all mode-branch early returns (Rules of Hooks).
+  const discoveryPlanningSummary = useMemo(
+    () => buildDiscoveryPlanningSummary(discoverySeeds, discoveryHistory),
+    [discoverySeeds, discoveryHistory],
+  );
+  const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
+    staged_seed_count: discoveryPlanningSummary.staged_seed_count,
+    crawl_frontier_count: 0, // honest: no preview built at app level in V1BN
+    evidence_import_count: 0, // honest: no app-level evidence tracking yet
+    topology_node_count: 0, // topology API not yet wired; placeholder
+    topology_edge_count: 0, // topology API not yet wired; placeholder
+  }), [discoveryPlanningSummary]);
+
   if (activeMode === "opsConsole") {
     return (
       <AppShell
@@ -345,7 +370,12 @@ export default function App(): JSX.Element {
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
-        <DiscoveryMode />
+        <DiscoveryMode
+          seeds={discoverySeeds}
+          onSeedsChange={setDiscoverySeeds}
+          history={discoveryHistory}
+          onHistoryChange={setDiscoveryHistory}
+        />
       </AppShell>
     );
   }
@@ -360,7 +390,6 @@ export default function App(): JSX.Element {
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "build · stateless · skeleton" },
-          { id: "ver", label: "v0.1.0" },
         ]}
       >
         <BuildMode />
@@ -378,10 +407,9 @@ export default function App(): JSX.Element {
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "operate · stateless · skeleton" },
-          { id: "ver", label: "v0.1.0" },
         ]}
       >
-        <OperateMode />
+        <OperateMode operateOverviewInputs={operateOverviewInputs} />
       </AppShell>
     );
   }
@@ -418,10 +446,9 @@ export default function App(): JSX.Element {
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "intake · stateless · single config" },
-          { id: "ver", label: "v0.1.0" },
         ]}
       >
-        <IntakePanel
+        <IntakeMode
           activeEnvironmentId={active?.id ?? null}
           onDiscoveryImported={() => fetchDiscovery(active?.id ?? null)}
         />
@@ -439,7 +466,6 @@ export default function App(): JSX.Element {
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "assess · stateless · viewer" },
-          { id: "ver", label: "v0.1.0" },
         ]}
       >
         <AssessPanel />
@@ -550,7 +576,6 @@ function statusRight(view: View, activeRow?: EnvRow): readonly StatusCell[] {
   if (view === "list") {
     return [
       { id: "note", label: "hierarchy · 8 of 8 · sorted by readiness ↓ · demo" },
-      { id: "ver", label: "v0.1.0" },
     ];
   }
   return [
@@ -558,6 +583,5 @@ function statusRight(view: View, activeRow?: EnvRow): readonly StatusCell[] {
       id: "note",
       label: `scope: ${activeRow?.id ?? "—"} · 38s since last poll · readiness ${activeRow?.readiness ?? 0}% · demo`,
     },
-    { id: "ver", label: "v0.1.0" },
   ];
 }

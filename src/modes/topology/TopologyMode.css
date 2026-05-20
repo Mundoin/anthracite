@@ -17,30 +17,6 @@
   padding: 10px 16px 0;
 }
 
-.tm-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.tm-title {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--anth-text);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tm-scope {
-  font-size: 11px;
-  color: var(--anth-text-3);
-  margin: 0;
-  font-family: var(--anth-font-mono);
-}
-
 .tm-summary {
   display: flex;
   gap: 18px;

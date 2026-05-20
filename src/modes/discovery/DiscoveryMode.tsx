@@ -122,6 +122,14 @@ export interface DiscoveryModeProps {
   readonly clock?: DiscoveryClock;
   /** Injectable clipboard for testing the Copy buttons. */
   readonly clipboard?: DiscoveryClipboard;
+  /** Controlled seeds state (external). If provided, component uses these instead of internal state. */
+  readonly seeds?: ReadonlyArray<SeedEntry>;
+  /** Callback when seeds change (external). Required if seeds prop is provided. */
+  readonly onSeedsChange?: (seeds: ReadonlyArray<SeedEntry>) => void;
+  /** Controlled history state (external). If provided, component uses this instead of internal state. */
+  readonly history?: DiscoveryRunHistory;
+  /** Callback when history changes (external). Required if history prop is provided. */
+  readonly onHistoryChange?: (history: DiscoveryRunHistory) => void;
 }
 
 const PLATFORMS: readonly LiveCollectionPlatform[] = [
@@ -160,6 +168,10 @@ export function DiscoveryMode({
   api = DEFAULT_API,
   clock = DEFAULT_CLOCK,
   clipboard = DEFAULT_CLIPBOARD,
+  seeds: seedsProp,
+  onSeedsChange,
+  history: historyProp,
+  onHistoryChange,
 }: DiscoveryModeProps): JSX.Element {
   // Target form
   const [host, setHost] = useState("");
@@ -209,11 +221,33 @@ export function DiscoveryMode({
 
   // V1BL — discovery history state (seeds + artifacts).
   // Hoisted from SeedPlannerPanel so CrawlPreviewPanel can read seeds.
-  const [seeds, setSeeds] = useState<ReadonlyArray<SeedEntry>>([]);
-  const [history, setHistory] = useState<DiscoveryRunHistory>(emptyHistory());
+  // V1BN — backward compatible controlled-state support.
+  // If seedsProp is provided, use it + delegate changes to onSeedsChange.
+  // Otherwise, use internal state (existing behavior).
+  const [seedsInternal, setSeedsInternal] = useState<ReadonlyArray<SeedEntry>>([]);
+  const [historyInternal, setHistoryInternal] = useState<DiscoveryRunHistory>(emptyHistory());
+
+  const seeds = seedsProp ?? seedsInternal;
+  const history = historyProp ?? historyInternal;
+
+  const setSeeds = (next: ReadonlyArray<SeedEntry>): void => {
+    if (onSeedsChange) {
+      onSeedsChange(next);
+    } else {
+      setSeedsInternal(next);
+    }
+  };
+
+  const setHistory = (next: DiscoveryRunHistory): void => {
+    if (onHistoryChange) {
+      onHistoryChange(next);
+    } else {
+      setHistoryInternal(next);
+    }
+  };
 
   const handleAddHistory = (entry: HistoryEntry): void => {
-    setHistory((h) => addHistoryEntry(h, entry));
+    setHistory(addHistoryEntry(history, entry));
   };
 
   const handleClearHistory = (): void => {

@@ -3,9 +3,14 @@ import { useState } from "react";
 import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
 import type { ModeTool } from "../../components/workbench/types";
 import { OperateOverviewPanel } from "./OperateOverviewPanel";
+import type { OperateOverviewInputs } from "./operateOverview";
 import "./OperateMode.css";
 
-export function OperateMode(): JSX.Element {
+export interface OperateModeProps {
+  readonly operateOverviewInputs?: OperateOverviewInputs;
+}
+
+export function OperateMode({ operateOverviewInputs }: OperateModeProps): JSX.Element {
   const [activeToolId, setActiveToolId] = useState<string>("live_overview");
 
   const tools: ModeTool[] = [
@@ -18,7 +23,7 @@ export function OperateMode(): JSX.Element {
       group: "primary",
       status: "available",
       role: "engine_analysis",
-      render: () => <OperateOverviewPanel />,
+      render: () => <OperateOverviewPanel inputs={operateOverviewInputs} />,
     },
     {
       id: "topology_operations",

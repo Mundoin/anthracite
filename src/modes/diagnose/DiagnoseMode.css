@@ -8,12 +8,6 @@
   overflow: hidden;
 }
 
-.dx-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .dx-title {
   margin: 0;
   font-size: 16px;
