@@ -21,6 +21,8 @@ import type { DiscoveryPlanningSummary } from "../modes/discovery/discoveryPlann
 import type { TopologySourceView } from "../data/topologySource";
 import type { CrawlPreviewContextSummary } from "../modes/discovery/crawlPreviewContextSummary";
 import { EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY } from "../modes/discovery/crawlPreviewContextSummary";
+import type { EvidenceImportSummary } from "../modes/topology/evidenceImportSummary";
+import { EMPTY_EVIDENCE_IMPORT_SUMMARY } from "../modes/topology/evidenceImportSummary";
 
 export type IntakeParseStatus =
   | "idle"
@@ -57,6 +59,8 @@ export interface WorkbenchContextSummary {
   readonly intake: WorkbenchIntakeSummary;
   /** V1BQ — sanitized Discovery Crawl Preview summary (counts + ids only). */
   readonly crawl_preview: CrawlPreviewContextSummary;
+  /** V1BR — sanitized Topology Evidence Import activity summary (counts + small labels only). */
+  readonly evidence_import: EvidenceImportSummary;
 }
 
 export const EMPTY_WORKBENCH_INTAKE_SUMMARY: WorkbenchIntakeSummary = {
@@ -82,6 +86,7 @@ export const EMPTY_WORKBENCH_CONTEXT_SUMMARY: WorkbenchContextSummary = {
   },
   intake: EMPTY_WORKBENCH_INTAKE_SUMMARY,
   crawl_preview: EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
+  evidence_import: EMPTY_EVIDENCE_IMPORT_SUMMARY,
 };
 
 export interface BuildWorkbenchContextSummaryInputs {
@@ -90,6 +95,8 @@ export interface BuildWorkbenchContextSummaryInputs {
   readonly intake?: WorkbenchIntakeSummary;
   /** V1BQ — sanitized crawl preview summary; defaults to EMPTY when omitted. */
   readonly crawlPreview?: CrawlPreviewContextSummary;
+  /** V1BR — sanitized evidence import activity summary; defaults to EMPTY when omitted. */
+  readonly evidenceImport?: EvidenceImportSummary;
 }
 
 export function buildWorkbenchContextSummary(
@@ -111,5 +118,6 @@ export function buildWorkbenchContextSummary(
     },
     intake: inputs.intake ?? EMPTY_WORKBENCH_INTAKE_SUMMARY,
     crawl_preview: inputs.crawlPreview ?? EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
+    evidence_import: inputs.evidenceImport ?? EMPTY_EVIDENCE_IMPORT_SUMMARY,
   };
 }

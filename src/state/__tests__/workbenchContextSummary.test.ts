@@ -16,6 +16,10 @@ import {
   EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
   type CrawlPreviewContextSummary,
 } from "../../modes/discovery/crawlPreviewContextSummary";
+import {
+  EMPTY_EVIDENCE_IMPORT_SUMMARY,
+  type EvidenceImportSummary,
+} from "../../modes/topology/evidenceImportSummary";
 
 const EMPTY_PLANNING: DiscoveryPlanningSummary = {
   staged_seed_count: 0,
@@ -99,6 +103,36 @@ describe("buildWorkbenchContextSummary", () => {
     });
 
     expect(summary.crawl_preview).toBe(EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY);
+  });
+
+  it("V1BR: uses EMPTY_EVIDENCE_IMPORT_SUMMARY when evidenceImport is omitted", () => {
+    const summary = buildWorkbenchContextSummary({
+      discoveryPlanning: EMPTY_PLANNING,
+      topology: EMPTY_TOPOLOGY,
+    });
+
+    expect(summary.evidence_import).toBe(EMPTY_EVIDENCE_IMPORT_SUMMARY);
+  });
+
+  it("V1BR: passes through provided evidence import summary", () => {
+    const evidenceImport: EvidenceImportSummary = {
+      attempted_import_count: 4,
+      accepted_import_count: 3,
+      rejected_import_count: 1,
+      accepted_evidence_total: 12,
+      rejected_evidence_total: 2,
+      last_event_at: "2026-05-20T10:00:00Z",
+      last_source_label: "env-1",
+      last_reason_code: null,
+    };
+
+    const summary = buildWorkbenchContextSummary({
+      discoveryPlanning: EMPTY_PLANNING,
+      topology: EMPTY_TOPOLOGY,
+      evidenceImport,
+    });
+
+    expect(summary.evidence_import).toEqual(evidenceImport);
   });
 
   it("V1BQ: passes through provided crawl preview summary", () => {

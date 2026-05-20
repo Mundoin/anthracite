@@ -72,6 +72,10 @@ import {
   EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
   type CrawlPreviewContextSummary,
 } from "./modes/discovery/crawlPreviewContextSummary";
+import {
+  EMPTY_EVIDENCE_IMPORT_SUMMARY,
+  type EvidenceImportSummary,
+} from "./modes/topology/evidenceImportSummary";
 
 type View = "list" | "detail";
 
@@ -145,6 +149,13 @@ export default function App(): JSX.Element {
   // crawl_frontier_count via WorkbenchContextSummary.
   const [crawlPreviewSummary, setCrawlPreviewSummary] = useState<CrawlPreviewContextSummary>(
     EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
+  );
+
+  // V1BR — hoisted Evidence Import summary. Sanitized (counts + small labels
+  // only). Spine is ready; counter stays at zero until App wires the topology
+  // evidence-import API callbacks to TopologyMode (separate stage).
+  const [evidenceImportSummary] = useState<EvidenceImportSummary>(
+    EMPTY_EVIDENCE_IMPORT_SUMMARY,
   );
 
   const fetchDiscovery = useCallback(async (envId: string | null) => {
@@ -319,14 +330,15 @@ export default function App(): JSX.Element {
       topology,
       intake: intakeSummary,
       crawlPreview: crawlPreviewSummary,
+      evidenceImport: evidenceImportSummary,
     }),
-    [discoveryPlanningSummary, topology, intakeSummary, crawlPreviewSummary],
+    [discoveryPlanningSummary, topology, intakeSummary, crawlPreviewSummary, evidenceImportSummary],
   );
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
     crawl_frontier_count: workbenchContextSummary.crawl_preview.frontier_count,
-    evidence_import_count: 0, // honest: no app-level evidence tracking yet
+    evidence_import_count: workbenchContextSummary.evidence_import.accepted_evidence_total,
     topology_node_count: workbenchContextSummary.topology.node_count,
     topology_edge_count: workbenchContextSummary.topology.edge_count,
     intake_parsed_device_count: workbenchContextSummary.intake.parsed_device_count,
