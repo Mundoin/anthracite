@@ -62,6 +62,16 @@ import {
   type WorkbenchIntakeSummary,
 } from "./state/workbenchContextSummary";
 import { planLiveTopologyCollection } from "./api/liveCollection";
+import {
+  clearTopologyNeighborEvidence,
+  getTopologyEvidenceSummary,
+  importTopologyNeighborEvidence,
+  importTopologyNeighborOutput,
+} from "./api/topology";
+import type {
+  TopologyEvidenceMutationResult,
+  TopologyEvidenceSummary,
+} from "./types/topology";
 import { HierarchyMode } from "./modes/hierarchy/HierarchyMode";
 import { getHierarchyView } from "./data/hierarchySource";
 import { ROW_SEEDS } from "./data/hierarchySeeds";
@@ -164,6 +174,50 @@ export default function App(): JSX.Element {
   const handleEvidenceImportEvent = useCallback((event: EvidenceImportEvent) => {
     setEvidenceImportSummary((prior) => applyEvidenceImportEvent(prior, event));
   }, []);
+
+  // V1BT — Topology evidence import / clear / summary wiring.
+  //
+  // App owns evidenceSummary + lastMutation state so the EvidenceImportPanel
+  // can render the most recent mutation and refresh the summary after every
+  // import. V1BS event emission still fires through onEvidenceImportEvent
+  // (already wired above).
+  const [topologyEvidenceSummary, setTopologyEvidenceSummary] = useState<
+    TopologyEvidenceSummary | null
+  >(null);
+  const [topologyLastMutation, setTopologyLastMutation] = useState<
+    TopologyEvidenceMutationResult | null
+  >(null);
+
+  const handleTopologyImportEvidence = useCallback(
+    async (
+      envId: string,
+      evidence: Parameters<typeof importTopologyNeighborEvidence>[1],
+      mode: Parameters<typeof importTopologyNeighborEvidence>[3],
+    ): Promise<TopologyEvidenceMutationResult> => {
+      const result = await importTopologyNeighborEvidence(envId, evidence, null, mode);
+      setTopologyLastMutation(result);
+      return result;
+    },
+    [],
+  );
+
+  const handleTopologyClearEvidence = useCallback(
+    async (envId: string): Promise<TopologyEvidenceMutationResult> => {
+      const result = await clearTopologyNeighborEvidence(envId);
+      setTopologyLastMutation(result);
+      return result;
+    },
+    [],
+  );
+
+  const handleTopologyFetchEvidenceSummary = useCallback(
+    async (envId: string): Promise<TopologyEvidenceSummary> => {
+      const summary = await getTopologyEvidenceSummary(envId);
+      setTopologyEvidenceSummary(summary);
+      return summary;
+    },
+    [],
+  );
 
   const fetchDiscovery = useCallback(async (envId: string | null) => {
     try {
@@ -412,6 +466,12 @@ export default function App(): JSX.Element {
           topology={topology}
           onPlanLiveCollection={planLiveTopologyCollection}
           onEvidenceImportEvent={handleEvidenceImportEvent}
+          onImportEvidence={handleTopologyImportEvidence}
+          onImportRawNeighborOutput={importTopologyNeighborOutput}
+          onClearEvidence={handleTopologyClearEvidence}
+          onFetchEvidenceSummary={handleTopologyFetchEvidenceSummary}
+          evidenceSummary={topologyEvidenceSummary}
+          lastMutation={topologyLastMutation}
         />
       </AppShell>
     );
