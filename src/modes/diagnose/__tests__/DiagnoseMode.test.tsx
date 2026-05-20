@@ -246,9 +246,4 @@ describe("DiagnoseMode — render", () => {
     expect(screen.getByTestId("dx-evidence-0")).toBeInTheDocument();
   });
 
-  it("renders honest scope line — never claims live state without source", () => {
-    render(<DiagnoseMode discovery={discoveryEmpty()} topology={topologyEmpty()} />);
-    expect(screen.getByText(/Scope:/i)).toBeInTheDocument();
-    expect(screen.getByText(/All environments/i)).toBeInTheDocument();
-  });
 });

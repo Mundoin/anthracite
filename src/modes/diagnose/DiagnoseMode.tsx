@@ -5,12 +5,16 @@
  * Pure-frontend; uses the V1AW projection module. No engine wire
  * types, no Tauri command, no live collection.
  *
+ * V1BJ: Wrapped in ModeWorkbenchShell with 6 tools (findings live,
+ * config_audit/troubleshoot/device_access/path_trace/hypothesis_strip deferred).
+ *
  * Doctrine: `docs/architecture/DIAGNOSE_SEED_CONTRACT.md`.
  */
 
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { useMemo, useState } from "react";
-import { DataSourceTag } from "../../components/shell/DataSourceTag";
+import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
+import type { ModeTool } from "../../components/workbench/types";
 import type { DiscoverySourceView } from "../../data/discoverySource";
 import type { TopologySourceView } from "../../data/topologySource";
 import { projectDiagnose } from "./diagnoseProjection";
@@ -33,6 +37,7 @@ export function DiagnoseMode({
   topology,
 }: DiagnoseModeProps): JSX.Element {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activeToolId, setActiveToolId] = useState<string>("findings");
 
   const model = useMemo(
     () =>
@@ -51,27 +56,8 @@ export function DiagnoseMode({
     [model.answers, selectedId],
   );
 
-  const sourceState =
-    discovery.sourceState === "real" || topology.sourceState === "real"
-      ? discovery.sourceState === "real"
-        ? discovery.sourceState
-        : topology.sourceState
-      : discovery.sourceState;
-
-  return (
-    <div className="diagnose-mode">
-      <header className="dx-header">
-        <h2 className="dx-title">
-          Diagnose <DataSourceTag state={sourceState} />
-        </h2>
-        <p className="dx-scope">
-          Scope: {discovery.environmentId ?? topology.environmentId ?? "All environments"}
-        </p>
-        <p className="dx-tagline">
-          What should I inspect first, and why?
-        </p>
-      </header>
-
+  const renderFindings = (): ReactNode => (
+    <>
       <section className="dx-summary" data-testid="dx-summary">
         <span className="dx-summary-cell" data-testid="dx-summary-total">
           <span className="dx-summary-label">Total answers</span>
@@ -168,6 +154,123 @@ export function DiagnoseMode({
           </section>
         </div>
       )}
+    </>
+  );
+
+  const tools: ReadonlyArray<ModeTool> = [
+    {
+      id: "findings",
+      kind: "live",
+      label: "Findings",
+      description: "Browse diagnose answers grouped by severity and category. Open evidence per finding.",
+      group: "primary",
+      status: "available",
+      role: "engine_analysis",
+      render: renderFindings,
+    },
+    {
+      id: "config_audit",
+      kind: "deferred",
+      label: "Config Audit",
+      description: "Future audit will compare parsed config receipt against rule pack.",
+      group: "validation",
+      status: "preview",
+      role: "validation",
+      deferred: {
+        reason: "Future audit will compare a parsed config receipt against a chosen rule pack and baseline profile. No new audit engine is wired in this pass.",
+        planned_inputs: [
+          "Parsed config receipt",
+          "Rule pack",
+          "Baseline profile",
+        ],
+      },
+    },
+    {
+      id: "troubleshoot",
+      kind: "deferred",
+      label: "Troubleshoot",
+      description: "Rank candidate hypotheses against observed evidence.",
+      group: "primary",
+      status: "deferred",
+      role: "engine_analysis",
+      deferred: {
+        reason: "Future troubleshooting workbench will rank candidate hypotheses against the observed evidence, with blast-radius framing. No hypothesis engine in this pass.",
+        planned_controls: [
+          "Symptom selector",
+          "Hypothesis ranking",
+          "Supporting evidence",
+          "Blast radius",
+        ],
+      },
+    },
+    {
+      id: "device_access",
+      kind: "deferred",
+      label: "Device Access",
+      description: "SSH session surface for read-only command scratchpads.",
+      group: "discovery",
+      status: "preview",
+      role: "live_collection",
+      deferred: {
+        reason: "Future operator-driven SSH session surface for read-only command scratchpads. No terminal or session implementation in this pass.",
+        planned_controls: [
+          "SSH session",
+          "Command scratchpad",
+          "Credential / session scope",
+        ],
+      },
+    },
+    {
+      id: "path_trace",
+      kind: "deferred",
+      label: "Path Trace",
+      description: "End-to-end path trace with VRF and tunnel awareness.",
+      group: "primary",
+      status: "deferred",
+      role: "engine_analysis",
+      deferred: {
+        reason: "Future end-to-end path-trace tool will follow a packet through routing / overlay / tunnels with VRF awareness. No path-trace engine in this pass.",
+        planned_controls: [
+          "Source",
+          "Destination",
+          "VRF",
+          "Protocol",
+          "Overlay / tunnel awareness",
+        ],
+      },
+    },
+    {
+      id: "hypothesis_strip",
+      kind: "deferred",
+      label: "Hypothesis Strip",
+      description: "Persistent strip of top-ranked explanations anchored on accepted evidence.",
+      group: "support",
+      status: "preview",
+      role: "engine_analysis",
+      deferred: {
+        reason: "Future persistent strip will surface the top-ranked explanations across the current scope, anchored on accepted evidence. Placeholder only in this pass.",
+        planned_controls: [
+          "Ranked hypothesis list",
+          "Evidence pin",
+          "Confidence",
+          "Pin / dismiss",
+        ],
+      },
+    },
+  ];
+
+  return (
+    <div className="diagnose-mode">
+      <ModeWorkbenchShell
+        model={{
+          title: "Diagnose",
+          tagline: "What should I inspect first, and why?",
+          tools,
+          active_id: activeToolId,
+          fallback_id: "findings",
+        }}
+        onSelectTool={setActiveToolId}
+      />
     </div>
   );
 }

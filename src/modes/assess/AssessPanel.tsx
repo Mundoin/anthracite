@@ -6,11 +6,16 @@
  * call lives at the panel level (not inside the reducer) — the
  * reducer remains pure.
  *
+ * V1BJ: Wrapped in ModeWorkbenchShell with 5 tools (viewer live,
+ * pipeline/compliance/report_export/evidence_receipts deferred).
+ *
  * Tests inject the loader via `loader` prop so the FSA picker
  * never fires in unit tests.
  */
 
-import { useCallback, useReducer, type JSX } from "react";
+import { useCallback, useReducer, useState, type JSX, type ReactNode } from "react";
+import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
+import type { ModeTool } from "../../components/workbench/types";
 
 import { AssessEmptyState } from "./components/AssessEmptyState";
 import { AssessErrorView } from "./components/AssessErrorView";
@@ -30,6 +35,7 @@ export function AssessPanel({
   loader = loadBatchRunJson,
 }: AssessPanelProps = {}): JSX.Element {
   const [state, dispatch] = useReducer(assessReducer, initialAssessState);
+  const [activeToolId, setActiveToolId] = useState<string>("viewer");
 
   const runLoader = useCallback(async (): Promise<void> => {
     const result = await loader();
@@ -66,8 +72,8 @@ export function AssessPanel({
     dispatch({ type: "CloseRequested" });
   }, []);
 
-  return (
-    <div className="assess-root" aria-label="Assess">
+  const renderViewer = (): ReactNode => (
+    <>
       {state.kind === "empty" && <AssessEmptyState onOpen={onOpen} />}
       {state.kind === "loading" && (
         <AssessEmptyState onOpen={onOpen} disabled={true} />
@@ -87,6 +93,109 @@ export function AssessPanel({
           onClose={onClose}
         />
       )}
+    </>
+  );
+
+  const tools: ReadonlyArray<ModeTool> = [
+    {
+      id: "viewer",
+      kind: "live",
+      label: "Assessment Viewer",
+      description: "Inspect a loaded batch-run assessment with metadata, findings, and triage.",
+      group: "primary",
+      status: "available",
+      role: "validation",
+      render: renderViewer,
+    },
+    {
+      id: "pipeline",
+      kind: "deferred",
+      label: "Run Pipeline",
+      description: "One-button Assessment pipeline: Discovery → SNMP → Config → Compliance → Topology → Anomaly → Report.",
+      group: "primary",
+      status: "deferred",
+      role: "live_collection",
+      deferred: {
+        reason: "Future one-button Assessment pipeline: Discovery → SNMP Poll → Config Pull → Compliance Scan → Topology Map → Anomaly Flag → Report. No live pipeline implementation in this pass.",
+        planned_inputs: [
+          "Seed list",
+          "Credentials profile",
+          "SNMP community / profile",
+          "Rule pack",
+          "Report profile",
+        ],
+      },
+    },
+    {
+      id: "compliance",
+      kind: "deferred",
+      label: "Compliance",
+      description: "Rule-pack run results filtered by severity, vendor, platform.",
+      group: "validation",
+      status: "preview",
+      role: "validation",
+      deferred: {
+        reason: "Future compliance workbench: rule-pack run results filtered by severity, vendor, platform. Today's loaded assessment surfaces findings inside the Viewer tool.",
+        planned_controls: [
+          "Rule pack",
+          "Severity filter",
+          "Vendor / platform scope",
+        ],
+      },
+    },
+    {
+      id: "report_export",
+      kind: "deferred",
+      label: "Report Export",
+      description: "PDF export of executive summary, inventory, topology, findings, and recommendations.",
+      group: "validation",
+      status: "deferred",
+      role: "validation",
+      deferred: {
+        reason: "Future PDF export of executive summary, inventory, topology map, findings, and recommendations. No PDF generator wired in this pass.",
+        planned_controls: [
+          "Executive summary",
+          "Inventory section",
+          "Topology map section",
+          "Findings",
+          "Recommendations",
+          "PDF render",
+        ],
+      },
+    },
+    {
+      id: "evidence_receipts",
+      kind: "deferred",
+      label: "Evidence / Receipts",
+      description: "Receipt browser for assessment runs: metadata, rule-pack version, fixture hashes, run timestamps.",
+      group: "evidence",
+      status: "preview",
+      role: "evidence",
+      deferred: {
+        reason: "Future receipt browser for assessment runs: input metadata, rule-pack version, fixture hashes, run timestamps. Today's metadata header surfaces the loaded run; receipt browsing across runs is deferred.",
+        planned_controls: [
+          "Assessment run list",
+          "Metadata inspector",
+          "Rule-pack version",
+          "Fixture hash viewer",
+          "Timestamp timeline",
+        ],
+      },
+    },
+  ];
+
+  return (
+    <div className="assess-root">
+      <ModeWorkbenchShell
+        model={{
+          title: "Assess",
+          tagline: "Load a batch run assessment and validate compliance.",
+          tools,
+          active_id: activeToolId,
+          fallback_id: "viewer",
+        }}
+        onSelectTool={setActiveToolId}
+      />
     </div>
   );
 }

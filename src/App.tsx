@@ -52,6 +52,8 @@ import {
 import { TopologyMode } from "./modes/topology/TopologyMode";
 import { DiagnoseMode } from "./modes/diagnose/DiagnoseMode";
 import { DiscoveryMode } from "./modes/discovery/DiscoveryMode";
+import { BuildMode } from "./modes/build/BuildMode";
+import { OperateMode } from "./modes/operate/OperateMode";
 import { planLiveTopologyCollection } from "./api/liveCollection";
 import { InventoryBrowser } from "./modes/hierarchy/InventoryBrowser";
 import { getHierarchyView } from "./data/hierarchySource";
@@ -348,6 +350,42 @@ export default function App(): JSX.Element {
     );
   }
 
+  if (activeMode === "build") {
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={["Build"]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        statusLeft={statusLeft(readiness, view.rows)}
+        statusRight={[
+          { id: "note", label: "build · stateless · skeleton" },
+          { id: "ver", label: "v0.1.0" },
+        ]}
+      >
+        <BuildMode />
+      </AppShell>
+    );
+  }
+
+  if (activeMode === "operate") {
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={["Operate"]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        statusLeft={statusLeft(readiness, view.rows)}
+        statusRight={[
+          { id: "note", label: "operate · stateless · skeleton" },
+          { id: "ver", label: "v0.1.0" },
+        ]}
+      >
+        <OperateMode />
+      </AppShell>
+    );
+  }
+
   if (MODE_STATUS[activeMode].state === "not_connected") {
     const status = MODE_STATUS[activeMode];
     const label = MODE_LABELS[activeMode];
@@ -381,7 +419,6 @@ export default function App(): JSX.Element {
         statusRight={[
           { id: "note", label: "intake · stateless · single config" },
           { id: "ver", label: "v0.1.0" },
-          { id: "core", label: "rust-core · ok", signal: "ok" },
         ]}
       >
         <IntakePanel
@@ -403,7 +440,6 @@ export default function App(): JSX.Element {
         statusRight={[
           { id: "note", label: "assess · stateless · viewer" },
           { id: "ver", label: "v0.1.0" },
-          { id: "core", label: "rust-core · ok", signal: "ok" },
         ]}
       >
         <AssessPanel />
@@ -515,7 +551,6 @@ function statusRight(view: View, activeRow?: EnvRow): readonly StatusCell[] {
     return [
       { id: "note", label: "hierarchy · 8 of 8 · sorted by readiness ↓ · demo" },
       { id: "ver", label: "v0.1.0" },
-      { id: "core", label: "rust-core · unavail.", signal: "idle" },
     ];
   }
   return [
@@ -524,6 +559,5 @@ function statusRight(view: View, activeRow?: EnvRow): readonly StatusCell[] {
       label: `scope: ${activeRow?.id ?? "—"} · 38s since last poll · readiness ${activeRow?.readiness ?? 0}% · demo`,
     },
     { id: "ver", label: "v0.1.0" },
-    { id: "core", label: "rust-core · unavail.", signal: "idle" },
   ];
 }
