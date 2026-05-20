@@ -66,6 +66,7 @@ import {
 import { CrawlPreviewPanel } from "./CrawlPreviewPanel";
 import { FieldReceiptsPanel } from "./FieldReceiptsPanel";
 import type { SeedEntry } from "./seedPlanner";
+import type { CrawlPreviewContextSummary } from "./crawlPreviewContextSummary";
 import "./DiscoveryMode.css";
 
 export interface DiscoveryClock {
@@ -130,6 +131,8 @@ export interface DiscoveryModeProps {
   readonly history?: DiscoveryRunHistory;
   /** Callback when history changes (external). Required if history prop is provided. */
   readonly onHistoryChange?: (history: DiscoveryRunHistory) => void;
+  /** V1BQ — Receive sanitized crawl-preview summary updates (counts only). */
+  readonly onCrawlPreviewSummaryChange?: (summary: CrawlPreviewContextSummary) => void;
 }
 
 const PLATFORMS: readonly LiveCollectionPlatform[] = [
@@ -172,6 +175,7 @@ export function DiscoveryMode({
   onSeedsChange,
   history: historyProp,
   onHistoryChange,
+  onCrawlPreviewSummaryChange,
 }: DiscoveryModeProps): JSX.Element {
   // Target form
   const [host, setHost] = useState("");
@@ -1330,6 +1334,7 @@ export function DiscoveryMode({
         <CrawlPreviewPanel
           seeds={seeds}
           onAddHistory={handleAddHistory}
+          onSummaryChange={onCrawlPreviewSummaryChange}
         />
       ),
     },

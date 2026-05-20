@@ -12,6 +12,10 @@ import {
 import type { DiscoveryPlanningSummary } from "../../modes/discovery/discoveryPlanningSummary";
 import type { TopologySourceView } from "../../data/topologySource";
 import { toTopologySourceView } from "../../data/topologySource";
+import {
+  EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
+  type CrawlPreviewContextSummary,
+} from "../../modes/discovery/crawlPreviewContextSummary";
 
 const EMPTY_PLANNING: DiscoveryPlanningSummary = {
   staged_seed_count: 0,
@@ -86,6 +90,34 @@ describe("buildWorkbenchContextSummary", () => {
     });
 
     expect(summary.intake).toBe(EMPTY_WORKBENCH_INTAKE_SUMMARY);
+  });
+
+  it("V1BQ: uses EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY when crawlPreview is omitted", () => {
+    const summary = buildWorkbenchContextSummary({
+      discoveryPlanning: EMPTY_PLANNING,
+      topology: EMPTY_TOPOLOGY,
+    });
+
+    expect(summary.crawl_preview).toBe(EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY);
+  });
+
+  it("V1BQ: passes through provided crawl preview summary", () => {
+    const crawlPreview: CrawlPreviewContextSummary = {
+      frontier_count: 5,
+      active_seed_count: 5,
+      blocked_seed_count: 2,
+      warning_count: 1,
+      last_preview_id: "p_demo",
+      last_preview_generated_at: "2026-05-20T10:00:00Z",
+    };
+
+    const summary = buildWorkbenchContextSummary({
+      discoveryPlanning: EMPTY_PLANNING,
+      topology: EMPTY_TOPOLOGY,
+      crawlPreview,
+    });
+
+    expect(summary.crawl_preview).toEqual(crawlPreview);
   });
 
   it("passes through provided intake summary", () => {

@@ -9,7 +9,7 @@
  */
 
 import type { JSX } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { SeedEntry } from "./seedPlanner";
 import {
   buildCrawlPreview,
@@ -18,6 +18,10 @@ import {
   type ExpansionSource,
   type PreferredTransport,
 } from "./crawlPreview";
+import {
+  buildCrawlPreviewContextSummary,
+  type CrawlPreviewContextSummary,
+} from "./crawlPreviewContextSummary";
 import "./CrawlPreviewPanel.css";
 
 export interface CrawlPreviewClock {
@@ -48,6 +52,9 @@ export interface CrawlPreviewPanelProps {
     source_tool: string;
     redaction_status: "safe" | "unknown";
   }) => void;
+  /** V1BQ — Emit a sanitized counts-only summary every time the preview rebuilds.
+   *  Used by App to hoist crawl_frontier_count into shared workbench context. */
+  readonly onSummaryChange?: (summary: CrawlPreviewContextSummary) => void;
   readonly clock?: CrawlPreviewClock;
   readonly clipboard?: CrawlPreviewClipboard;
 }
@@ -55,6 +62,7 @@ export interface CrawlPreviewPanelProps {
 export function CrawlPreviewPanel({
   seeds,
   onAddHistory,
+  onSummaryChange,
   clock = DEFAULT_CLOCK,
   clipboard = DEFAULT_CLIPBOARD,
 }: CrawlPreviewPanelProps): JSX.Element {
@@ -110,6 +118,14 @@ export function CrawlPreviewPanel({
   const preview = useMemo(() => {
     return buildCrawlPreview(seeds, options, clock.now());
   }, [seeds, options, clock]);
+
+  // V1BQ — emit sanitized counts-only summary to App-level workbench context.
+  // Fires on every preview rebuild so cross-workbench consumers (Operate)
+  // reflect the operator's current intent. No raw host strings, no markdown.
+  useEffect(() => {
+    if (!onSummaryChange) return;
+    onSummaryChange(buildCrawlPreviewContextSummary(preview));
+  }, [preview, onSummaryChange]);
 
   const previewMarkdown = useMemo(() => {
     return toCrawlPreviewMarkdown(preview);

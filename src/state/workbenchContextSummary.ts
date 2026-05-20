@@ -19,6 +19,8 @@
 import type { DataSourceState } from "../types/dataSource";
 import type { DiscoveryPlanningSummary } from "../modes/discovery/discoveryPlanningSummary";
 import type { TopologySourceView } from "../data/topologySource";
+import type { CrawlPreviewContextSummary } from "../modes/discovery/crawlPreviewContextSummary";
+import { EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY } from "../modes/discovery/crawlPreviewContextSummary";
 
 export type IntakeParseStatus =
   | "idle"
@@ -53,6 +55,8 @@ export interface WorkbenchContextSummary {
   readonly discovery: WorkbenchDiscoverySummary;
   readonly topology: WorkbenchTopologySummary;
   readonly intake: WorkbenchIntakeSummary;
+  /** V1BQ — sanitized Discovery Crawl Preview summary (counts + ids only). */
+  readonly crawl_preview: CrawlPreviewContextSummary;
 }
 
 export const EMPTY_WORKBENCH_INTAKE_SUMMARY: WorkbenchIntakeSummary = {
@@ -77,12 +81,15 @@ export const EMPTY_WORKBENCH_CONTEXT_SUMMARY: WorkbenchContextSummary = {
     has_view: false,
   },
   intake: EMPTY_WORKBENCH_INTAKE_SUMMARY,
+  crawl_preview: EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
 };
 
 export interface BuildWorkbenchContextSummaryInputs {
   readonly discoveryPlanning: DiscoveryPlanningSummary;
   readonly topology: TopologySourceView;
   readonly intake?: WorkbenchIntakeSummary;
+  /** V1BQ — sanitized crawl preview summary; defaults to EMPTY when omitted. */
+  readonly crawlPreview?: CrawlPreviewContextSummary;
 }
 
 export function buildWorkbenchContextSummary(
@@ -103,5 +110,6 @@ export function buildWorkbenchContextSummary(
       has_view: inputs.topology.view !== null,
     },
     intake: inputs.intake ?? EMPTY_WORKBENCH_INTAKE_SUMMARY,
+    crawl_preview: inputs.crawlPreview ?? EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
   };
 }

@@ -68,6 +68,10 @@ import { ROW_SEEDS } from "./data/hierarchySeeds";
 import { emptyHistory, type DiscoveryRunHistory } from "./modes/discovery/discoveryRunHistory";
 import { buildDiscoveryPlanningSummary } from "./modes/discovery/discoveryPlanningSummary";
 import type { SeedEntry } from "./modes/discovery/seedPlanner";
+import {
+  EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
+  type CrawlPreviewContextSummary,
+} from "./modes/discovery/crawlPreviewContextSummary";
 
 type View = "list" | "detail";
 
@@ -134,6 +138,13 @@ export default function App(): JSX.Element {
   // onIntakeStateChange callback and used to build shared WorkbenchContextSummary.
   const [intakeSummary, setIntakeSummary] = useState<WorkbenchIntakeSummary>(
     EMPTY_WORKBENCH_INTAKE_SUMMARY,
+  );
+
+  // V1BQ — hoisted Crawl Preview context summary. Updated by CrawlPreviewPanel's
+  // onSummaryChange callback. Sanitized (counts + ids only). Feeds Operate's
+  // crawl_frontier_count via WorkbenchContextSummary.
+  const [crawlPreviewSummary, setCrawlPreviewSummary] = useState<CrawlPreviewContextSummary>(
+    EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
   );
 
   const fetchDiscovery = useCallback(async (envId: string | null) => {
@@ -307,13 +318,14 @@ export default function App(): JSX.Element {
       discoveryPlanning: discoveryPlanningSummary,
       topology,
       intake: intakeSummary,
+      crawlPreview: crawlPreviewSummary,
     }),
-    [discoveryPlanningSummary, topology, intakeSummary],
+    [discoveryPlanningSummary, topology, intakeSummary, crawlPreviewSummary],
   );
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
-    crawl_frontier_count: 0, // honest: no preview built at app level
+    crawl_frontier_count: workbenchContextSummary.crawl_preview.frontier_count,
     evidence_import_count: 0, // honest: no app-level evidence tracking yet
     topology_node_count: workbenchContextSummary.topology.node_count,
     topology_edge_count: workbenchContextSummary.topology.edge_count,
@@ -413,6 +425,7 @@ export default function App(): JSX.Element {
         <DiscoveryMode
           seeds={discoverySeeds}
           onSeedsChange={setDiscoverySeeds}
+          onCrawlPreviewSummaryChange={setCrawlPreviewSummary}
           history={discoveryHistory}
           onHistoryChange={setDiscoveryHistory}
         />
