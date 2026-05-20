@@ -1,0 +1,192 @@
+/**
+ * Coverage Map Panel — industrial minimal styling.
+ * Consistent with InventoryBrowser.css and TopologyMode.css.
+ */
+
+.cov-map {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px;
+  max-width: 1180px;
+}
+
+.cov-map__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cov-map__header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cov-map__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text);
+  margin: 0;
+}
+
+.cov-map__subtitle {
+  font-size: 11px;
+  color: var(--anth-text-3);
+  margin: 0;
+  font-family: var(--anth-font-mono);
+}
+
+.cov-map__summary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: var(--anth-bg-panel);
+  font-size: 11px;
+  flex-wrap: wrap;
+  border: 1px solid var(--anth-border);
+}
+
+.cov-map__summary-cell {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.cov-map__summary-label {
+  color: var(--anth-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+
+.cov-map__summary-value {
+  color: var(--anth-text);
+  font-family: var(--anth-font-mono);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  height: var(--anth-pill-h);
+  padding: 0 8px;
+  border: 1px solid var(--anth-border-strong);
+  background: var(--anth-bg-panel);
+  border-radius: 2px;
+}
+
+.cov-map__empty,
+.cov-map__unavailable {
+  border: 1px solid var(--anth-border);
+  padding: 10px 14px;
+  color: var(--anth-text-3);
+  font-size: 12px;
+}
+
+.cov-map__empty-message,
+.cov-map__unavailable-message {
+  margin: 4px 0;
+}
+
+.cov-map__section {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--anth-border);
+  padding: 0;
+}
+
+.cov-map__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: var(--anth-section-hd-h);
+  padding: 0 12px;
+  background: linear-gradient(180deg, #FAFCFE 0%, var(--anth-bg-sunken) 100%);
+  border-bottom: 1px solid var(--anth-border-strong);
+  border-left: 2px solid var(--anth-info);
+  flex: 0 0 auto;
+}
+
+.cov-map__section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text);
+  margin: 0;
+}
+
+.cov-map__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  background: var(--anth-bg-panel);
+}
+
+.cov-map__table thead {
+  background: var(--anth-bg-sunken);
+  border-bottom: 1px solid var(--anth-border-strong);
+}
+
+.cov-map__table thead tr {
+  border-bottom: 1px solid var(--anth-border-strong);
+}
+
+.cov-map__table thead th {
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+  border-right: 1px solid var(--anth-border);
+}
+
+.cov-map__table thead th:last-child {
+  border-right: none;
+}
+
+.cov-map__table tbody tr {
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.cov-map__table tbody tr:nth-child(even) {
+  background: var(--anth-bg-sunken);
+}
+
+.cov-map__table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.cov-map__cell {
+  padding: 6px 10px;
+  border-right: 1px solid var(--anth-border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cov-map__cell:last-child {
+  border-right: none;
+}
+
+.cov-map__cell--field,
+.cov-map__cell--key {
+  color: var(--anth-text);
+  text-align: left;
+}
+
+.cov-map__cell--count,
+.cov-map__cell--pct {
+  color: var(--anth-text);
+  font-family: var(--anth-font-mono);
+  text-align: right;
+}
+
+.cov-map__cell--unknown {
+  color: var(--anth-text-3);
+  font-style: italic;
+}

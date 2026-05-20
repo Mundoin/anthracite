@@ -55,7 +55,7 @@ import { DiscoveryMode } from "./modes/discovery/DiscoveryMode";
 import { BuildMode } from "./modes/build/BuildMode";
 import { OperateMode } from "./modes/operate/OperateMode";
 import { planLiveTopologyCollection } from "./api/liveCollection";
-import { InventoryBrowser } from "./modes/hierarchy/InventoryBrowser";
+import { HierarchyMode } from "./modes/hierarchy/HierarchyMode";
 import { getHierarchyView } from "./data/hierarchySource";
 import { ROW_SEEDS } from "./data/hierarchySeeds";
 
@@ -511,7 +511,7 @@ export default function App(): JSX.Element {
           source={view.sourceStateByBlock.rows}
         />
       ) : detailSegment === "devices" ? (
-        <InventoryBrowser discovery={discovery} />
+        <HierarchyMode discovery={discovery} />
       ) : (
         <EnvironmentDetailD2
           kpis={detailKpis}
