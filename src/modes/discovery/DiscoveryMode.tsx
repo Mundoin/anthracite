@@ -67,6 +67,11 @@ import { CrawlPreviewPanel } from "./CrawlPreviewPanel";
 import { FieldReceiptsPanel } from "./FieldReceiptsPanel";
 import type { SeedEntry } from "./seedPlanner";
 import type { CrawlPreviewContextSummary } from "./crawlPreviewContextSummary";
+import {
+  eventFromFailure,
+  eventFromRawNeighborResult,
+  type EvidenceImportEvent,
+} from "../topology/evidenceImportSummary";
 import "./DiscoveryMode.css";
 
 export interface DiscoveryClock {
@@ -133,6 +138,8 @@ export interface DiscoveryModeProps {
   readonly onHistoryChange?: (history: DiscoveryRunHistory) => void;
   /** V1BQ — Receive sanitized crawl-preview summary updates (counts only). */
   readonly onCrawlPreviewSummaryChange?: (summary: CrawlPreviewContextSummary) => void;
+  /** V1BS — Receive sanitized evidence-import events when SSH-handoff imports complete. */
+  readonly onEvidenceImportEvent?: (event: EvidenceImportEvent) => void;
 }
 
 const PLATFORMS: readonly LiveCollectionPlatform[] = [
@@ -176,6 +183,7 @@ export function DiscoveryMode({
   history: historyProp,
   onHistoryChange,
   onCrawlPreviewSummaryChange,
+  onEvidenceImportEvent,
 }: DiscoveryModeProps): JSX.Element {
   // Target form
   const [host, setHost] = useState("");
@@ -299,6 +307,9 @@ export function DiscoveryMode({
     const request = buildImportRequest(candidate, handoffEnvId, local, null);
     if (request === null) return;
     setImportStatuses((prev) => ({ ...prev, [index]: { kind: "importing" } }));
+    // V1BS — derive sanitized event kind from candidate (lldp/cdp), default to raw_lldp.
+    const eventKind: "raw_lldp" | "raw_cdp" =
+      candidate.source_kind === "cdp" ? "raw_cdp" : "raw_lldp";
     try {
       const result = await api.importTopologyNeighborOutput(request);
       setImportStatuses((prev) => ({
@@ -309,6 +320,14 @@ export function DiscoveryMode({
         ...prev,
         importDoneSummary(candidate.command, result),
       ]);
+      // V1BS — emit sanitized event for App-level EvidenceImportSummary.
+      // source_label uses env id only (handoffEnvId), never the candidate's
+      // source_label which embeds the command text.
+      if (onEvidenceImportEvent) {
+        onEvidenceImportEvent(
+          eventFromRawNeighborResult(eventKind, result, handoffEnvId || null, clock.now()),
+        );
+      }
     } catch (err: unknown) {
       const reason = err instanceof Error ? err.message : "Import failed";
       setImportStatuses((prev) => ({
@@ -319,6 +338,12 @@ export function DiscoveryMode({
         ...prev,
         importFailedSummary(candidate.command, reason),
       ]);
+      // V1BS — emit rejected event with short reason_code; raw err message dropped.
+      if (onEvidenceImportEvent) {
+        onEvidenceImportEvent(
+          eventFromFailure(eventKind, "import_failed", handoffEnvId || null, clock.now()),
+        );
+      }
     }
   };
 

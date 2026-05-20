@@ -74,6 +74,8 @@ import {
 } from "./modes/discovery/crawlPreviewContextSummary";
 import {
   EMPTY_EVIDENCE_IMPORT_SUMMARY,
+  applyEvidenceImportEvent,
+  type EvidenceImportEvent,
   type EvidenceImportSummary,
 } from "./modes/topology/evidenceImportSummary";
 
@@ -151,12 +153,17 @@ export default function App(): JSX.Element {
     EMPTY_CRAWL_PREVIEW_CONTEXT_SUMMARY,
   );
 
-  // V1BR — hoisted Evidence Import summary. Sanitized (counts + small labels
-  // only). Spine is ready; counter stays at zero until App wires the topology
-  // evidence-import API callbacks to TopologyMode (separate stage).
-  const [evidenceImportSummary] = useState<EvidenceImportSummary>(
+  // V1BR/V1BS — hoisted Evidence Import summary. Sanitized (counts + small
+  // labels only). V1BS activates the spine: DiscoveryMode SSH-handoff imports
+  // and TopologyMode EvidenceImportPanel emit sanitized events via
+  // onEvidenceImportEvent; the handler folds them through applyEvidenceImportEvent.
+  const [evidenceImportSummary, setEvidenceImportSummary] = useState<EvidenceImportSummary>(
     EMPTY_EVIDENCE_IMPORT_SUMMARY,
   );
+
+  const handleEvidenceImportEvent = useCallback((event: EvidenceImportEvent) => {
+    setEvidenceImportSummary((prior) => applyEvidenceImportEvent(prior, event));
+  }, []);
 
   const fetchDiscovery = useCallback(async (envId: string | null) => {
     try {
@@ -404,6 +411,7 @@ export default function App(): JSX.Element {
         <TopologyMode
           topology={topology}
           onPlanLiveCollection={planLiveTopologyCollection}
+          onEvidenceImportEvent={handleEvidenceImportEvent}
         />
       </AppShell>
     );
@@ -440,6 +448,7 @@ export default function App(): JSX.Element {
           onCrawlPreviewSummaryChange={setCrawlPreviewSummary}
           history={discoveryHistory}
           onHistoryChange={setDiscoveryHistory}
+          onEvidenceImportEvent={handleEvidenceImportEvent}
         />
       </AppShell>
     );

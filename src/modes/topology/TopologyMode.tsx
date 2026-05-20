@@ -22,6 +22,12 @@ import type {
 } from "../../types/liveCollection";
 import { LiveCollectionDryRunPanel } from "./LiveCollectionDryRunPanel";
 import {
+  eventFromFailure,
+  eventFromMutationResult,
+  eventFromRawNeighborResult,
+  type EvidenceImportEvent,
+} from "./evidenceImportSummary";
+import {
   DEFAULT_REVIEW_FILTERS,
   GRAPH_READY_DISPLAY_NOTE,
   TOPOLOGY_REVIEW_KIND_OPTIONS,
@@ -56,6 +62,8 @@ export interface TopologyModeProps {
   readonly onPlanLiveCollection?: (
     request: LiveCollectionDryRunRequest,
   ) => Promise<LiveCollectionDryRunPlan>;
+  /** V1BS — receive sanitized evidence-import events from the panel. */
+  readonly onEvidenceImportEvent?: (event: EvidenceImportEvent) => void;
 }
 
 interface AdjacencyReadinessSectionProps {
@@ -76,6 +84,8 @@ interface EvidenceImportPanelProps {
   readonly onFetchEvidenceSummary?: (envId: string) => Promise<TopologyEvidenceSummary>;
   readonly evidenceSummary?: TopologyEvidenceSummary | null;
   readonly lastMutation?: TopologyEvidenceMutationResult | null;
+  /** V1BS — sanitized event emission. */
+  readonly onEvidenceImportEvent?: (event: EvidenceImportEvent) => void;
 }
 
 function EvidenceImportPanel({
@@ -86,6 +96,7 @@ function EvidenceImportPanel({
   onFetchEvidenceSummary,
   evidenceSummary,
   lastMutation,
+  onEvidenceImportEvent,
 }: EvidenceImportPanelProps): JSX.Element {
   const [tabMode, setTabMode] = useState<"json" | "raw">("json");
   const [importMode, setImportMode] = useState<TopologyEvidenceImportMode>("replace");
@@ -129,6 +140,19 @@ function EvidenceImportPanel({
       }
       setJsonTextValue("");
 
+      // V1BS — emit sanitized event upward (counts only).
+      if (onEvidenceImportEvent) {
+        const eventKind =
+          importMode === "replace"
+            ? "json_replace"
+            : importMode === "append"
+              ? "json_append"
+              : "json_merge";
+        onEvidenceImportEvent(
+          eventFromMutationResult(eventKind, result, environmentId, new Date().toISOString()),
+        );
+      }
+
       // Auto-refresh summary after successful import
       if (onFetchEvidenceSummary) {
         try {
@@ -139,10 +163,28 @@ function EvidenceImportPanel({
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      if (message.includes("Unexpected token")) {
+      const isParseError = err instanceof SyntaxError;
+      if (isParseError) {
         setJsonFeedback(`Invalid JSON: ${message}`);
       } else {
         setJsonFeedback(`Import failed: ${message}`);
+      }
+      // V1BS — emit rejected event; raw err message dropped, only short code.
+      if (onEvidenceImportEvent) {
+        const eventKind =
+          importMode === "replace"
+            ? "json_replace"
+            : importMode === "append"
+              ? "json_append"
+              : "json_merge";
+        onEvidenceImportEvent(
+          eventFromFailure(
+            eventKind,
+            isParseError ? "parse_error" : "import_failed",
+            environmentId,
+            new Date().toISOString(),
+          ),
+        );
       }
     } finally {
       setJsonIsLoading(false);
@@ -170,6 +212,14 @@ function EvidenceImportPanel({
         `Parsed: ${result.parsed_entries_total} · Accepted: ${result.accepted_evidence_count} · Rejected: ${result.rejected_count} · Unresolved: ${result.unresolved_count} · Stored: ${result.stored_evidence_count}`,
       );
 
+      // V1BS — emit sanitized event upward (counts only; rejected_entries dropped).
+      if (onEvidenceImportEvent) {
+        const eventKind = rawSourceKind === "cdp" ? "raw_cdp" : "raw_lldp";
+        onEvidenceImportEvent(
+          eventFromRawNeighborResult(eventKind, result, environmentId, new Date().toISOString()),
+        );
+      }
+
       // Auto-refresh summary after successful import
       if (onFetchEvidenceSummary) {
         try {
@@ -181,6 +231,13 @@ function EvidenceImportPanel({
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setRawFeedback(`Import failed: ${message}`);
+      // V1BS — emit rejected event; raw err message dropped.
+      if (onEvidenceImportEvent) {
+        const eventKind = rawSourceKind === "cdp" ? "raw_cdp" : "raw_lldp";
+        onEvidenceImportEvent(
+          eventFromFailure(eventKind, "import_failed", environmentId, new Date().toISOString()),
+        );
+      }
     } finally {
       setRawIsLoading(false);
     }
@@ -204,6 +261,19 @@ function EvidenceImportPanel({
       );
       setClearConfirmed(false);
 
+      // V1BS — emit sanitized clear event (counts only, attempts not incremented).
+      if (onEvidenceImportEvent) {
+        onEvidenceImportEvent({
+          kind: "clear",
+          status: "accepted",
+          accepted_count: 0,
+          rejected_count: 0,
+          reason_code: null,
+          timestamp: new Date().toISOString(),
+          source_label: environmentId,
+        });
+      }
+
       // Auto-refresh summary after successful clear
       if (onFetchEvidenceSummary) {
         try {
@@ -215,6 +285,12 @@ function EvidenceImportPanel({
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setClearFeedback(`Clear failed: ${message}`);
+      // V1BS — emit failure event for clear attempt.
+      if (onEvidenceImportEvent) {
+        onEvidenceImportEvent(
+          eventFromFailure("clear", "clear_failed", environmentId, new Date().toISOString()),
+        );
+      }
     }
   };
 
@@ -1133,6 +1209,7 @@ export function TopologyMode({
   evidenceSummary,
   lastMutation,
   onPlanLiveCollection,
+  onEvidenceImportEvent,
 }: TopologyModeProps): JSX.Element {
   const [activeToolId, setActiveToolId] = useState<string>("graph_map");
 
@@ -1188,6 +1265,7 @@ export function TopologyMode({
             onFetchEvidenceSummary={onFetchEvidenceSummary}
             evidenceSummary={evidenceSummary}
             lastMutation={lastMutation}
+            onEvidenceImportEvent={onEvidenceImportEvent}
           />
           <LiveCollectionDryRunPanel
             environmentId={topology.environmentId}
@@ -1245,6 +1323,7 @@ export function TopologyMode({
             onFetchEvidenceSummary={onFetchEvidenceSummary}
             evidenceSummary={evidenceSummary}
             lastMutation={lastMutation}
+            onEvidenceImportEvent={onEvidenceImportEvent}
           />
 
           <LiveCollectionDryRunPanel
