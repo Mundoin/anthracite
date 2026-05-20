@@ -146,4 +146,51 @@ describe("AssessPipelinePlannerPanel prefill", () => {
     const prefillNote = screen.getByTestId("assess-counts-prefilled-note");
     expect(prefillNote).toBeInTheDocument();
   });
+
+  it("V1BP: with initialCounts known_platforms=1 (intake context) → input shows 1, prefilled-note visible", () => {
+    const initialCounts: AssessProfileCounts = {
+      seed_count: 0,
+      expected_devices: 0,
+      known_platforms: 1,
+    };
+
+    render(<AssessPipelinePlannerPanel initialCounts={initialCounts} />);
+
+    const knownPlatformsInput = screen.getByLabelText(
+      "Known Platforms",
+    ) as HTMLInputElement;
+    expect(knownPlatformsInput.value).toBe("1");
+
+    const prefillNote = screen.getByTestId("assess-counts-prefilled-note");
+    expect(prefillNote).toBeInTheDocument();
+    expect(prefillNote.textContent).toBe(
+      "Pre-filled from local workbench context. Override any value below.",
+    );
+  });
+
+  it("V1BP: prefilled known_platforms=1 from intake, operator overrides to 5", () => {
+    const initialCounts: AssessProfileCounts = {
+      seed_count: 0,
+      expected_devices: 0,
+      known_platforms: 1,
+    };
+
+    render(<AssessPipelinePlannerPanel initialCounts={initialCounts} />);
+
+    const knownPlatformsInput = screen.getByLabelText(
+      "Known Platforms",
+    ) as HTMLInputElement;
+    expect(knownPlatformsInput.value).toBe("1");
+
+    // Operator overrides to 5
+    fireEvent.change(knownPlatformsInput, { target: { value: "5" } });
+
+    const updatedInput = screen.getByLabelText(
+      "Known Platforms",
+    ) as HTMLInputElement;
+    expect(updatedInput.value).toBe("5");
+
+    // Verify panel still renders with updated value
+    expect(screen.getByText("Markdown Preview")).toBeInTheDocument();
+  });
 });

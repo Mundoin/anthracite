@@ -317,9 +317,12 @@ export default function App(): JSX.Element {
     evidence_import_count: 0, // honest: no app-level evidence tracking yet
     topology_node_count: workbenchContextSummary.topology.node_count,
     topology_edge_count: workbenchContextSummary.topology.edge_count,
+    intake_parsed_device_count: workbenchContextSummary.intake.parsed_device_count,
+    intake_finding_count: workbenchContextSummary.intake.finding_count,
+    intake_current_platform_id: workbenchContextSummary.intake.current_platform_id,
   }), [workbenchContextSummary]);
 
-  // V1BO — derive Assess pipeline planner initial counts from Discovery planning state + Topology.
+  // V1BP — derive Assess pipeline planner initial counts from Discovery planning state + Topology + Intake context.
   // Must live above all mode-branch early returns (Rules of Hooks).
   const assessInitialCounts: AssessProfileCounts = useMemo(() => ({
     seed_count: discoveryPlanningSummary.staged_seed_count,
@@ -328,10 +331,10 @@ export default function App(): JSX.Element {
     expected_devices: topology.nodeCount > 0
       ? topology.nodeCount
       : discoveryPlanningSummary.total_seed_count,
-    // known_platforms: no app-level distinct platform projection yet;
-    // leave at 0 (operator override).
-    known_platforms: 0,
-  }), [discoveryPlanningSummary, topology]);
+    // known_platforms: prefill from intake.current_platform_id when available;
+    // otherwise 0. Operator can override post-mount.
+    known_platforms: workbenchContextSummary.intake.current_platform_id !== null ? 1 : 0,
+  }), [discoveryPlanningSummary, topology, workbenchContextSummary]);
 
   if (activeMode === "opsConsole") {
     return (
@@ -575,7 +578,7 @@ export default function App(): JSX.Element {
           source={view.sourceStateByBlock.rows}
         />
       ) : detailSegment === "devices" ? (
-        <HierarchyMode discovery={discovery} />
+        <HierarchyMode discovery={discovery} intakeSummary={intakeSummary} />
       ) : (
         <EnvironmentDetailD2
           kpis={detailKpis}

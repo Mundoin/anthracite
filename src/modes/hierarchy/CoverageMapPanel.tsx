@@ -10,14 +10,17 @@
 
 import { useMemo } from "react";
 import type { DiscoverySourceView } from "../../data/discoverySource";
+import type { WorkbenchIntakeSummary } from "../../state/workbenchContextSummary";
 import { buildCoverageMap } from "./coverageMap";
 import { DataSourceTag } from "../../components/shell/DataSourceTag";
 import "./CoverageMapPanel.css";
 
 export function CoverageMapPanel({
   discovery,
+  intakeSummary,
 }: {
   discovery: DiscoverySourceView;
+  intakeSummary?: WorkbenchIntakeSummary;
 }): JSX.Element {
   const records = discovery.view?.records ?? [];
 
@@ -153,6 +156,47 @@ export function CoverageMapPanel({
           </tbody>
         </table>
       </section>
+
+      {/* Intake Source */}
+      {intakeSummary && (
+        intakeSummary.current_platform_id !== null ||
+        intakeSummary.parsed_device_count > 0 ||
+        intakeSummary.finding_count > 0
+      ) ? (
+        <section className="cov-map__section" data-testid="coverage-intake-source">
+          <div className="cov-map__section-header">
+            <h3 className="cov-map__section-title">Intake Source</h3>
+          </div>
+          <table className="cov-map__table">
+            <tbody>
+              <tr>
+                <td className="cov-map__cell cov-map__cell--key">Current platform</td>
+                <td className="cov-map__cell" data-testid="coverage-intake-platform">
+                  {intakeSummary.current_platform_id ?? "—"}
+                </td>
+              </tr>
+              <tr>
+                <td className="cov-map__cell cov-map__cell--key">Parse status</td>
+                <td className="cov-map__cell" data-testid="coverage-intake-status">
+                  {intakeSummary.parse_status}
+                </td>
+              </tr>
+              <tr>
+                <td className="cov-map__cell cov-map__cell--key">Parsed devices</td>
+                <td className="cov-map__cell cov-map__cell--count" data-testid="coverage-intake-devices">
+                  {intakeSummary.parsed_device_count}
+                </td>
+              </tr>
+              <tr>
+                <td className="cov-map__cell cov-map__cell--key">Findings</td>
+                <td className="cov-map__cell cov-map__cell--count" data-testid="coverage-intake-findings">
+                  {intakeSummary.finding_count}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      ) : null}
     </div>
   );
 }

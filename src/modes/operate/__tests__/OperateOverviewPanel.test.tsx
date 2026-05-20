@@ -152,7 +152,7 @@ describe("OperateOverviewPanel", () => {
     expect(text).not.toMatch(/\bLibrary\b/i);
   });
 
-  it("metrics section renders with 5 metrics", () => {
+  it("metrics section renders with 6 metrics", () => {
     render(
       <OperateOverviewPanel clock={mockClock} />
     );
@@ -162,6 +162,7 @@ describe("OperateOverviewPanel", () => {
     expect(screen.getByTestId("operate-metric-preview_frontier")).toBeInTheDocument();
     expect(screen.getByTestId("operate-metric-evidence_imports")).toBeInTheDocument();
     expect(screen.getByTestId("operate-metric-topology_nodes")).toBeInTheDocument();
+    expect(screen.getByTestId("operate-metric-intake_parsed")).toBeInTheDocument();
     expect(screen.getByTestId("operate-metric-active_incidents")).toBeInTheDocument();
   });
 

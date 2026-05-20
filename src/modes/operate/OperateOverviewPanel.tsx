@@ -56,6 +56,9 @@ export function OperateOverviewPanel({
     evidence_import_count: 0,
     topology_node_count: 0,
     topology_edge_count: 0,
+    intake_parsed_device_count: 0,
+    intake_finding_count: 0,
+    intake_current_platform_id: null,
   };
 
   const [copied, setCopied] = useState(false);
@@ -124,6 +127,22 @@ export function OperateOverviewPanel({
           ))}
         </div>
       </section>
+
+      {/* ── Intake Context Row ──────────────────────────────────── */}
+      {(inputs.intake_current_platform_id !== null || (inputs.intake_finding_count ?? 0) > 0 || (inputs.intake_parsed_device_count ?? 0) > 0) && (
+        <section className="op-overview-intake-context" data-testid="operate-intake-context">
+          <p>
+            Intake context: platform=
+            <span className="op-overview-intake-platform">
+              {inputs.intake_current_platform_id ?? "—"}
+            </span>
+            {" "}· findings=
+            <span className="op-overview-intake-findings">
+              {inputs.intake_finding_count ?? 0}
+            </span>
+          </p>
+        </section>
+      )}
 
       {/* ── Next Action Callout ────────────────────────────────── */}
       <section className="op-overview-next-action" data-testid="operate-overview-next-action">

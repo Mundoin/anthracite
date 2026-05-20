@@ -77,15 +77,16 @@ describe("operateOverview — readiness priority", () => {
 });
 
 describe("operateOverview — metrics", () => {
-  it("always exactly 5 metrics", () => {
+  it("always exactly 6 metrics", () => {
     const summary = buildOperateOverview(inputs(), T);
-    expect(summary.metrics).toHaveLength(5);
+    expect(summary.metrics).toHaveLength(6);
     const ids = summary.metrics.map((m) => m.id);
     expect(ids).toEqual([
       "staged_seeds",
       "preview_frontier",
       "evidence_imports",
       "topology_nodes",
+      "intake_parsed",
       "active_incidents",
     ]);
   });

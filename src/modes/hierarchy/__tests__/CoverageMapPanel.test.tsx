@@ -4,6 +4,8 @@ import { CoverageMapPanel } from "../CoverageMapPanel";
 import type { DiscoverySourceView } from "../../../data/discoverySource";
 import type { DiscoveryDeviceRecord } from "../../../types/discovery";
 import type { DeviceModel } from "../../../types/networkModel";
+import type { WorkbenchIntakeSummary } from "../../../state/workbenchContextSummary";
+import { EMPTY_WORKBENCH_INTAKE_SUMMARY } from "../../../state/workbenchContextSummary";
 
 function makeDeviceModel(over: {
   hostname?: string | null;
@@ -318,5 +320,127 @@ describe("CoverageMapPanel", () => {
     // The (unknown) vendor cell should have cov-map__cell--unknown class
     const cells = container.querySelectorAll(".cov-map__cell--unknown");
     expect(cells.length).toBeGreaterThan(0);
+  });
+
+  it("does not render coverage-intake-source when no intakeSummary prop", () => {
+    const records = [makeRecord("r1", "env1", { hostname: "device-1" })];
+    render(<CoverageMapPanel discovery={makeView(records)} />);
+    expect(screen.queryByTestId("coverage-intake-source")).toBeNull();
+  });
+
+  it("does not render coverage-intake-source when intakeSummary is EMPTY (all defaults)", () => {
+    const records = [makeRecord("r1", "env1", { hostname: "device-1" })];
+    render(
+      <CoverageMapPanel
+        discovery={makeView(records)}
+        intakeSummary={EMPTY_WORKBENCH_INTAKE_SUMMARY}
+      />,
+    );
+    expect(screen.queryByTestId("coverage-intake-source")).toBeNull();
+  });
+
+  it("renders coverage-intake-source when intakeSummary has populated current_platform_id", () => {
+    const records = [makeRecord("r1", "env1", { hostname: "device-1" })];
+    const intakeSummary: WorkbenchIntakeSummary = {
+      current_platform_id: "iosxe",
+      parse_status: "parsed",
+      parsed_device_count: 3,
+      finding_count: 1,
+    };
+    render(
+      <CoverageMapPanel
+        discovery={makeView(records)}
+        intakeSummary={intakeSummary}
+      />,
+    );
+
+    const section = screen.getByTestId("coverage-intake-source");
+    expect(section).toBeInTheDocument();
+    expect(within(section).getByText("Intake Source")).toBeInTheDocument();
+
+    // Verify all four cells render with correct content
+    expect(screen.getByTestId("coverage-intake-platform")).toHaveTextContent("iosxe");
+    expect(screen.getByTestId("coverage-intake-status")).toHaveTextContent("parsed");
+    expect(screen.getByTestId("coverage-intake-devices")).toHaveTextContent("3");
+    expect(screen.getByTestId("coverage-intake-findings")).toHaveTextContent("1");
+  });
+
+  it("renders coverage-intake-source when only parsed_device_count > 0", () => {
+    const records = [makeRecord("r1", "env1", { hostname: "device-1" })];
+    const intakeSummary: WorkbenchIntakeSummary = {
+      current_platform_id: null,
+      parse_status: "idle",
+      parsed_device_count: 5,
+      finding_count: 0,
+    };
+    render(
+      <CoverageMapPanel
+        discovery={makeView(records)}
+        intakeSummary={intakeSummary}
+      />,
+    );
+
+    const section = screen.getByTestId("coverage-intake-source");
+    expect(section).toBeInTheDocument();
+    expect(screen.getByTestId("coverage-intake-platform")).toHaveTextContent("—");
+    expect(screen.getByTestId("coverage-intake-devices")).toHaveTextContent("5");
+  });
+
+  it("renders coverage-intake-source when only finding_count > 0", () => {
+    const records = [makeRecord("r1", "env1", { hostname: "device-1" })];
+    const intakeSummary: WorkbenchIntakeSummary = {
+      current_platform_id: null,
+      parse_status: "idle",
+      parsed_device_count: 0,
+      finding_count: 2,
+    };
+    render(
+      <CoverageMapPanel
+        discovery={makeView(records)}
+        intakeSummary={intakeSummary}
+      />,
+    );
+
+    const section = screen.getByTestId("coverage-intake-source");
+    expect(section).toBeInTheDocument();
+    expect(screen.getByTestId("coverage-intake-findings")).toHaveTextContent("2");
+  });
+
+  it("does not render coverage-intake-source in empty records state even with populated intakeSummary", () => {
+    const intakeSummary: WorkbenchIntakeSummary = {
+      current_platform_id: "iosxe",
+      parse_status: "parsed",
+      parsed_device_count: 3,
+      finding_count: 1,
+    };
+    render(
+      <CoverageMapPanel
+        discovery={makeView([])}
+        intakeSummary={intakeSummary}
+      />,
+    );
+
+    // Empty records path renders coverage-empty, not coverage-intake-source
+    expect(screen.getByTestId("coverage-empty")).toBeInTheDocument();
+    expect(screen.queryByTestId("coverage-intake-source")).toBeNull();
+  });
+
+  it("does not render coverage-intake-source in unavailable state even with populated intakeSummary", () => {
+    const intakeSummary: WorkbenchIntakeSummary = {
+      current_platform_id: "iosxe",
+      parse_status: "parsed",
+      parsed_device_count: 3,
+      finding_count: 1,
+    };
+    render(
+      <CoverageMapPanel
+        discovery={makeUnavailable()}
+        intakeSummary={intakeSummary}
+      />,
+    );
+
+    // Unavailable state renders coverage-unavailable, not coverage-intake-source
+    expect(screen.getByTestId("coverage-unavailable")).toBeInTheDocument();
+    expect(screen.queryByTestId("coverage-intake-source")).toBeNull();
   });
 });

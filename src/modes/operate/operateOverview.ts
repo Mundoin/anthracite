@@ -55,6 +55,10 @@ export interface OperateOverviewInputs {
   readonly evidence_import_count: number; // 0 if no imports
   readonly topology_node_count: number; // 0 if no topology
   readonly topology_edge_count: number;
+  // V1BP — local intake context (counts/label only; no engine, no live).
+  readonly intake_parsed_device_count?: number;
+  readonly intake_finding_count?: number;
+  readonly intake_current_platform_id?: string | null;
 }
 
 export interface OperateOverviewSummary {
@@ -138,7 +142,7 @@ function resolveNextAction(readiness: OperateReadiness): OperateNextAction {
 }
 
 /**
- * Build metrics array (always 5 entries).
+ * Build metrics array (always 6 entries).
  */
 function buildMetrics(inputs: OperateOverviewInputs): ReadonlyArray<OperateMetric> {
   return [
@@ -165,6 +169,12 @@ function buildMetrics(inputs: OperateOverviewInputs): ReadonlyArray<OperateMetri
       label: "Topology nodes",
       value: inputs.topology_node_count > 0 ? inputs.topology_node_count.toString() : "—",
       sub: inputs.topology_node_count > 0 ? "nodes" : "unavailable",
+    },
+    {
+      id: "intake_parsed",
+      label: "Parsed configs",
+      value: ((inputs.intake_parsed_device_count ?? 0) > 0) ? (inputs.intake_parsed_device_count ?? 0).toString() : "0",
+      sub: ((inputs.intake_parsed_device_count ?? 0) > 0) ? "local intake" : "no parses yet",
     },
     {
       id: "active_incidents",

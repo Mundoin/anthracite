@@ -12,6 +12,7 @@
 import { useState, type ReactNode } from "react";
 import "./HierarchyMode.css";
 import type { DiscoverySourceView } from "../../data/discoverySource";
+import type { WorkbenchIntakeSummary } from "../../state/workbenchContextSummary";
 import { InventoryBrowser } from "./InventoryBrowser";
 import { CoverageMapPanel } from "./CoverageMapPanel";
 import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
@@ -19,9 +20,10 @@ import type { ModeTool } from "../../components/workbench/types";
 
 export interface HierarchyModeProps {
   discovery: DiscoverySourceView;
+  intakeSummary?: WorkbenchIntakeSummary;
 }
 
-export function HierarchyMode({ discovery }: HierarchyModeProps): JSX.Element {
+export function HierarchyMode({ discovery, intakeSummary }: HierarchyModeProps): JSX.Element {
   const [activeToolId, setActiveToolId] = useState<string>("inventory");
 
   const renderInventory = (): ReactNode => (
@@ -29,7 +31,7 @@ export function HierarchyMode({ discovery }: HierarchyModeProps): JSX.Element {
   );
 
   const renderCoverageMap = (): ReactNode => (
-    <CoverageMapPanel discovery={discovery} />
+    <CoverageMapPanel discovery={discovery} intakeSummary={intakeSummary} />
   );
 
   const tools: ModeTool[] = [
