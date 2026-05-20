@@ -1,0 +1,272 @@
+/**
+ * V1BL — FieldReceiptsPanel styles.
+ */
+
+.field-receipts-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  color: #e8e8e8;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.frp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.frp-body--empty {
+  padding: 2rem;
+  text-align: center;
+  background: rgba(50, 50, 50, 0.4);
+  border-radius: 4px;
+  border: 1px solid rgba(100, 100, 100, 0.3);
+}
+
+.frp-body--empty p {
+  margin: 0;
+  color: #b0b0b0;
+}
+
+.frp-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(35, 35, 35, 0.6);
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid rgba(80, 80, 80, 0.5);
+}
+
+.frp-filter {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.frp-filter legend {
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #d0d0d0;
+}
+
+.frp-filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.frp-filter-btn {
+  padding: 0.4rem 0.75rem;
+  background: rgba(50, 50, 50, 0.6);
+  color: #a8a8a8;
+  border: 1px solid rgba(80, 80, 80, 0.4);
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: capitalize;
+}
+
+.frp-filter-btn:hover {
+  background: rgba(60, 60, 60, 0.7);
+  color: #c8c8c8;
+}
+
+.frp-filter-btn--active {
+  background: rgba(80, 100, 200, 0.4);
+  color: #b0d0ff;
+  border-color: rgba(80, 100, 200, 0.6);
+}
+
+.frp-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.frp-clear-btn {
+  padding: 0.5rem 1rem;
+  background: rgba(200, 80, 80, 0.2);
+  color: #e8a8a8;
+  border: 1px solid rgba(200, 80, 80, 0.4);
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.frp-clear-btn:hover:not(:disabled) {
+  background: rgba(220, 100, 100, 0.3);
+  border-color: rgba(220, 100, 100, 0.5);
+}
+
+.frp-clear-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.frp-no-entries {
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(50, 50, 50, 0.3);
+  border-radius: 4px;
+  border: 1px dashed rgba(100, 100, 100, 0.3);
+}
+
+.frp-no-entries p {
+  margin: 0;
+  color: #a0a0a0;
+  font-size: 13px;
+}
+
+.frp-wiring-note {
+  font-size: 12px;
+  color: #808080;
+  margin-top: 0.5rem;
+}
+
+.frp-entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.frp-entry {
+  background: rgba(35, 35, 35, 0.6);
+  border: 1px solid rgba(80, 80, 80, 0.5);
+  border-radius: 4px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.frp-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.frp-kind-chip {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: rgba(80, 100, 200, 0.3);
+  color: #b0d0ff;
+  border: 1px solid rgba(80, 100, 200, 0.5);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.frp-label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: #d8d8d8;
+}
+
+.frp-timestamp {
+  font-size: 11px;
+  color: #808080;
+  font-family: "Monaco", "Courier New", monospace;
+}
+
+.frp-entry-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.frp-summary {
+  margin: 0;
+  font-size: 13px;
+  color: #b8b8b8;
+}
+
+.frp-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 12px;
+  color: #909090;
+}
+
+.frp-counts span {
+  display: flex;
+  align-items: center;
+}
+
+.frp-entry-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.frp-entry-actions button {
+  padding: 0.4rem 0.75rem;
+  background: rgba(80, 150, 200, 0.2);
+  color: #a0d8ff;
+  border: 1px solid rgba(80, 150, 200, 0.4);
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.frp-entry-actions button:hover {
+  background: rgba(100, 170, 220, 0.3);
+  border-color: rgba(100, 170, 220, 0.5);
+}
+
+.frp-all-history {
+  background: rgba(35, 35, 35, 0.6);
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid rgba(80, 80, 80, 0.5);
+  cursor: pointer;
+}
+
+.frp-all-history summary {
+  user-select: none;
+  color: #a8d8e8;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+}
+
+.frp-all-history summary:hover {
+  color: #c8e8ff;
+}
+
+.frp-all-history summary::-webkit-details-marker {
+  color: #a8d8e8;
+}
+
+.frp-history-md {
+  margin: 0.75rem 0 0 0;
+  padding: 0.75rem;
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid rgba(80, 80, 80, 0.4);
+  border-radius: 2px;
+  font-family: "Monaco", "Courier New", monospace;
+  font-size: 12px;
+  color: #80d0b0;
+  overflow-x: auto;
+  line-height: 1.4;
+  max-height: 400px;
+  overflow-y: auto;
+}

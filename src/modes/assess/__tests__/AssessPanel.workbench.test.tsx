@@ -75,12 +75,11 @@ describe("AssessPanel — ModeWorkbenchShell integration", () => {
     expect(screen.getByRole("tab", { name: /Evidence.*Receipts/i })).toBeInTheDocument();
   });
 
-  it("clicking pipeline shows deferred state with planned inputs including Rule pack", async () => {
+  it("clicking pipeline renders assess-pipeline-planner panel", async () => {
     render(<AssessPanel loader={dummyLoader()} />);
     const pipelineBtn = screen.getByTestId("mwb-tool-pipeline");
     await userEvent.click(pipelineBtn);
-    expect(screen.getByTestId("mwb-deferred-pipeline")).toBeInTheDocument();
-    expect(screen.getByText(/Rule pack/)).toBeInTheDocument();
+    expect(screen.getByTestId("assess-pipeline-planner")).toBeInTheDocument();
   });
 
   it("clicking report_export shows deferred state with planned controls including Executive summary", async () => {

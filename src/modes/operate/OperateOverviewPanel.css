@@ -1,0 +1,336 @@
+/* V1BL — Operate Overview Panel.
+ * Doctrine tokens; matches Discovery / Topology workbench idiom. */
+
+.op-overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--anth-gap-section);
+  padding: 12px 16px 24px;
+}
+
+.op-overview-section-title {
+  margin: 0 0 6px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+}
+
+/* ── Readiness Chip ──────────────────────────────────────── */
+
+.op-overview-readiness-section {
+  display: flex;
+  gap: 8px;
+}
+
+.op-overview-readiness {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: var(--anth-r-md);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.op-overview-readiness--idle {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-3);
+  border-color: var(--anth-border);
+}
+
+.op-overview-readiness--info {
+  background: var(--anth-info-tint);
+  color: var(--anth-info-ink);
+  border-color: var(--anth-info);
+}
+
+.op-overview-readiness--ok {
+  background: var(--anth-ok-tint);
+  color: var(--anth-ok-ink);
+  border-color: var(--anth-ok);
+}
+
+/* ── Metric Strip ────────────────────────────────────────── */
+
+.op-overview-metrics {
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  padding: 10px 12px;
+  border-left: 2px solid var(--anth-info);
+}
+
+.op-overview-metric-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.op-overview-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.op-overview-metric-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+}
+
+.op-overview-metric-value {
+  font-family: var(--anth-font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--anth-text);
+}
+
+.op-overview-metric-sub {
+  font-size: 10px;
+  color: var(--anth-text-2);
+}
+
+/* ── Next Action Callout ────────────────────────────────── */
+
+.op-overview-next-action {
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  padding: 10px 12px;
+  border-left: 2px solid var(--anth-warn);
+}
+
+.op-overview-callout {
+  background: var(--anth-warn-tint);
+  border: 1px solid var(--anth-warn);
+  border-radius: var(--anth-r-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.op-overview-callout-title {
+  font-family: var(--anth-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--anth-warn-ink);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.op-overview-callout-text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--anth-text);
+}
+
+/* ── Lanes Table ────────────────────────────────────────── */
+
+.op-overview-lanes {
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  padding: 10px 12px;
+  border-left: 2px solid var(--anth-info);
+}
+
+.op-overview-table-wrapper {
+  overflow-x: auto;
+}
+
+.op-overview-lanes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--anth-font-ui);
+}
+
+.op-overview-lanes-table thead {
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.op-overview-lanes-table thead th {
+  text-align: left;
+  padding: 8px 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+  border: none;
+}
+
+.op-overview-lanes-table tbody tr {
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.op-overview-lanes-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.op-overview-lanes-table td {
+  padding: 8px 0;
+  vertical-align: top;
+}
+
+.op-overview-lane-label {
+  color: var(--anth-text);
+  font-weight: 600;
+  padding-right: 12px;
+}
+
+.op-overview-lane-status {
+  padding-right: 12px;
+}
+
+.op-overview-status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: var(--anth-r-sm);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.op-overview-status-chip--available {
+  background: var(--anth-ok-tint);
+  color: var(--anth-ok-ink);
+  border-color: var(--anth-ok);
+}
+
+.op-overview-status-chip--preview {
+  background: var(--anth-info-tint);
+  color: var(--anth-info-ink);
+  border-color: var(--anth-info);
+}
+
+.op-overview-status-chip--deferred {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-3);
+  border-color: var(--anth-border);
+}
+
+.op-overview-status-chip--blocked {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-3);
+  border-color: var(--anth-border);
+}
+
+.op-overview-lane-note {
+  color: var(--anth-text-2);
+  font-size: 11px;
+}
+
+/* ── Copy Button ────────────────────────────────────────── */
+
+.op-overview-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.op-overview-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 12px;
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-md);
+  background: var(--anth-bg-panel);
+  color: var(--anth-text);
+  font-family: var(--anth-font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.op-overview-btn:hover {
+  border-color: var(--anth-border-focus);
+  box-shadow: 0 0 0 2px var(--anth-info-tint);
+}
+
+.op-overview-btn:active {
+  opacity: 0.8;
+}
+
+.op-overview-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Markdown Preview ────────────────────────────────────── */
+
+.op-overview-markdown-preview {
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  padding: 0;
+  border-left: 2px solid var(--anth-border);
+}
+
+.op-overview-preview-summary {
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-3);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.op-overview-preview-summary::-webkit-details-marker {
+  display: none;
+}
+
+.op-overview-preview-summary::before {
+  content: "▶ ";
+  color: var(--anth-text-3);
+  margin-right: 4px;
+  transition: transform 0.15s ease-out;
+}
+
+.op-overview-markdown-preview[open] .op-overview-preview-summary::before {
+  transform: rotate(90deg);
+}
+
+.op-overview-markdown-code {
+  margin: 0;
+  padding: 10px 12px;
+  border-top: 1px solid var(--anth-border);
+  background: var(--anth-bg-sunken);
+  font-family: var(--anth-font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--anth-text-2);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* ── Honesty Footer ──────────────────────────────────────── */
+
+.op-overview-footer {
+  padding: 10px 12px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  border-left: 2px solid var(--anth-border);
+  font-size: 11px;
+  color: var(--anth-text-2);
+  line-height: 1.5;
+}
+
+.op-overview-footer p {
+  margin: 0;
+}

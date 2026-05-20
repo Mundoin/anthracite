@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { useState } from "react";
 import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
 import type { ModeTool } from "../../components/workbench/types";
+import { OperateOverviewPanel } from "./OperateOverviewPanel";
 import "./OperateMode.css";
 
 export function OperateMode(): JSX.Element {
@@ -10,23 +11,14 @@ export function OperateMode(): JSX.Element {
   const tools: ModeTool[] = [
     {
       id: "live_overview",
-      kind: "deferred",
+      kind: "live",
       label: "Live Overview",
       description:
-        "War Room overview — per-environment reachability, health, recent events, polling status.",
+        "Local War Room readiness — staged seeds, preview frontier, evidence/topology summary. No live polling.",
       group: "primary",
-      status: "deferred",
+      status: "available",
       role: "engine_analysis",
-      deferred: {
-        reason:
-          "War Room overview — per-environment reachability, health, recent events, polling status. Mini-map shows full network; context panel drills into selected device. Session indicator (LIVE / SYNTHETIC / REPLAY). No live polling in this pass; no fabricated data.",
-        planned_controls: [
-          "Poll interval (1s to 60s)",
-          "Metric selector (CPU / memory / traffic / uptime)",
-          "Device filter (site / role / vendor)",
-          "Session mode indicator",
-        ],
-      },
+      render: () => <OperateOverviewPanel />,
     },
     {
       id: "topology_operations",

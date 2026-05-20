@@ -15,7 +15,8 @@ describe("OperateMode workbench", () => {
     const activeStatus = screen.getByTestId("mode-workbench-active-status");
     expect(activeStatus).toBeInTheDocument();
     const activeBody = screen.getByTestId("mode-workbench-body");
-    expect(activeBody.textContent).toContain("War Room overview");
+    // live_overview now renders OperateOverviewPanel
+    expect(activeBody.querySelector('[data-testid="operate-overview"]')).toBeInTheDocument();
   });
 
   it("exposes all 6 tools on rail", () => {
@@ -38,10 +39,14 @@ describe("OperateMode workbench", () => {
     ]);
   });
 
-  it("live_overview shows planned control 'Poll interval (1s to 60s)'", () => {
+  it("live_overview renders operate-overview panel", () => {
     render(<OperateMode />);
-    const activeBody = screen.getByTestId("mode-workbench-body");
-    expect(activeBody.textContent).toContain("Poll interval (1s to 60s)");
+    const panel = screen.getByTestId("operate-overview");
+    expect(panel).toBeInTheDocument();
+    // Verify it's showing the readiness summary (no forbidden labels)
+    const panelText = panel.textContent || "";
+    expect(panelText).not.toMatch(/Forge/i);
+    expect(panelText).not.toMatch(/Intelligence/i);
   });
 
   it("topology_operations renders route hint 'Topology → Graph / Map'", async () => {

@@ -87,7 +87,7 @@ describe("DiscoveryMode — workbench (V1BH)", () => {
     ).toBe("available");
     expect(
       screen.getByTestId("mwb-tool-recursive_crawl").getAttribute("data-tool-status"),
-    ).toBe("deferred");
+    ).toBe("preview");
     expect(
       screen.getByTestId("mwb-tool-import_evidence").getAttribute("data-tool-status"),
     ).toBe("preview");
@@ -107,12 +107,14 @@ describe("DiscoveryMode — workbench (V1BH)", () => {
     expect(screen.queryByTestId("dx-form")).toBeNull();
   });
 
-  it("Recursive Crawl renders planned controls list", async () => {
+  it("Recursive Crawl renders live CrawlPreviewPanel", async () => {
     const user = userEvent.setup();
     render(<DiscoveryMode api={makeApi()} clock={FIXED_CLOCK} />);
     await user.click(screen.getByTestId("mwb-tool-recursive_crawl"));
-    expect(screen.getByText("Max depth")).toBeInTheDocument();
-    expect(screen.getByText(/Allowlist \/ denylist/i)).toBeInTheDocument();
+    // V1BL: recursive_crawl is now live with CrawlPreviewPanel (not deferred)
+    expect(screen.getByTestId("crawl-preview-panel")).toBeInTheDocument();
+    // When no seeds are staged, shows empty state. This is expected behavior.
+    expect(screen.getByTestId("cp-empty")).toBeInTheDocument();
   });
 
   it("Import / Evidence shows route hint to Topology", async () => {

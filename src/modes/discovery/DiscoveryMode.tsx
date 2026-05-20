@@ -57,6 +57,15 @@ import {
   buildSshFieldValidationPack,
   toValidationPackMarkdown,
 } from "./sshFieldValidationPack";
+import {
+  emptyHistory,
+  addHistoryEntry,
+  type DiscoveryRunHistory,
+  type HistoryEntry,
+} from "./discoveryRunHistory";
+import { CrawlPreviewPanel } from "./CrawlPreviewPanel";
+import { FieldReceiptsPanel } from "./FieldReceiptsPanel";
+import type { SeedEntry } from "./seedPlanner";
 import "./DiscoveryMode.css";
 
 export interface DiscoveryClock {
@@ -197,6 +206,19 @@ export function DiscoveryMode({
   const [receiptCopied, setReceiptCopied] = useState<"none" | "markdown" | "json">("none");
   const [validationPackCopied, setValidationPackCopied] = useState(false);
   const [activeToolId, setActiveToolId] = useState<string>("target_capture");
+
+  // V1BL — discovery history state (seeds + artifacts).
+  // Hoisted from SeedPlannerPanel so CrawlPreviewPanel can read seeds.
+  const [seeds, setSeeds] = useState<ReadonlyArray<SeedEntry>>([]);
+  const [history, setHistory] = useState<DiscoveryRunHistory>(emptyHistory());
+
+  const handleAddHistory = (entry: HistoryEntry): void => {
+    setHistory((h) => addHistoryEntry(h, entry));
+  };
+
+  const handleClearHistory = (): void => {
+    setHistory(emptyHistory());
+  };
 
   // V1BD — server-key pin state.
   // Loaded after each run; cleared when host/port changes.
@@ -1253,28 +1275,29 @@ export function DiscoveryMode({
       group: "discovery",
       status: "available",
       role: "operator_choice",
-      render: () => <SeedPlannerPanel />,
+      render: () => (
+        <SeedPlannerPanel
+          seeds={seeds}
+          onSeedsChange={setSeeds}
+          onAddHistory={handleAddHistory}
+        />
+      ),
     },
     {
       id: "recursive_crawl",
-      kind: "deferred",
+      kind: "live",
       label: "Recursive Crawl",
       description:
-        "Expand from a seed through LLDP / CDP neighbors with explicit stop rules.",
+        "Local crawl preview — what the crawler would attempt given current seeds and options. No device contact, no expansion.",
       group: "discovery",
-      status: "deferred",
+      status: "preview",
       role: "live_collection",
-      deferred: {
-        reason:
-          "Recursive crawler will walk from a seed device, collect neighbor evidence (LLDP / CDP), expand the frontier, and stop when limits are reached. No transport, no crawler engine, no neighbor parsing wired yet.",
-        planned_controls: [
-          "Max depth",
-          "Max nodes",
-          "Allowlist / denylist (subnet, name, vendor)",
-          "Per-vendor read-only command plan",
-          "Stop rules (timeout, evidence quota, error budget)",
-        ],
-      },
+      render: () => (
+        <CrawlPreviewPanel
+          seeds={seeds}
+          onAddHistory={handleAddHistory}
+        />
+      ),
     },
     {
       id: "import_evidence",
@@ -1293,17 +1316,19 @@ export function DiscoveryMode({
     },
     {
       id: "field_receipts",
-      kind: "deferred",
+      kind: "live",
       label: "Field Receipts",
       description:
-        "Inspect, copy, and export sanitised receipts from completed discovery runs.",
+        "Local session history of seed plans, crawl previews, validation packs, and field receipts. In-memory only.",
       group: "validation",
       status: "preview",
       role: "validation",
-      deferred: {
-        reason:
-          "Field receipts and the validation pack are exposed inside Target Capture after a run finishes. A dedicated receipts tool will collocate the validation pack, the field smoke receipt, and copy / export actions across multiple past runs.",
-      },
+      render: () => (
+        <FieldReceiptsPanel
+          history={history}
+          onClear={handleClearHistory}
+        />
+      ),
     },
   ];
 

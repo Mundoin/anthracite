@@ -71,11 +71,26 @@ const SOURCE_KINDS: ReadonlyArray<SeedSourceKind> = [
 ];
 
 export interface SeedPlannerPanelProps {
+  readonly seeds?: ReadonlyArray<SeedEntry>;
+  readonly onSeedsChange?: (seeds: ReadonlyArray<SeedEntry>) => void;
+  readonly onAddHistory?: (entry: {
+    kind: "seed_plan";
+    id: string;
+    label: string;
+    summary: string;
+    markdown: string;
+    created_at: string;
+    source_tool: string;
+    redaction_status: "safe" | "unknown";
+  }) => void;
   readonly clock?: SeedPlannerClock;
   readonly clipboard?: SeedPlannerClipboard;
 }
 
 export function SeedPlannerPanel({
+  seeds: initialSeeds,
+  onSeedsChange,
+  onAddHistory,
   clock = DEFAULT_CLOCK,
   clipboard = DEFAULT_CLIPBOARD,
 }: SeedPlannerPanelProps): JSX.Element {
@@ -85,7 +100,7 @@ export function SeedPlannerPanel({
     _resetSeedIdCounter();
   }, []);
 
-  const [seeds, setSeeds] = useState<ReadonlyArray<SeedEntry>>([]);
+  const [seeds, setSeeds] = useState<ReadonlyArray<SeedEntry>>(initialSeeds ?? []);
 
   const [formHost, setFormHost] = useState("");
   const [formLabel, setFormLabel] = useState("");
@@ -120,7 +135,9 @@ export function SeedPlannerPanel({
       notes: formNotes.trim(),
       enabled: true,
     };
-    setSeeds((current) => [...current, entry]);
+    const newSeeds = [...seeds, entry];
+    setSeeds(newSeeds);
+    if (onSeedsChange) onSeedsChange(newSeeds);
     setFormHost("");
     setFormLabel("");
     setFormCredLabel("");
@@ -128,13 +145,17 @@ export function SeedPlannerPanel({
   };
 
   const handleToggleEnabled = (id: string): void => {
-    setSeeds((current) =>
-      current.map((s) => (s.id === id ? { ...s, enabled: !s.enabled } : s)),
+    const newSeeds = seeds.map((s) =>
+      s.id === id ? { ...s, enabled: !s.enabled } : s,
     );
+    setSeeds(newSeeds);
+    if (onSeedsChange) onSeedsChange(newSeeds);
   };
 
   const handleRemove = (id: string): void => {
-    setSeeds((current) => current.filter((s) => s.id !== id));
+    const newSeeds = seeds.filter((s) => s.id !== id);
+    setSeeds(newSeeds);
+    if (onSeedsChange) onSeedsChange(newSeeds);
   };
 
   const handleCopy = async (): Promise<void> => {
@@ -142,6 +163,20 @@ export function SeedPlannerPanel({
       await clipboard.writeText(markdown);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
+
+      // Notify parent if onAddHistory is provided
+      if (onAddHistory) {
+        onAddHistory({
+          kind: "seed_plan",
+          id: summary.seeds.length > 0 ? summary.seeds[0].id : "plan_0",
+          label: `Seed Plan (${summary.active_count} active)`,
+          summary: `${summary.valid_count} valid, ${summary.invalid_count} invalid, ${summary.disabled_count} disabled`,
+          markdown,
+          created_at: clock.now(),
+          source_tool: "seed_planner",
+          redaction_status: "safe",
+        });
+      }
     } catch {
       // Clipboard write failed — surface visibly without throwing.
       setCopied(false);

@@ -20,6 +20,7 @@ import type { ModeTool } from "../../components/workbench/types";
 import { AssessEmptyState } from "./components/AssessEmptyState";
 import { AssessErrorView } from "./components/AssessErrorView";
 import { AssessLoadedView } from "./components/AssessLoadedView";
+import { AssessPipelinePlannerPanel } from "./AssessPipelinePlannerPanel";
 import { assessReducer } from "./assessReducer";
 import { initialAssessState } from "./assessTypes";
 import { loadBatchRunJson, type LoadResult } from "./loadBatchRunJson";
@@ -109,22 +110,13 @@ export function AssessPanel({
     },
     {
       id: "pipeline",
-      kind: "deferred",
+      kind: "live",
       label: "Run Pipeline",
-      description: "One-button Assessment pipeline: Discovery → SNMP → Config → Compliance → Topology → Anomaly → Report.",
+      description: "Local assessment pipeline planner — Discovery → SNMP → Config Pull → Compliance → Topology → Anomaly → Report. No live execution.",
       group: "primary",
-      status: "deferred",
-      role: "live_collection",
-      deferred: {
-        reason: "Future one-button Assessment pipeline: Discovery → SNMP Poll → Config Pull → Compliance Scan → Topology Map → Anomaly Flag → Report. No live pipeline implementation in this pass.",
-        planned_inputs: [
-          "Seed list",
-          "Credentials profile",
-          "SNMP community / profile",
-          "Rule pack",
-          "Report profile",
-        ],
-      },
+      status: "available",
+      role: "validation",
+      render: () => <AssessPipelinePlannerPanel />,
     },
     {
       id: "compliance",
