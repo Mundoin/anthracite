@@ -18,6 +18,7 @@ import {
 import type { StatusCell, StatusSignal } from "./components/shell/StatusBar";
 import { IntakeMode } from "./modes/intake/IntakeMode";
 import { AssessPanel } from "./modes/assess/AssessPanel";
+import type { AssessProfileCounts } from "./modes/assess/assessPipelinePlanner";
 import { SettingsMode } from "./modes/settings/SettingsMode";
 import { OpsConsoleMode } from "./modes/opsConsole/OpsConsoleMode";
 import {
@@ -55,6 +56,11 @@ import { DiscoveryMode } from "./modes/discovery/DiscoveryMode";
 import { BuildMode } from "./modes/build/BuildMode";
 import { OperateMode } from "./modes/operate/OperateMode";
 import type { OperateOverviewInputs } from "./modes/operate/operateOverview";
+import {
+  buildWorkbenchContextSummary,
+  EMPTY_WORKBENCH_INTAKE_SUMMARY,
+  type WorkbenchIntakeSummary,
+} from "./state/workbenchContextSummary";
 import { planLiveTopologyCollection } from "./api/liveCollection";
 import { HierarchyMode } from "./modes/hierarchy/HierarchyMode";
 import { getHierarchyView } from "./data/hierarchySource";
@@ -122,6 +128,12 @@ export default function App(): JSX.Element {
   const [discoverySeeds, setDiscoverySeeds] = useState<ReadonlyArray<SeedEntry>>([]);
   const [discoveryHistory, setDiscoveryHistory] = useState<DiscoveryRunHistory>(
     emptyHistory(),
+  );
+
+  // V1BO — hoisted Intake summary state. Updated by IntakePanel's
+  // onIntakeStateChange callback and used to build shared WorkbenchContextSummary.
+  const [intakeSummary, setIntakeSummary] = useState<WorkbenchIntakeSummary>(
+    EMPTY_WORKBENCH_INTAKE_SUMMARY,
   );
 
   const fetchDiscovery = useCallback(async (envId: string | null) => {
@@ -288,13 +300,38 @@ export default function App(): JSX.Element {
     () => buildDiscoveryPlanningSummary(discoverySeeds, discoveryHistory),
     [discoverySeeds, discoveryHistory],
   );
+
+  // V1BO — wire real topology counts via shared WorkbenchContextSummary.
+  const workbenchContextSummary = useMemo(
+    () => buildWorkbenchContextSummary({
+      discoveryPlanning: discoveryPlanningSummary,
+      topology,
+      intake: intakeSummary,
+    }),
+    [discoveryPlanningSummary, topology, intakeSummary],
+  );
+
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
-    staged_seed_count: discoveryPlanningSummary.staged_seed_count,
-    crawl_frontier_count: 0, // honest: no preview built at app level in V1BN
+    staged_seed_count: workbenchContextSummary.discovery.seed_count,
+    crawl_frontier_count: 0, // honest: no preview built at app level
     evidence_import_count: 0, // honest: no app-level evidence tracking yet
-    topology_node_count: 0, // topology API not yet wired; placeholder
-    topology_edge_count: 0, // topology API not yet wired; placeholder
-  }), [discoveryPlanningSummary]);
+    topology_node_count: workbenchContextSummary.topology.node_count,
+    topology_edge_count: workbenchContextSummary.topology.edge_count,
+  }), [workbenchContextSummary]);
+
+  // V1BO — derive Assess pipeline planner initial counts from Discovery planning state + Topology.
+  // Must live above all mode-branch early returns (Rules of Hooks).
+  const assessInitialCounts: AssessProfileCounts = useMemo(() => ({
+    seed_count: discoveryPlanningSummary.staged_seed_count,
+    // expected_devices: derive from topology node_count when available;
+    // honest fallback to total_seed_count when no topology yet.
+    expected_devices: topology.nodeCount > 0
+      ? topology.nodeCount
+      : discoveryPlanningSummary.total_seed_count,
+    // known_platforms: no app-level distinct platform projection yet;
+    // leave at 0 (operator override).
+    known_platforms: 0,
+  }), [discoveryPlanningSummary, topology]);
 
   if (activeMode === "opsConsole") {
     return (
@@ -451,6 +488,7 @@ export default function App(): JSX.Element {
         <IntakeMode
           activeEnvironmentId={active?.id ?? null}
           onDiscoveryImported={() => fetchDiscovery(active?.id ?? null)}
+          onIntakeStateChange={setIntakeSummary}
         />
       </AppShell>
     );
@@ -468,7 +506,7 @@ export default function App(): JSX.Element {
           { id: "note", label: "assess · stateless · viewer" },
         ]}
       >
-        <AssessPanel />
+        <AssessPanel initialCounts={assessInitialCounts} />
       </AppShell>
     );
   }

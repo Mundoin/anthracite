@@ -66,6 +66,7 @@ import {
   initialIntakeState,
   isSingleConfigResult,
 } from "./intakeTypes";
+import { buildIntakeContextSummary } from "./intakeContextSummary";
 
 import "./intake.css";
 
@@ -77,6 +78,9 @@ export interface IntakePanelProps {
   /** V1AI — invoked after a successful Discovery import so the App can
    *  refresh its discovery inventory (Ops Console will reflect the new count). */
   readonly onDiscoveryImported?: () => void | Promise<void>;
+  /** V1BO — invoked whenever IntakeState changes, allowing parent to derive
+   *  a sanitized summary for the shared WorkbenchContextSummary. */
+  readonly onIntakeStateChange?: (summary: import("../../state/workbenchContextSummary").WorkbenchIntakeSummary) => void;
 }
 
 export interface IntakeApi {
@@ -128,6 +132,7 @@ export function IntakePanel({
   api = DEFAULT_API,
   activeEnvironmentId = null,
   onDiscoveryImported,
+  onIntakeStateChange,
 }: IntakePanelProps = {}): JSX.Element {
   const [state, dispatch] = useReducer(intakeReducer, initialIntakeState);
   const [exportStatus, setExportStatus] =
@@ -191,6 +196,13 @@ export function IntakePanel({
     // Re-run when the slice list changes (new batch). perSliceDetection
     // updates trigger re-runs too, but pending filter makes them no-ops.
   }, [api, inBatchView, batch]);
+
+  // ---- V1BO — Intake state summary projection ------------------
+  useEffect(() => {
+    if (onIntakeStateChange) {
+      onIntakeStateChange(buildIntakeContextSummary(state));
+    }
+  }, [state, onIntakeStateChange]);
 
   // ---- Operator actions ------------------------------------------
   const onTextChange = useCallback((text: string): void => {

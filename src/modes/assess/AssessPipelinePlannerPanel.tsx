@@ -18,11 +18,15 @@ import "./AssessPipelinePlannerPanel.css";
 export interface AssessPipelinePlannerPanelProps {
   readonly clock?: { now(): string };
   readonly clipboard?: { writeText(t: string): Promise<void> };
+  /** V1BO — Pre-fill from local workbench context (Discovery seeds, Topology counts).
+   *  Operator can still override every field. */
+  readonly initialCounts?: AssessProfileCounts;
 }
 
 export function AssessPipelinePlannerPanel({
   clock = { now: () => new Date().toISOString() },
   clipboard = navigator.clipboard,
+  initialCounts,
 }: AssessPipelinePlannerPanelProps): JSX.Element {
   const [profile, setProfile] = useState<AssessProfile>({
     label: "",
@@ -39,11 +43,19 @@ export function AssessPipelinePlannerPanel({
     report_profile_label: "",
   });
 
-  const [counts, setCounts] = useState<AssessProfileCounts>({
-    seed_count: 0,
-    expected_devices: 0,
-    known_platforms: 0,
-  });
+  const [counts, setCounts] = useState<AssessProfileCounts>(
+    initialCounts ?? {
+      seed_count: 0,
+      expected_devices: 0,
+      known_platforms: 0,
+    },
+  );
+
+  const hasContextPrefill = initialCounts && (
+    initialCounts.seed_count > 0 ||
+    initialCounts.expected_devices > 0 ||
+    initialCounts.known_platforms > 0
+  );
 
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
 
@@ -241,6 +253,12 @@ export function AssessPipelinePlannerPanel({
         {/* Counts Section */}
         <section className="ap-planner-section">
           <h3 className="ap-planner-section-title">Counts</h3>
+
+          {hasContextPrefill && (
+            <div data-testid="assess-counts-prefilled-note" className="ap-planner-prefilled-note">
+              Pre-filled from local workbench context. Override any value below.
+            </div>
+          )}
 
           <div className="ap-planner-form-group">
             <label htmlFor="ap-seed-count" className="ap-planner-label">

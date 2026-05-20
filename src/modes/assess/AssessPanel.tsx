@@ -24,16 +24,20 @@ import { AssessPipelinePlannerPanel } from "./AssessPipelinePlannerPanel";
 import { assessReducer } from "./assessReducer";
 import { initialAssessState } from "./assessTypes";
 import { loadBatchRunJson, type LoadResult } from "./loadBatchRunJson";
+import type { AssessProfileCounts } from "./assessPipelinePlanner";
 
 import "./assess.css";
 
 export interface AssessPanelProps {
   /** Injectable loader for tests. Defaults to the real FSA picker. */
   readonly loader?: () => Promise<LoadResult>;
+  /** V1BO — Pre-fill pipeline planner counts from workbench context. */
+  readonly initialCounts?: AssessProfileCounts;
 }
 
 export function AssessPanel({
   loader = loadBatchRunJson,
+  initialCounts,
 }: AssessPanelProps = {}): JSX.Element {
   const [state, dispatch] = useReducer(assessReducer, initialAssessState);
   const [activeToolId, setActiveToolId] = useState<string>("viewer");
@@ -116,7 +120,7 @@ export function AssessPanel({
       group: "primary",
       status: "available",
       role: "validation",
-      render: () => <AssessPipelinePlannerPanel />,
+      render: () => <AssessPipelinePlannerPanel initialCounts={initialCounts} />,
     },
     {
       id: "compliance",

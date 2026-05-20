@@ -16,20 +16,24 @@ import { useState } from "react";
 import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
 import type { ModeTool } from "../../components/workbench/types";
 import { IntakePanel } from "./IntakePanel";
+import type { WorkbenchIntakeSummary } from "../../state/workbenchContextSummary";
 import "./IntakeMode.css";
 
 export interface IntakeModeProps {
   readonly activeEnvironmentId?: string | null;
   readonly onDiscoveryImported?: () => void | Promise<void>;
+  /** V1BO — invoked whenever intake state changes to allow app to update shared WorkbenchContextSummary. */
+  readonly onIntakeStateChange?: (summary: WorkbenchIntakeSummary) => void;
 }
 
-export function IntakeMode({ activeEnvironmentId, onDiscoveryImported }: IntakeModeProps): JSX.Element {
+export function IntakeMode({ activeEnvironmentId, onDiscoveryImported, onIntakeStateChange }: IntakeModeProps): JSX.Element {
   const [activeToolId, setActiveToolId] = useState<string>("single_config");
 
   const renderSingleConfig = (): ReactNode => (
     <IntakePanel
       activeEnvironmentId={activeEnvironmentId}
       onDiscoveryImported={onDiscoveryImported}
+      onIntakeStateChange={onIntakeStateChange}
     />
   );
 
