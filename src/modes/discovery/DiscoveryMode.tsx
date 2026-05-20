@@ -16,6 +16,7 @@ import type { JSX, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
 import type { ModeTool } from "../../components/workbench/types";
+import { SeedPlannerPanel } from "./SeedPlannerPanel";
 import type {
   DiscoveryRunPlan,
   DiscoveryRunReport,
@@ -1245,23 +1246,14 @@ export function DiscoveryMode({
     },
     {
       id: "seed_planner",
-      kind: "deferred",
+      kind: "live",
       label: "Seed Planner",
       description:
-        "Plan discovery seeds before any device contact.",
+        "Stage discovery seeds locally — host / CIDR, platform hint, transport, credential profile label. No device contact.",
       group: "discovery",
-      status: "deferred",
+      status: "available",
       role: "operator_choice",
-      deferred: {
-        reason:
-          "Seed planner will let the operator stage seed targets, vendor hints, and credential profiles for a future discovery run. No device contact happens here. The crawler engine that consumes seeds is not built yet.",
-        planned_inputs: [
-          "Seed IP / CIDR range",
-          "Platform hint per seed",
-          "Credential profile reference",
-          "Source kind (managed device, neighbor evidence, manual import)",
-        ],
-      },
+      render: () => <SeedPlannerPanel />,
     },
     {
       id: "recursive_crawl",

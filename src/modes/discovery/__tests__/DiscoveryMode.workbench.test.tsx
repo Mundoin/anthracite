@@ -81,9 +81,10 @@ describe("DiscoveryMode — workbench (V1BH)", () => {
     expect(
       screen.getByTestId("mwb-tool-target_capture").getAttribute("data-tool-status"),
     ).toBe("available");
+    // V1BK: seed_planner is now a live tool (available).
     expect(
       screen.getByTestId("mwb-tool-seed_planner").getAttribute("data-tool-status"),
-    ).toBe("deferred");
+    ).toBe("available");
     expect(
       screen.getByTestId("mwb-tool-recursive_crawl").getAttribute("data-tool-status"),
     ).toBe("deferred");
@@ -95,11 +96,13 @@ describe("DiscoveryMode — workbench (V1BH)", () => {
     ).toBe("preview");
   });
 
-  it("switching to Seed Planner shows its deferred body and hides the form", async () => {
+  it("switching to Seed Planner shows the live planner panel and hides the form", async () => {
     const user = userEvent.setup();
     render(<DiscoveryMode api={makeApi()} clock={FIXED_CLOCK} />);
     await user.click(screen.getByTestId("mwb-tool-seed_planner"));
-    expect(screen.getByTestId("mwb-deferred-seed_planner")).toBeInTheDocument();
+    // V1BK: seed_planner is live — renders SeedPlannerPanel, not a deferred body.
+    expect(screen.getByTestId("seed-planner")).toBeInTheDocument();
+    expect(screen.queryByTestId("mwb-deferred-seed_planner")).toBeNull();
     expect(screen.queryByTestId("discovery-validation-pack")).toBeNull();
     expect(screen.queryByTestId("dx-form")).toBeNull();
   });
