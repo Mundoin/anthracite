@@ -25,16 +25,27 @@ import {
   type DiagnoseCategory,
   type DiagnoseSeverity,
 } from "./diagnoseTypes";
+import {
+  EMPTY_DIAGNOSE_TRIAGE,
+  type DiagnoseTriage,
+} from "./diagnoseTriage";
+import { DiagnoseTriagePanel } from "./DiagnoseTriagePanel";
 import "./DiagnoseMode.css";
 
 export interface DiagnoseModeProps {
   readonly discovery: DiscoverySourceView;
   readonly topology: TopologySourceView;
+  /**
+   * V1BW — Optional deterministic triage projection. When omitted,
+   * defaults to EMPTY so the triage tool renders the clean-state body.
+   */
+  readonly triage?: DiagnoseTriage;
 }
 
 export function DiagnoseMode({
   discovery,
   topology,
+  triage = EMPTY_DIAGNOSE_TRIAGE,
 }: DiagnoseModeProps): JSX.Element {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeToolId, setActiveToolId] = useState<string>("findings");
@@ -167,6 +178,17 @@ export function DiagnoseMode({
       status: "available",
       role: "engine_analysis",
       render: renderFindings,
+    },
+    {
+      id: "triage",
+      kind: "live",
+      label: "Triage",
+      description:
+        "Deterministic triage findings from Workbench Context Summary, Assessment Readiness, and the Operator Activity Ledger.",
+      group: "primary",
+      status: "available",
+      role: "engine_analysis",
+      render: () => <DiagnoseTriagePanel triage={triage} />,
     },
     {
       id: "config_audit",

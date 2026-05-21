@@ -104,6 +104,10 @@ import {
   type OperatorActivityWorkbench,
   type OperatorActivityCounts,
 } from "./state/operatorActivityLedger";
+import {
+  buildDiagnoseTriage,
+  type DiagnoseTriage,
+} from "./modes/diagnose/diagnoseTriage";
 
 type View = "list" | "detail";
 
@@ -585,10 +589,18 @@ export default function App(): JSX.Element {
     recordOperatorActivity,
   ]);
 
-  // V1BV — silence TS6133 for the ledger state until a downstream consumer
-  // reads it. Ledger is App-owned data spine; UI surfacing is intentionally
-  // deferred to a follow-up stage per scope ("Keep UI changes minimal").
-  void operatorActivityLedger;
+  // V1BW — Diagnose Evidence Triage projection. Pure deterministic derivation
+  // from WorkbenchContextSummary + AssessmentReadiness + OperatorActivityLedger.
+  // Consumed by DiagnoseMode (triage tool).
+  const diagnoseTriage: DiagnoseTriage = useMemo(
+    () =>
+      buildDiagnoseTriage({
+        summary: workbenchContextSummary,
+        readiness: assessmentReadiness,
+        ledger: operatorActivityLedger,
+      }),
+    [workbenchContextSummary, assessmentReadiness, operatorActivityLedger],
+  );
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
@@ -681,7 +693,7 @@ export default function App(): JSX.Element {
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
-        <DiagnoseMode discovery={discovery} topology={topology} />
+        <DiagnoseMode discovery={discovery} topology={topology} triage={diagnoseTriage} />
       </AppShell>
     );
   }
