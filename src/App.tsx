@@ -136,6 +136,10 @@ import {
   buildEnvironmentProfile,
   type EnvironmentProfile,
 } from "./state/environmentProfile";
+import {
+  buildModeCapabilityMatrix,
+  type ModeCapabilityMatrix,
+} from "./state/modeCapabilityMatrix";
 
 type View = "list" | "detail";
 
@@ -786,7 +790,39 @@ export default function App(): JSX.Element {
       assessmentPreflightSnapshot,
     ],
   );
-  void environmentProfile;
+
+  // V1CE — Mode Capability Matrix. Honest per-mode/per-tool capability
+  // projection. App-owned data spine; UI surfacing deferred. Future surfaces
+  // stay deferred — never `available`. Backing command_id refs resolve in
+  // registry (integrity test guards this).
+  const modeCapabilityMatrix: ModeCapabilityMatrix = useMemo(
+    () =>
+      buildModeCapabilityMatrix({
+        profile: environmentProfile,
+        summary: workbenchContextSummary,
+        readiness: assessmentReadiness,
+        registry: cortexCommandRegistry,
+        router: workbenchActionRouter,
+        triage: diagnoseTriage,
+        preflight: assessmentPreflightSnapshot,
+        draft: assessmentReportDraft,
+        build: buildIntentWorkspace,
+        construct: topologyConstruct,
+      }),
+    [
+      environmentProfile,
+      workbenchContextSummary,
+      assessmentReadiness,
+      cortexCommandRegistry,
+      workbenchActionRouter,
+      diagnoseTriage,
+      assessmentPreflightSnapshot,
+      assessmentReportDraft,
+      buildIntentWorkspace,
+      topologyConstruct,
+    ],
+  );
+  void modeCapabilityMatrix;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
