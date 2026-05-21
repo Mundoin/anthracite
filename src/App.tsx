@@ -116,6 +116,10 @@ import {
   buildWorkbenchActionRouter,
   type WorkbenchActionRouter,
 } from "./state/workbenchActionRouter";
+import {
+  buildAssessmentPreflightSnapshot,
+  type AssessmentPreflightSnapshot,
+} from "./modes/assess/assessmentPreflightSnapshot";
 
 type View = "list" | "detail";
 
@@ -651,7 +655,31 @@ export default function App(): JSX.Element {
       cortexCommandRegistry,
     ],
   );
-  void workbenchActionRouter;
+
+  // V1BZ — Assessment Preflight Snapshot. Pure deterministic artifact
+  // describing what Anthracite can assess from current safe context.
+  // App-owned data spine; UI surfacing deferred per scope. report_draft
+  // pipeline step resolves to deferred until V1CA wires the draft builder.
+  const assessmentPreflightSnapshot: AssessmentPreflightSnapshot = useMemo(
+    () =>
+      buildAssessmentPreflightSnapshot({
+        summary: workbenchContextSummary,
+        readiness: assessmentReadiness,
+        triage: diagnoseTriage,
+        ledger: operatorActivityLedger,
+        router: workbenchActionRouter,
+        registry: cortexCommandRegistry,
+      }),
+    [
+      workbenchContextSummary,
+      assessmentReadiness,
+      diagnoseTriage,
+      operatorActivityLedger,
+      workbenchActionRouter,
+      cortexCommandRegistry,
+    ],
+  );
+  void assessmentPreflightSnapshot;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
