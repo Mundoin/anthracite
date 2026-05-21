@@ -2,19 +2,19 @@
  * D3A — NavigationTreeItem component.
  *
  * A single row in the navigation tree. Renders:
- *   - 6px status LED (color from child.state)
- *   - Expand/collapse caret (if child has children)
- *   - Icon (if child.iconId is present)
- *   - Label (with styling for deferred/blocked states)
+ *   - 6 px status LED (color from child.state)
+ *   - Expand/collapse caret (or hidden placeholder when leaf)
+ *   - Optional kind icon
+ *   - Label
  *   - Optional numeric badge
  *
  * Click on row activates; click on caret toggles expand (stops propagation).
  *
- * Obeys D3_NAV_SPEC §4 (context sidebar).
+ * Obeys D3_NAV_SPEC §4 (context sidebar anatomy).
  */
 
-import type { JSX } from "react";
-import type { ModeChild } from "../../contracts/modeCatalogue";
+import type { JSX, MouseEvent } from "react";
+import type { CatalogueState, ChildKind, ModeChild } from "../../contracts/modeCatalogue";
 import { AnthIcon } from "../icons/AnthIcon";
 
 export interface NavigationTreeItemProps {
@@ -32,16 +32,28 @@ export interface NavigationTreeItemProps {
   readonly onToggle: (childId: string) => void;
 }
 
-const STATE_LED_CLASS: Record<string, string> = {
+const STATE_LED_CLASS: Record<CatalogueState, string> = {
   available: "nav-led--available",
   partial: "nav-led--partial",
   deferred: "nav-led--deferred",
   blocked: "nav-led--blocked",
 };
 
-const isExpandable = (child: ModeChild): boolean => {
+function isExpandable(child: ModeChild): boolean {
   return child.children !== undefined && child.children.length > 0;
-};
+}
+
+function rowClassName(child: ModeChild, isActive: boolean): string {
+  const parts = ["nav-sidebar-row"];
+  if (isActive) parts.push("nav-sidebar-row--active");
+  if (child.state === "deferred") parts.push("nav-row--deferred");
+  if (child.state === "blocked") parts.push("nav-row--blocked");
+  return parts.join(" ");
+}
+
+function pickKind(kind: ChildKind): ChildKind {
+  return kind;
+}
 
 export function NavigationTreeItem({
   child,
@@ -54,16 +66,13 @@ export function NavigationTreeItem({
   const expandable = isExpandable(child);
   const paddingLeft = 12 + (depth - 1) * 16;
   const ledClass = STATE_LED_CLASS[child.state];
-  const rowClass = `nav-sidebar-row ${isActive ? "nav-sidebar-row--active" : ""} ${
-    child.state === "deferred" ? "nav-row--deferred" : ""
-  } ${child.state === "blocked" ? "nav-row--blocked" : ""}`.trim();
 
-  const handleToggleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleToggleClick = (e: MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation();
     onToggle(child.id);
   };
 
-  const handleRowClick = () => {
+  const handleRowClick = (): void => {
     onActivate(child.id);
   };
 
@@ -76,22 +85,24 @@ export function NavigationTreeItem({
 
   return (
     <div
-      className={rowClass}
+      className={rowClassName(child, isActive)}
       role="treeitem"
       tabIndex={isActive ? 0 : -1}
       aria-selected={isActive}
       aria-expanded={expandable ? isExpanded : undefined}
       data-active={isActive ? "true" : undefined}
+      data-kind={pickKind(child.kind)}
+      data-state={child.state}
       data-testid={`nav-sidebar-row-${child.id}`}
       style={{ paddingLeft: `${paddingLeft}px` }}
       onClick={handleRowClick}
       title={title}
     >
       {/* Status LED */}
-      <div className={`nav-led ${ledClass}`} aria-hidden="true" />
+      <span className={`nav-led ${ledClass}`} aria-hidden="true" />
 
-      {/* Expand/collapse caret */}
-      {expandable && (
+      {/* Expand caret or hidden placeholder (keeps labels aligned) */}
+      {expandable ? (
         <button
           type="button"
           className="nav-tree-toggle"
@@ -105,15 +116,21 @@ export function NavigationTreeItem({
             size="sm"
           />
         </button>
+      ) : (
+        <span className="nav-tree-toggle nav-tree-toggle--placeholder" aria-hidden="true" />
       )}
 
-      {/* Icon (if present) */}
-      {child.iconId && <AnthIcon id={child.iconId} size="sm" />}
+      {/* Kind icon (when child carries one) */}
+      {child.iconId && (
+        <span className="nav-sidebar-row__icon" aria-hidden="true">
+          <AnthIcon id={child.iconId} size="sm" />
+        </span>
+      )}
 
       {/* Label */}
       <span className="nav-sidebar-label">{child.label}</span>
 
-      {/* Badge (if present) */}
+      {/* Numeric badge */}
       {typeof child.badge === "number" && child.badge > 0 && (
         <span className="nav-sidebar-badge">{child.badge}</span>
       )}

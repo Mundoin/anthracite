@@ -5,7 +5,8 @@
  * by kind (workflows, tools, surfaces, groups, deferred, blocked).
  *
  * Structure:
- *   - Header: mode icon + label + state chip + item count
+ *   - Header: mode icon + label + state chip
+ *   - Subheader: items count + propagated deferred/blocked counts
  *   - Body: kind sections, each with NavigationTree
  *   - Empty state: when mode has no children
  *
@@ -13,7 +14,11 @@
  */
 
 import type { JSX } from "react";
-import type { ModeCatalogue } from "../../contracts/modeCatalogue";
+import type {
+  CatalogueState,
+  ModeChild,
+  ModeCatalogue,
+} from "../../contracts/modeCatalogue";
 import {
   findModeEntry,
   getModeChildren,
@@ -21,7 +26,6 @@ import {
 } from "../../contracts/modeCatalogue";
 import { AnthIcon } from "../icons/AnthIcon";
 import { NavigationTree } from "./NavigationTree";
-import type { CatalogueState } from "../../contracts/modeCatalogue";
 
 export interface ContextSidebarProps {
   /** The mode catalogue (single source of truth). */
@@ -38,39 +42,38 @@ export interface ContextSidebarProps {
   readonly onToggleNode: (nodeId: string) => void;
 }
 
-/**
- * Get a human-readable state label for the header chip.
- */
-function getStateLabel(state: CatalogueState): string {
-  switch (state) {
-    case "available":
-      return "Available";
-    case "partial":
-      return "Partial";
-    case "deferred":
-      return "Deferred";
-    case "blocked":
-      return "Blocked";
-    default:
-      return "";
-  }
+interface DescendantCounts {
+  readonly total: number;
+  readonly deferred: number;
+  readonly blocked: number;
+  readonly partial: number;
 }
 
-/**
- * Compute the total count of items in the mode (including descendants).
- */
-function computeItemCount(children: readonly any[]): number {
-  let count = 0;
-  const walk = (c: readonly any[]) => {
-    for (const item of c) {
-      count += 1;
-      if (item.children) {
-        walk(item.children);
-      }
+function countDescendants(children: readonly ModeChild[]): DescendantCounts {
+  let total = 0;
+  let deferred = 0;
+  let blocked = 0;
+  let partial = 0;
+  const walk = (nodes: readonly ModeChild[]): void => {
+    for (const node of nodes) {
+      total += 1;
+      if (node.state === "deferred") deferred += 1;
+      else if (node.state === "blocked") blocked += 1;
+      else if (node.state === "partial") partial += 1;
+      if (node.children) walk(node.children);
     }
   };
   walk(children);
-  return count;
+  return { total, deferred, blocked, partial };
+}
+
+function stateLabel(state: CatalogueState): string {
+  switch (state) {
+    case "available": return "Available";
+    case "partial":   return "Partial";
+    case "deferred":  return "Deferred";
+    case "blocked":   return "Blocked";
+  }
 }
 
 export function ContextSidebar({
@@ -88,31 +91,67 @@ export function ContextSidebar({
 
   const children = getModeChildren(catalogue, activeMode);
   const sections = groupChildrenForSidebar(children);
-  const itemCount = computeItemCount(children);
+  const counts = countDescendants(children);
 
   return (
     <div className="nav-sidebar" data-testid="nav-sidebar">
-      {/* Header */}
+      {/* Header — mode identity + state */}
       <div className="nav-sidebar__header">
-        <AnthIcon id={mode.iconId} size="md" />
-        <span className="nav-sidebar__title">{mode.label}</span>
-        <span className={`nav-sidebar__state-chip nav-sidebar__state-chip--${mode.state}`}>
-          {getStateLabel(mode.state)}
+        <span className="nav-sidebar__header-icon">
+          <AnthIcon id={mode.iconId} size="md" />
         </span>
-        <span className="nav-sidebar__item-count">· {itemCount}</span>
+        <span className="nav-sidebar__title">{mode.label}</span>
+        <span
+          className={`nav-sidebar__state-chip nav-sidebar__state-chip--${mode.state}`}
+        >
+          {stateLabel(mode.state)}
+        </span>
       </div>
+
+      {/* Subheader — counts (only when children exist) */}
+      {children.length > 0 && (
+        <div className="nav-sidebar__subheader" aria-live="polite">
+          <span className="nav-sidebar__count">
+            <span className="nav-sidebar__count--em">{counts.total}</span> items
+          </span>
+          {counts.partial > 0 && (
+            <>
+              <span className="nav-sidebar__count-sep">·</span>
+              <span className="nav-sidebar__count">{counts.partial} partial</span>
+            </>
+          )}
+          {counts.deferred > 0 && (
+            <>
+              <span className="nav-sidebar__count-sep">·</span>
+              <span className="nav-sidebar__count">{counts.deferred} deferred</span>
+            </>
+          )}
+          {counts.blocked > 0 && (
+            <>
+              <span className="nav-sidebar__count-sep">·</span>
+              <span className="nav-sidebar__count">{counts.blocked} blocked</span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Body or empty state */}
       {children.length === 0 ? (
         <div className="nav-sidebar__empty" role="status">
-          This mode has no sub-tools. Work happens directly in the canvas.
+          <span className="nav-sidebar__empty-icon" aria-hidden="true">
+            <AnthIcon id="status-info" size="md" />
+          </span>
+          <span className="nav-sidebar__empty-title">No sub-tools</span>
+          <span className="nav-sidebar__empty-body">
+            Work happens directly in the canvas for this mode.
+          </span>
         </div>
       ) : (
         <div className="nav-sidebar__body">
           {sections.map((section) => (
             <div
               key={section.key}
-              className="nav-sidebar__section"
+              className={`nav-sidebar__section nav-sidebar__section--${section.key}`}
               data-testid={`nav-sidebar-section-${section.key}`}
             >
               <div className="nav-sidebar__section-heading">{section.heading}</div>

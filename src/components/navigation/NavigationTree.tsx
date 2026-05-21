@@ -85,9 +85,10 @@ export function NavigationTree({
   parentPath = [],
 }: NavigationTreeProps): JSX.Element {
   const role = depth === 1 ? "tree" : "group";
+  const className = depth === 1 ? "nav-tree" : "nav-tree nav-tree--nested";
 
   return (
-    <div role={role} className="nav-tree">
+    <div role={role} className={className}>
       {children.map((child) => {
         const fullPath = [...parentPath, child.id];
         const isActive = isPathActive(activeChildPath, parentPath, child.id);

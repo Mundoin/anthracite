@@ -1,8 +1,13 @@
 /**
- * D3A — ContextSidebar + NavigationTree styles.
+ * D3A-P — ContextSidebar + NavigationTree polished styles.
  *
- * Token-driven design. Obeys D3_NAV_SPEC §4 (context sidebar anatomy).
+ * Obeys D3_NAV_SPEC §4 (anatomy) + §9 (state palette) + §10 (visual law).
+ * Token-only. No hardcoded colors. Compact industrial density.
  */
+
+/* ============================================================
+   Root container
+   ============================================================ */
 
 .nav-sidebar {
   display: flex;
@@ -12,43 +17,57 @@
   background: var(--anth-bg-panel);
   border-right: 1px solid var(--anth-border);
   overflow: hidden;
+  font-family: var(--anth-font-ui);
 }
 
 /* ============================================================
-   Header: mode icon + label + state chip + item count
+   Header — mode icon + label + state chip + counts
+   32 px tall · sticky · matches §4 anatomy
    ============================================================ */
 
 .nav-sidebar__header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  height: 32px;
+  gap: 8px;
+  height: 36px;
   padding: 0 12px;
   border-bottom: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  flex-shrink: 0;
+}
+
+.nav-sidebar__header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--anth-text);
   flex-shrink: 0;
 }
 
 .nav-sidebar__title {
-  font-family: var(--anth-font-ui);
   font-size: 12px;
   font-weight: 600;
   color: var(--anth-text);
+  letter-spacing: 0.02em;
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .nav-sidebar__state-chip {
-  display: inline-block;
-  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 6px;
   border-radius: var(--anth-r-sm);
-  font-family: var(--anth-font-ui);
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-sidebar__state-chip--available {
@@ -63,7 +82,7 @@
 
 .nav-sidebar__state-chip--deferred {
   background: var(--anth-bg-sunken);
-  color: var(--anth-text-muted);
+  color: var(--anth-text-2);
 }
 
 .nav-sidebar__state-chip--blocked {
@@ -71,44 +90,101 @@
   color: var(--anth-err-ink);
 }
 
-.nav-sidebar__item-count {
-  font-family: var(--anth-font-ui);
-  font-size: 11px;
-  color: var(--anth-text-muted);
-  margin-left: 4px;
+/* Subheader — items count + propagation summary */
+.nav-sidebar__subheader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+  padding: 4px 12px;
+  border-bottom: 1px solid var(--anth-border);
+  background: var(--anth-bg-sunken);
+  font-size: 10.5px;
+  color: var(--anth-text-2);
+  font-family: var(--anth-font-mono);
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.nav-sidebar__count {
+  white-space: nowrap;
+}
+
+.nav-sidebar__count--em {
+  color: var(--anth-text);
+  font-weight: 600;
+}
+
+.nav-sidebar__count-sep {
+  color: var(--anth-border-strong, var(--anth-border));
 }
 
 /* ============================================================
-   Body: scrollable tree sections
+   Body — scrolls independently of rail
    ============================================================ */
 
 .nav-sidebar__body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.nav-sidebar__body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nav-sidebar__body::-webkit-scrollbar-thumb {
+  background: var(--anth-border);
+  border-radius: var(--anth-r-sm);
 }
 
 .nav-sidebar__section {
-  border-bottom: 1px solid var(--anth-border);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4px;
 }
 
-.nav-sidebar__section:last-child {
-  border-bottom: none;
+.nav-sidebar__section + .nav-sidebar__section {
+  border-top: 1px solid var(--anth-border);
+  margin-top: 2px;
 }
 
+/* Trailing sections (deferred / blocked) get a faint sunken backdrop */
+.nav-sidebar__section--deferred,
+.nav-sidebar__section--blocked {
+  background: var(--anth-bg-sunken);
+}
+
+/* Sticky kind heading — 22px · uppercase 10px · muted */
 .nav-sidebar__section-heading {
   position: sticky;
   top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
   height: 22px;
-  padding: 8px 12px 4px;
-  background: var(--anth-bg-panel);
-  font-family: var(--anth-font-ui);
-  font-size: 10px;
-  font-weight: 600;
+  padding: 0 12px 4px;
+  background: inherit;
+  font-size: 9.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  color: var(--anth-text-2);
+  user-select: none;
+}
+
+.nav-sidebar__section--deferred .nav-sidebar__section-heading,
+.nav-sidebar__section--blocked .nav-sidebar__section-heading {
+  background: var(--anth-bg-sunken);
+}
+
+/* Honest sublabel beneath the heading (e.g. "Not yet wired") */
+.nav-sidebar__section-sublabel {
+  padding: 0 12px 4px;
+  font-size: 10px;
+  font-style: italic;
   color: var(--anth-text-muted);
-  z-index: 10;
 }
 
 /* ============================================================
@@ -116,16 +192,38 @@
    ============================================================ */
 
 .nav-sidebar__empty {
-  padding: 16px 12px;
-  font-family: var(--anth-font-ui);
-  font-size: 12px;
-  color: var(--anth-text-muted);
-  font-style: italic;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 24px 16px;
   text-align: center;
+  color: var(--anth-text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.nav-sidebar__empty-icon {
+  color: var(--anth-border-strong, var(--anth-border));
+}
+
+.nav-sidebar__empty-title {
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--anth-text-2);
+  letter-spacing: 0.02em;
+}
+
+.nav-sidebar__empty-body {
+  font-style: italic;
+  font-size: 11px;
+  max-width: 200px;
 }
 
 /* ============================================================
-   Tree: rows, carets, LEDs
+   Tree — recursive container
    ============================================================ */
 
 .nav-tree {
@@ -137,53 +235,88 @@
   display: contents;
 }
 
+/* Depth guide rail — thin vertical line for nested groups */
+.nav-tree--nested {
+  position: relative;
+  margin-left: 22px;
+  border-left: 1px solid var(--anth-border);
+}
+
+/* ============================================================
+   Row — 28px · LED + caret + icon + label + badge
+   ============================================================ */
+
 .nav-sidebar-row {
+  position: relative;
   display: flex;
   align-items: center;
+  gap: 8px;
   height: 28px;
-  gap: 6px;
-  padding-right: 12px;
-  font-family: var(--anth-font-ui);
-  font-size: 12px;
+  padding-right: 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
   color: var(--anth-text);
   cursor: pointer;
   user-select: none;
   border-left: 2px solid transparent;
-  transition: background-color 150ms ease-in-out;
+  transition: background-color 120ms ease, color 120ms ease;
 }
 
 .nav-sidebar-row:hover {
   background-color: var(--anth-bg-hover);
 }
 
+.nav-sidebar-row:focus-visible {
+  outline: var(--anth-ring-width) solid var(--anth-ring-color);
+  outline-offset: calc(var(--anth-ring-offset) * -1);
+}
+
+/* Active row — bg-selected + 2px inset accent (operational selected = green) */
 .nav-sidebar-row--active {
   background-color: var(--anth-bg-selected);
   border-left-color: var(--anth-accent-action);
   color: var(--anth-text);
+  font-weight: 600;
 }
 
-.nav-sidebar-row:focus-visible {
-  outline: var(--anth-ring-width) solid var(--anth-ring-color);
-  outline-offset: var(--anth-ring-offset);
+.nav-sidebar-row--active:hover {
+  background-color: var(--anth-bg-selected);
 }
 
-/* Deferred rows: italic + muted text */
-.nav-row--deferred {
-  font-style: italic;
-  color: var(--anth-text-muted);
-}
-
-.nav-row--deferred.nav-sidebar-row--active {
+/* Group rows render slightly bolder so folder nodes feel structural */
+.nav-sidebar-row[data-kind="group"] {
+  font-weight: 600;
   color: var(--anth-text);
 }
 
-/* Blocked rows: error ink */
-.nav-row--blocked {
-  color: var(--anth-err-ink, var(--anth-err));
+/* Deferred rows — italic + muted */
+.nav-sidebar-row.nav-row--deferred {
+  font-style: italic;
+  color: var(--anth-text-muted);
+  font-weight: 500;
+}
+
+.nav-sidebar-row.nav-row--deferred:hover {
+  color: var(--anth-text-2);
+}
+
+.nav-sidebar-row.nav-row--deferred.nav-sidebar-row--active {
+  color: var(--anth-text);
+  font-style: italic;
+}
+
+/* Blocked rows — err ink */
+.nav-sidebar-row.nav-row--blocked {
+  color: var(--anth-err-ink);
+}
+
+.nav-sidebar-row.nav-row--blocked .nav-led {
+  background: var(--anth-err);
 }
 
 /* ============================================================
-   Status LED (6px dot)
+   Status LED — 6 px circle · §9 palette
    ============================================================ */
 
 .nav-led {
@@ -192,6 +325,7 @@
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
 .nav-led--available {
@@ -203,7 +337,8 @@
 }
 
 .nav-led--deferred {
-  background-color: var(--anth-text-muted);
+  background-color: var(--anth-border-strong, var(--anth-text-muted));
+  box-shadow: none;
 }
 
 .nav-led--blocked {
@@ -211,34 +346,69 @@
 }
 
 /* ============================================================
-   Expand/collapse caret button
+   Expand / collapse caret
    ============================================================ */
 
 .nav-tree-toggle {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 16px;
   height: 16px;
   padding: 0;
   background: transparent;
-  border: none;
+  border: 0;
+  border-radius: var(--anth-r-sm);
   cursor: pointer;
   color: var(--anth-text-2);
   flex-shrink: 0;
+  transition: background-color 120ms ease, color 120ms ease;
 }
 
 .nav-tree-toggle:hover {
+  background-color: var(--anth-bg-hover);
   color: var(--anth-text);
 }
 
 .nav-tree-toggle:focus-visible {
   outline: var(--anth-ring-width) solid var(--anth-ring-color);
-  outline-offset: var(--anth-ring-offset);
+  outline-offset: calc(var(--anth-ring-offset) * -1);
+}
+
+/* Caret placeholder keeps leaf labels aligned with group rows */
+.nav-tree-toggle--placeholder {
+  pointer-events: none;
+  visibility: hidden;
 }
 
 /* ============================================================
-   Label + badge
+   Row icon (mode/child kind icon)
+   ============================================================ */
+
+.nav-sidebar-row__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--anth-text-2);
+}
+
+.nav-sidebar-row--active .nav-sidebar-row__icon {
+  color: var(--anth-text);
+}
+
+.nav-row--deferred .nav-sidebar-row__icon {
+  color: var(--anth-text-muted);
+}
+
+.nav-row--blocked .nav-sidebar-row__icon {
+  color: var(--anth-err-ink);
+}
+
+/* ============================================================
+   Label
    ============================================================ */
 
 .nav-sidebar-label {
@@ -247,21 +417,34 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
+
+/* ============================================================
+   Numeric badge — small pill chip
+   ============================================================ */
 
 .nav-sidebar-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: var(--anth-r-sm);
-  background-color: var(--anth-bg-sunken);
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background-color: var(--anth-err-tint);
+  color: var(--anth-err-ink);
   font-family: var(--anth-font-mono);
-  font-size: 10px;
-  color: var(--anth-text-muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   flex-shrink: 0;
 }
 
-/* Focus ring is applied to the row itself via :focus-visible, not individual elements */
+/* Neutral badge variant (for non-alert counts on group rows) */
+.nav-sidebar-badge--neutral {
+  background-color: var(--anth-bg-sunken);
+  color: var(--anth-text-2);
+}
+</content>
+</invoke>

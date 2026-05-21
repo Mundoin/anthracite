@@ -53,7 +53,8 @@ describe("ContextSidebar", () => {
         onToggleNode={mockOnToggleNode}
       />
     );
-    expect(screen.getByText(/This mode has no sub-tools/)).toBeInTheDocument();
+    expect(screen.getByText(/No sub-tools/)).toBeInTheDocument();
+    expect(screen.getByText(/Work happens directly in the canvas/)).toBeInTheDocument();
   });
 
   it("renders nested children when parent is expanded", () => {
