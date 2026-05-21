@@ -128,6 +128,10 @@ import {
   buildBuildIntentWorkspace,
   type BuildIntentWorkspace,
 } from "./modes/build/buildIntentWorkspace";
+import {
+  buildTopologyConstruct,
+  type TopologyConstruct,
+} from "./modes/topology/topologyConstructModel";
 
 type View = "list" | "detail";
 
@@ -736,6 +740,22 @@ export default function App(): JSX.Element {
     ],
   );
   void buildIntentWorkspace;
+
+  // V1CC — Topology Construct Model. Visual-independent semantic
+  // construct for future topology canvas / 3D / model work. Nodes/links
+  // sourced strictly from the current topology view (no invention);
+  // risk flags + layout hints derived from safe summary + triage.
+  const topologyConstruct: TopologyConstruct = useMemo(
+    () =>
+      buildTopologyConstruct({
+        topology,
+        summary: workbenchContextSummary,
+        triage: diagnoseTriage,
+        readiness: assessmentReadiness,
+      }),
+    [topology, workbenchContextSummary, diagnoseTriage, assessmentReadiness],
+  );
+  void topologyConstruct;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
