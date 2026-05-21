@@ -4,13 +4,15 @@ import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShel
 import type { ModeTool } from "../../components/workbench/types";
 import { OperateOverviewPanel } from "./OperateOverviewPanel";
 import type { OperateOverviewInputs } from "./operateOverview";
+import type { AssessmentReadiness } from "../../state/assessmentReadiness";
 import "./OperateMode.css";
 
 export interface OperateModeProps {
   readonly operateOverviewInputs?: OperateOverviewInputs;
+  readonly assessmentReadiness?: AssessmentReadiness;
 }
 
-export function OperateMode({ operateOverviewInputs }: OperateModeProps): JSX.Element {
+export function OperateMode({ operateOverviewInputs, assessmentReadiness }: OperateModeProps): JSX.Element {
   const [activeToolId, setActiveToolId] = useState<string>("live_overview");
 
   const tools: ModeTool[] = [
@@ -23,7 +25,7 @@ export function OperateMode({ operateOverviewInputs }: OperateModeProps): JSX.El
       group: "primary",
       status: "available",
       role: "engine_analysis",
-      render: () => <OperateOverviewPanel inputs={operateOverviewInputs} />,
+      render: () => <OperateOverviewPanel inputs={operateOverviewInputs} readiness={assessmentReadiness} />,
     },
     {
       id: "topology_operations",

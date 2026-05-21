@@ -13,6 +13,7 @@ import {
   type AssessProfileCounts,
   type AssessSeedSource,
 } from "./assessPipelinePlanner";
+import type { AssessmentReadiness } from "../../state/assessmentReadiness";
 import "./AssessPipelinePlannerPanel.css";
 
 export interface AssessPipelinePlannerPanelProps {
@@ -21,12 +22,15 @@ export interface AssessPipelinePlannerPanelProps {
   /** V1BO — Pre-fill from local workbench context (Discovery seeds, Topology counts).
    *  Operator can still override every field. */
   readonly initialCounts?: AssessProfileCounts;
+  /** V1BU — optional readiness signal from shared workbench context. */
+  readonly readiness?: AssessmentReadiness;
 }
 
 export function AssessPipelinePlannerPanel({
   clock = { now: () => new Date().toISOString() },
   clipboard = navigator.clipboard,
   initialCounts,
+  readiness,
 }: AssessPipelinePlannerPanelProps): JSX.Element {
   const [profile, setProfile] = useState<AssessProfile>({
     label: "",
@@ -89,6 +93,88 @@ export function AssessPipelinePlannerPanel({
   return (
     <div className="ap-planner-root" data-testid="assess-pipeline-planner">
       <div className="ap-planner-container">
+        {/* V1BU — Readiness Preflight Section */}
+        {readiness && (
+          <section className="ap-planner-section" data-testid="assess-readiness-preflight">
+            <h3 className="ap-planner-section-title">Readiness Preflight</h3>
+
+            <div className="ap-planner-preflight-overall">
+              <span className="ap-planner-preflight-pill" data-testid="assess-readiness-overall">
+                {readiness.overall_state}
+              </span>
+            </div>
+
+            <div className="ap-planner-preflight-grid">
+              <div className="ap-planner-preflight-cell">
+                <strong>Assess State</strong>
+                <span data-testid="assess-readiness-assess-state">{readiness.assess_state}</span>
+              </div>
+              <div className="ap-planner-preflight-cell">
+                <strong>Discovery</strong>
+                <span data-testid="assess-readiness-discovery-state">{readiness.discovery_state}</span>
+              </div>
+              <div className="ap-planner-preflight-cell">
+                <strong>Topology</strong>
+                <span data-testid="assess-readiness-topology-state">{readiness.topology_state}</span>
+              </div>
+              <div className="ap-planner-preflight-cell">
+                <strong>Evidence</strong>
+                <span data-testid="assess-readiness-evidence-state">{readiness.evidence_state}</span>
+              </div>
+              <div className="ap-planner-preflight-cell">
+                <strong>Intake</strong>
+                <span data-testid="assess-readiness-intake-state">{readiness.intake_state}</span>
+              </div>
+            </div>
+
+            {readiness.available_inputs.length > 0 && (
+              <div className="ap-planner-preflight-row">
+                <strong>Available Inputs:</strong>
+                <span data-testid="assess-readiness-available">
+                  {readiness.available_inputs.join(", ")}
+                </span>
+              </div>
+            )}
+
+            {readiness.missing_inputs.length > 0 && (
+              <div className="ap-planner-preflight-row">
+                <strong>Missing Inputs:</strong>
+                <span data-testid="assess-readiness-missing">
+                  {readiness.missing_inputs.join(", ")}
+                </span>
+              </div>
+            )}
+
+            {readiness.next_actions.length > 0 && (
+              <div className="ap-planner-preflight-actions">
+                <strong>Next Actions:</strong>
+                <ul className="ap-planner-preflight-action-list">
+                  {readiness.next_actions.map((action) => (
+                    <li key={action} data-testid={`assess-readiness-next-${action}`}>
+                      {action.replace(/_/g, " ").toUpperCase()}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {readiness.blocker_reason_codes.length > 0 && (
+              <div className="ap-planner-preflight-blockers">
+                <strong>Blocker Codes:</strong>
+                <span data-testid="assess-readiness-blockers">
+                  {readiness.blocker_reason_codes.join(", ")}
+                </span>
+              </div>
+            )}
+
+            <div className="ap-planner-preflight-honesty">
+              <p>
+                Preflight readiness — derived from local workbench context. No assessment executed yet.
+              </p>
+            </div>
+          </section>
+        )}
+
         {/* Profile Form Section */}
         <section className="ap-planner-section">
           <h3 className="ap-planner-section-title">Profile</h3>

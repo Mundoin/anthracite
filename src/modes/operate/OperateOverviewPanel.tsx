@@ -19,6 +19,7 @@ import {
   toOperateOverviewMarkdown,
   type OperateOverviewInputs,
 } from "./operateOverview";
+import type { AssessmentReadiness } from "../../state/assessmentReadiness";
 import "./OperateOverviewPanel.css";
 
 export interface OperateOverviewClock {
@@ -41,12 +42,14 @@ const DEFAULT_CLIPBOARD: OperateOverviewClipboard = {
 
 export interface OperateOverviewPanelProps {
   readonly inputs?: OperateOverviewInputs;
+  readonly readiness?: AssessmentReadiness;
   readonly clock?: OperateOverviewClock;
   readonly clipboard?: OperateOverviewClipboard;
 }
 
 export function OperateOverviewPanel({
   inputs: inputsProp,
+  readiness,
   clock = DEFAULT_CLOCK,
   clipboard = DEFAULT_CLIPBOARD,
 }: OperateOverviewPanelProps): JSX.Element {
@@ -140,6 +143,42 @@ export function OperateOverviewPanel({
             <span className="op-overview-intake-findings">
               {inputs.intake_finding_count ?? 0}
             </span>
+          </p>
+        </section>
+      )}
+
+      {/* ── Readiness Context Row ──────────────────────────────────── */}
+      {readiness && readiness.overall_state !== "empty" && (
+        <section className="op-overview-readiness-context" data-testid="operate-readiness-context">
+          <p>
+            Cross-workbench readiness (derived from local context — no live polling)·{" "}
+            <span className="op-overview-readiness-overall" data-testid="operate-readiness-overall">
+              {readiness.overall_state}
+            </span>
+            {" "}· assess=
+            <span className="op-overview-readiness-assess-state" data-testid="operate-readiness-assess-state">
+              {readiness.assess_state}
+            </span>
+            {" "}· available=
+            <span className="op-overview-readiness-available-count" data-testid="operate-readiness-available-count">
+              {readiness.available_inputs.length}
+            </span>
+            {readiness.blocker_reason_codes.length > 0 && (
+              <>
+                {" "}· blockers=
+                <span className="op-overview-readiness-blockers" data-testid="operate-readiness-blockers">
+                  {readiness.blocker_reason_codes.join(", ")}
+                </span>
+              </>
+            )}
+            {readiness.next_actions.length > 0 && (
+              <>
+                {" "}· next=
+                <span className="op-overview-readiness-top-next-action" data-testid="operate-readiness-top-next-action">
+                  {readiness.next_actions[0]}
+                </span>
+              </>
+            )}
           </p>
         </section>
       )}

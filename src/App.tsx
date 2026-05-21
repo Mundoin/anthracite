@@ -88,6 +88,10 @@ import {
   type EvidenceImportEvent,
   type EvidenceImportSummary,
 } from "./modes/topology/evidenceImportSummary";
+import {
+  buildAssessmentReadiness,
+  type AssessmentReadiness,
+} from "./state/assessmentReadiness";
 
 type View = "list" | "detail";
 
@@ -396,6 +400,14 @@ export default function App(): JSX.Element {
     [discoveryPlanningSummary, topology, intakeSummary, crawlPreviewSummary, evidenceImportSummary],
   );
 
+  // V1BU — Assessment readiness derived from the shared workbench context.
+  // Pure projection; consumed by Assess (preflight surface) and Operate
+  // (context row alongside existing next_action chain).
+  const assessmentReadiness: AssessmentReadiness = useMemo(
+    () => buildAssessmentReadiness(workbenchContextSummary),
+    [workbenchContextSummary],
+  );
+
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
     crawl_frontier_count: workbenchContextSummary.crawl_preview.frontier_count,
@@ -543,7 +555,7 @@ export default function App(): JSX.Element {
           { id: "note", label: "operate · stateless · skeleton" },
         ]}
       >
-        <OperateMode operateOverviewInputs={operateOverviewInputs} />
+        <OperateMode operateOverviewInputs={operateOverviewInputs} assessmentReadiness={assessmentReadiness} />
       </AppShell>
     );
   }
@@ -603,7 +615,7 @@ export default function App(): JSX.Element {
           { id: "note", label: "assess · stateless · viewer" },
         ]}
       >
-        <AssessPanel initialCounts={assessInitialCounts} />
+        <AssessPanel initialCounts={assessInitialCounts} readiness={assessmentReadiness} />
       </AppShell>
     );
   }

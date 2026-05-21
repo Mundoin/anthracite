@@ -25,6 +25,7 @@ import { assessReducer } from "./assessReducer";
 import { initialAssessState } from "./assessTypes";
 import { loadBatchRunJson, type LoadResult } from "./loadBatchRunJson";
 import type { AssessProfileCounts } from "./assessPipelinePlanner";
+import type { AssessmentReadiness } from "../../state/assessmentReadiness";
 
 import "./assess.css";
 
@@ -33,11 +34,14 @@ export interface AssessPanelProps {
   readonly loader?: () => Promise<LoadResult>;
   /** V1BO — Pre-fill pipeline planner counts from workbench context. */
   readonly initialCounts?: AssessProfileCounts;
+  /** V1BU — optional readiness signal from shared workbench context. */
+  readonly readiness?: AssessmentReadiness;
 }
 
 export function AssessPanel({
   loader = loadBatchRunJson,
   initialCounts,
+  readiness,
 }: AssessPanelProps = {}): JSX.Element {
   const [state, dispatch] = useReducer(assessReducer, initialAssessState);
   const [activeToolId, setActiveToolId] = useState<string>("viewer");
@@ -120,7 +124,7 @@ export function AssessPanel({
       group: "primary",
       status: "available",
       role: "validation",
-      render: () => <AssessPipelinePlannerPanel initialCounts={initialCounts} />,
+      render: () => <AssessPipelinePlannerPanel initialCounts={initialCounts} readiness={readiness} />,
     },
     {
       id: "compliance",
