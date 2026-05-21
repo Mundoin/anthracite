@@ -19,6 +19,7 @@ export interface AppShellProps {
   readonly inspector?: ReactNode;
   readonly statusLeft?: readonly StatusCell[];
   readonly statusRight?: readonly StatusCell[];
+  readonly overlay?: ReactNode;
   readonly children: ReactNode;
 }
 
@@ -37,6 +38,7 @@ export function AppShell({
   inspector,
   statusLeft,
   statusRight,
+  overlay,
   children,
 }: AppShellProps): JSX.Element {
   const cols: string[] = ["196px"];
@@ -93,6 +95,8 @@ export function AppShell({
 
       <OpsStrip />
       <StatusBar left={statusLeft} right={statusRight} />
+
+      {overlay}
     </div>
   );
 }

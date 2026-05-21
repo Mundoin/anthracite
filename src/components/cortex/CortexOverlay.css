@@ -1,0 +1,367 @@
+/**
+ * D3B — Cortex overlay styles.
+ *
+ * Industrial, compact. Token-only. Obeys D3_NAV_SPEC §7 + INDUSTRIAL_VISUAL_LAW.
+ */
+
+/* ============================================================
+   Backdrop + centered panel
+   ============================================================ */
+
+.cortex-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 96px;
+  background: rgba(15, 22, 32, 0.42);
+  backdrop-filter: blur(2px);
+  font-family: var(--anth-font-ui);
+}
+
+.cortex-overlay__panel {
+  width: 560px;
+  max-width: calc(100vw - 64px);
+  max-height: 480px;
+  display: flex;
+  flex-direction: column;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-sm);
+  box-shadow:
+    0 12px 32px rgba(15, 22, 32, 0.20),
+    0 4px 12px rgba(15, 22, 32, 0.10);
+  overflow: hidden;
+}
+
+/* ============================================================
+   Input row
+   ============================================================ */
+
+.cortex-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  flex-shrink: 0;
+}
+
+.cortex-input__chip {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-2);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.cortex-input__caret {
+  display: inline-flex;
+  align-items: center;
+  color: var(--anth-text-muted);
+  flex-shrink: 0;
+}
+
+.cortex-input__field {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--anth-text);
+  font-family: var(--anth-font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.cortex-input__field::placeholder {
+  color: var(--anth-text-muted);
+  font-style: italic;
+}
+
+.cortex-input__count {
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  color: var(--anth-text-2);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.cortex-input__esc {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 6px;
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-2);
+  font-family: var(--anth-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   Results
+   ============================================================ */
+
+.cortex-overlay__results {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.cortex-overlay__results::-webkit-scrollbar { width: 6px; }
+.cortex-overlay__results::-webkit-scrollbar-thumb {
+  background: var(--anth-border);
+  border-radius: var(--anth-r-sm);
+}
+
+.cortex-overlay__section + .cortex-overlay__section {
+  border-top: 1px solid var(--anth-border);
+}
+
+.cortex-overlay__section-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  height: 22px;
+  padding: 0 12px 4px;
+  background: var(--anth-bg-sunken);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-text-2);
+  user-select: none;
+}
+
+/* ============================================================
+   Row
+   ============================================================ */
+
+.cortex-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background-color 100ms ease, color 100ms ease;
+  color: var(--anth-text);
+  font-size: 12.5px;
+}
+
+.cortex-result + .cortex-result {
+  border-top: 1px solid var(--anth-border);
+}
+
+.cortex-result--highlighted {
+  background: var(--anth-bg-selected);
+  border-left-color: var(--anth-accent-action);
+}
+
+.cortex-result--deferred {
+  color: var(--anth-text-muted);
+}
+
+.cortex-result--blocked {
+  color: var(--anth-err-ink);
+}
+
+/* LED */
+.cortex-led {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+.cortex-led--available { background: var(--anth-ok); }
+.cortex-led--partial   { background: var(--anth-warn); }
+.cortex-led--deferred  { background: var(--anth-border-strong, var(--anth-text-muted)); box-shadow: none; }
+.cortex-led--blocked   { background: var(--anth-err); }
+
+.cortex-result__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--anth-text-2);
+  flex-shrink: 0;
+}
+
+.cortex-result--highlighted .cortex-result__icon {
+  color: var(--anth-text);
+}
+
+.cortex-result__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cortex-result__primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cortex-result__label {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.cortex-result--deferred .cortex-result__label {
+  font-style: italic;
+  font-weight: 500;
+}
+
+.cortex-result__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  color: var(--anth-text-2);
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cortex-result__crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cortex-result__crumb-sep {
+  color: var(--anth-border-strong, var(--anth-border));
+  font-family: var(--anth-font-ui);
+}
+
+/* ============================================================
+   Chips (scope + state)
+   ============================================================ */
+
+.cortex-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 6px;
+  border-radius: var(--anth-r-sm);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.cortex-chip--scope {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-2);
+}
+
+.cortex-chip--state-partial {
+  background: var(--anth-warn-tint);
+  color: var(--anth-warn-ink);
+}
+
+.cortex-chip--state-deferred {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-2);
+}
+
+.cortex-chip--state-blocked {
+  background: var(--anth-err-tint);
+  color: var(--anth-err-ink);
+}
+
+/* ============================================================
+   Badge + hint
+   ============================================================ */
+
+.cortex-result__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--anth-err-tint);
+  color: var(--anth-err-ink);
+  font-family: var(--anth-font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cortex-result__hint {
+  font-family: var(--anth-font-mono);
+  font-size: 11px;
+  color: var(--anth-text-muted);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 100ms ease;
+}
+
+.cortex-result--highlighted .cortex-result__hint {
+  opacity: 1;
+  color: var(--anth-accent-action);
+}
+
+/* ============================================================
+   Empty state
+   ============================================================ */
+
+.cortex-overlay__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--anth-text-muted);
+  font-size: 12px;
+}
+
+.cortex-overlay__empty-title {
+  font-weight: 600;
+  color: var(--anth-text-2);
+  letter-spacing: 0.02em;
+}
+
+.cortex-overlay__empty-body {
+  font-style: italic;
+  font-size: 11.5px;
+}

@@ -26,6 +26,7 @@ import {
 } from "../../contracts/modeCatalogue";
 import { AnthIcon } from "../icons/AnthIcon";
 import { NavigationTree } from "./NavigationTree";
+import "./ContextSidebar.css";
 
 export interface ContextSidebarProps {
   /** The mode catalogue (single source of truth). */

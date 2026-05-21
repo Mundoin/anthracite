@@ -14,6 +14,8 @@ import {
   navigationReducer,
 } from "./components/navigation/navigationState";
 import { MODE_CATALOGUE, propagateBadges } from "./contracts/modeCatalogue";
+import { CortexOverlay } from "./components/cortex/CortexOverlay";
+import type { CortexEntry } from "./components/navigation/cortexCatalogueAdapter";
 import { ModeNotConnected } from "./components/shell/ModeNotConnected";
 import { MODE_STATUS } from "./data/modeStatus";
 import { SubNav, type SubNavItem } from "./components/shell/SubNav";
@@ -225,6 +227,50 @@ export default function App(): JSX.Element {
       navDispatch({ type: "set-mode", modeId: activeMode });
     }
   }, [activeMode, navState.activeMode]);
+
+  // D3B — Cortex overlay open/close state.
+  const [cortexOpen, setCortexOpen] = useState<boolean>(false);
+  const openCortex = useCallback(() => setCortexOpen(true), []);
+  const closeCortex = useCallback(() => setCortexOpen(false), []);
+
+  // D3B — Global Ctrl/⌘+K handler. Opens overlay anywhere in the shell.
+  // Does NOT hijack plain typing — only the modified key combination.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent): void => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        setCortexOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // D3B — Cortex activation routes to (mode, childPath) without
+  // fabricating surfaces. Deferred/blocked entries still navigate to
+  // the parent mode + sidebar selection; the surface stays honest.
+  const handleCortexActivate = useCallback(
+    (entry: CortexEntry): void => {
+      if (entry.kind === "mode" || entry.kind === "foot") {
+        setActiveMode(entry.modeId as ModeId);
+        navDispatch({ type: "set-mode", modeId: entry.modeId });
+        return;
+      }
+      // child kind
+      setActiveMode(entry.modeId as ModeId);
+      navDispatch({ type: "set-mode", modeId: entry.modeId });
+      navDispatch({
+        type: "set-child",
+        modeId: entry.modeId,
+        childPath: entry.childPath,
+      });
+      // Expand each ancestor so the selected child is visible in the tree.
+      for (let i = 0; i < entry.childPath.length - 1; i += 1) {
+        navDispatch({ type: "expand-node", nodeId: entry.childPath[i] });
+      }
+    },
+    [],
+  );
 
   // V1BN — hoisted Discovery planning state (seeds + history).
   // Passed to DiscoveryMode as controlled props and wired to OperateMode via inputs.
@@ -970,6 +1016,16 @@ export default function App(): JSX.Element {
     );
   }, [activeModeEntry, activeMode, catalogue, navState]);
 
+  // D3B — Cortex overlay node. Always mounted (renders null when closed).
+  const cortexOverlayNode = (
+    <CortexOverlay
+      open={cortexOpen}
+      catalogue={catalogue}
+      onClose={closeCortex}
+      onActivate={handleCortexActivate}
+    />
+  );
+
   if (activeMode === "opsConsole") {
     return (
       <AppShell
@@ -977,6 +1033,8 @@ export default function App(): JSX.Element {
         crumbs={["Ops Console"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
@@ -992,6 +1050,8 @@ export default function App(): JSX.Element {
         crumbs={[MODE_LABELS.settings ?? "Settings"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         inspector={<Inspector />}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1008,6 +1068,8 @@ export default function App(): JSX.Element {
         crumbs={["Topology"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1034,6 +1096,8 @@ export default function App(): JSX.Element {
         crumbs={["Diagnose"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1050,6 +1114,8 @@ export default function App(): JSX.Element {
         crumbs={["Foundation", "Discovery"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1073,6 +1139,8 @@ export default function App(): JSX.Element {
         crumbs={["Build"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
@@ -1091,6 +1159,8 @@ export default function App(): JSX.Element {
         crumbs={["Operate"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
@@ -1127,6 +1197,8 @@ export default function App(): JSX.Element {
         crumbs={[label]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1148,6 +1220,8 @@ export default function App(): JSX.Element {
         crumbs={["Foundation", "Intake"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
@@ -1170,6 +1244,8 @@ export default function App(): JSX.Element {
         crumbs={["Governance", "Assess"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
@@ -1226,6 +1302,8 @@ export default function App(): JSX.Element {
       crumbs={crumbs}
       activeMode={activeMode}
       onModeChange={setActiveMode}
+      onCortexOpen={openCortex}
+      overlay={cortexOverlayNode}
       onCrumbClick={(i) => {
         // "Hierarchy" or "Environments" → return to list.
         if (i <= 1) setLayoutView("list");
