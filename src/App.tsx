@@ -144,6 +144,10 @@ import {
   buildOperatorSessionExport,
   type OperatorSessionExport,
 } from "./state/operatorSessionExport";
+import {
+  buildDesignHandoffContract,
+  type DesignHandoffContract,
+} from "./state/designHandoffContract";
 
 type View = "list" | "detail";
 
@@ -861,7 +865,38 @@ export default function App(): JSX.Element {
       modeCapabilityMatrix,
     ],
   );
-  void operatorSessionExport;
+
+  // V1CG — Skeleton Freeze / Design Handoff Contract. Frozen semantic
+  // contract for the next design rail (UI/UX/icons/topology/3D). Contract
+  // only — no visual implementation. After V1CG: STOP skeleton expansion.
+  const designHandoffContract: DesignHandoffContract = useMemo(
+    () =>
+      buildDesignHandoffContract({
+        matrix: modeCapabilityMatrix,
+        registry: cortexCommandRegistry,
+        router: workbenchActionRouter,
+        profile: environmentProfile,
+        preflight: assessmentPreflightSnapshot,
+        draft: assessmentReportDraft,
+        build: buildIntentWorkspace,
+        construct: topologyConstruct,
+        triage: diagnoseTriage,
+        sessionExport: operatorSessionExport,
+      }),
+    [
+      modeCapabilityMatrix,
+      cortexCommandRegistry,
+      workbenchActionRouter,
+      environmentProfile,
+      assessmentPreflightSnapshot,
+      assessmentReportDraft,
+      buildIntentWorkspace,
+      topologyConstruct,
+      diagnoseTriage,
+      operatorSessionExport,
+    ],
+  );
+  void designHandoffContract;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
