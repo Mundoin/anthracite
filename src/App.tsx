@@ -132,6 +132,10 @@ import {
   buildTopologyConstruct,
   type TopologyConstruct,
 } from "./modes/topology/topologyConstructModel";
+import {
+  buildEnvironmentProfile,
+  type EnvironmentProfile,
+} from "./state/environmentProfile";
 
 type View = "list" | "detail";
 
@@ -755,7 +759,34 @@ export default function App(): JSX.Element {
       }),
     [topology, workbenchContextSummary, diagnoseTriage, assessmentReadiness],
   );
-  void topologyConstruct;
+
+  // V1CD — Environment Profile. Deterministic projection of "where am I
+  // operating?" identity from cross-workbench spines + construct + build
+  // workspace + preflight. App-owned data spine; UI surfacing deferred.
+  const environmentProfile: EnvironmentProfile = useMemo(
+    () =>
+      buildEnvironmentProfile({
+        summary: workbenchContextSummary,
+        readiness: assessmentReadiness,
+        ledger: operatorActivityLedger,
+        triage: diagnoseTriage,
+        router: workbenchActionRouter,
+        construct: topologyConstruct,
+        build: buildIntentWorkspace,
+        preflight: assessmentPreflightSnapshot,
+      }),
+    [
+      workbenchContextSummary,
+      assessmentReadiness,
+      operatorActivityLedger,
+      diagnoseTriage,
+      workbenchActionRouter,
+      topologyConstruct,
+      buildIntentWorkspace,
+      assessmentPreflightSnapshot,
+    ],
+  );
+  void environmentProfile;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
