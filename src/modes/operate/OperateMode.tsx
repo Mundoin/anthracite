@@ -5,17 +5,53 @@ import type { ModeTool } from "../../components/workbench/types";
 import { OperateOverviewPanel } from "./OperateOverviewPanel";
 import type { OperateOverviewInputs } from "./operateOverview";
 import type { AssessmentReadiness } from "../../state/assessmentReadiness";
+import { DashboardGrid } from "../../components/dashboard/DashboardGrid";
+import type { DashboardCardContract } from "../../state/designHandoffContract";
+import type { DashboardSpineBundle } from "../../components/dashboard/cardMetricResolver";
 import "./OperateMode.css";
 
 export interface OperateModeProps {
   readonly operateOverviewInputs?: OperateOverviewInputs;
   readonly assessmentReadiness?: AssessmentReadiness;
+  /** V1CG dashboard card contracts to render in the new primary tool. */
+  readonly dashboardCards?: readonly DashboardCardContract[];
+  /** Live spines for dashboard metric resolution. */
+  readonly dashboardSpines?: DashboardSpineBundle;
 }
 
-export function OperateMode({ operateOverviewInputs, assessmentReadiness }: OperateModeProps): JSX.Element {
-  const [activeToolId, setActiveToolId] = useState<string>("live_overview");
+export function OperateMode({
+  operateOverviewInputs,
+  assessmentReadiness,
+  dashboardCards,
+  dashboardSpines,
+}: OperateModeProps): JSX.Element {
+  const hasDashboard =
+    dashboardCards !== undefined &&
+    dashboardSpines !== undefined &&
+    dashboardCards.length > 0;
+  const [activeToolId, setActiveToolId] = useState<string>(
+    hasDashboard ? "dashboard" : "live_overview",
+  );
 
-  const tools: ModeTool[] = [
+  const tools: ModeTool[] = [];
+
+  if (hasDashboard) {
+    tools.push({
+      id: "dashboard",
+      kind: "live",
+      label: "Dashboard",
+      description:
+        "Operator dashboard cards from the V1CG design handoff contract. Live metrics from local App-owned spines.",
+      group: "primary",
+      status: "available",
+      role: "engine_analysis",
+      render: () => (
+        <DashboardGrid cards={dashboardCards} spines={dashboardSpines} />
+      ),
+    });
+  }
+
+  tools.push(
     {
       id: "live_overview",
       kind: "live",
@@ -132,7 +168,7 @@ export function OperateMode({ operateOverviewInputs, assessmentReadiness }: Oper
         ],
       },
     },
-  ];
+  );
 
   return (
     <div className="operate-mode">
@@ -142,7 +178,7 @@ export function OperateMode({ operateOverviewInputs, assessmentReadiness }: Oper
           tagline: "War Room — live operations workbench. Skeleton pass.",
           tools,
           active_id: activeToolId,
-          fallback_id: "live_overview",
+          fallback_id: hasDashboard ? "dashboard" : "live_overview",
         }}
         onSelectTool={setActiveToolId}
       />

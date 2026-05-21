@@ -1,0 +1,117 @@
+/* D2 — DashboardCard styles. Tokens-only. */
+
+.anth .anth-dashcard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--anth-cockpit-pad-y) var(--anth-cockpit-pad-x);
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-md);
+  box-shadow: var(--anth-elev-1);
+  color: var(--anth-text);
+  min-height: 120px;
+  transition:
+    box-shadow var(--anth-motion-fast) ease,
+    border-color var(--anth-motion-fast) ease,
+    background var(--anth-motion-fast) ease;
+}
+
+.anth .anth-dashcard.is-interactive {
+  cursor: pointer;
+}
+.anth .anth-dashcard.is-interactive:hover {
+  box-shadow: var(--anth-elev-2);
+  border-color: var(--anth-border-strong);
+}
+.anth .anth-dashcard.is-interactive:focus-visible {
+  outline: var(--anth-ring-width) solid var(--anth-ring-color);
+  outline-offset: var(--anth-ring-offset);
+}
+.anth .anth-dashcard.is-disabled {
+  background: var(--anth-bg-disabled);
+  color: var(--anth-text-3);
+  cursor: not-allowed;
+}
+
+.anth .anth-dashcard__hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.anth .anth-dashcard__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-2);
+  flex: 0 0 auto;
+}
+.anth .anth-dashcard__title {
+  margin: 0;
+  font-family: var(--anth-font-ui);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--anth-text);
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.anth .anth-dashcard__chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.anth .anth-dashcard__metric-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 2px;
+}
+.anth .anth-dashcard__metric {
+  font-family: var(--anth-font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--anth-text);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.anth .anth-dashcard__metric-sec {
+  font-family: var(--anth-font-mono);
+  font-size: 11px;
+  color: var(--anth-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.anth .anth-dashcard__summary {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--anth-text-2);
+  flex: 1 1 auto;
+}
+
+.anth .anth-dashcard__ft {
+  display: flex;
+  justify-content: flex-end;
+}
+.anth .anth-dashcard__target {
+  font-family: var(--anth-font-mono);
+  font-size: 10.5px;
+  color: var(--anth-text-3);
+  padding: 2px 6px;
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-sunken);
+}

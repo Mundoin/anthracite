@@ -1045,7 +1045,23 @@ export default function App(): JSX.Element {
           { id: "note", label: "operate · stateless · skeleton" },
         ]}
       >
-        <OperateMode operateOverviewInputs={operateOverviewInputs} assessmentReadiness={assessmentReadiness} />
+        <OperateMode
+          operateOverviewInputs={operateOverviewInputs}
+          assessmentReadiness={assessmentReadiness}
+          dashboardCards={designHandoffContract.dashboard_cards}
+          dashboardSpines={{
+            profile: environmentProfile,
+            readiness: assessmentReadiness,
+            router: workbenchActionRouter,
+            triage: diagnoseTriage,
+            ledger: operatorActivityLedger,
+            construct: topologyConstruct,
+            preflight: assessmentPreflightSnapshot,
+            draft: assessmentReportDraft,
+            build: buildIntentWorkspace,
+            matrix: modeCapabilityMatrix,
+          }}
+        />
       </AppShell>
     );
   }

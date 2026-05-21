@@ -1,0 +1,25 @@
+/* D2 — DashboardGrid. Responsive grid that targets ~5 columns at wide,
+   collapses gracefully on narrower viewports. Tokens-only. */
+
+.anth .anth-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  align-content: start;
+}
+
+.anth .anth-dashboard-grid__cell {
+  display: flex;
+  min-width: 0;
+}
+
+.anth .anth-dashboard-grid__cell > .anth-dashcard {
+  width: 100%;
+}
+
+@media (min-width: 1600px) {
+  .anth .anth-dashboard-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
