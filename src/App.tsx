@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type JSX } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { AppShell } from "./components/shell/AppShell";
 import {
   Inspector,
@@ -92,6 +92,18 @@ import {
   buildAssessmentReadiness,
   type AssessmentReadiness,
 } from "./state/assessmentReadiness";
+import {
+  EMPTY_OPERATOR_ACTIVITY_LEDGER,
+  appendOperatorActivityEvent,
+  buildOperatorActivitySummaryLabel,
+  makeOperatorActivityEventId,
+  type OperatorActivityEvent,
+  type OperatorActivityEventKind,
+  type OperatorActivityLedger,
+  type OperatorActivityStatus,
+  type OperatorActivityWorkbench,
+  type OperatorActivityCounts,
+} from "./state/operatorActivityLedger";
 
 type View = "list" | "detail";
 
@@ -175,9 +187,85 @@ export default function App(): JSX.Element {
     EMPTY_EVIDENCE_IMPORT_SUMMARY,
   );
 
-  const handleEvidenceImportEvent = useCallback((event: EvidenceImportEvent) => {
-    setEvidenceImportSummary((prior) => applyEvidenceImportEvent(prior, event));
-  }, []);
+  // V1BV — Operator Activity Ledger. Append-only, in-memory. Captures
+  // sanitized cross-workbench events (counts/labels/reason-codes only —
+  // no raw payloads, configs, evidence, credentials, secrets, or
+  // evidence_set_id). Sequence ref drives deterministic ids and avoids
+  // re-render churn.
+  const [operatorActivityLedger, setOperatorActivityLedger] =
+    useState<OperatorActivityLedger>(EMPTY_OPERATOR_ACTIVITY_LEDGER);
+  const operatorActivitySequenceRef = useRef<number>(0);
+
+  const recordOperatorActivity = useCallback(
+    (params: {
+      workbench: OperatorActivityWorkbench;
+      kind: OperatorActivityEventKind;
+      status: OperatorActivityStatus;
+      counts?: OperatorActivityCounts;
+      source_label?: string | null;
+      reason_code?: string | null;
+      timestamp?: string;
+    }) => {
+      operatorActivitySequenceRef.current += 1;
+      const counts = params.counts ?? {};
+      const event: OperatorActivityEvent = {
+        id: makeOperatorActivityEventId(params.kind, operatorActivitySequenceRef.current),
+        timestamp: params.timestamp ?? new Date().toISOString(),
+        workbench: params.workbench,
+        kind: params.kind,
+        status: params.status,
+        source_label: params.source_label ?? null,
+        summary_label: buildOperatorActivitySummaryLabel(
+          params.kind,
+          params.status,
+          counts,
+        ),
+        counts,
+        reason_code: params.reason_code ?? null,
+      };
+      setOperatorActivityLedger((prior) => appendOperatorActivityEvent(prior, event));
+    },
+    [],
+  );
+
+  const handleEvidenceImportEvent = useCallback(
+    (event: EvidenceImportEvent) => {
+      setEvidenceImportSummary((prior) => applyEvidenceImportEvent(prior, event));
+
+      // V1BV — fold sanitized evidence event into the operator activity ledger.
+      // Map EvidenceImportEvent.status → ledger kind/status, preserving counts.
+      const isClear = event.kind === "clear";
+      const kind: OperatorActivityEventKind = isClear
+        ? "evidence_cleared"
+        : event.status === "accepted"
+          ? "evidence_import_accepted"
+          : event.status === "no_mutation"
+            ? "evidence_import_no_mutation"
+            : "evidence_import_rejected";
+      const status: OperatorActivityStatus = isClear
+        ? "info"
+        : event.status === "accepted"
+          ? "accepted"
+          : event.status === "no_mutation"
+            ? "no_mutation"
+            : "rejected";
+      recordOperatorActivity({
+        workbench: "topology",
+        kind,
+        status,
+        counts: isClear
+          ? {}
+          : {
+              accepted_evidence_count: event.accepted_count,
+              rejected_evidence_count: event.rejected_count,
+            },
+        source_label: event.source_label,
+        reason_code: event.reason_code,
+        timestamp: event.timestamp,
+      });
+    },
+    [recordOperatorActivity],
+  );
 
   // V1BT — Topology evidence import / clear / summary wiring.
   //
@@ -407,6 +495,100 @@ export default function App(): JSX.Element {
     () => buildAssessmentReadiness(workbenchContextSummary),
     [workbenchContextSummary],
   );
+
+  // V1BV — Derived-state → ledger bridges. Each uses a prior-value ref so an
+  // event is appended only on a real transition (no re-emit on identical
+  // re-renders, no emit on initial mount unless the value is non-empty).
+  const priorStagedSeedCountRef = useRef<number>(
+    discoveryPlanningSummary.staged_seed_count,
+  );
+  useEffect(() => {
+    const next = discoveryPlanningSummary.staged_seed_count;
+    const prior = priorStagedSeedCountRef.current;
+    if (next !== prior && next > 0) {
+      recordOperatorActivity({
+        workbench: "discovery",
+        kind: "seed_plan_generated",
+        status: "info",
+        counts: { seed_count: next },
+      });
+    }
+    priorStagedSeedCountRef.current = next;
+  }, [discoveryPlanningSummary.staged_seed_count, recordOperatorActivity]);
+
+  const priorFrontierCountRef = useRef<number>(crawlPreviewSummary.frontier_count);
+  useEffect(() => {
+    const next = crawlPreviewSummary.frontier_count;
+    const prior = priorFrontierCountRef.current;
+    if (next !== prior && next > 0) {
+      recordOperatorActivity({
+        workbench: "discovery",
+        kind: "crawl_preview_generated",
+        status: "info",
+        counts: { frontier_count: next },
+      });
+    }
+    priorFrontierCountRef.current = next;
+  }, [crawlPreviewSummary.frontier_count, recordOperatorActivity]);
+
+  const priorIntakeParseStatusRef = useRef<typeof intakeSummary.parse_status>(
+    intakeSummary.parse_status,
+  );
+  useEffect(() => {
+    const next = intakeSummary.parse_status;
+    const prior = priorIntakeParseStatusRef.current;
+    if (next !== prior && next === "parsed") {
+      recordOperatorActivity({
+        workbench: "intake",
+        kind: "intake_parse_completed",
+        status: "accepted",
+        counts: {
+          parsed_device_count: intakeSummary.parsed_device_count,
+          finding_count: intakeSummary.finding_count,
+        },
+        source_label: intakeSummary.current_platform_id,
+      });
+    }
+    priorIntakeParseStatusRef.current = next;
+  }, [
+    intakeSummary.parse_status,
+    intakeSummary.parsed_device_count,
+    intakeSummary.finding_count,
+    intakeSummary.current_platform_id,
+    recordOperatorActivity,
+  ]);
+
+  const priorAssessOverallRef = useRef<AssessmentReadiness["overall_state"]>(
+    assessmentReadiness.overall_state,
+  );
+  useEffect(() => {
+    const next = assessmentReadiness.overall_state;
+    const prior = priorAssessOverallRef.current;
+    if (next !== prior && next !== "empty") {
+      const status: OperatorActivityStatus =
+        next === "ready"
+          ? "accepted"
+          : next === "blocked"
+            ? "blocked"
+            : "info";
+      recordOperatorActivity({
+        workbench: "assess",
+        kind: "assess_readiness_generated",
+        status,
+        reason_code: assessmentReadiness.blocker_reason_codes[0] ?? null,
+      });
+    }
+    priorAssessOverallRef.current = next;
+  }, [
+    assessmentReadiness.overall_state,
+    assessmentReadiness.blocker_reason_codes,
+    recordOperatorActivity,
+  ]);
+
+  // V1BV — silence TS6133 for the ledger state until a downstream consumer
+  // reads it. Ledger is App-owned data spine; UI surfacing is intentionally
+  // deferred to a follow-up stage per scope ("Keep UI changes minimal").
+  void operatorActivityLedger;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
