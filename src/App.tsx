@@ -112,6 +112,10 @@ import {
   buildCortexCommandRegistry,
   type CortexCommandRegistry,
 } from "./state/cortexCommandRegistry";
+import {
+  buildWorkbenchActionRouter,
+  type WorkbenchActionRouter,
+} from "./state/workbenchActionRouter";
 
 type View = "list" | "detail";
 
@@ -625,7 +629,29 @@ export default function App(): JSX.Element {
       diagnoseTriage,
     ],
   );
-  void cortexCommandRegistry;
+
+  // V1BY — Cross-Workbench Action Router. Pure deterministic projection of
+  // safe context + V1BX registry into prioritized operator next-actions.
+  // App-owned data spine; UI surfacing deferred per scope. Every emitted
+  // action.command_id is registry-resolved (integrity test guards refs).
+  const workbenchActionRouter: WorkbenchActionRouter = useMemo(
+    () =>
+      buildWorkbenchActionRouter({
+        summary: workbenchContextSummary,
+        readiness: assessmentReadiness,
+        ledger: operatorActivityLedger,
+        triage: diagnoseTriage,
+        registry: cortexCommandRegistry,
+      }),
+    [
+      workbenchContextSummary,
+      assessmentReadiness,
+      operatorActivityLedger,
+      diagnoseTriage,
+      cortexCommandRegistry,
+    ],
+  );
+  void workbenchActionRouter;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
