@@ -124,6 +124,10 @@ import {
   buildAssessmentReportDraft,
   type AssessmentReportDraft,
 } from "./modes/assess/assessmentReportDraft";
+import {
+  buildBuildIntentWorkspace,
+  type BuildIntentWorkspace,
+} from "./modes/build/buildIntentWorkspace";
 
 type View = "list" | "detail";
 
@@ -710,6 +714,28 @@ export default function App(): JSX.Element {
     ],
   );
   void assessmentReportDraft;
+
+  // V1CB — BUILD Intent Workspace. Deterministic local intent drafts +
+  // receipts derived from safe context. App-owned data spine; UI
+  // surfacing deferred per scope. No deploy, no device push, no rollback.
+  const buildIntentWorkspace: BuildIntentWorkspace = useMemo(
+    () =>
+      buildBuildIntentWorkspace({
+        summary: workbenchContextSummary,
+        readiness: assessmentReadiness,
+        router: workbenchActionRouter,
+        registry: cortexCommandRegistry,
+        preflight: assessmentPreflightSnapshot,
+      }),
+    [
+      workbenchContextSummary,
+      assessmentReadiness,
+      workbenchActionRouter,
+      cortexCommandRegistry,
+      assessmentPreflightSnapshot,
+    ],
+  );
+  void buildIntentWorkspace;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
