@@ -140,6 +140,10 @@ import {
   buildModeCapabilityMatrix,
   type ModeCapabilityMatrix,
 } from "./state/modeCapabilityMatrix";
+import {
+  buildOperatorSessionExport,
+  type OperatorSessionExport,
+} from "./state/operatorSessionExport";
 
 type View = "list" | "detail";
 
@@ -822,7 +826,42 @@ export default function App(): JSX.Element {
       topologyConstruct,
     ],
   );
-  void modeCapabilityMatrix;
+
+  // V1CF — Operator Session Export. Deterministic JSON + Markdown package
+  // of all App-owned spines. NO file writing, NO save dialog, NO persistence,
+  // NO PDF. App-owned data spine; UI surface deferred.
+  const operatorSessionExport: OperatorSessionExport = useMemo(
+    () =>
+      buildOperatorSessionExport({
+        profile: environmentProfile,
+        summary: workbenchContextSummary,
+        readiness: assessmentReadiness,
+        ledger: operatorActivityLedger,
+        triage: diagnoseTriage,
+        registry: cortexCommandRegistry,
+        router: workbenchActionRouter,
+        preflight: assessmentPreflightSnapshot,
+        draft: assessmentReportDraft,
+        build: buildIntentWorkspace,
+        construct: topologyConstruct,
+        matrix: modeCapabilityMatrix,
+      }),
+    [
+      environmentProfile,
+      workbenchContextSummary,
+      assessmentReadiness,
+      operatorActivityLedger,
+      diagnoseTriage,
+      cortexCommandRegistry,
+      workbenchActionRouter,
+      assessmentPreflightSnapshot,
+      assessmentReportDraft,
+      buildIntentWorkspace,
+      topologyConstruct,
+      modeCapabilityMatrix,
+    ],
+  );
+  void operatorSessionExport;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
