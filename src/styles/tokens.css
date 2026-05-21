@@ -440,6 +440,13 @@
   --anth-icon-md:     16px;
   --anth-icon-lg:     20px;
   --anth-icon-stroke: 1.5px;
+
+  /* D1B — Action accent (operational green). Primary action buttons
+     consume this; chrome accent `--anth-accent` (ink) stays unchanged. */
+  --anth-accent-action:        var(--anth-ok);
+  --anth-accent-action-hover:  #2F855A;
+  --anth-accent-action-ink:    #FFFFFF;
+  --anth-accent-action-tint:   var(--anth-ok-tint);
 }
 
 /* Cockpit density attribute hook (AppShell sets data-density="compact"). */

@@ -1,0 +1,161 @@
+/* D1B — AnthButton styles. Tokens-only. */
+
+.anth .anth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--anth-border-strong);
+  border-radius: var(--anth-r-md);
+  background: var(--anth-bg-panel);
+  color: var(--anth-text);
+  font-family: var(--anth-font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    background var(--anth-motion-fast) ease,
+    border-color var(--anth-motion-fast) ease,
+    box-shadow var(--anth-motion-fast) ease,
+    color var(--anth-motion-fast) ease;
+}
+.anth .anth-btn:hover:not(:disabled) {
+  background: var(--anth-bg-hover);
+}
+.anth .anth-btn:active:not(:disabled) {
+  background: var(--anth-bg-selected);
+}
+.anth .anth-btn:disabled {
+  background: var(--anth-bg-disabled);
+  color: var(--anth-text-muted);
+  cursor: not-allowed;
+}
+.anth .anth-btn__label {
+  display: inline-block;
+}
+
+/* size */
+.anth .anth-btn--size-sm { height: 22px; padding: 0 8px; font-size: 11.5px; }
+.anth .anth-btn--size-md { height: 28px; padding: 0 12px; font-size: 12px; }
+.anth .anth-btn--size-lg { height: 34px; padding: 0 16px; font-size: 13px; }
+
+/* variants */
+.anth .anth-btn--primary {
+  background: var(--anth-accent-action);
+  color: var(--anth-accent-action-ink);
+  border-color: var(--anth-accent-action);
+}
+.anth .anth-btn--primary:hover:not(:disabled) {
+  background: var(--anth-accent-action-hover);
+  border-color: var(--anth-accent-action-hover);
+}
+.anth .anth-btn--primary:active:not(:disabled) {
+  background: var(--anth-accent-action-hover);
+  box-shadow: var(--anth-elev-1);
+}
+
+.anth .anth-btn--secondary {
+  background: var(--anth-bg-panel);
+  color: var(--anth-text);
+}
+
+.anth .anth-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--anth-text-2);
+}
+.anth .anth-btn--ghost:hover:not(:disabled) {
+  background: var(--anth-bg-hover);
+  color: var(--anth-text);
+}
+
+.anth .anth-btn--toolbar {
+  background: var(--anth-bg-statusbar);
+  border-color: var(--anth-border);
+  color: var(--anth-text-2);
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11.5px;
+}
+.anth .anth-btn--toolbar:hover:not(:disabled) {
+  background: var(--anth-bg-hover);
+  color: var(--anth-text);
+}
+
+.anth .anth-btn--danger {
+  background: var(--anth-err);
+  color: var(--anth-text-inverse);
+  border-color: var(--anth-err);
+}
+.anth .anth-btn--danger:hover:not(:disabled) {
+  background: #C53030;
+  border-color: #C53030;
+}
+
+.anth .anth-btn--success {
+  background: var(--anth-ok);
+  color: var(--anth-text-inverse);
+  border-color: var(--anth-ok);
+}
+.anth .anth-btn--success:hover:not(:disabled) {
+  background: #2F855A;
+  border-color: #2F855A;
+}
+
+.anth .anth-btn--rail {
+  background: transparent;
+  border: none;
+  border-radius: var(--anth-r-md);
+  color: var(--anth-text-2);
+  width: 100%;
+  height: 44px;
+  padding: 0 10px;
+  justify-content: flex-start;
+  gap: 10px;
+}
+.anth .anth-btn--rail:hover:not(:disabled) {
+  background: var(--anth-bg-hover);
+  color: var(--anth-text);
+}
+.anth .anth-btn--rail.is-selected {
+  background: var(--anth-bg-selected);
+  color: var(--anth-text);
+  box-shadow: inset 2px 0 0 var(--anth-accent-action);
+}
+
+.anth .anth-btn--chip-action {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-sunken);
+  border-color: var(--anth-border);
+  color: var(--anth-text-2);
+}
+.anth .anth-btn--chip-action:hover:not(:disabled) {
+  background: var(--anth-bg-hover);
+  color: var(--anth-text);
+}
+
+.anth .anth-btn--icon-only {
+  width: 28px;
+  padding: 0;
+  justify-content: center;
+}
+.anth .anth-btn--icon-only.anth-btn--size-sm { width: 22px; }
+.anth .anth-btn--icon-only.anth-btn--size-lg { width: 34px; }
+
+/* pressed/selected (non-rail variants) */
+.anth .anth-btn.is-pressed:not(.anth-btn--rail) {
+  background: var(--anth-bg-selected);
+  box-shadow: inset 0 1px 0 var(--anth-border-strong);
+}
+.anth .anth-btn.is-selected:not(.anth-btn--rail) {
+  border-color: var(--anth-accent-action);
+}
