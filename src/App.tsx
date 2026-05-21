@@ -120,6 +120,10 @@ import {
   buildAssessmentPreflightSnapshot,
   type AssessmentPreflightSnapshot,
 } from "./modes/assess/assessmentPreflightSnapshot";
+import {
+  buildAssessmentReportDraft,
+  type AssessmentReportDraft,
+} from "./modes/assess/assessmentReportDraft";
 
 type View = "list" | "detail";
 
@@ -669,6 +673,7 @@ export default function App(): JSX.Element {
         ledger: operatorActivityLedger,
         router: workbenchActionRouter,
         registry: cortexCommandRegistry,
+        reportDraftAvailable: true,
       }),
     [
       workbenchContextSummary,
@@ -679,7 +684,32 @@ export default function App(): JSX.Element {
       cortexCommandRegistry,
     ],
   );
-  void assessmentPreflightSnapshot;
+
+  // V1CA — Assessment Report Draft. Deterministic Markdown + structured
+  // draft on top of the V1BZ preflight snapshot. App-owned data spine;
+  // UI surfacing deferred per scope. Honesty limitations always present.
+  const assessmentReportDraft: AssessmentReportDraft = useMemo(
+    () =>
+      buildAssessmentReportDraft({
+        preflight: assessmentPreflightSnapshot,
+        summary: workbenchContextSummary,
+        readiness: assessmentReadiness,
+        triage: diagnoseTriage,
+        ledger: operatorActivityLedger,
+        router: workbenchActionRouter,
+        registry: cortexCommandRegistry,
+      }),
+    [
+      assessmentPreflightSnapshot,
+      workbenchContextSummary,
+      assessmentReadiness,
+      diagnoseTriage,
+      operatorActivityLedger,
+      workbenchActionRouter,
+      cortexCommandRegistry,
+    ],
+  );
+  void assessmentReportDraft;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
