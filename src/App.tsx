@@ -108,6 +108,10 @@ import {
   buildDiagnoseTriage,
   type DiagnoseTriage,
 } from "./modes/diagnose/diagnoseTriage";
+import {
+  buildCortexCommandRegistry,
+  type CortexCommandRegistry,
+} from "./state/cortexCommandRegistry";
 
 type View = "list" | "detail";
 
@@ -601,6 +605,27 @@ export default function App(): JSX.Element {
       }),
     [workbenchContextSummary, assessmentReadiness, operatorActivityLedger],
   );
+
+  // V1BX — Cortex Command Registry. Pure deterministic catalog of operator
+  // commands with per-command availability resolved from current context.
+  // App-owned data spine; UI surfacing deferred per scope. V1BY action
+  // router consumes this registry.
+  const cortexCommandRegistry: CortexCommandRegistry = useMemo(
+    () =>
+      buildCortexCommandRegistry({
+        summary: workbenchContextSummary,
+        readiness: assessmentReadiness,
+        ledger: operatorActivityLedger,
+        triage: diagnoseTriage,
+      }),
+    [
+      workbenchContextSummary,
+      assessmentReadiness,
+      operatorActivityLedger,
+      diagnoseTriage,
+    ],
+  );
+  void cortexCommandRegistry;
 
   const operateOverviewInputs: OperateOverviewInputs = useMemo(() => ({
     staged_seed_count: workbenchContextSummary.discovery.seed_count,
