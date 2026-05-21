@@ -91,7 +91,7 @@
 
 /* variants */
 .anth .anth-action-tile--mode-tool {
-  border-left: 2px solid var(--anth-accent-action);
+  border-left: 2px solid var(--anth-action-primary);
 }
 .anth .anth-action-tile--next-action {
   border-left: 2px solid var(--anth-info);

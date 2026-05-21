@@ -46,16 +46,17 @@
 
 /* variants */
 .anth .anth-btn--primary {
-  background: var(--anth-accent-action);
-  color: var(--anth-accent-action-ink);
-  border-color: var(--anth-accent-action);
+  background: var(--anth-action-primary);
+  color: var(--anth-action-primary-ink);
+  border-color: var(--anth-action-primary);
 }
 .anth .anth-btn--primary:hover:not(:disabled) {
-  background: var(--anth-accent-action-hover);
-  border-color: var(--anth-accent-action-hover);
+  background: var(--anth-action-primary-hover);
+  border-color: var(--anth-action-primary-hover);
 }
 .anth .anth-btn--primary:active:not(:disabled) {
-  background: var(--anth-accent-action-hover);
+  background: var(--anth-action-primary-active);
+  border-color: var(--anth-action-primary-active);
   box-shadow: var(--anth-elev-1);
 }
 
@@ -157,5 +158,5 @@
   box-shadow: inset 0 1px 0 var(--anth-border-strong);
 }
 .anth .anth-btn.is-selected:not(.anth-btn--rail) {
-  border-color: var(--anth-accent-action);
+  border-color: var(--anth-action-primary);
 }

@@ -441,8 +441,18 @@
   --anth-icon-lg:     20px;
   --anth-icon-stroke: 1.5px;
 
-  /* D1B — Action accent (operational green). Primary action buttons
-     consume this; chrome accent `--anth-accent` (ink) stays unchanged. */
+  /* D1B-A — Action primary (blue). Primary call-to-action buttons +
+     mode-tool launcher accents consume these. Chrome accent
+     `--anth-accent` (ink) stays unchanged. */
+  --anth-action-primary:        var(--anth-info);
+  --anth-action-primary-hover:  #2563A6;
+  --anth-action-primary-active: #1E4A82;
+  --anth-action-primary-ink:    #FFFFFF;
+  --anth-action-primary-tint:   var(--anth-info-tint);
+
+  /* D1B — Operational accent (green). RESERVED for operational signal
+     surfaces only: healthy LEDs, success states, selected operational
+     accent (rail glow / is-selected). NOT for primary action button fill. */
   --anth-accent-action:        var(--anth-ok);
   --anth-accent-action-hover:  #2F855A;
   --anth-accent-action-ink:    #FFFFFF;
