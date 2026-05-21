@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { MODE_STATUS } from "../modeStatus";
 
 const ALL_MODE_IDS = [
-  "hierarchy", "intake", "discovery", "provisioning", "operate", "topology",
-  "diagnose", "assess", "security", "dashboards", "build", "settings",
+  "hierarchy", "devices", "intake", "discovery", "provisioning", "operate", "topology",
+  "diagnose", "assess", "events", "security", "dashboards", "build", "settings",
   "opsConsole",
 ] as const;
 
@@ -33,9 +33,9 @@ describe("MODE_STATUS", () => {
     }
   });
 
-  it("exactly 5 not_connected and 8 built (post-V1AX discovery add)", () => {
+  it("exactly 7 not_connected and 8 built (post-D3A devices + events add)", () => {
     const entries = Object.values(MODE_STATUS);
-    expect(entries.filter((s) => s.state === "not_connected").length).toBe(5);
+    expect(entries.filter((s) => s.state === "not_connected").length).toBe(7);
     expect(entries.filter((s) => s.state === "built").length).toBe(8);
   });
 });

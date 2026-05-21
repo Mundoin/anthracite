@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useReducer, type JSX } from "react";
 import { AppShell } from "./components/shell/AppShell";
 import {
   Inspector,
@@ -8,6 +8,12 @@ import {
 import type { EnvDotState, TitleBarEnv } from "./components/shell/TitleBar";
 import type { ModeId } from "./components/shell/ModeRail";
 import { MODE_LABELS } from "./components/shell/ModeRail";
+import { ContextSidebar } from "./components/navigation/ContextSidebar";
+import {
+  createInitialNavigationState,
+  navigationReducer,
+} from "./components/navigation/navigationState";
+import { MODE_CATALOGUE, propagateBadges } from "./contracts/modeCatalogue";
 import { ModeNotConnected } from "./components/shell/ModeNotConnected";
 import { MODE_STATUS } from "./data/modeStatus";
 import { SubNav, type SubNavItem } from "./components/shell/SubNav";
@@ -202,6 +208,23 @@ export default function App(): JSX.Element {
   const [topology, setTopology] = useState<TopologySourceView>(() =>
     toTopologySourceView(null),
   );
+
+  // D3A — Navigation state (ContextSidebar tree + child activation).
+  const [navState, navDispatch] = useReducer(
+    navigationReducer,
+    createInitialNavigationState("hierarchy"),
+  );
+
+  // D3A — Cached catalogue with badge propagation.
+  const catalogue = useMemo(() => propagateBadges(MODE_CATALOGUE), []);
+
+  // D3A — Sync navState.activeMode when activeMode changes.
+  // Rules of Hooks: Must stay above all mode-branch early returns.
+  useEffect(() => {
+    if (navState.activeMode !== activeMode) {
+      navDispatch({ type: "set-mode", modeId: activeMode });
+    }
+  }, [activeMode, navState.activeMode]);
 
   // V1BN — hoisted Discovery planning state (seeds + history).
   // Passed to DiscoveryMode as controlled props and wired to OperateMode via inputs.
@@ -923,6 +946,30 @@ export default function App(): JSX.Element {
     known_platforms: workbenchContextSummary.intake.current_platform_id !== null ? 1 : 0,
   }), [discoveryPlanningSummary, topology, workbenchContextSummary]);
 
+  // D3A — Build ContextSidebar node. Rendered for modes with children > 0,
+  // except Hierarchy (which keeps its existing secondary nav).
+  // Must live above all mode-branch early returns (Rules of Hooks).
+  const activeModeEntry = useMemo(
+    () => catalogue.modes.find((m) => m.id === activeMode),
+    [catalogue, activeMode],
+  );
+  const contextSidebar = useMemo(() => {
+    if (!activeModeEntry || activeModeEntry.children.length === 0) return undefined;
+    if (activeMode === "hierarchy") return undefined; // Hierarchy uses secondary nav
+    return (
+      <ContextSidebar
+        catalogue={catalogue}
+        activeMode={activeMode}
+        activeChildPath={navState.activeChildPath}
+        openIds={navState.sidebarOpenIds}
+        onActivateChild={(path) =>
+          navDispatch({ type: "set-child", modeId: activeMode, childPath: path })
+        }
+        onToggleNode={(nodeId) => navDispatch({ type: "toggle-node", nodeId })}
+      />
+    );
+  }, [activeModeEntry, activeMode, catalogue, navState]);
+
   if (activeMode === "opsConsole") {
     return (
       <AppShell
@@ -961,6 +1008,7 @@ export default function App(): JSX.Element {
         crumbs={["Topology"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
@@ -986,6 +1034,7 @@ export default function App(): JSX.Element {
         crumbs={["Diagnose"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
@@ -1001,6 +1050,7 @@ export default function App(): JSX.Element {
         crumbs={["Foundation", "Discovery"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
@@ -1023,6 +1073,7 @@ export default function App(): JSX.Element {
         crumbs={["Build"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "build · stateless · skeleton" },
@@ -1040,6 +1091,7 @@ export default function App(): JSX.Element {
         crumbs={["Operate"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "operate · stateless · skeleton" },
@@ -1075,6 +1127,7 @@ export default function App(): JSX.Element {
         crumbs={[label]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
@@ -1095,6 +1148,7 @@ export default function App(): JSX.Element {
         crumbs={["Foundation", "Intake"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "intake · stateless · single config" },
@@ -1116,6 +1170,7 @@ export default function App(): JSX.Element {
         crumbs={["Governance", "Assess"]}
         activeMode={activeMode}
         onModeChange={setActiveMode}
+        contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "assess · stateless · viewer" },

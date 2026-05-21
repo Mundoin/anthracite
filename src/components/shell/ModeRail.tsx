@@ -1,22 +1,22 @@
 import type { JSX, ReactNode } from "react";
 import {
-  IcoAssess,
-  IcoBuild,
-  IcoDashboards,
-  IcoDiagnose,
-  IcoDiscovery,
-  IcoHierarchy,
-  IcoIntake,
-  IcoOperate,
-  IcoProvision,
-  IcoSecurity,
-  IcoSettings,
-  IcoTerminal,
-  IcoTopology,
-} from "./icons";
+  MODE_CATALOGUE,
+  projectCatalogueGroups,
+  propagateBadges,
+  type ModeCatalogue,
+} from "../../contracts/modeCatalogue";
+import { AnthIcon } from "../icons/AnthIcon";
 
+/**
+ * ModeId: string-literal union of all catalogue mode + foot ids.
+ * Derived from the v3 catalogue structure.
+ *
+ * NOTE: This list is manually maintained to match MODE_CATALOGUE.
+ * Boot-time assertion in App.tsx guards catalogue ids ⊆ ModeId.
+ */
 export type ModeId =
   | "hierarchy"
+  | "devices"
   | "intake"
   | "discovery"
   | "provisioning"
@@ -24,163 +24,223 @@ export type ModeId =
   | "topology"
   | "diagnose"
   | "assess"
+  | "events"
   | "security"
   | "dashboards"
   | "build"
   | "settings"
   | "opsConsole";
 
-export type ModeGroupId = "foundation" | "run" | "governance" | "workshop";
-
-interface ModeSpec {
-  readonly id: ModeId;
-  readonly label: string;
-  readonly icon: (p: { size?: number; className?: string }) => JSX.Element;
-}
-
-interface ModeGroup {
-  readonly id: ModeGroupId;
-  readonly label: string;
-  readonly modes: readonly ModeSpec[];
-}
-
-/** Mode catalogue grouped per Direction D shell contract. */
-const MODE_GROUPS: readonly ModeGroup[] = [
-  {
-    id: "foundation",
-    label: "Foundation",
-    modes: [
-      { id: "hierarchy",    label: "Hierarchy",    icon: IcoHierarchy },
-      { id: "intake",       label: "Intake",       icon: IcoIntake },
-      { id: "discovery",    label: "Discovery",    icon: IcoDiscovery },
-      { id: "provisioning", label: "Provisioning", icon: IcoProvision },
-    ],
-  },
-  {
-    id: "run",
-    label: "Run",
-    modes: [
-      { id: "operate",  label: "Operate",  icon: IcoOperate },
-      { id: "topology", label: "Topology", icon: IcoTopology },
-      { id: "diagnose", label: "Diagnose", icon: IcoDiagnose },
-    ],
-  },
-  {
-    id: "governance",
-    label: "Governance",
-    modes: [
-      { id: "assess",     label: "Assess",     icon: IcoAssess },
-      { id: "security",   label: "Security",   icon: IcoSecurity },
-      { id: "dashboards", label: "Dashboards", icon: IcoDashboards },
-    ],
-  },
-  {
-    id: "workshop",
-    label: "Workshop",
-    modes: [
-      { id: "build",    label: "Build",    icon: IcoBuild },
-      { id: "settings", label: "Settings", icon: IcoSettings },
-    ],
-  },
-];
-
-export const MODE_LABELS: Record<ModeId, string> = Object.fromEntries(
-  MODE_GROUPS.flatMap((g) => g.modes.map((m) => [m.id, m.label])),
-) as Record<ModeId, string>;
-
 export type ModeRailVariant = "labeled" | "icons";
 
 export interface ModeRailProps {
   readonly active: ModeId;
   readonly variant?: ModeRailVariant;
-  readonly badgeCounts?: Partial<Record<ModeId, number>>;
-  readonly alertCounts?: Partial<Record<ModeId, number>>;
+  readonly catalogue?: ModeCatalogue;
   readonly onChange?: (id: ModeId) => void;
+  readonly alertCounts?: Readonly<Record<ModeId, number>>;
 }
 
+/**
+ * Build MODE_LABELS from the catalogue.
+ * Used by App.tsx and other mode-aware components.
+ */
+function buildModeLabels(catalogue: ModeCatalogue): Record<ModeId, string> {
+  const record: Record<string, string> = {};
+  for (const mode of catalogue.modes) {
+    record[mode.id] = mode.label;
+  }
+  for (const foot of catalogue.foot) {
+    record[foot.id] = foot.label;
+  }
+  return record as Record<ModeId, string>;
+}
+
+export const MODE_LABELS: Record<ModeId, string> = buildModeLabels(MODE_CATALOGUE);
+
+/**
+ * Dev-only boot check: ensure all catalogue mode/foot ids are in the ModeId union.
+ */
+export function assertCatalogueIdsCoverModeId(catalogue: ModeCatalogue = MODE_CATALOGUE): void {
+  const modeIdRecord: Record<string, true> = {
+    hierarchy: true,
+    devices: true,
+    intake: true,
+    discovery: true,
+    provisioning: true,
+    operate: true,
+    topology: true,
+    diagnose: true,
+    assess: true,
+    events: true,
+    security: true,
+    dashboards: true,
+    build: true,
+    settings: true,
+    opsConsole: true,
+  };
+
+  for (const mode of catalogue.modes) {
+    if (!(mode.id in modeIdRecord)) {
+      throw new Error(`ModeRail: catalogue mode "${mode.id}" not in ModeId union`);
+    }
+  }
+
+  for (const foot of catalogue.foot) {
+    if (!(foot.id in modeIdRecord)) {
+      throw new Error(`ModeRail: catalogue foot "${foot.id}" not in ModeId union`);
+    }
+  }
+}
+
+/**
+ * ModeRail — catalogue-driven navigation.
+ *
+ * Renders:
+ *   - Mode groups (Foundation, Run, Governance, Workshop) with sticky headers (labeled variant)
+ *   - Mode rows with state LED, icon, label, optional alert badge
+ *   - Foot section (Ops Console) at the bottom
+ *   - Supports "labeled" (196px expanded) and "icons" (56px collapsed) variants
+ *   - Group separator (1px) in icons variant
+ *   - Keyboard: up/down traversal across modes (group headers skipped), Enter activates
+ */
 export function ModeRail({
   active,
   variant = "labeled",
-  badgeCounts,
-  alertCounts,
+  catalogue = propagateBadges(MODE_CATALOGUE),
   onChange,
+  alertCounts,
 }: ModeRailProps): JSX.Element {
+  const groups = projectCatalogueGroups(catalogue);
+  const allModes = catalogue.modes;
+  const footEntries = catalogue.foot;
+
+  // Flatten all focusable items (modes + foot) for keyboard navigation
+  const focusableIds: ModeId[] = [
+    ...allModes.map((m) => m.id as ModeId),
+    ...footEntries.map((f) => f.id as ModeId),
+  ];
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown" && e.key !== "Enter") return;
+    e.preventDefault();
+
+    if (e.key === "Enter") {
+      onChange?.(active);
+      return;
+    }
+
+    const currentIdx = focusableIds.indexOf(active);
+    let nextIdx = currentIdx;
+
+    if (e.key === "ArrowDown") {
+      nextIdx = (currentIdx + 1) % focusableIds.length;
+    } else if (e.key === "ArrowUp") {
+      nextIdx = (currentIdx - 1 + focusableIds.length) % focusableIds.length;
+    }
+
+    const nextId = focusableIds[nextIdx];
+    if (nextId) onChange?.(nextId);
+  };
+
   return (
-    <nav className={`anth-rail ${variant}`} aria-label="Workspace modes">
-      {MODE_GROUPS.map((group) => (
+    <nav
+      className={`anth-rail ${variant}`}
+      aria-label="Workspace modes"
+      onKeyDown={handleKeyDown}
+      data-testid="nav-rail"
+    >
+      {groups.map((group) => (
         <RailGroup
           key={group.id}
           group={group}
           active={active}
           variant={variant}
-          badgeCounts={badgeCounts}
-          alertCounts={alertCounts}
+          catalogue={catalogue}
           onChange={onChange}
+          alertCounts={alertCounts}
         />
       ))}
       <div className="rail-foot">
-        <div
-          className={`item${active === "opsConsole" ? " active" : ""}`}
-          role="button"
-          tabIndex={0}
-          aria-pressed={active === "opsConsole"}
-          aria-label="Ops Console"
-          onClick={() => onChange?.("opsConsole")}
-        >
-          <IcoTerminal size={variant === "icons" ? 18 : 15} />
-          <span className="lbl">Ops Console</span>
-        </div>
+        {footEntries.map((foot) => {
+          const isActive = foot.id === active;
+          return (
+            <div
+              key={foot.id}
+              className={`item${isActive ? " active" : ""}`}
+              role="button"
+              tabIndex={isActive ? 0 : -1}
+              aria-pressed={isActive}
+              aria-label={foot.label}
+              onClick={() => onChange?.(foot.id as ModeId)}
+              data-testid={`nav-rail-foot-${foot.id}`}
+            >
+              <AnthIcon id={foot.iconId} size={variant === "icons" ? "sm" : "sm"} />
+              <span className="lbl">{foot.label}</span>
+            </div>
+          );
+        })}
       </div>
     </nav>
   );
 }
 
 interface RailGroupProps {
-  readonly group: ModeGroup;
+  readonly group: { readonly id: string; readonly label: string; readonly modes: readonly any[] };
   readonly active: ModeId;
   readonly variant: ModeRailVariant;
-  readonly badgeCounts?: Partial<Record<ModeId, number>>;
-  readonly alertCounts?: Partial<Record<ModeId, number>>;
+  readonly catalogue: ModeCatalogue;
   readonly onChange?: (id: ModeId) => void;
+  readonly alertCounts?: Readonly<Record<ModeId, number>>;
 }
 
 function RailGroup({
   group,
   active,
   variant,
-  badgeCounts,
-  alertCounts,
+  catalogue,
   onChange,
+  alertCounts,
 }: RailGroupProps): JSX.Element {
+  const modes = catalogue.modes.filter((m) => m.group === group.label);
+
   return (
     <>
       {variant === "labeled" && <div className="group-label">{group.label}</div>}
-      {group.modes.map((m) => {
-        const isActive = m.id === active;
-        const alert = alertCounts?.[m.id] ?? 0;
-        const badge = badgeCounts?.[m.id];
-        const cls = ["item", isActive ? "active" : "", alert > 0 ? "has-alert" : ""].join(" ").trim();
-        const badgeNode: ReactNode = alert > 0
-          ? <span className="badge num">{alert}</span>
-          : badge !== undefined && badge > 0
-            ? <span className="badge num">{badge}</span>
-            : null;
+      {modes.map((mode) => {
+        const isActive = mode.id === active;
+        // Use override if provided; otherwise use catalogue badge
+        const alertCount = alertCounts?.[mode.id as ModeId] ?? mode.badges?.alerts ?? 0;
+        const cls = ["item", isActive ? "active" : "", alertCount > 0 ? "has-alert" : ""]
+          .join(" ")
+          .trim();
+
+        const badgeNode: ReactNode =
+          alertCount > 0 ? <span className="badge num">{alertCount}</span> : null;
+
+        // State LED color from mode.state
+        const stateLedClass = `led ${mode.state}`;
+
         return (
           <div
-            key={m.id}
+            key={mode.id}
             className={cls}
             role="button"
-            tabIndex={0}
+            tabIndex={isActive ? 0 : -1}
             aria-pressed={isActive}
-            aria-label={m.label}
-            onClick={() => onChange?.(m.id)}
+            aria-label={mode.label}
+            onClick={() => onChange?.(mode.id as ModeId)}
+            data-testid={`nav-rail-mode-${mode.id}`}
+            data-active={isActive}
           >
-            <m.icon size={variant === "icons" ? 18 : 15} />
-            <span className="lbl">{m.label}</span>
+            <div className={stateLedClass}></div>
+            <AnthIcon id={mode.iconId} size="sm" />
+            <span className="lbl">{mode.label}</span>
             {badgeNode}
           </div>
         );
       })}
+      {variant === "icons" && modes.length > 0 && <div className="group-sep"></div>}
     </>
   );
 }

@@ -14,6 +14,7 @@ export interface AppShellProps {
   readonly onEnvSwitchOpen?: () => void;
   readonly onCrumbClick?: (index: number) => void;
   readonly subnav?: ReactNode;
+  readonly contextSidebar?: ReactNode;
   readonly secondary?: ReactNode;
   readonly inspector?: ReactNode;
   readonly statusLeft?: readonly StatusCell[];
@@ -31,6 +32,7 @@ export function AppShell({
   onEnvSwitchOpen,
   onCrumbClick,
   subnav,
+  contextSidebar,
   secondary,
   inspector,
   statusLeft,
@@ -38,7 +40,23 @@ export function AppShell({
   children,
 }: AppShellProps): JSX.Element {
   const cols: string[] = ["196px"];
-  if (secondary) cols.push("220px");
+
+  // Grid layout: rail → (contextSidebar OR secondary) → main → inspector
+  // - If secondary is supplied, it takes precedence (existing behavior).
+  // - If only contextSidebar is supplied, use 260px.
+  // - If both are supplied, render only secondary (existing behavior).
+  // - If neither, just main.
+  let sidebarNode: ReactNode;
+  if (secondary) {
+    cols.push("220px");
+    sidebarNode = secondary;
+  } else if (contextSidebar) {
+    cols.push("260px");
+    sidebarNode = contextSidebar;
+  } else {
+    sidebarNode = undefined;
+  }
+
   cols.push("1fr");
   if (inspector) cols.push("340px");
 
@@ -63,7 +81,7 @@ export function AppShell({
       {subnav}
 
       <ModeRail active={activeMode} onChange={onModeChange} />
-      {secondary}
+      {sidebarNode}
       <main className="anth-work" aria-label="Workspace">
         <div className="anth-work__content">
           <ModeErrorBoundary key={activeMode} modeId={activeMode}>

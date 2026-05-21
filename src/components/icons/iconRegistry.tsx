@@ -63,6 +63,17 @@ const ICONS: ReadonlyArray<IconDescriptor> = [
   { id: "mode-diagnose", group: "mode", render: () => svgPaths(<path key="a" d="M12 3v6M12 15v6M3 12h6M15 12h6" />, <circle key="b" cx="12" cy="12" r="2" />) },
   { id: "mode-build", group: "mode", render: () => svgPaths(<path key="a" d="M4 20h16" />, <path key="b" d="M6 20V8l6-4 6 4v12" />, <path key="c" d="M10 20v-6h4v6" />) },
   { id: "mode-hierarchy", group: "mode", render: () => svgPaths(<rect key="a" x="9" y="3" width="6" height="4" />, <rect key="b" x="3" y="14" width="6" height="4" />, <rect key="c" x="15" y="14" width="6" height="4" />, <path key="d" d="M12 7v4M12 11h-6v3M12 11h6v3" />) },
+  { id: "mode-provisioning", group: "mode", render: () => svgPaths(<path key="a" d="M12 3v18M3 12h18" />, <circle key="b" cx="12" cy="12" r="3" />) },
+  { id: "mode-security", group: "mode", render: () => svgPaths(<path key="a" d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z" />) },
+  { id: "mode-dashboards", group: "mode", render: () => svgPaths(<rect key="a" x="3" y="3" width="8" height="10" />, <rect key="b" x="13" y="3" width="8" height="6" />, <rect key="c" x="13" y="11" width="8" height="10" />, <rect key="d" x="3" y="15" width="8" height="6" />) },
+  { id: "mode-settings", group: "mode", render: () => svgPaths(<circle key="a" cx="12" cy="12" r="3" />, <path key="b" d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" />) },
+  { id: "mode-ops-console", group: "mode", render: () => svgPaths(<rect key="a" x="3" y="4" width="18" height="16" />, <path key="b" d="m7 9 3 3-3 3M13 15h4" />) },
+  { id: "mode-devices", group: "mode", render: () => svgPaths(<rect key="a" x="3" y="6" width="18" height="10" />, <path key="b" d="M7 10v2M11 10v2M15 10v2M19 10v2M3 19h18" />) },
+  { id: "mode-events", group: "mode", render: () => svgPaths(<path key="a" d="M6 8a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6" />, <path key="b" d="M10 20a2 2 0 0 0 4 0" />) },
+
+  // navigation
+  { id: "nav-caret-right", group: "shell", render: () => svgPaths(<path key="a" d="m9 6 6 6-6 6" />) },
+  { id: "nav-caret-down",  group: "shell", render: () => svgPaths(<path key="a" d="m6 9 6 6 6-6" />) },
 
   // network device
   { id: "device-router", group: "network-device", render: () => svgPaths(<rect key="a" x="3" y="10" width="18" height="8" rx="1" />, <path key="b" d="M7 14h2M11 14h2M15 14h2" />) },

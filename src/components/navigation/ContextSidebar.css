@@ -1,0 +1,267 @@
+/**
+ * D3A — ContextSidebar + NavigationTree styles.
+ *
+ * Token-driven design. Obeys D3_NAV_SPEC §4 (context sidebar anatomy).
+ */
+
+.nav-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  height: 100%;
+  background: var(--anth-bg-panel);
+  border-right: 1px solid var(--anth-border);
+  overflow: hidden;
+}
+
+/* ============================================================
+   Header: mode icon + label + state chip + item count
+   ============================================================ */
+
+.nav-sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--anth-border);
+  flex-shrink: 0;
+}
+
+.nav-sidebar__title {
+  font-family: var(--anth-font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--anth-text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-sidebar__state-chip {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: var(--anth-r-sm);
+  font-family: var(--anth-font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.nav-sidebar__state-chip--available {
+  background: var(--anth-ok-tint);
+  color: var(--anth-ok-ink);
+}
+
+.nav-sidebar__state-chip--partial {
+  background: var(--anth-warn-tint);
+  color: var(--anth-warn-ink);
+}
+
+.nav-sidebar__state-chip--deferred {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-muted);
+}
+
+.nav-sidebar__state-chip--blocked {
+  background: var(--anth-err-tint);
+  color: var(--anth-err-ink);
+}
+
+.nav-sidebar__item-count {
+  font-family: var(--anth-font-ui);
+  font-size: 11px;
+  color: var(--anth-text-muted);
+  margin-left: 4px;
+}
+
+/* ============================================================
+   Body: scrollable tree sections
+   ============================================================ */
+
+.nav-sidebar__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.nav-sidebar__section {
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.nav-sidebar__section:last-child {
+  border-bottom: none;
+}
+
+.nav-sidebar__section-heading {
+  position: sticky;
+  top: 0;
+  height: 22px;
+  padding: 8px 12px 4px;
+  background: var(--anth-bg-panel);
+  font-family: var(--anth-font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--anth-text-muted);
+  z-index: 10;
+}
+
+/* ============================================================
+   Empty state
+   ============================================================ */
+
+.nav-sidebar__empty {
+  padding: 16px 12px;
+  font-family: var(--anth-font-ui);
+  font-size: 12px;
+  color: var(--anth-text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ============================================================
+   Tree: rows, carets, LEDs
+   ============================================================ */
+
+.nav-tree {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-tree-item-wrapper {
+  display: contents;
+}
+
+.nav-sidebar-row {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  gap: 6px;
+  padding-right: 12px;
+  font-family: var(--anth-font-ui);
+  font-size: 12px;
+  color: var(--anth-text);
+  cursor: pointer;
+  user-select: none;
+  border-left: 2px solid transparent;
+  transition: background-color 150ms ease-in-out;
+}
+
+.nav-sidebar-row:hover {
+  background-color: var(--anth-bg-hover);
+}
+
+.nav-sidebar-row--active {
+  background-color: var(--anth-bg-selected);
+  border-left-color: var(--anth-accent-action);
+  color: var(--anth-text);
+}
+
+.nav-sidebar-row:focus-visible {
+  outline: var(--anth-ring-width) solid var(--anth-ring-color);
+  outline-offset: var(--anth-ring-offset);
+}
+
+/* Deferred rows: italic + muted text */
+.nav-row--deferred {
+  font-style: italic;
+  color: var(--anth-text-muted);
+}
+
+.nav-row--deferred.nav-sidebar-row--active {
+  color: var(--anth-text);
+}
+
+/* Blocked rows: error ink */
+.nav-row--blocked {
+  color: var(--anth-err-ink, var(--anth-err));
+}
+
+/* ============================================================
+   Status LED (6px dot)
+   ============================================================ */
+
+.nav-led {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nav-led--available {
+  background-color: var(--anth-ok);
+}
+
+.nav-led--partial {
+  background-color: var(--anth-warn);
+}
+
+.nav-led--deferred {
+  background-color: var(--anth-text-muted);
+}
+
+.nav-led--blocked {
+  background-color: var(--anth-err);
+}
+
+/* ============================================================
+   Expand/collapse caret button
+   ============================================================ */
+
+.nav-tree-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--anth-text-2);
+  flex-shrink: 0;
+}
+
+.nav-tree-toggle:hover {
+  color: var(--anth-text);
+}
+
+.nav-tree-toggle:focus-visible {
+  outline: var(--anth-ring-width) solid var(--anth-ring-color);
+  outline-offset: var(--anth-ring-offset);
+}
+
+/* ============================================================
+   Label + badge
+   ============================================================ */
+
+.nav-sidebar-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-sidebar-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--anth-r-sm);
+  background-color: var(--anth-bg-sunken);
+  font-family: var(--anth-font-mono);
+  font-size: 10px;
+  color: var(--anth-text-muted);
+  flex-shrink: 0;
+}
+
+/* Focus ring is applied to the row itself via :focus-visible, not individual elements */
