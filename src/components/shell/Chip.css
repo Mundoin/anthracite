@@ -1,0 +1,106 @@
+/* D1 — Chip primitive styles.
+   Consumes only the chip semantic tokens from src/styles/tokens.css.
+   No inline colors. No per-mode override. */
+
+.anth .anth-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--anth-r-sm);
+  font-family: var(--anth-font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: background var(--anth-motion-fast) ease;
+}
+
+.anth .anth-chip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  flex: 0 0 auto;
+  display: inline-block;
+}
+
+.anth .anth-chip__label {
+  display: inline-block;
+}
+
+/* capability variants */
+.anth .anth-chip--capability-available {
+  background: var(--anth-chip-available-bg);
+  color: var(--anth-chip-available-ink);
+}
+.anth .anth-chip--capability-partial {
+  background: var(--anth-chip-partial-bg);
+  color: var(--anth-chip-partial-ink);
+}
+.anth .anth-chip--capability-deferred {
+  background: var(--anth-chip-deferred-bg);
+  color: var(--anth-chip-deferred-ink);
+}
+.anth .anth-chip--capability-blocked {
+  background: var(--anth-chip-blocked-bg);
+  color: var(--anth-chip-blocked-ink);
+}
+
+/* readiness variants */
+.anth .anth-chip--readiness-empty {
+  background: var(--anth-chip-readiness-empty-bg);
+  color: var(--anth-chip-readiness-empty-ink);
+}
+.anth .anth-chip--readiness-partial {
+  background: var(--anth-chip-readiness-partial-bg);
+  color: var(--anth-chip-readiness-partial-ink);
+}
+.anth .anth-chip--readiness-ready {
+  background: var(--anth-chip-readiness-ready-bg);
+  color: var(--anth-chip-readiness-ready-ink);
+}
+.anth .anth-chip--readiness-blocked {
+  background: var(--anth-chip-readiness-blocked-bg);
+  color: var(--anth-chip-readiness-blocked-ink);
+}
+
+/* risk variants */
+.anth .anth-chip--risk-info {
+  background: var(--anth-chip-risk-info-bg);
+  color: var(--anth-chip-risk-info-ink);
+}
+.anth .anth-chip--risk-warning {
+  background: var(--anth-chip-risk-warning-bg);
+  color: var(--anth-chip-risk-warning-ink);
+}
+.anth .anth-chip--risk-critical {
+  background: var(--anth-chip-risk-critical-bg);
+  color: var(--anth-chip-risk-critical-ink);
+}
+
+/* generic shell status variants — derived from existing status tints */
+.anth .anth-chip--status-ok {
+  background: var(--anth-ok-tint);
+  color: var(--anth-ok-ink);
+}
+.anth .anth-chip--status-warn {
+  background: var(--anth-warn-tint);
+  color: var(--anth-warn-ink);
+}
+.anth .anth-chip--status-err {
+  background: var(--anth-err-tint);
+  color: var(--anth-err-ink);
+}
+.anth .anth-chip--status-info {
+  background: var(--anth-info-tint);
+  color: var(--anth-info-ink);
+}
+.anth .anth-chip--status-idle {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-3);
+}

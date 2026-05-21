@@ -376,3 +376,85 @@
 .anth ::-webkit-scrollbar { width: 8px; height: 8px; }
 .anth ::-webkit-scrollbar-thumb { background: #C9D2DF; border-radius: 4px; }
 .anth ::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================================================
+   D1 Shell Premium Pass — additive tokens.
+   Existing tokens above remain authoritative for legacy CSS.
+   New shell rhythm consumes the cockpit-/elev-/chip-/icon-/
+   focus-/motion-* tokens below.
+   ============================================================ */
+:root {
+  /* Cockpit density (compact 32px row default per D1 approval) */
+  --anth-cockpit-row:        32px;
+  --anth-cockpit-row-compact:28px;
+  --anth-cockpit-row-comfy:  40px;
+  --anth-cockpit-pad-x:      14px;
+  --anth-cockpit-pad-y:      10px;
+
+  /* Elevation scale — 0 flat, 1 panel, 2 raised card, 3 overlay/modal */
+  --anth-elev-0: none;
+  --anth-elev-1: 0 1px 0 rgba(26,32,44,0.04), 0 0 0 1px var(--anth-border);
+  --anth-elev-2: 0 1px 2px rgba(26,32,44,0.05), 0 4px 14px rgba(26,32,44,0.07);
+  --anth-elev-3: 0 12px 32px rgba(26,32,44,0.16), 0 0 0 1px var(--anth-border-strong);
+
+  /* Focus ring */
+  --anth-ring-width:  2px;
+  --anth-ring-offset: 1px;
+  --anth-ring-color:  var(--anth-border-focus);
+
+  /* Motion */
+  --anth-motion-fast: 90ms;
+  --anth-motion-base: 160ms;
+  --anth-motion-slow: 280ms;
+
+  /* Chip semantic tokens — capability */
+  --anth-chip-available-bg:    var(--anth-ok-tint);
+  --anth-chip-available-ink:   var(--anth-ok-ink);
+  --anth-chip-partial-bg:      var(--anth-warn-tint);
+  --anth-chip-partial-ink:     var(--anth-warn-ink);
+  --anth-chip-deferred-bg:     var(--anth-bg-sunken);
+  --anth-chip-deferred-ink:    var(--anth-text-3);
+  --anth-chip-blocked-bg:      var(--anth-err-tint);
+  --anth-chip-blocked-ink:     var(--anth-err-ink);
+
+  /* Chip semantic tokens — readiness (empty/partial/ready/blocked) */
+  --anth-chip-readiness-empty-bg:   var(--anth-bg-sunken);
+  --anth-chip-readiness-empty-ink:  var(--anth-text-3);
+  --anth-chip-readiness-partial-bg: var(--anth-warn-tint);
+  --anth-chip-readiness-partial-ink:var(--anth-warn-ink);
+  --anth-chip-readiness-ready-bg:   var(--anth-ok-tint);
+  --anth-chip-readiness-ready-ink:  var(--anth-ok-ink);
+  --anth-chip-readiness-blocked-bg: var(--anth-err-tint);
+  --anth-chip-readiness-blocked-ink:var(--anth-err-ink);
+
+  /* Chip semantic tokens — risk (info/warning/critical) */
+  --anth-chip-risk-info-bg:     var(--anth-info-tint);
+  --anth-chip-risk-info-ink:    var(--anth-info-ink);
+  --anth-chip-risk-warning-bg:  var(--anth-warn-tint);
+  --anth-chip-risk-warning-ink: var(--anth-warn-ink);
+  --anth-chip-risk-critical-bg: var(--anth-err-tint);
+  --anth-chip-risk-critical-ink:var(--anth-err-ink);
+
+  /* Icon grammar */
+  --anth-icon-sm:     14px;
+  --anth-icon-md:     16px;
+  --anth-icon-lg:     20px;
+  --anth-icon-stroke: 1.5px;
+}
+
+/* Cockpit density attribute hook (AppShell sets data-density="compact"). */
+.anth[data-density="compact"] {
+  --anth-row: var(--anth-cockpit-row);
+}
+.anth[data-density="comfortable"] {
+  --anth-row: var(--anth-cockpit-row-comfy);
+}
+.anth[data-density="tight"] {
+  --anth-row: var(--anth-cockpit-row-compact);
+}
+
+/* Focus discipline — applies to interactive shell controls only. */
+.anth :focus-visible {
+  outline: var(--anth-ring-width) solid var(--anth-ring-color);
+  outline-offset: var(--anth-ring-offset);
+}

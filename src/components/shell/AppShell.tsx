@@ -50,6 +50,7 @@ export function AppShell({
     <div
       className={`anth anth-shell ${subnav ? "" : "anth-shell--no-subnav"}`}
       style={style}
+      data-density="compact"
     >
       <TitleBar
         env={env}
