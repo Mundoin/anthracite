@@ -181,16 +181,21 @@
    technical-blueprint — Technical Blueprint Signal Layer
    ============================================================ */
 :root[data-theme="technical-blueprint"] {
-  --anth-bg-app:       #FAFCFD;
-  --anth-bg-panel:     #FFFFFF;
-  --anth-bg-sunken:    #ECF1F4;
-  --anth-bg-hover:     #E6EDF1;
-  --anth-bg-selected:  #D3E6EE;
-  --anth-bg-titlebar:  #FFFFFF;
-  --anth-bg-statusbar: #ECF1F4;
+  /* D3T-BP1A — Confident blueprint signal surface. Canvas carries a
+   * real cool-blue drafting tint; panels keep a faint blueprint
+   * undertone (not pure white floating on pale nothing); sunken bed
+   * reads as drafting table; selected is the blueprint signal tint;
+   * hover is a visible cyan-lift. */
+  --anth-bg-app:       #C7DCE8;
+  --anth-bg-panel:     #F4F8FB;
+  --anth-bg-sunken:    #B7CFDE;
+  --anth-bg-hover:     #DCE9F0;
+  --anth-bg-selected:  #9ABED2;
+  --anth-bg-titlebar:  #F4F8FB;
+  --anth-bg-statusbar: #B7CFDE;
 
-  --anth-border:        #DDE6EC;
-  --anth-border-strong: #7A8A95;
+  --anth-border:        #A3BFCF;
+  --anth-border-strong: #4F7B8E;
   --anth-border-focus:  #0E72A0;
 
   --anth-text:        #0E1E2C;
@@ -228,21 +233,33 @@
   --anth-accent-action-ink:    #FFFFFF;
   --anth-accent-action-tint:   #E2F0E7;
 
-  /* Chrome fascia (technical-blueprint: deep-navy chrome over cyan
-     workspace — chrome reads as cool architectural band). */
+  /* D3T-BP1B — Dark technical navigation spine over bright blueprint
+   * workspace. ModeRail + ContextSidebar + subnav + opsdock all share
+   * the same deep navy chrome family so the navigation skeleton is
+   * visibly distinct from the strong blueprint canvas behind it.
+   * Chrome text stays light blueprint paper; signal/hover stays cyan. */
   --anth-bg-titlebar:   #074C6E;
-  --anth-bg-subnav:     #ECF1F4;
+  --anth-bg-subnav:     #0E2A40;
   --anth-bg-statusbar:  #074C6E;
-  --anth-bg-opsdock:    #DAE3EA;
+  --anth-bg-opsdock:    #0E2A40;
   --anth-chrome-text:   #ECF1F4;
   --anth-chrome-text-2: #BFD3E3;
   --anth-chrome-border: #0E1E2C;
-  --anth-chrome-hover:  #0E72A0;
-  --anth-chrome-signal: #0E72A0;
+  --anth-chrome-hover:  #155A82;
+  --anth-chrome-signal: #2DBDBE;
   --anth-shelf-signal:  #0E72A0;
 
   /* Ghost / empty placeholder surfaces — blueprint-tinted instead of
      neutral grey so empty beds feel native to the theme. */
-  --anth-bg-ghost:      #DAE3EA;
+  --anth-bg-ghost:      #B7CFDE;
   --anth-text-ghost:    #3E5A78;
+
+  /* D3T-BP1A — Per-group structural accents bumped to confident
+   * signal hues so domain orientation is visible at a glance. Still
+   * orientation-only, never status: foundation vivid cobalt, run
+   * vivid teal, governance vivid magenta-rose, workshop vivid violet. */
+  --anth-group-foundation: #1E5BC8;
+  --anth-group-run:        #0E8C8E;
+  --anth-group-governance: #C4356A;
+  --anth-group-workshop:   #6E5AAA;
 }

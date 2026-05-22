@@ -110,6 +110,67 @@
   cursor: not-allowed;
 }
 
+/* D3T-BP2B — Native form-control chrome was leaking dark WebView
+ * defaults on Port (number input + spinners) and Platform (select +
+ * dropdown). Force the same paper bg + ink + token border on every
+ * form control, strip native appearance, custom chevron on select,
+ * neutralize autofill, and pin `color-scheme: light` so the embedded
+ * WebView stops using system dark field defaults. */
+.form-group {
+  color-scheme: light;
+}
+
+.form-group input,
+.form-group select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--anth-bg-panel);
+  color: var(--anth-text);
+  border-color: var(--anth-border-strong);
+  caret-color: var(--anth-text);
+}
+
+.form-group input[type="number"] {
+  appearance: textfield;
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+}
+.form-group input[type="number"]::-webkit-outer-spin-button,
+.form-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+/* Custom chevron so the closed select reads as a text input with a
+ * caret, not the native dark dropdown widget. */
+.form-group select {
+  padding-right: 26px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='1 1 5 5 9 1'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px 6px;
+}
+
+/* Options are partially out of CSS reach in some WebViews; set what
+ * we can so any platform that respects it renders paper + ink. */
+.form-group select option {
+  background-color: var(--anth-bg-panel);
+  color: var(--anth-text);
+}
+
+/* Strip Chromium autofill yellow bed + dark text on autofilled. */
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus,
+.form-group input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--anth-text);
+  caret-color: var(--anth-text);
+  box-shadow: 0 0 0 1000px var(--anth-bg-panel) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* ── Action button row ───────────────────────────────────────── */
 
 .dx-actions {
@@ -382,3 +443,81 @@
   white-space: pre;
   line-height: 1.5;
 }
+
+/* ============================================================
+   D3T-BP2C — Uncompromising native form-control reset.
+   Discovery is rendered inside an embedded WebView (Tauri /
+   WebView2). Inputs and selects were ignoring author CSS and
+   falling back to the system `field` color in dark contexts
+   regardless of theme. The fix:
+     1. Pin `color-scheme: light` on .discovery-mode so the
+        WebView uses light system widget colors throughout.
+     2. Re-declare bg + text + border at maximum reachable
+        specificity (`.discovery-mode .form-group input/select`)
+        with !important to defeat any UA shadow-DOM defaults.
+   These rules live at the END of the file so they win on
+   source order even at equal specificity.
+   ============================================================ */
+.discovery-mode {
+  color-scheme: light;
+}
+
+.discovery-mode .form-group input,
+.discovery-mode .form-group select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-color: var(--anth-bg-panel) !important;
+  background-image: none !important;
+  color: var(--anth-text) !important;
+  border-color: var(--anth-border-strong) !important;
+  caret-color: var(--anth-text) !important;
+}
+
+.discovery-mode .form-group input[type="number"] {
+  -webkit-appearance: textfield !important;
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+.discovery-mode .form-group input[type="number"]::-webkit-outer-spin-button,
+.discovery-mode .form-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  margin: 0 !important;
+}
+
+.discovery-mode .form-group select {
+  padding-right: 26px !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='1 1 5 5 9 1'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 10px 6px !important;
+  background-color: var(--anth-bg-panel) !important;
+}
+
+.discovery-mode .form-group select option {
+  background-color: var(--anth-bg-panel);
+  color: var(--anth-text);
+}
+
+.discovery-mode .form-group input:focus,
+.discovery-mode .form-group select:focus,
+.discovery-mode .form-group input:focus-visible,
+.discovery-mode .form-group select:focus-visible {
+  background-color: var(--anth-bg-panel) !important;
+  color: var(--anth-text) !important;
+  border-color: var(--anth-border-focus) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--anth-info-tint) !important;
+}
+
+.discovery-mode .form-group input:-webkit-autofill,
+.discovery-mode .form-group input:-webkit-autofill:hover,
+.discovery-mode .form-group input:-webkit-autofill:focus,
+.discovery-mode .form-group input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--anth-text) !important;
+  caret-color: var(--anth-text) !important;
+  box-shadow: 0 0 0 1000px var(--anth-bg-panel) inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+

@@ -1241,3 +1241,103 @@
   font-size: 11px;
   color: var(--anth-text-2);
 }
+
+/* ============================================================
+   D3T-BP2 — Topology evidence/readiness surface normalization.
+   The Topology tables and section beds are operator evidence
+   sheets, not theme chrome. They render as clean neutral
+   white/grey-blue surfaces across every theme so the data
+   stays legible no matter which theme is active.
+   Scoped under `.topology-mode` to avoid leaking elsewhere.
+   ============================================================ */
+.topology-mode .tm-body,
+.topology-mode .tm-summary,
+.topology-mode .tm-adjacency,
+.topology-mode .tm-adjacency-summary,
+.topology-mode .tm-node-card,
+.topology-mode .tm-body--empty,
+.topology-mode .tm-body--unavailable {
+  background: #FFFFFF;
+  color: #111827;
+  border-color: #E5E7EB;
+}
+
+.topology-mode .tm-section-heading,
+.topology-mode .tm-summary-label,
+.topology-mode .tm-node-meta {
+  color: #475569;
+}
+
+.topology-mode .tm-summary-value,
+.topology-mode .tm-node-label {
+  color: #111827;
+}
+
+.topology-mode .tm-muted,
+.topology-mode .tm-adjacency-reason,
+.topology-mode .tm-edges-note {
+  color: #6B7280;
+}
+
+.topology-mode .tm-adjacency-table {
+  background: #FFFFFF;
+  color: #111827;
+  border-color: #E5E7EB;
+}
+
+.topology-mode .tm-adjacency-table th {
+  background: #F1F5F9;
+  color: #1F2937;
+  border-color: #E5E7EB;
+}
+
+.topology-mode .tm-adjacency-table th,
+.topology-mode .tm-adjacency-table td {
+  border-color: #E5E7EB;
+}
+
+.topology-mode .tm-adjacency-table tbody tr:nth-child(even) {
+  background: #F8FAFC;
+}
+
+.topology-mode .tm-adjacency-table tbody tr:hover {
+  background: #EEF2F7;
+}
+
+.topology-mode .tm-node-card {
+  background: #FFFFFF;
+  border-color: #E5E7EB;
+}
+
+.topology-mode .tm-node-tag {
+  background: #F1F5F9;
+  color: #1F2937;
+  border-color: #E5E7EB;
+}
+
+.topology-mode .tm-node-tag--muted {
+  background: #F8FAFC;
+  color: #6B7280;
+}
+
+/* D3T-BP2A — Adjacency state cells render as inline muted status text
+ * with a small dot. No filled colored cell, no pill, no theme bg
+ * leaking through the evidence sheet. Keep semantic ink so present /
+ * absent stay distinguishable. */
+.topology-mode .tm-adjacency-table .tm-adjacency-present,
+.topology-mode .tm-adjacency-table .tm-adjacency-absent {
+  background: transparent;
+  padding: 0;
+  height: auto;
+  border-radius: 0;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 12px;
+}
+.topology-mode .tm-adjacency-table .tm-adjacency-present {
+  color: #1F6E3F;
+}
+.topology-mode .tm-adjacency-table .tm-adjacency-absent {
+  color: #6B7280;
+}
