@@ -9,13 +9,18 @@
    Root container
    ============================================================ */
 
+/* D3T-P1C — ContextSidebar is chrome-adjacent navigation; it joins the
+ * dark fascia family (titlebar/subnav/statusbar/rail) under each theme.
+ * Tree rows still consume chrome-text family so labels stay legible on
+ * dark beds. Token fallbacks keep light themes working unchanged. */
 .nav-sidebar {
   display: flex;
   flex-direction: column;
   width: 260px;
   height: 100%;
-  background: var(--anth-bg-panel);
-  border-right: 1px solid var(--anth-border);
+  background: var(--anth-bg-subnav, var(--anth-bg-panel));
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
+  border-right: 1px solid var(--anth-chrome-border, var(--anth-border));
   overflow: hidden;
   font-family: var(--anth-font-ui);
 }
@@ -31,8 +36,8 @@
   gap: 8px;
   height: 36px;
   padding: 0 12px;
-  border-bottom: 1px solid var(--anth-border);
-  background: var(--anth-bg-panel);
+  border-bottom: 1px solid var(--anth-chrome-border, var(--anth-border));
+  background: var(--anth-bg-titlebar, var(--anth-bg-panel));
   flex-shrink: 0;
 }
 
@@ -40,14 +45,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--anth-text);
+  color: var(--anth-chrome-text, var(--anth-text));
   flex-shrink: 0;
 }
 
 .nav-sidebar__title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--anth-text);
+  color: var(--anth-chrome-text, var(--anth-text));
   letter-spacing: 0.02em;
   flex: 1;
   min-width: 0;
@@ -97,10 +102,10 @@
   gap: 8px;
   min-height: 22px;
   padding: 4px 12px;
-  border-bottom: 1px solid var(--anth-border);
-  background: var(--anth-bg-sunken);
+  border-bottom: 1px solid var(--anth-chrome-border, var(--anth-border));
+  background: var(--anth-chrome-hover, var(--anth-bg-sunken));
   font-size: 10.5px;
-  color: var(--anth-text-2);
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
   font-family: var(--anth-font-mono);
   flex-shrink: 0;
   letter-spacing: 0.02em;
@@ -111,7 +116,7 @@
 }
 
 .nav-sidebar__count--em {
-  color: var(--anth-text);
+  color: var(--anth-chrome-text, var(--anth-text));
   font-weight: 600;
 }
 
@@ -146,14 +151,14 @@
 }
 
 .nav-sidebar__section + .nav-sidebar__section {
-  border-top: 1px solid var(--anth-border);
+  border-top: 1px solid var(--anth-chrome-border, var(--anth-border));
   margin-top: 2px;
 }
 
 /* Trailing sections (deferred / blocked) get a faint sunken backdrop */
 .nav-sidebar__section--deferred,
 .nav-sidebar__section--blocked {
-  background: var(--anth-bg-sunken);
+  background: var(--anth-chrome-hover, var(--anth-bg-sunken));
 }
 
 /* Sticky kind heading — 22px · uppercase 10px · muted */
@@ -170,13 +175,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--anth-text-2);
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
   user-select: none;
 }
 
 .nav-sidebar__section--deferred .nav-sidebar__section-heading,
 .nav-sidebar__section--blocked .nav-sidebar__section-heading {
-  background: var(--anth-bg-sunken);
+  background: var(--anth-chrome-hover, var(--anth-bg-sunken));
 }
 
 /* Honest sublabel beneath the heading (e.g. "Not yet wired") */
@@ -256,7 +261,7 @@
   font-size: 12.5px;
   font-weight: 500;
   line-height: 1;
-  color: var(--anth-text);
+  color: var(--anth-chrome-text, var(--anth-text));
   cursor: pointer;
   user-select: none;
   border-left: 2px solid transparent;
@@ -264,7 +269,7 @@
 }
 
 .nav-sidebar-row:hover {
-  background-color: var(--anth-bg-hover);
+  background-color: var(--anth-chrome-hover, var(--anth-bg-hover));
 }
 
 .nav-sidebar-row:focus-visible {
@@ -272,22 +277,22 @@
   outline-offset: calc(var(--anth-ring-offset) * -1);
 }
 
-/* Active row — bg-selected + 2px inset accent (operational selected = green) */
+/* Active row — chrome-hover bed + signal accent inset */
 .nav-sidebar-row--active {
-  background-color: var(--anth-bg-selected);
-  border-left-color: var(--anth-accent-action);
-  color: var(--anth-text);
+  background-color: var(--anth-chrome-hover, var(--anth-bg-selected));
+  border-left-color: var(--anth-chrome-signal, var(--anth-accent-action));
+  color: var(--anth-chrome-text, var(--anth-text));
   font-weight: 600;
 }
 
 .nav-sidebar-row--active:hover {
-  background-color: var(--anth-bg-selected);
+  background-color: var(--anth-chrome-hover, var(--anth-bg-selected));
 }
 
 /* Group rows render slightly bolder so folder nodes feel structural */
 .nav-sidebar-row[data-kind="group"] {
   font-weight: 600;
-  color: var(--anth-text);
+  color: var(--anth-chrome-text, var(--anth-text));
 }
 
 /* Deferred rows — italic + muted */
@@ -360,14 +365,14 @@
   border: 0;
   border-radius: var(--anth-r-sm);
   cursor: pointer;
-  color: var(--anth-text-2);
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
   flex-shrink: 0;
   transition: background-color 120ms ease, color 120ms ease;
 }
 
 .nav-tree-toggle:hover {
-  background-color: var(--anth-bg-hover);
-  color: var(--anth-text);
+  background-color: var(--anth-chrome-hover, var(--anth-bg-hover));
+  color: var(--anth-chrome-text, var(--anth-text));
 }
 
 .nav-tree-toggle:focus-visible {
@@ -392,11 +397,11 @@
   width: 14px;
   height: 14px;
   flex-shrink: 0;
-  color: var(--anth-text-2);
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
 }
 
 .nav-sidebar-row--active .nav-sidebar-row__icon {
-  color: var(--anth-text);
+  color: var(--anth-chrome-text, var(--anth-text));
 }
 
 .nav-row--deferred .nav-sidebar-row__icon {
@@ -446,5 +451,3 @@
   background-color: var(--anth-bg-sunken);
   color: var(--anth-text-2);
 }
-</content>
-</invoke>

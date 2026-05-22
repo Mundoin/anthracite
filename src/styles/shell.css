@@ -12,14 +12,37 @@
   overflow: hidden;
   position: relative;
 }
+/* D3T-P1 — Subnav row is always rendered (placeholder if mode has no
+   sections), so the legacy --no-subnav grid override is no longer used.
+   Kept for backwards compat only — no consumer sets it now. */
 .anth-shell--no-subnav { grid-template-rows: 36px 1fr 28px 24px; }
+
+/* Placeholder subnav (rendered for modes lacking real sections) */
+.anth-subnav--placeholder { color: var(--anth-chrome-text-2, var(--anth-text-3)); }
+.anth-subnav--placeholder .seg--placeholder {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--anth-chrome-text, var(--anth-text-2));
+  background: var(--anth-chrome-hover, var(--anth-bg-sunken));
+  border: 1px solid var(--anth-chrome-border, var(--anth-border));
+  cursor: default;
+}
+.anth-subnav__hint {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--anth-chrome-text-2, var(--anth-text-muted));
+  font-style: italic;
+}
 
 /* ---- TitleBar (36 px) ----------------------------------------------- */
 .anth-titlebar {
   display: flex; align-items: center; gap: 0;
   height: 36px; padding: 0 0 0 8px;
   background: var(--anth-bg-titlebar);
-  border-bottom: 1px solid var(--anth-border);
+  color: var(--anth-chrome-text, var(--anth-text));
+  border-bottom: 1px solid var(--anth-chrome-border, var(--anth-border));
   position: relative; z-index: 5;
   grid-column: 1 / -1;
   user-select: none;
@@ -48,7 +71,8 @@
   display: flex; align-items: center; gap: 8px;
   padding-right: 12px; margin-right: 4px;
   height: 28px;
-  border-right: 1px solid var(--anth-border);
+  border-right: 1px solid var(--anth-chrome-border, var(--anth-border));
+  color: var(--anth-chrome-text, var(--anth-text));
 }
 .anth-tb-brand .mark { width: 18px; height: 18px; }
 .anth-tb-brand .name {
@@ -60,9 +84,10 @@
 .anth-tb-env {
   display: flex; align-items: center; gap: 8px;
   height: 26px; padding: 0 10px;
-  border: 1px solid var(--anth-border-strong);
+  border: 1px solid var(--anth-chrome-border, var(--anth-border-strong));
   border-radius: var(--anth-r-md);
-  background: var(--anth-bg-panel);
+  background: var(--anth-chrome-hover, var(--anth-bg-panel));
+  color: var(--anth-chrome-text, var(--anth-text));
   margin: 0 6px;
   font-size: 12px;
   cursor: default;
@@ -72,76 +97,107 @@
 .anth-tb-env .env-dot.warn { background: var(--anth-warn); box-shadow: 0 0 0 2px var(--anth-warn-tint); }
 .anth-tb-env .env-dot.err  { background: var(--anth-err);  box-shadow: 0 0 0 2px var(--anth-err-tint); }
 .anth-tb-env .env-dot.idle { background: var(--anth-text-muted); box-shadow: 0 0 0 2px var(--anth-bg-sunken); }
-.anth-tb-env .env-name  { font-weight: 600; }
-.anth-tb-env .env-scope { color: var(--anth-text-3); font-size: 11px; }
-.anth-tb-env .chev      { color: var(--anth-text-muted); margin-left: 4px; }
+.anth-tb-env .env-name  { font-weight: 600; color: var(--anth-chrome-text, var(--anth-text)); }
+.anth-tb-env .env-scope { color: var(--anth-chrome-text-2, var(--anth-text-3)); font-size: 11px; }
+.anth-tb-env .chev      { color: var(--anth-chrome-text-2, var(--anth-text-muted)); margin-left: 4px; }
 
 .anth-tb-crumbs {
   display: flex; align-items: center; gap: 6px;
-  font-size: 12px; color: var(--anth-text-2);
+  font-size: 12px; color: var(--anth-chrome-text-2, var(--anth-text-2));
   margin-left: 6px;
 }
-.anth-tb-crumbs .sep  { color: var(--anth-text-muted); }
-.anth-tb-crumbs .last { color: var(--anth-text); font-weight: 600; }
+.anth-tb-crumbs .sep  { color: var(--anth-chrome-text-2, var(--anth-text-muted)); }
+.anth-tb-crumbs .last { color: var(--anth-chrome-text, var(--anth-text)); font-weight: 600; }
 
 .anth-tb-spacer { flex: 1; }
 
+/* D3T-P1 — Cortex is a real chrome control. On dark fascia it shows as
+ * a sunken machined slot with crisp border; on light fascia it keeps a
+ * visible border and a sunken bed. The signal color marks the input on
+ * hover/focus. Never blue-grey wash. */
 .anth-tb-cortex {
   display: flex; align-items: center; gap: 8px;
   height: 26px; min-width: 320px; padding: 0 8px 0 10px;
-  background: var(--anth-bg-sunken);
-  border: 1px solid var(--anth-border);
+  background: var(--anth-chrome-hover, var(--anth-bg-sunken));
+  color: var(--anth-chrome-text, var(--anth-text));
+  border: 1px solid var(--anth-chrome-border, var(--anth-border-strong));
   border-radius: var(--anth-r-md);
-  font-size: 12px; color: var(--anth-text-3);
+  font-size: 12px;
   margin-right: 8px;
-  cursor: default;
+  cursor: text;
+  transition: border-color var(--anth-motion-fast) ease, box-shadow var(--anth-motion-fast) ease;
 }
-.anth-tb-cortex .icon        { color: var(--anth-text-muted); display: inline-flex; }
-.anth-tb-cortex .placeholder { flex: 1; }
-.anth-tb-cortex .kbd         { background: #fff; }
+.anth-tb-cortex:hover {
+  border-color: var(--anth-chrome-signal, var(--anth-action-primary));
+  box-shadow: 0 0 0 1px var(--anth-chrome-signal, var(--anth-action-primary));
+}
+.anth-tb-cortex:focus-visible {
+  outline: 0;
+  border-color: var(--anth-chrome-signal, var(--anth-action-primary));
+  box-shadow: 0 0 0 2px var(--anth-chrome-signal, var(--anth-action-primary));
+}
+.anth-tb-cortex .icon        { color: var(--anth-chrome-signal, var(--anth-action-primary)); display: inline-flex; }
+.anth-tb-cortex .placeholder { flex: 1; color: var(--anth-chrome-text-2, var(--anth-text-2)); }
+.anth-tb-cortex .kbd {
+  background: var(--anth-chrome-border, var(--anth-bg-panel));
+  color: var(--anth-chrome-text, var(--anth-text));
+  border-color: var(--anth-chrome-border, var(--anth-border-strong));
+}
 
 .anth-tb-icon {
   width: 28px; height: 28px;
   display: inline-flex; align-items: center; justify-content: center;
-  color: var(--anth-text-2);
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
   border-radius: var(--anth-r-md);
 }
-.anth-tb-icon:hover { background: var(--anth-bg-hover); }
+.anth-tb-icon:hover { background: var(--anth-chrome-hover, var(--anth-bg-hover)); color: var(--anth-chrome-text, var(--anth-text)); }
 
 .anth-tb-winctrls { display: flex; height: 36px; margin-left: 4px; }
 .anth-tb-winctrls > button {
   width: 44px; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  color: var(--anth-text-2);
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
 }
-.anth-tb-winctrls > button:hover { background: var(--anth-bg-hover); }
+.anth-tb-winctrls > button:hover { background: var(--anth-chrome-hover, var(--anth-bg-hover)); color: var(--anth-chrome-text, var(--anth-text)); }
 .anth-tb-winctrls > button.close:hover { background: var(--anth-err); color: #fff; }
 
 /* ---- Sub-nav (mode-local segmented control) ----------------------- */
 .anth-subnav {
   display: flex; align-items: center; gap: 4px;
   height: 34px; padding: 0 12px;
-  background: var(--anth-bg-panel);
-  border-bottom: 1px solid var(--anth-border);
+  background: var(--anth-bg-subnav, var(--anth-bg-panel));
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
+  border-bottom: 1px solid var(--anth-chrome-border, var(--anth-border));
   grid-column: 1 / -1;
 }
 .anth-subnav .seg {
   height: 24px; padding: 0 10px;
   display: inline-flex; align-items: center; gap: 6px;
   border-radius: var(--anth-r-sm);
-  font-size: 12px; color: var(--anth-text-2);
+  font-size: 12px;
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
   cursor: default;
 }
-.anth-subnav .seg:hover  { background: var(--anth-bg-hover); }
-.anth-subnav .seg.active { background: var(--anth-bg-selected); color: var(--anth-text); font-weight: 600; }
-.anth-subnav .seg .count { color: var(--anth-text-3); font-family: var(--anth-font-mono); font-size: 11px; }
+.anth-subnav .seg:hover  { background: var(--anth-chrome-hover, var(--anth-bg-hover)); color: var(--anth-chrome-text, var(--anth-text)); }
+.anth-subnav .seg.active {
+  background: var(--anth-chrome-hover, var(--anth-bg-selected));
+  color: var(--anth-chrome-text, var(--anth-text));
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--anth-chrome-signal, var(--anth-action-primary));
+}
+.anth-subnav .seg .count { color: var(--anth-chrome-text-2, var(--anth-text-3)); font-family: var(--anth-font-mono); font-size: 11px; }
 .anth-subnav .grow       { flex: 1; }
 
 /* ---- Mode rail ----------------------------------------------------- */
+/* D3T-P1C — Left navigation belongs to the chrome fascia. ModeRail
+ * consumes the chrome token family so it visually joins titlebar /
+ * subnav / statusbar / opsdock under each theme. Falls back to light
+ * paper if a theme omits chrome tokens. */
 .anth-rail {
   display: flex; flex-direction: column;
-  background: var(--anth-bg-app);
-  border-right: 1px solid var(--anth-border);
+  background: var(--anth-bg-subnav, var(--anth-bg-app));
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
+  border-right: 1px solid var(--anth-chrome-border, var(--anth-border));
   user-select: none;
   overflow: auto;
   min-height: 0;
@@ -152,35 +208,41 @@
 .anth-rail .group-label {
   padding: 12px 14px 6px;
   font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--anth-text-muted); font-weight: 600;
+  color: var(--anth-chrome-text-2, var(--anth-text-muted));
+  font-weight: 600;
+  opacity: 0.85;
 }
 .anth-rail .item {
   display: flex; align-items: center; gap: 10px;
   height: 30px; padding: 0 12px;
-  font-size: 12.5px; color: var(--anth-text-2);
+  font-size: 12.5px;
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
   border-left: 2px solid transparent;
   cursor: default;
 }
-.anth-rail .item:hover { background: var(--anth-bg-hover); color: var(--anth-text); }
+.anth-rail .item:hover {
+  background: var(--anth-chrome-hover, var(--anth-bg-hover));
+  color: var(--anth-chrome-text, var(--anth-text));
+}
 .anth-rail .item.active {
-  background: var(--anth-bg-selected);
-  color: var(--anth-text);
-  border-left-color: var(--anth-info);
+  background: var(--anth-chrome-hover, var(--anth-bg-selected));
+  color: var(--anth-chrome-text, var(--anth-text));
+  border-left-color: var(--anth-chrome-signal, var(--anth-info));
   font-weight: 600;
 }
 .anth-rail .item .lbl { flex: 1; }
 .anth-rail .item .badge {
   font-family: var(--anth-font-mono); font-size: 10px;
-  color: var(--anth-text-3);
+  color: var(--anth-chrome-text-2, var(--anth-text-3));
   padding: 1px 5px;
-  background: var(--anth-bg-sunken);
+  background: var(--anth-chrome-border, var(--anth-bg-sunken));
   border-radius: 2px;
 }
 .anth-rail .item.has-alert .badge { color: var(--anth-err); background: var(--anth-err-tint); }
 
 .anth-rail .rail-foot {
   margin-top: auto;
-  border-top: 1px solid var(--anth-border);
+  border-top: 1px solid var(--anth-chrome-border, var(--anth-border));
   padding: 6px 0;
 }
 
@@ -309,14 +371,17 @@
 .anth-opsdock {
   display: flex; align-items: center; gap: 12px;
   height: 28px; padding: 0 12px;
-  background: var(--anth-bg-statusbar);
-  border-top: 1px solid var(--anth-border);
-  font-size: 11px; color: var(--anth-text-2);
+  background: var(--anth-bg-opsdock, var(--anth-bg-statusbar));
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
+  border-top: 1px solid var(--anth-chrome-border, var(--anth-border));
+  font-size: 11px;
   user-select: none;
   grid-column: 1 / -1;
 }
-.anth-opsdock .ops-brand { font-weight: 600; color: var(--anth-text); display: inline-flex; align-items: center; gap: 6px; }
-.anth-opsdock .ops-muted { color: var(--anth-text-3); }
+.anth-opsdock .ops-cell { display: inline-flex; align-items: center; gap: 6px; }
+.anth-opsdock .ops-cell--icon { color: var(--anth-chrome-text-2, var(--anth-text-3)); }
+.anth-opsdock .ops-cell--state { color: var(--anth-chrome-text-2, var(--anth-text-2)); }
+.anth-opsdock .ops-cell--meta { color: var(--anth-chrome-text-2, var(--anth-text-3)); font-size: 10.5px; opacity: 0.85; }
 .anth-opsdock .ops-spacer { flex: 1; }
 
 /* ---- Status bar (24 px) -------------------------------------------- */
@@ -324,13 +389,14 @@
   display: flex; align-items: center; gap: 14px;
   height: 24px; padding: 0 10px;
   background: var(--anth-bg-statusbar);
-  border-top: 1px solid var(--anth-border);
-  font-size: 11px; color: var(--anth-text-2);
+  color: var(--anth-chrome-text-2, var(--anth-text-2));
+  border-top: 1px solid var(--anth-chrome-border, var(--anth-border));
+  font-size: 11px;
   font-family: var(--anth-font-mono);
   grid-column: 1 / -1;
 }
 .anth-statusbar .sb-cell  { display: inline-flex; align-items: center; gap: 6px; }
-.anth-statusbar .sb-sep   { width: 1px; height: 12px; background: var(--anth-border-strong); }
+.anth-statusbar .sb-sep   { width: 1px; height: 12px; background: var(--anth-chrome-border, var(--anth-border-strong)); }
 .anth-statusbar .sb-right { margin-left: auto; display: inline-flex; align-items: center; gap: 14px; }
 
 /* ---- Panel atom ---------------------------------------------------- */
@@ -448,14 +514,15 @@
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   height: 100%; padding: 24px;
   text-align: center;
-  color: var(--anth-text-3);
+  background: var(--anth-bg-ghost, transparent);
+  color: var(--anth-text-ghost, var(--anth-text-3));
 }
 .anth-empty .glyph {
   width: 56px; height: 56px;
-  border: 1.5px dashed var(--anth-border-strong);
+  border: 1.5px dashed var(--anth-text-ghost, var(--anth-border-strong));
   border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--anth-text-muted);
+  color: var(--anth-text-ghost, var(--anth-text-muted));
   margin-bottom: 16px;
 }
 .anth-empty h2 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--anth-text); }
