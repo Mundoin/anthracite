@@ -25,8 +25,16 @@ import {
   type SecondaryNavGroup,
 } from "./components/shell/SecondaryNav";
 import type { StatusCell, StatusSignal } from "./components/shell/StatusBar";
-import { IntakeMode } from "./modes/intake/IntakeMode";
-import { AssessPanel } from "./modes/assess/AssessPanel";
+import {
+  IntakeMode,
+  INTAKE_TOOL_META,
+  INTAKE_DEFAULT_TOOL_ID,
+} from "./modes/intake/IntakeMode";
+import {
+  AssessPanel,
+  ASSESS_TOOL_META,
+  ASSESS_DEFAULT_TOOL_ID,
+} from "./modes/assess/AssessPanel";
 import type { AssessProfileCounts } from "./modes/assess/assessPipelinePlanner";
 import { SettingsMode } from "./modes/settings/SettingsMode";
 import { OpsConsoleMode } from "./modes/opsConsole/OpsConsoleMode";
@@ -59,11 +67,31 @@ import {
   toTopologySourceView,
   type TopologySourceView,
 } from "./data/topologySource";
-import { TopologyMode } from "./modes/topology/TopologyMode";
-import { DiagnoseMode } from "./modes/diagnose/DiagnoseMode";
-import { DiscoveryMode } from "./modes/discovery/DiscoveryMode";
-import { BuildMode } from "./modes/build/BuildMode";
-import { OperateMode } from "./modes/operate/OperateMode";
+import {
+  TopologyMode,
+  TOPOLOGY_TOOL_META,
+  TOPOLOGY_DEFAULT_TOOL_ID,
+} from "./modes/topology/TopologyMode";
+import {
+  DiagnoseMode,
+  DIAGNOSE_TOOL_META,
+  DIAGNOSE_DEFAULT_TOOL_ID,
+} from "./modes/diagnose/DiagnoseMode";
+import {
+  DiscoveryMode,
+  DISCOVERY_TOOL_META,
+  DISCOVERY_DEFAULT_TOOL_ID,
+} from "./modes/discovery/DiscoveryMode";
+import {
+  BuildMode,
+  BUILD_TOOL_META,
+  BUILD_DEFAULT_TOOL_ID,
+} from "./modes/build/BuildMode";
+import {
+  OperateMode,
+  OPERATE_TOOL_META,
+  OPERATE_DEFAULT_TOOL_ID,
+} from "./modes/operate/OperateMode";
 import type { OperateOverviewInputs } from "./modes/operate/operateOverview";
 import {
   buildWorkbenchContextSummary,
@@ -202,6 +230,15 @@ export default function App(): JSX.Element {
   const [listSegment, setListSegment] = useState<string>("all");
   const [detailSegment, setDetailSegment] = useState<string>("overview");
   const [inspectorTab, setInspectorTab] = useState<string>("overview");
+  // D3T-P2 / P2A — Mode tool tabs hoisted to App so the persistent top
+  // shelf (AppShell subnav) can host them instead of the canvas.
+  const [intakeActiveTool, setIntakeActiveTool] = useState<string>(INTAKE_DEFAULT_TOOL_ID);
+  const [buildActiveTool, setBuildActiveTool] = useState<string>(BUILD_DEFAULT_TOOL_ID);
+  const [assessActiveTool, setAssessActiveTool] = useState<string>(ASSESS_DEFAULT_TOOL_ID);
+  const [operateActiveTool, setOperateActiveTool] = useState<string>(OPERATE_DEFAULT_TOOL_ID);
+  const [diagnoseActiveTool, setDiagnoseActiveTool] = useState<string>(DIAGNOSE_DEFAULT_TOOL_ID);
+  const [discoveryActiveTool, setDiscoveryActiveTool] = useState<string>(DISCOVERY_DEFAULT_TOOL_ID);
+  const [topologyActiveTool, setTopologyActiveTool] = useState<string>(TOPOLOGY_DEFAULT_TOOL_ID);
   const [envs, setEnvs] = useState<readonly Environment[]>([]);
   const [active, setActive] = useState<Environment | null>(null);
   const [readiness, setReadiness] = useState<EnvironmentReadiness | null>(null);
@@ -498,17 +535,21 @@ export default function App(): JSX.Element {
     [refreshEngineState],
   );
 
+  // D3T-P1 — Demo-safe display labels. The titlebar reads as obviously
+  // synthetic ("demo-env-alpha · sample-lab") so nobody mistakes the
+  // shell for live operational context. Underlying routing IDs remain
+  // unchanged for catalogue/Discovery wiring.
   const titleBarEnv = useMemo<TitleBarEnv | null>(() => {
     if (active) {
       return {
-        id: active.id,
-        scope: `${active.kind} · ${active.device_count.toLocaleString("en-US")} devices`,
+        id: "demo-env-alpha",
+        scope: `sample-lab · ${active.kind} · demo inventory`,
         state: STATUS_TO_DOT[active.status],
       };
     }
     return {
-      id: "apex-prod-emea",
-      scope: "EMEA · Production · 2,184 devices",
+      id: "demo-env-alpha",
+      scope: "sample-lab · demo inventory · synthetic",
       state: "ok",
     };
   }, [active]);
@@ -1079,7 +1120,6 @@ export default function App(): JSX.Element {
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
         onRequestSidebarFocus={focusSidebarFirstRow}
-        inspector={<Inspector />}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
@@ -1089,6 +1129,13 @@ export default function App(): JSX.Element {
   }
 
   if (activeMode === "topology") {
+    const topologySubnav = (
+      <SubNav
+        items={TOPOLOGY_TOOL_META.map((t) => ({ id: t.id, label: t.label }))}
+        activeId={topologyActiveTool}
+        onChange={setTopologyActiveTool}
+      />
+    );
     return (
       <AppShell
         env={titleBarEnv}
@@ -1099,6 +1146,7 @@ export default function App(): JSX.Element {
         overlay={cortexOverlayNode}
         onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
+        subnav={topologySubnav}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
@@ -1112,12 +1160,21 @@ export default function App(): JSX.Element {
           onFetchEvidenceSummary={handleTopologyFetchEvidenceSummary}
           evidenceSummary={topologyEvidenceSummary}
           lastMutation={topologyLastMutation}
+          activeToolId={topologyActiveTool}
+          onToolChange={setTopologyActiveTool}
         />
       </AppShell>
     );
   }
 
   if (activeMode === "diagnose") {
+    const diagnoseSubnav = (
+      <SubNav
+        items={DIAGNOSE_TOOL_META.map((t) => ({ id: t.id, label: t.label }))}
+        activeId={diagnoseActiveTool}
+        onChange={setDiagnoseActiveTool}
+      />
+    );
     return (
       <AppShell
         env={titleBarEnv}
@@ -1128,15 +1185,29 @@ export default function App(): JSX.Element {
         overlay={cortexOverlayNode}
         onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
+        subnav={diagnoseSubnav}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
-        <DiagnoseMode discovery={discovery} topology={topology} triage={diagnoseTriage} />
+        <DiagnoseMode
+          discovery={discovery}
+          topology={topology}
+          triage={diagnoseTriage}
+          activeToolId={diagnoseActiveTool}
+          onToolChange={setDiagnoseActiveTool}
+        />
       </AppShell>
     );
   }
 
   if (activeMode === "discovery") {
+    const discoverySubnav = (
+      <SubNav
+        items={DISCOVERY_TOOL_META.map((t) => ({ id: t.id, label: t.label }))}
+        activeId={discoveryActiveTool}
+        onChange={setDiscoveryActiveTool}
+      />
+    );
     return (
       <AppShell
         env={titleBarEnv}
@@ -1147,6 +1218,7 @@ export default function App(): JSX.Element {
         overlay={cortexOverlayNode}
         onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
+        subnav={discoverySubnav}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
@@ -1157,12 +1229,21 @@ export default function App(): JSX.Element {
           history={discoveryHistory}
           onHistoryChange={setDiscoveryHistory}
           onEvidenceImportEvent={handleEvidenceImportEvent}
+          activeToolId={discoveryActiveTool}
+          onToolChange={setDiscoveryActiveTool}
         />
       </AppShell>
     );
   }
 
   if (activeMode === "build") {
+    const buildSubnav = (
+      <SubNav
+        items={BUILD_TOOL_META.map((t) => ({ id: t.id, label: t.label }))}
+        activeId={buildActiveTool}
+        onChange={setBuildActiveTool}
+      />
+    );
     return (
       <AppShell
         env={titleBarEnv}
@@ -1173,17 +1254,25 @@ export default function App(): JSX.Element {
         overlay={cortexOverlayNode}
         onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
+        subnav={buildSubnav}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "build · stateless · skeleton" },
         ]}
       >
-        <BuildMode />
+        <BuildMode activeToolId={buildActiveTool} onToolChange={setBuildActiveTool} />
       </AppShell>
     );
   }
 
   if (activeMode === "operate") {
+    const operateSubnav = (
+      <SubNav
+        items={OPERATE_TOOL_META.map((t) => ({ id: t.id, label: t.label }))}
+        activeId={operateActiveTool}
+        onChange={setOperateActiveTool}
+      />
+    );
     return (
       <AppShell
         env={titleBarEnv}
@@ -1194,12 +1283,15 @@ export default function App(): JSX.Element {
         overlay={cortexOverlayNode}
         onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
+        subnav={operateSubnav}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "operate · stateless · skeleton" },
         ]}
       >
         <OperateMode
+          activeToolId={operateActiveTool}
+          onToolChange={setOperateActiveTool}
           operateOverviewInputs={operateOverviewInputs}
           assessmentReadiness={assessmentReadiness}
           dashboardCards={designHandoffContract.dashboard_cards}
@@ -1247,6 +1339,17 @@ export default function App(): JSX.Element {
   }
 
   if (activeMode === "intake") {
+    const intakeSubnavItems: readonly SubNavItem[] = INTAKE_TOOL_META.map((t) => ({
+      id: t.id,
+      label: t.label,
+    }));
+    const intakeSubnav = (
+      <SubNav
+        items={intakeSubnavItems}
+        activeId={intakeActiveTool}
+        onChange={setIntakeActiveTool}
+      />
+    );
     return (
       <AppShell
         env={titleBarEnv}
@@ -1257,6 +1360,7 @@ export default function App(): JSX.Element {
         overlay={cortexOverlayNode}
         onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
+        subnav={intakeSubnav}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "intake · stateless · single config" },
@@ -1266,12 +1370,21 @@ export default function App(): JSX.Element {
           activeEnvironmentId={active?.id ?? null}
           onDiscoveryImported={() => fetchDiscovery(active?.id ?? null)}
           onIntakeStateChange={setIntakeSummary}
+          activeToolId={intakeActiveTool}
+          onToolChange={setIntakeActiveTool}
         />
       </AppShell>
     );
   }
 
   if (activeMode === "assess") {
+    const assessSubnav = (
+      <SubNav
+        items={ASSESS_TOOL_META.map((t) => ({ id: t.id, label: t.label }))}
+        activeId={assessActiveTool}
+        onChange={setAssessActiveTool}
+      />
+    );
     return (
       <AppShell
         env={titleBarEnv}
@@ -1282,12 +1395,18 @@ export default function App(): JSX.Element {
         overlay={cortexOverlayNode}
         onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
+        subnav={assessSubnav}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
           { id: "note", label: "assess · stateless · viewer" },
         ]}
       >
-        <AssessPanel initialCounts={assessInitialCounts} readiness={assessmentReadiness} />
+        <AssessPanel
+          initialCounts={assessInitialCounts}
+          readiness={assessmentReadiness}
+          activeToolId={assessActiveTool}
+          onToolChange={setAssessActiveTool}
+        />
       </AppShell>
     );
   }
@@ -1312,9 +1431,9 @@ export default function App(): JSX.Element {
     />
   );
 
-  const inspector = inListView ? (
-    <Inspector />
-  ) : (
+  // D3T-P1B — Empty inspector (list view) collapses entirely; the 340px
+  // column is only allocated when there's real inspector content.
+  const inspector = inListView ? undefined : (
     <Inspector
       subject={inspectorSubject}
       tabs={INSPECTOR_TABS}

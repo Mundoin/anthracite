@@ -40,15 +40,38 @@ export interface DiagnoseModeProps {
    * defaults to EMPTY so the triage tool renders the clean-state body.
    */
   readonly triage?: DiagnoseTriage;
+  /** D3T-P2A — Controlled tool tabs hosted in AppShell subnav. */
+  readonly activeToolId?: string;
+  readonly onToolChange?: (toolId: string) => void;
 }
+
+export const DIAGNOSE_DEFAULT_TOOL_ID = "findings";
+
+export const DIAGNOSE_TOOL_META = [
+  { id: "findings", label: "Findings" },
+  { id: "triage", label: "Triage" },
+  { id: "config_audit", label: "Config Audit" },
+  { id: "troubleshoot", label: "Troubleshoot" },
+  { id: "device_access", label: "Device Access" },
+  { id: "path_trace", label: "Path Trace" },
+  { id: "hypothesis_strip", label: "Hypothesis Strip" },
+] as const;
 
 export function DiagnoseMode({
   discovery,
   topology,
   triage = EMPTY_DIAGNOSE_TRIAGE,
+  activeToolId,
+  onToolChange,
 }: DiagnoseModeProps): JSX.Element {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [activeToolId, setActiveToolId] = useState<string>("findings");
+  const [internalActiveToolId, setInternalActiveToolId] = useState<string>(DIAGNOSE_DEFAULT_TOOL_ID);
+  const isControlled = activeToolId !== undefined && onToolChange !== undefined;
+  const resolvedActiveId = isControlled ? activeToolId : internalActiveToolId;
+  const handleSelect = (id: string): void => {
+    if (isControlled) onToolChange(id);
+    else setInternalActiveToolId(id);
+  };
 
   const model = useMemo(
     () =>
@@ -288,10 +311,11 @@ export function DiagnoseMode({
           title: "Diagnose",
           tagline: "What should I inspect first, and why?",
           tools,
-          active_id: activeToolId,
-          fallback_id: "findings",
+          active_id: resolvedActiveId,
+          fallback_id: DIAGNOSE_DEFAULT_TOOL_ID,
         }}
-        onSelectTool={setActiveToolId}
+        onSelectTool={handleSelect}
+        noToolbar={isControlled}
       />
     </div>
   );

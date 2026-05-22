@@ -64,7 +64,20 @@ export interface TopologyModeProps {
   ) => Promise<LiveCollectionDryRunPlan>;
   /** V1BS — receive sanitized evidence-import events from the panel. */
   readonly onEvidenceImportEvent?: (event: EvidenceImportEvent) => void;
+  /** D3T-P2B — Controlled tool tabs hosted in AppShell subnav. */
+  readonly activeToolId?: string;
+  readonly onToolChange?: (toolId: string) => void;
 }
+
+export const TOPOLOGY_DEFAULT_TOOL_ID = "graph_map";
+
+export const TOPOLOGY_TOOL_META = [
+  { id: "graph_map", label: "Graph / Map" },
+  { id: "evidence_import", label: "Evidence Import" },
+  { id: "collection_plan", label: "Collection Plan" },
+  { id: "readiness", label: "Readiness" },
+  { id: "canvas_3d", label: "3D / Canvas" },
+] as const;
 
 interface AdjacencyReadinessSectionProps {
   readonly readiness: TopologyAdjacencyReadiness;
@@ -1210,8 +1223,16 @@ export function TopologyMode({
   lastMutation,
   onPlanLiveCollection,
   onEvidenceImportEvent,
+  activeToolId: externalActiveToolId,
+  onToolChange,
 }: TopologyModeProps): JSX.Element {
-  const [activeToolId, setActiveToolId] = useState<string>("graph_map");
+  const [internalActiveToolId, setInternalActiveToolId] = useState<string>(TOPOLOGY_DEFAULT_TOOL_ID);
+  const isControlled = externalActiveToolId !== undefined && onToolChange !== undefined;
+  const resolvedActiveToolId = isControlled ? externalActiveToolId : internalActiveToolId;
+  const handleSelectTool = (id: string): void => {
+    if (isControlled) onToolChange(id);
+    else setInternalActiveToolId(id);
+  };
 
   const renderGraphMap = (): ReactNode => (
     <>
@@ -1505,10 +1526,11 @@ export function TopologyMode({
           title: "Topology",
           tagline: `Scope: ${topology.environmentId ?? "All environments"}`,
           tools,
-          active_id: activeToolId,
-          fallback_id: "graph_map",
+          active_id: resolvedActiveToolId,
+          fallback_id: TOPOLOGY_DEFAULT_TOOL_ID,
         }}
-        onSelectTool={setActiveToolId}
+        onSelectTool={handleSelectTool}
+        noToolbar={isControlled}
       />
     </div>
   );

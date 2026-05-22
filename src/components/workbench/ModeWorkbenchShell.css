@@ -14,7 +14,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 10px 16px 8px;
-  background: linear-gradient(180deg, var(--anth-bg-panel) 0%, var(--anth-bg-sunken) 100%);
+  background: var(--anth-bg-sunken);
   border-bottom: 1px solid var(--anth-border-strong);
 }
 

@@ -29,6 +29,16 @@ import type { AssessmentReadiness } from "../../state/assessmentReadiness";
 
 import "./assess.css";
 
+export const ASSESS_DEFAULT_TOOL_ID = "viewer";
+
+export const ASSESS_TOOL_META = [
+  { id: "viewer", label: "Assessment Viewer" },
+  { id: "pipeline", label: "Run Pipeline" },
+  { id: "compliance", label: "Compliance" },
+  { id: "report_export", label: "Report Export" },
+  { id: "evidence_receipts", label: "Evidence / Receipts" },
+] as const;
+
 export interface AssessPanelProps {
   /** Injectable loader for tests. Defaults to the real FSA picker. */
   readonly loader?: () => Promise<LoadResult>;
@@ -36,15 +46,26 @@ export interface AssessPanelProps {
   readonly initialCounts?: AssessProfileCounts;
   /** V1BU — optional readiness signal from shared workbench context. */
   readonly readiness?: AssessmentReadiness;
+  /** D3T-P2A — Controlled tool tabs hosted in AppShell subnav. */
+  readonly activeToolId?: string;
+  readonly onToolChange?: (toolId: string) => void;
 }
 
 export function AssessPanel({
   loader = loadBatchRunJson,
   initialCounts,
   readiness,
+  activeToolId,
+  onToolChange,
 }: AssessPanelProps = {}): JSX.Element {
   const [state, dispatch] = useReducer(assessReducer, initialAssessState);
-  const [activeToolId, setActiveToolId] = useState<string>("viewer");
+  const [internalActiveToolId, setInternalActiveToolId] = useState<string>(ASSESS_DEFAULT_TOOL_ID);
+  const isControlled = activeToolId !== undefined && onToolChange !== undefined;
+  const resolvedActiveId = isControlled ? activeToolId : internalActiveToolId;
+  const handleSelect = (id: string): void => {
+    if (isControlled) onToolChange(id);
+    else setInternalActiveToolId(id);
+  };
 
   const runLoader = useCallback(async (): Promise<void> => {
     const result = await loader();
@@ -191,10 +212,11 @@ export function AssessPanel({
           title: "Assess",
           tagline: "Load a batch run assessment and validate compliance.",
           tools,
-          active_id: activeToolId,
-          fallback_id: "viewer",
+          active_id: resolvedActiveId,
+          fallback_id: ASSESS_DEFAULT_TOOL_ID,
         }}
-        onSelectTool={setActiveToolId}
+        onSelectTool={handleSelect}
+        noToolbar={isControlled}
       />
     </div>
   );

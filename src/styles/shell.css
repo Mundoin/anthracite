@@ -239,12 +239,31 @@
 .anth-rail.icons   { width: 56px; }
 
 .anth-rail .group-label {
-  padding: 12px 14px 6px;
+  position: relative;
+  padding: 12px 14px 6px 18px;
   font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--anth-chrome-text-2, var(--anth-text-muted));
   font-weight: 600;
   opacity: 0.85;
 }
+
+/* D3T-G1A — Group orientation strips. Thin 2px left-edge accent on
+ * each group label, themed by domain. Graphite shows them brightly
+ * to break up the cream/dark fascia; light themes pick muted tones. */
+.anth-rail .group-label::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 14px;
+  width: 2px;
+  height: 12px;
+  background: currentColor;
+  opacity: 0.4;
+}
+.anth-rail .group-label[data-group="foundation"]::before { background: var(--anth-group-foundation, var(--anth-info));   opacity: 1; }
+.anth-rail .group-label[data-group="run"]::before        { background: var(--anth-group-run, var(--anth-warn));          opacity: 1; }
+.anth-rail .group-label[data-group="governance"]::before { background: var(--anth-group-governance, var(--anth-err));    opacity: 1; }
+.anth-rail .group-label[data-group="workshop"]::before   { background: var(--anth-group-workshop, var(--anth-text-muted)); opacity: 1; }
 .anth-rail .item {
   display: flex; align-items: center; gap: 10px;
   height: 30px; padding: 0 12px;

@@ -81,10 +81,13 @@
   color: var(--anth-text);
 }
 
+/* D3T-G1B — Active scope chip: clean dark-ink on paper bed with a
+ * teal/shelf-signal underline. No baby-blue Windows-selection look. */
 .cortex-input__scope-chip--active {
-  background: var(--anth-action-primary-tint, var(--anth-ok-tint));
-  color: var(--anth-action-primary-ink, var(--anth-ok-ink));
-  border-color: var(--anth-action-primary, var(--anth-accent-action));
+  background: var(--anth-bg-panel);
+  color: var(--anth-text);
+  border-color: transparent;
+  box-shadow: inset 0 -2px 0 var(--anth-shelf-signal, var(--anth-action-primary));
 }
 
 .cortex-input__scope-chip:focus-visible {
@@ -230,9 +233,13 @@
   border-top: 1px solid var(--anth-border);
 }
 
+/* D3T-G1B — Highlighted result: subtle hover bed (NOT the warm
+ * selected token which reads muddy here) + clean teal/shelf-signal
+ * left edge. The focused command result reads as a precise selection,
+ * not a dirty table row. */
 .cortex-result--highlighted {
-  background: var(--anth-bg-selected);
-  border-left-color: var(--anth-accent-action);
+  background: var(--anth-bg-hover);
+  border-left-color: var(--anth-shelf-signal, var(--anth-accent-action));
 }
 
 .cortex-result--deferred {

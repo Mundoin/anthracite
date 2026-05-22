@@ -4,8 +4,30 @@ import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShel
 import type { ModeTool } from "../../components/workbench/types";
 import "./BuildMode.css";
 
-export function BuildMode(): JSX.Element {
-  const [activeToolId, setActiveToolId] = useState<string>("builder");
+export const BUILD_DEFAULT_TOOL_ID = "builder";
+
+export const BUILD_TOOL_META = [
+  { id: "builder", label: "Builder" },
+  { id: "quick_tools", label: "Quick Tools" },
+  { id: "p2p", label: "P2P" },
+  { id: "compare", label: "Compare" },
+  { id: "fabricator", label: "Fabricator" },
+  { id: "deploy_rollback", label: "Deploy / Rollback" },
+] as const;
+
+export interface BuildModeProps {
+  readonly activeToolId?: string;
+  readonly onToolChange?: (toolId: string) => void;
+}
+
+export function BuildMode({ activeToolId, onToolChange }: BuildModeProps = {}): JSX.Element {
+  const [internalActiveToolId, setInternalActiveToolId] = useState<string>(BUILD_DEFAULT_TOOL_ID);
+  const isControlled = activeToolId !== undefined && onToolChange !== undefined;
+  const resolvedActiveId = isControlled ? activeToolId : internalActiveToolId;
+  const handleSelect = (id: string): void => {
+    if (isControlled) onToolChange(id);
+    else setInternalActiveToolId(id);
+  };
 
   const tools: ModeTool[] = [
     {
@@ -143,10 +165,11 @@ export function BuildMode(): JSX.Element {
           tagline:
             "Architect's Desk — multi-vendor blueprint engine + compare + deploy. Skeleton pass.",
           tools,
-          active_id: activeToolId,
-          fallback_id: "builder",
+          active_id: resolvedActiveId,
+          fallback_id: BUILD_DEFAULT_TOOL_ID,
         }}
-        onSelectTool={setActiveToolId}
+        onSelectTool={handleSelect}
+        noToolbar={isControlled}
       />
     </div>
   );

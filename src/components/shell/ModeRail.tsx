@@ -232,7 +232,9 @@ function RailGroup({
 
   return (
     <>
-      {variant === "labeled" && <div className="group-label">{group.label}</div>}
+      {variant === "labeled" && (
+        <div className="group-label" data-group={group.id}>{group.label}</div>
+      )}
       {modes.map((mode) => {
         const isActive = mode.id === active;
         // Use override if provided; otherwise use catalogue badge

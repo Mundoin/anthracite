@@ -9,8 +9,8 @@
 .intake-root {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px 12px;
   font-family: var(--anth-font-ui);
   font-size: 12.5px;
   color: var(--anth-text);
@@ -19,7 +19,9 @@
   overflow: auto;
 }
 
-/* ---- Section shells (match .anth-panel) ---------------------------- */
+/* D3T-P1B — Compact stacked sections. No box-shadow slab, hugged
+ * borders, lighter section header rail. Sections stack like workbench
+ * blocks instead of floating cards. */
 .intake-input,
 .intake-detect,
 .intake-override,
@@ -29,10 +31,9 @@
   flex-direction: column;
   background: var(--anth-bg-panel);
   border: 1px solid var(--anth-border);
-  border-radius: var(--anth-r-md);
+  border-radius: var(--anth-r-sm);
   overflow: hidden;
   min-height: 0;
-  box-shadow: var(--anth-shadow-sm);
 }
 
 /* ---- Section header — strong light treatment ----------------------- */
@@ -43,14 +44,9 @@
   gap: 10px;
   height: var(--anth-section-hd-h);
   padding: 0 12px 0 10px;
-  background:
-    linear-gradient(
-      to bottom,
-      #FAFCFE 0%,
-      var(--anth-bg-sunken) 100%
-    );
+  background: var(--anth-bg-sunken);
   border-bottom: 1px solid var(--anth-border-strong);
-  border-left: 2px solid var(--anth-info);
+  border-left: 1px solid var(--anth-info);
   flex: 0 0 auto;
 }
 
@@ -90,14 +86,9 @@
   gap: 10px;
   height: 40px;
   padding: 0 10px 0 10px;
-  background:
-    linear-gradient(
-      to bottom,
-      #FAFCFE 0%,
-      var(--anth-bg-sunken) 100%
-    );
+  background: var(--anth-bg-sunken);
   border-bottom: 1px solid var(--anth-border-strong);
-  border-left: 2px solid var(--anth-info);
+  border-left: 1px solid var(--anth-info);
 }
 
 .intake-input__title {
@@ -342,7 +333,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--anth-text-2);
-  background: linear-gradient(to bottom, #F4F7FB 0%, var(--anth-bg-sunken) 100%);
+  background: var(--anth-bg-sunken);
   border-bottom: 1px solid var(--anth-border-strong);
   padding: 6px 10px;
   white-space: nowrap;
@@ -579,7 +570,7 @@
   background: var(--anth-bg-panel);
   border: 1px solid var(--anth-border);
   border-radius: var(--anth-r-md);
-  border-left: 2px solid var(--anth-info);
+  border-left: 1px solid var(--anth-info);
   box-shadow: var(--anth-shadow-sm);
 }
 

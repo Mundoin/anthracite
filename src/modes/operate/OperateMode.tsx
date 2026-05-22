@@ -10,6 +10,18 @@ import type { DashboardCardContract } from "../../state/designHandoffContract";
 import type { DashboardSpineBundle } from "../../components/dashboard/cardMetricResolver";
 import "./OperateMode.css";
 
+export const OPERATE_TOOL_META = [
+  { id: "dashboard", label: "Dashboard" },
+  { id: "live_overview", label: "Live Overview" },
+  { id: "topology_operations", label: "Topology Operations" },
+  { id: "polling_snmp", label: "Polling / SNMP" },
+  { id: "baselines_drift", label: "Baselines / Drift" },
+  { id: "sentinel", label: "Sentinel" },
+  { id: "events", label: "Events" },
+] as const;
+
+export const OPERATE_DEFAULT_TOOL_ID = "dashboard";
+
 export interface OperateModeProps {
   readonly operateOverviewInputs?: OperateOverviewInputs;
   readonly assessmentReadiness?: AssessmentReadiness;
@@ -17,6 +29,9 @@ export interface OperateModeProps {
   readonly dashboardCards?: readonly DashboardCardContract[];
   /** Live spines for dashboard metric resolution. */
   readonly dashboardSpines?: DashboardSpineBundle;
+  /** D3T-P2A — Controlled tool tabs hosted in AppShell subnav. */
+  readonly activeToolId?: string;
+  readonly onToolChange?: (toolId: string) => void;
 }
 
 export function OperateMode({
@@ -24,14 +39,21 @@ export function OperateMode({
   assessmentReadiness,
   dashboardCards,
   dashboardSpines,
+  activeToolId,
+  onToolChange,
 }: OperateModeProps): JSX.Element {
   const hasDashboard =
     dashboardCards !== undefined &&
     dashboardSpines !== undefined &&
     dashboardCards.length > 0;
-  const [activeToolId, setActiveToolId] = useState<string>(
-    hasDashboard ? "dashboard" : "live_overview",
-  );
+  const defaultId = hasDashboard ? "dashboard" : "live_overview";
+  const [internalActiveToolId, setInternalActiveToolId] = useState<string>(defaultId);
+  const isControlled = activeToolId !== undefined && onToolChange !== undefined;
+  const resolvedActiveId = isControlled ? activeToolId : internalActiveToolId;
+  const handleSelect = (id: string): void => {
+    if (isControlled) onToolChange(id);
+    else setInternalActiveToolId(id);
+  };
 
   const tools: ModeTool[] = [];
 
@@ -177,10 +199,11 @@ export function OperateMode({
           title: "Operate",
           tagline: "War Room — live operations workbench. Skeleton pass.",
           tools,
-          active_id: activeToolId,
-          fallback_id: hasDashboard ? "dashboard" : "live_overview",
+          active_id: resolvedActiveId,
+          fallback_id: defaultId,
         }}
-        onSelectTool={setActiveToolId}
+        onSelectTool={handleSelect}
+        noToolbar={isControlled}
       />
     </div>
   );

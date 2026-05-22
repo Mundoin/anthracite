@@ -1,6 +1,7 @@
 /* D2 — DashboardCard styles. Tokens-only. */
 
 .anth .anth-dashcard {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -15,6 +16,41 @@
     box-shadow var(--anth-motion-fast) ease,
     border-color var(--anth-motion-fast) ease,
     background var(--anth-motion-fast) ease;
+}
+
+/* D3T-G1B — Domain orientation strip. Top 2px line picks domain
+ * accent by target_mode. Falls back transparent so themes without
+ * --anth-group-* tokens stay clean. CSS-only; no component change. */
+.anth .anth-dashcard::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: transparent;
+  border-radius: var(--anth-r-md) var(--anth-r-md) 0 0;
+  pointer-events: none;
+}
+.anth .anth-dashcard[data-target-mode="hierarchy"]::before,
+.anth .anth-dashcard[data-target-mode="devices"]::before,
+.anth .anth-dashcard[data-target-mode="intake"]::before,
+.anth .anth-dashcard[data-target-mode="discovery"]::before,
+.anth .anth-dashcard[data-target-mode="provisioning"]::before {
+  background: var(--anth-group-foundation, transparent);
+}
+.anth .anth-dashcard[data-target-mode="operate"]::before,
+.anth .anth-dashcard[data-target-mode="topology"]::before,
+.anth .anth-dashcard[data-target-mode="diagnose"]::before {
+  background: var(--anth-group-run, transparent);
+}
+.anth .anth-dashcard[data-target-mode="assess"]::before,
+.anth .anth-dashcard[data-target-mode="events"]::before,
+.anth .anth-dashcard[data-target-mode="security"]::before,
+.anth .anth-dashcard[data-target-mode="dashboards"]::before {
+  background: var(--anth-group-governance, transparent);
+}
+.anth .anth-dashcard[data-target-mode="build"]::before,
+.anth .anth-dashcard[data-target-mode="settings"]::before {
+  background: var(--anth-group-workshop, transparent);
 }
 
 .anth .anth-dashcard.is-interactive {

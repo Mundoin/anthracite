@@ -87,12 +87,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  background:
-    linear-gradient(
-      to bottom,
-      #FAFCFE 0%,
-      var(--anth-bg-sunken) 100%
-    );
+  background: var(--anth-bg-sunken);
   border: 1px solid var(--anth-border-strong);
   border-left: 3px solid var(--anth-accent);
   border-bottom: 1px solid var(--anth-accent);
@@ -229,12 +224,7 @@
   flex-direction: column;
   gap: 6px;
   padding: 8px 12px;
-  background:
-    linear-gradient(
-      to bottom,
-      #FBFCFE 0%,
-      var(--anth-bg-sunken) 100%
-    );
+  background: var(--anth-bg-sunken);
   border: 1px solid var(--anth-border-strong);
   border-radius: var(--anth-r-md);
   box-shadow: var(--anth-shadow-sm);

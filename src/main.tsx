@@ -2,7 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { RootErrorBoundary } from "./components/shell/RootErrorBoundary";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import "./styles/tokens.css";
+import "./styles/themes.css";
 import "./styles/shell.css";
 import "./App.css";
 
@@ -41,7 +43,9 @@ if (!rootEl) {
 ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <RootErrorBoundary>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </RootErrorBoundary>
   </React.StrictMode>,
 );

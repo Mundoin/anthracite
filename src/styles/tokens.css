@@ -156,7 +156,7 @@
   gap: 10px;
   min-height: var(--anth-section-hd-h);
   padding: 0 12px;
-  background: linear-gradient(180deg, #FAFCFE 0%, var(--anth-bg-sunken) 100%);
+  background: var(--anth-bg-sunken);
   border-bottom: 1px solid var(--anth-border-strong);
   border-left: 2px solid var(--anth-accent);
 }

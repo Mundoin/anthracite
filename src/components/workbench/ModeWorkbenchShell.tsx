@@ -18,58 +18,69 @@ import { resolveActiveTool, statusChipLabel, statusChipMod } from "./types";
 export interface ModeWorkbenchShellProps {
   model: ModeWorkbenchModel;
   onSelectTool: (toolId: string) => void;
+  /**
+   * D3T-P2 — When true, suppress the in-canvas header (title/tagline) and
+   * tool rail. The toolbar is expected to be rendered externally (e.g. in
+   * AppShell's subnav slot). Default false preserves legacy behavior.
+   */
+  noToolbar?: boolean;
 }
 
 export const ModeWorkbenchShell: FC<ModeWorkbenchShellProps> = ({
   model,
   onSelectTool,
+  noToolbar = false,
 }) => {
   const active = resolveActiveTool(model);
 
   return (
     <div className="mwb" data-testid="mode-workbench">
-      <header className="mwb-header">
-        <h2 className="mwb-title">{model.title}</h2>
-        {model.tagline ? (
-          <p className="mwb-tagline">{model.tagline}</p>
-        ) : null}
-      </header>
+      {noToolbar ? null : (
+        <>
+          <header className="mwb-header">
+            <h2 className="mwb-title">{model.title}</h2>
+            {model.tagline ? (
+              <p className="mwb-tagline">{model.tagline}</p>
+            ) : null}
+          </header>
 
-      <nav
-        className="mwb-rail"
-        role="tablist"
-        aria-label={`${model.title} tools`}
-        data-testid="mode-workbench-rail"
-      >
-        {model.tools.map((tool) => {
-          const isActive = active?.id === tool.id;
-          return (
-            <button
-              key={tool.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={`mwb-tool${isActive ? " is-active" : ""}`}
-              data-testid={`mwb-tool-${tool.id}`}
-              data-tool-status={tool.status}
-              onClick={() => onSelectTool(tool.id)}
-              disabled={tool.status === "blocked"}
-            >
-              <span className="mwb-tool-label">{tool.label}</span>
-              <span
-                className={`mwb-tool-status mwb-tool-status--${statusChipMod(tool.status)}`}
-              >
-                {statusChipLabel(tool.status)}
-              </span>
-              {tool.badge !== undefined && tool.badge !== null ? (
-                <span className="mwb-tool-badge" aria-label="count">
-                  {tool.badge}
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
-      </nav>
+          <nav
+            className="mwb-rail"
+            role="tablist"
+            aria-label={`${model.title} tools`}
+            data-testid="mode-workbench-rail"
+          >
+            {model.tools.map((tool) => {
+              const isActive = active?.id === tool.id;
+              return (
+                <button
+                  key={tool.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  className={`mwb-tool${isActive ? " is-active" : ""}`}
+                  data-testid={`mwb-tool-${tool.id}`}
+                  data-tool-status={tool.status}
+                  onClick={() => onSelectTool(tool.id)}
+                  disabled={tool.status === "blocked"}
+                >
+                  <span className="mwb-tool-label">{tool.label}</span>
+                  <span
+                    className={`mwb-tool-status mwb-tool-status--${statusChipMod(tool.status)}`}
+                  >
+                    {statusChipLabel(tool.status)}
+                  </span>
+                  {tool.badge !== undefined && tool.badge !== null ? (
+                    <span className="mwb-tool-badge" aria-label="count">
+                      {tool.badge}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </nav>
+        </>
+      )}
 
       <section
         className="mwb-active"

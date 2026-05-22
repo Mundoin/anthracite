@@ -86,71 +86,94 @@
   --anth-text-ghost:    #8B95A4;
 }
 :root[data-theme="graphite-command"] {
-  --anth-bg-app:       #0F1118;
-  --anth-bg-panel:     #181B22;
-  --anth-bg-sunken:    #1A1D24;
-  --anth-bg-hover:     #232732;
-  --anth-bg-selected:  #2A2F3D;
+  /* D3T-G1 — Material split: warm cream/paper WORK CANVAS inside the
+   * dark graphite SHELL. The bg-app/-panel/-sunken/-hover/-selected
+   * tokens are the workspace family; shell surfaces consume their
+   * own --anth-bg-titlebar/-subnav/-statusbar/-opsdock tokens (dark)
+   * defined further down. */
+  /* D3T-G1A — Rationalized cream ladder: app one shade darker than
+   * panel; sunken is a clear step darker for table headers / section
+   * beds; hover is between panel and sunken so rows lift on hover;
+   * selected is a clear warm tint, not just another beige. */
+  --anth-bg-app:       #EDE7DA;
+  --anth-bg-panel:     #FBF8F2;
+  --anth-bg-sunken:    #E2DBC8;
+  --anth-bg-hover:     #F3EFE7;
+  --anth-bg-selected:  #D6CCB3;
   --anth-bg-titlebar:  #181B22;
   --anth-bg-statusbar: #1A1D24;
 
-  --anth-border:        #232732;
+  --anth-border:        #DFD7C6;
   --anth-border-strong: #6F7689;
   --anth-border-focus:  #5887FF;
 
-  --anth-text:        #FBF8F2;
-  --anth-text-2:      #E9E4D8;
-  --anth-text-3:      #DFD7C6;
-  --anth-text-muted:  #6F7689;
-  --anth-text-inverse:#0F1118;
+  --anth-text:        #1A1D24;
+  --anth-text-2:      #3D4554;
+  --anth-text-3:      #6F7689;
+  --anth-text-muted:  #8B95A4;
+  --anth-text-inverse:#FBF8F2;
 
-  --anth-ok:   #3DD17F;
+  --anth-ok:   #2E8856;
   --anth-warn: #EBA838;
-  --anth-err:  #FF3D2A;
+  --anth-err:  #D03222;
   --anth-info: #5887FF;
 
-  --anth-ok-tint:   #1F4A33;
-  --anth-warn-tint: #5A3F0C;
-  --anth-err-tint:  #5E1F1F;
-  --anth-info-tint: #1F2A4A;
+  --anth-ok-tint:   #E7F4EC;
+  --anth-warn-tint: #FBF3E1;
+  --anth-err-tint:  #FBE7E7;
+  --anth-info-tint: #E6EEF8;
 
-  --anth-ok-ink:   #C9EEEE;
-  --anth-warn-ink: #FBF3E1;
-  --anth-err-ink:  #F8E4E4;
-  --anth-info-ink: #E6EEF8;
+  --anth-ok-ink:   #1F6E3F;
+  --anth-warn-ink: #8A5A0A;
+  --anth-err-ink:  #9B1C1C;
+  --anth-info-ink: #1E4A82;
 
-  --anth-accent:     #FBF8F2;
-  --anth-accent-ink: #0F1118;
+  --anth-accent:     #1A1D24;
+  --anth-accent-ink: #FBF8F2;
 
   --anth-action-primary:        #5887FF;
-  --anth-action-primary-hover:  #6F99FF;
-  --anth-action-primary-active: #4670D6;
+  --anth-action-primary-hover:  #4670D6;
+  --anth-action-primary-active: #3A5DBE;
   --anth-action-primary-ink:    #FBF8F2;
-  --anth-action-primary-tint:   #1F2A4A;
+  --anth-action-primary-tint:   #E6EEF8;
 
-  --anth-accent-action:        #3DD17F;
-  --anth-accent-action-hover:  #4FDD8C;
-  --anth-accent-action-ink:    #0F1118;
-  --anth-accent-action-tint:   #1F4A33;
+  --anth-accent-action:        #196E6F;
+  --anth-accent-action-hover:  #145C5D;
+  --anth-accent-action-ink:    #FBF8F2;
+  --anth-accent-action-tint:   #C9EEEE;
 
-  /* Chrome fascia (graphite-command: chrome and workspace share the
-     same dark family so the fascia is implicit, not a contrasting band). */
+  /* D3T-G1 — Chrome fascia stays dark graphite, framing the cream
+     workspace. The shell tokens are independent of bg-app/-panel so
+     the dark casing reads as one continuous fascia around the paper
+     work surface. Shelf-signal uses teal/cyan for Graphite's native
+     signal identity (B board accent), not the chrome blue. */
   --anth-bg-subnav:     #1A1D24;
   --anth-bg-opsdock:    #1A1D24;
   --anth-chrome-text:   #FBF8F2;
   --anth-chrome-text-2: #DFD7C6;
   --anth-chrome-border: #232732;
   --anth-chrome-hover:  #232732;
-  --anth-chrome-signal: #5887FF;
-  --anth-shelf-signal:  #5887FF;
+  --anth-chrome-signal: #2DBDBE;
+  --anth-shelf-signal:  #2DBDBE;
 
   /* Domain accents (orientation only — never status) */
   --anth-domain-teal:   #2DBDBE;
   --anth-domain-violet: #B58CFF;
   --anth-domain-pink:   #FF6F8F;
 
-  /* Ghost / empty placeholder surfaces (graphite shares chrome). */
-  --anth-bg-ghost:      #1A1D24;
+  /* D3T-G1A — Per-group structural accents.
+   * Foundation / Run / Governance / Workshop each carry a recognizable
+   * hue used ONLY for orientation: rail group strips, sidebar group
+   * dots, dashboard card edges, Cortex scope chips. Never status,
+   * never action. */
+  --anth-group-foundation: #4A78C7; /* cobalt blue */
+  --anth-group-run:        #E07A2D; /* warm orange */
+  --anth-group-governance: #C76070; /* rose */
+  --anth-group-workshop:   #B58CFF; /* violet */
+
+  /* Ghost / empty placeholder surfaces — cream-sunken family, matches
+     the warm workspace canvas. */
+  --anth-bg-ghost:      #E9E4D8;
   --anth-text-ghost:    #6F7689;
 }
 

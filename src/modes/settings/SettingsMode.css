@@ -58,3 +58,67 @@
 .sm-footer-note { font-size: 11px; color: var(--anth-text-3); margin: 8px 0 0; }
 
 .sm-operator-note { font-size: 11px; margin: 0 0 6px; color: var(--anth-text-2); }
+
+/* D3T — Theme selector */
+.sm-theme-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 8px;
+}
+
+.sm-theme-legend {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--anth-text-3);
+  padding: 0;
+  margin: 0 0 6px;
+}
+
+.sm-theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sm-theme-option {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  align-items: start;
+  padding: 8px 10px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-panel);
+  cursor: pointer;
+  transition: background var(--anth-motion-fast) ease, border-color var(--anth-motion-fast) ease;
+}
+
+.sm-theme-option:hover {
+  background: var(--anth-bg-hover);
+}
+
+.sm-theme-option--selected {
+  border-color: var(--anth-action-primary);
+  background: var(--anth-action-primary-tint);
+}
+
+.sm-theme-radio {
+  grid-row: 1 / span 2;
+  margin: 2px 0 0;
+  accent-color: var(--anth-action-primary);
+}
+
+.sm-theme-option__label {
+  grid-column: 2;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--anth-text);
+}
+
+.sm-theme-option__desc {
+  grid-column: 2;
+  font-size: 11px;
+  color: var(--anth-text-3);
+  line-height: 1.4;
+}

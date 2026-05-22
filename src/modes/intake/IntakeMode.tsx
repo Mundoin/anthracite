@@ -9,6 +9,10 @@
  *   - Parser Coverage (deferred): parser status projection
  *
  * Wraps in ModeWorkbenchShell for consistent tool rail + tab switching.
+ *
+ * D3T-P2 — supports controlled tab state via optional `activeToolId` +
+ * `onToolChange` props so App.tsx can host the tool tabs in the
+ * persistent top shelf instead of inside the canvas.
  */
 
 import type { JSX, ReactNode } from "react";
@@ -19,15 +23,51 @@ import { IntakePanel } from "./IntakePanel";
 import type { WorkbenchIntakeSummary } from "../../state/workbenchContextSummary";
 import "./IntakeMode.css";
 
+export const INTAKE_DEFAULT_TOOL_ID = "single_config";
+
+export interface IntakeToolMeta {
+  readonly id: string;
+  readonly label: string;
+}
+
+/** Tools labels exposed for external toolbar hosting (e.g. AppShell subnav). */
+export const INTAKE_TOOL_META: ReadonlyArray<IntakeToolMeta> = [
+  { id: "single_config", label: "Single Config" },
+  { id: "archive_batch", label: "Archive Batch" },
+  { id: "platform_registry", label: "Platform Registry" },
+  { id: "receipts_export", label: "Receipts / Export" },
+  { id: "parser_coverage", label: "Parser Coverage" },
+];
+
 export interface IntakeModeProps {
   readonly activeEnvironmentId?: string | null;
   readonly onDiscoveryImported?: () => void | Promise<void>;
   /** V1BO — invoked whenever intake state changes to allow app to update shared WorkbenchContextSummary. */
   readonly onIntakeStateChange?: (summary: WorkbenchIntakeSummary) => void;
+  /** D3T-P2 — controlled active tool id (external state). When provided
+   * together with onToolChange, the canvas defers state to the caller
+   * and ModeWorkbenchShell renders without its in-canvas rail. */
+  readonly activeToolId?: string;
+  readonly onToolChange?: (toolId: string) => void;
 }
 
-export function IntakeMode({ activeEnvironmentId, onDiscoveryImported, onIntakeStateChange }: IntakeModeProps): JSX.Element {
-  const [activeToolId, setActiveToolId] = useState<string>("single_config");
+export function IntakeMode({
+  activeEnvironmentId,
+  onDiscoveryImported,
+  onIntakeStateChange,
+  activeToolId,
+  onToolChange,
+}: IntakeModeProps): JSX.Element {
+  const [internalActiveToolId, setInternalActiveToolId] = useState<string>(INTAKE_DEFAULT_TOOL_ID);
+  const isControlled = activeToolId !== undefined && onToolChange !== undefined;
+  const resolvedActiveId = isControlled ? activeToolId : internalActiveToolId;
+  const handleSelect = (toolId: string): void => {
+    if (isControlled) {
+      onToolChange(toolId);
+    } else {
+      setInternalActiveToolId(toolId);
+    }
+  };
 
   const renderSingleConfig = (): ReactNode => (
     <IntakePanel
@@ -112,10 +152,11 @@ export function IntakeMode({ activeEnvironmentId, onDiscoveryImported, onIntakeS
           title: "Intake",
           tagline: "Parse configs, project receipts, import to Discovery — no device contact.",
           tools,
-          active_id: activeToolId,
-          fallback_id: "single_config",
+          active_id: resolvedActiveId,
+          fallback_id: INTAKE_DEFAULT_TOOL_ID,
         }}
-        onSelectTool={setActiveToolId}
+        onSelectTool={handleSelect}
+        noToolbar={isControlled}
       />
     </div>
   );

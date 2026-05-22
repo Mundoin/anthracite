@@ -140,7 +140,20 @@ export interface DiscoveryModeProps {
   readonly onCrawlPreviewSummaryChange?: (summary: CrawlPreviewContextSummary) => void;
   /** V1BS — Receive sanitized evidence-import events when SSH-handoff imports complete. */
   readonly onEvidenceImportEvent?: (event: EvidenceImportEvent) => void;
+  /** D3T-P2B — Controlled tool tabs hosted in AppShell subnav. */
+  readonly activeToolId?: string;
+  readonly onToolChange?: (toolId: string) => void;
 }
+
+export const DISCOVERY_DEFAULT_TOOL_ID = "target_capture";
+
+export const DISCOVERY_TOOL_META = [
+  { id: "target_capture", label: "Target Capture" },
+  { id: "seed_planner", label: "Seed Planner" },
+  { id: "recursive_crawl", label: "Recursive Crawl" },
+  { id: "import_evidence", label: "Import Evidence" },
+  { id: "field_receipts", label: "Field Receipts" },
+] as const;
 
 const PLATFORMS: readonly LiveCollectionPlatform[] = [
   "iosxe",
@@ -184,6 +197,8 @@ export function DiscoveryMode({
   onHistoryChange,
   onCrawlPreviewSummaryChange,
   onEvidenceImportEvent,
+  activeToolId: externalActiveToolId,
+  onToolChange,
 }: DiscoveryModeProps): JSX.Element {
   // Target form
   const [host, setHost] = useState("");
@@ -229,7 +244,13 @@ export function DiscoveryMode({
   >([]);
   const [receiptCopied, setReceiptCopied] = useState<"none" | "markdown" | "json">("none");
   const [validationPackCopied, setValidationPackCopied] = useState(false);
-  const [activeToolId, setActiveToolId] = useState<string>("target_capture");
+  const [internalActiveToolId, setInternalActiveToolId] = useState<string>(DISCOVERY_DEFAULT_TOOL_ID);
+  const isControlled = externalActiveToolId !== undefined && onToolChange !== undefined;
+  const resolvedActiveToolId = isControlled ? externalActiveToolId : internalActiveToolId;
+  const handleSelectTool = (id: string): void => {
+    if (isControlled) onToolChange(id);
+    else setInternalActiveToolId(id);
+  };
 
   // V1BL — discovery history state (seeds + artifacts).
   // Hoisted from SeedPlannerPanel so CrawlPreviewPanel can read seeds.
@@ -1404,10 +1425,11 @@ export function DiscoveryMode({
           tagline:
             "Define a target, validate, plan, then attempt a read-only discovery run.",
           tools,
-          active_id: activeToolId,
-          fallback_id: "target_capture",
+          active_id: resolvedActiveToolId,
+          fallback_id: DISCOVERY_DEFAULT_TOOL_ID,
         }}
-        onSelectTool={setActiveToolId}
+        onSelectTool={handleSelectTool}
+        noToolbar={isControlled}
       />
     </div>
   );

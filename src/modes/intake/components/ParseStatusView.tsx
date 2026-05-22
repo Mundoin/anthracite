@@ -29,9 +29,7 @@ export function ParseStatusView(props: ParseStatusViewProps): JSX.Element {
     <section className="intake-parse" aria-label="Parse status">
       <header className="intake-section__header">
         <div className="intake-section__title">PARSE</div>
-        <div className="intake-section__meta">
-          <StatusBadge status={status} />
-        </div>
+        <StatusBadge status={status} />
       </header>
 
       <div className="intake-parse__row">
