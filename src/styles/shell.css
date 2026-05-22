@@ -170,20 +170,53 @@
   border-bottom: 1px solid var(--anth-chrome-border, var(--anth-border));
   grid-column: 1 / -1;
 }
+
+/* D3T-P2A — Mode-local top shelf aligns with the work surface.
+ * AppShell sets data-subnav-start = 2 (no sidebar) or 3 (sidebar present)
+ * so the shelf begins at the canvas, not at the app left edge.
+ *
+ * D3T-P2C — Only the navigation FASCIA (ModeRail + ContextSidebar) extends
+ * up into row 2. `.anth-secondary` is per-mode CONTENT (Hierarchy's
+ * environments selector); it must align with the work body and never
+ * climb into the shelf band. */
+.anth-shell[data-subnav-start="2"] > .anth-subnav { grid-column: 2 / -1; }
+.anth-shell[data-subnav-start="3"] > .anth-subnav { grid-column: 3 / -1; }
+.anth-shell[data-subnav-start="2"] > .anth-rail,
+.anth-shell[data-subnav-start="3"] > .anth-rail,
+.anth-shell[data-subnav-start="3"] > .nav-sidebar {
+  grid-row: 2 / 4;
+}
 .anth-subnav .seg {
-  height: 24px; padding: 0 10px;
+  height: 26px; padding: 0 12px;
   display: inline-flex; align-items: center; gap: 6px;
   border-radius: var(--anth-r-sm);
-  font-size: 12px;
-  color: var(--anth-chrome-text-2, var(--anth-text-2));
-  cursor: default;
+  font-size: 12px; font-weight: 500;
+  color: var(--anth-chrome-text, var(--anth-text));
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color var(--anth-motion-fast) ease, color var(--anth-motion-fast) ease, box-shadow var(--anth-motion-fast) ease;
 }
-.anth-subnav .seg:hover  { background: var(--anth-chrome-hover, var(--anth-bg-hover)); color: var(--anth-chrome-text, var(--anth-text)); }
+/* D3T-P2C — refined top-shelf affordance.
+ * Quiet hover: subtle bed only, no border ring.
+ * Active: chrome-text + 600 weight + slim 2px underline. No bg fill,
+ * no border ring. The active state reads from the underline + ink
+ * weight, not from a heavy frame. */
+.anth-subnav .seg:hover {
+  background: var(--anth-chrome-hover, var(--anth-bg-hover));
+  color: var(--anth-chrome-text, var(--anth-text));
+}
 .anth-subnav .seg.active {
-  background: var(--anth-chrome-hover, var(--anth-bg-selected));
+  background: transparent;
   color: var(--anth-chrome-text, var(--anth-text));
   font-weight: 600;
-  box-shadow: inset 0 -2px 0 var(--anth-chrome-signal, var(--anth-action-primary));
+  box-shadow: inset 0 -2px 0 var(--anth-shelf-signal, var(--anth-action-primary));
+}
+.anth-subnav .seg.active:hover {
+  background: var(--anth-chrome-hover, var(--anth-bg-hover));
+}
+.anth-subnav .seg:focus-visible {
+  outline: 2px solid var(--anth-shelf-signal, var(--anth-border-focus));
+  outline-offset: -2px;
 }
 .anth-subnav .seg .count { color: var(--anth-chrome-text-2, var(--anth-text-3)); font-family: var(--anth-font-mono); font-size: 11px; }
 .anth-subnav .grow       { flex: 1; }

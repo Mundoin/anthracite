@@ -1,0 +1,225 @@
+/* D3T — Anthracite Visual Themes.
+ *
+ * Three selectable visual directions, each a token override on top of the
+ * base table in `tokens.css`. Spec: docs/design/D3T_THEME_SPEC.md.
+ *
+ * Default theme is `light-industrial` (mirrors current :root values so the
+ * baseline remains unchanged when the attribute is set at boot).
+ */
+
+/* ============================================================
+   light-industrial — Light Industrial Instrument
+   ============================================================ */
+:root,
+:root[data-theme="light-industrial"] {
+  --anth-bg-app:       #FAFAF8;
+  --anth-bg-panel:     #FFFFFF;
+  --anth-bg-sunken:    #ECEDEE;
+  --anth-bg-hover:     #E4E5E8;
+  --anth-bg-selected:  #D5DCE6;
+  --anth-bg-titlebar:  #FFFFFF;
+  --anth-bg-statusbar: #ECEDEE;
+
+  --anth-border:        #E4E5E8;
+  --anth-border-strong: #8B95A4;
+  --anth-border-focus:  #4A78C7;
+
+  --anth-text:        #1C1F25;
+  --anth-text-2:      #2F333A;
+  --anth-text-3:      #4A5567;
+  --anth-text-muted:  #8B95A4;
+  --anth-text-inverse:#FAFAF8;
+
+  --anth-ok:   #2E8856;
+  --anth-warn: #C7892E;
+  --anth-err:  #D03222;
+  --anth-info: #4A78C7;
+
+  --anth-ok-tint:   #E2F0E7;
+  --anth-warn-tint: #FBF3E1;
+  --anth-err-tint:  #FBE7E7;
+  --anth-info-tint: #E6EEF8;
+
+  --anth-ok-ink:   #1F4A33;
+  --anth-warn-ink: #5A3F0C;
+  --anth-err-ink:  #7A1F1F;
+  --anth-info-ink: #1E4A82;
+
+  --anth-accent:     #1C1F25;
+  --anth-accent-ink: #FAFAF8;
+
+  --anth-action-primary:        #4A78C7;
+  --anth-action-primary-hover:  #3A66B0;
+  --anth-action-primary-active: #2E5396;
+  --anth-action-primary-ink:    #FFFFFF;
+  --anth-action-primary-tint:   #E6EEF8;
+
+  --anth-accent-action:        #2E8856;
+  --anth-accent-action-hover:  #246B43;
+  --anth-accent-action-ink:    #FFFFFF;
+  --anth-accent-action-tint:   #E2F0E7;
+
+  /* D3T-P1B — Light Industrial: dark equipment fascia around a light
+   * work surface. Titlebar / subnav / statusbar / opsdock read as the
+   * dark machined frame; bg-app / bg-panel stay paper-light so the
+   * workspace canvas is the bright surface. No silver gradients.
+   * One restrained signal hue (amber). */
+  --anth-bg-titlebar:   #1C1F25;
+  --anth-bg-subnav:     #24272E;
+  --anth-bg-statusbar:  #1C1F25;
+  --anth-bg-opsdock:    #24272E;
+  --anth-chrome-text:   #E4E5E8;
+  --anth-chrome-text-2: #8E96A4;
+  --anth-chrome-border: #2F333A;
+  --anth-chrome-hover:  #2C3038;
+  --anth-chrome-signal: #C7892E;
+
+  /* D3T-P2C — Shelf signal is the active-tab accent on the mode top
+   * shelf. Kept SEPARATE from --anth-chrome-signal so the warn/amber
+   * chrome accent (LEDs, dot rings) stays loud while the shelf tab
+   * affordance reads quiet and instrument-like. */
+  --anth-shelf-signal:  #6B7A99;
+
+  /* Ghost / empty placeholder surfaces (Inspector empty, deferred
+     beds, low-emphasis fillers). Light-industrial uses neutral cool. */
+  --anth-bg-ghost:      #ECEDEE;
+  --anth-text-ghost:    #8B95A4;
+}
+:root[data-theme="graphite-command"] {
+  --anth-bg-app:       #0F1118;
+  --anth-bg-panel:     #181B22;
+  --anth-bg-sunken:    #1A1D24;
+  --anth-bg-hover:     #232732;
+  --anth-bg-selected:  #2A2F3D;
+  --anth-bg-titlebar:  #181B22;
+  --anth-bg-statusbar: #1A1D24;
+
+  --anth-border:        #232732;
+  --anth-border-strong: #6F7689;
+  --anth-border-focus:  #5887FF;
+
+  --anth-text:        #FBF8F2;
+  --anth-text-2:      #E9E4D8;
+  --anth-text-3:      #DFD7C6;
+  --anth-text-muted:  #6F7689;
+  --anth-text-inverse:#0F1118;
+
+  --anth-ok:   #3DD17F;
+  --anth-warn: #EBA838;
+  --anth-err:  #FF3D2A;
+  --anth-info: #5887FF;
+
+  --anth-ok-tint:   #1F4A33;
+  --anth-warn-tint: #5A3F0C;
+  --anth-err-tint:  #5E1F1F;
+  --anth-info-tint: #1F2A4A;
+
+  --anth-ok-ink:   #C9EEEE;
+  --anth-warn-ink: #FBF3E1;
+  --anth-err-ink:  #F8E4E4;
+  --anth-info-ink: #E6EEF8;
+
+  --anth-accent:     #FBF8F2;
+  --anth-accent-ink: #0F1118;
+
+  --anth-action-primary:        #5887FF;
+  --anth-action-primary-hover:  #6F99FF;
+  --anth-action-primary-active: #4670D6;
+  --anth-action-primary-ink:    #FBF8F2;
+  --anth-action-primary-tint:   #1F2A4A;
+
+  --anth-accent-action:        #3DD17F;
+  --anth-accent-action-hover:  #4FDD8C;
+  --anth-accent-action-ink:    #0F1118;
+  --anth-accent-action-tint:   #1F4A33;
+
+  /* Chrome fascia (graphite-command: chrome and workspace share the
+     same dark family so the fascia is implicit, not a contrasting band). */
+  --anth-bg-subnav:     #1A1D24;
+  --anth-bg-opsdock:    #1A1D24;
+  --anth-chrome-text:   #FBF8F2;
+  --anth-chrome-text-2: #DFD7C6;
+  --anth-chrome-border: #232732;
+  --anth-chrome-hover:  #232732;
+  --anth-chrome-signal: #5887FF;
+  --anth-shelf-signal:  #5887FF;
+
+  /* Domain accents (orientation only — never status) */
+  --anth-domain-teal:   #2DBDBE;
+  --anth-domain-violet: #B58CFF;
+  --anth-domain-pink:   #FF6F8F;
+
+  /* Ghost / empty placeholder surfaces (graphite shares chrome). */
+  --anth-bg-ghost:      #1A1D24;
+  --anth-text-ghost:    #6F7689;
+}
+
+/* ============================================================
+   technical-blueprint — Technical Blueprint Signal Layer
+   ============================================================ */
+:root[data-theme="technical-blueprint"] {
+  --anth-bg-app:       #FAFCFD;
+  --anth-bg-panel:     #FFFFFF;
+  --anth-bg-sunken:    #ECF1F4;
+  --anth-bg-hover:     #E6EDF1;
+  --anth-bg-selected:  #D3E6EE;
+  --anth-bg-titlebar:  #FFFFFF;
+  --anth-bg-statusbar: #ECF1F4;
+
+  --anth-border:        #DDE6EC;
+  --anth-border-strong: #7A8A95;
+  --anth-border-focus:  #0E72A0;
+
+  --anth-text:        #0E1E2C;
+  --anth-text-2:      #074C6E;
+  --anth-text-3:      #3E5A78;
+  --anth-text-muted:  #7A8A95;
+  --anth-text-inverse:#FAFCFD;
+
+  --anth-ok:   #2C8456;
+  --anth-warn: #C77A0E;
+  --anth-err:  #D32E2E;
+  --anth-info: #0E72A0;
+
+  --anth-ok-tint:   #E2F0E7;
+  --anth-warn-tint: #FBF3E1;
+  --anth-err-tint:  #FBE7E7;
+  --anth-info-tint: #BFD3E3;
+
+  --anth-ok-ink:   #1F4A33;
+  --anth-warn-ink: #5A3F0C;
+  --anth-err-ink:  #7A2D3A;
+  --anth-info-ink: #074C6E;
+
+  --anth-accent:     #0E1E2C;
+  --anth-accent-ink: #FAFCFD;
+
+  --anth-action-primary:        #0E72A0;
+  --anth-action-primary-hover:  #0A5C82;
+  --anth-action-primary-active: #074C6E;
+  --anth-action-primary-ink:    #FFFFFF;
+  --anth-action-primary-tint:   #BFD3E3;
+
+  --anth-accent-action:        #2C8456;
+  --anth-accent-action-hover:  #226944;
+  --anth-accent-action-ink:    #FFFFFF;
+  --anth-accent-action-tint:   #E2F0E7;
+
+  /* Chrome fascia (technical-blueprint: deep-navy chrome over cyan
+     workspace — chrome reads as cool architectural band). */
+  --anth-bg-titlebar:   #074C6E;
+  --anth-bg-subnav:     #ECF1F4;
+  --anth-bg-statusbar:  #074C6E;
+  --anth-bg-opsdock:    #DAE3EA;
+  --anth-chrome-text:   #ECF1F4;
+  --anth-chrome-text-2: #BFD3E3;
+  --anth-chrome-border: #0E1E2C;
+  --anth-chrome-hover:  #0E72A0;
+  --anth-chrome-signal: #0E72A0;
+  --anth-shelf-signal:  #0E72A0;
+
+  /* Ghost / empty placeholder surfaces — blueprint-tinted instead of
+     neutral grey so empty beds feel native to the theme. */
+  --anth-bg-ghost:      #DAE3EA;
+  --anth-text-ghost:    #3E5A78;
+}

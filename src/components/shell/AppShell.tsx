@@ -69,11 +69,26 @@ export function AppShell({
     gridTemplateColumns: cols.join(" "),
   };
 
+  // D3T-P2A — Subnav (mode-local top shelf) aligns with the work
+  // surface: it starts at the column right of the NAVIGATION SHELL
+  // (rail + chrome sidebar), not at the app left edge.
+  //
+  // D3T-P2C — Distinguish chrome sidebar vs content secondary:
+  // - contextSidebar  : chrome — subnav starts at col 3, sidebar spans
+  //                     row 2 / 4 to fill the band above its body.
+  // - secondary (e.g. Hierarchy environments list): CONTENT — subnav
+  //                     extends over col 2 (start col 2), and secondary
+  //                     occupies only the body row (auto / row 3) so
+  //                     it sits BELOW the shelf, not inside it.
+  // - none            : subnav starts at col 2 (just right of the rail).
+  const subnavStartCol = contextSidebar && !secondary ? 3 : 2;
+
   return (
     <div
-      className={`anth anth-shell ${subnav ? "" : "anth-shell--no-subnav"}`}
+      className="anth anth-shell"
       style={style}
       data-density="compact"
+      data-subnav-start={subnavStartCol}
     >
       <TitleBar
         env={env}
@@ -83,7 +98,19 @@ export function AppShell({
         onCrumbClick={onCrumbClick}
       />
 
-      {subnav}
+      {subnav ?? (
+        <div
+          className="anth-subnav anth-subnav--placeholder"
+          role="tablist"
+          aria-label={`${crumbs[crumbs.length - 1] ?? "Mode"} sections`}
+        >
+          <div className="seg seg--placeholder" aria-disabled="true">
+            <span>{crumbs[crumbs.length - 1] ?? "Mode"}</span>
+          </div>
+          <div className="grow" />
+          <div className="anth-subnav__hint mono">no sections yet</div>
+        </div>
+      )}
 
       <ModeRail
         active={activeMode}
