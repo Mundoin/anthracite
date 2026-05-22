@@ -20,6 +20,8 @@ export interface AppShellProps {
   readonly statusLeft?: readonly StatusCell[];
   readonly statusRight?: readonly StatusCell[];
   readonly overlay?: ReactNode;
+  /** D3C — Right-arrow from rail requests focus into the context sidebar (when present). */
+  readonly onRequestSidebarFocus?: () => void;
   readonly children: ReactNode;
 }
 
@@ -39,6 +41,7 @@ export function AppShell({
   statusLeft,
   statusRight,
   overlay,
+  onRequestSidebarFocus,
   children,
 }: AppShellProps): JSX.Element {
   const cols: string[] = ["196px"];
@@ -82,7 +85,11 @@ export function AppShell({
 
       {subnav}
 
-      <ModeRail active={activeMode} onChange={onModeChange} />
+      <ModeRail
+        active={activeMode}
+        onChange={onModeChange}
+        onRequestSidebarFocus={contextSidebar ? onRequestSidebarFocus : undefined}
+      />
       {sidebarNode}
       <main className="anth-work" aria-label="Workspace">
         <div className="anth-work__content">

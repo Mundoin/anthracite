@@ -10,33 +10,33 @@
  *
  * Click on row activates; click on caret toggles expand (stops propagation).
  *
+ * D3C: roving tabIndex driven by isFocused (not isActive). DOM focus
+ * follows the focused row so keyboard arrows scroll the right element
+ * into view.
+ *
  * Obeys D3_NAV_SPEC §4 (context sidebar anatomy).
  */
 
-import type { JSX, MouseEvent } from "react";
+import { useEffect, useRef, type JSX, type MouseEvent } from "react";
 import type { CatalogueState, ChildKind, ModeChild } from "../../contracts/modeCatalogue";
 import { AnthIcon } from "../icons/AnthIcon";
 
 export interface NavigationTreeItemProps {
-  /** The child node to render. */
   readonly child: ModeChild;
-  /** Depth level (1 = top-level, 2 = nested). Controls indentation. */
   readonly depth: number;
-  /** Whether this row is the currently active child. */
   readonly isActive: boolean;
-  /** Whether this row's children are expanded (only meaningful if expandable). */
   readonly isExpanded: boolean;
-  /** Called when the row is clicked to activate this child. */
+  /** D3C — roving focus marker. Exactly one row in the sidebar is focused. */
+  readonly isFocused: boolean;
   readonly onActivate: (childId: string) => void;
-  /** Called when the caret is clicked to toggle expand. */
   readonly onToggle: (childId: string) => void;
 }
 
 const STATE_LED_CLASS: Record<CatalogueState, string> = {
   available: "nav-led--available",
-  partial: "nav-led--partial",
-  deferred: "nav-led--deferred",
-  blocked: "nav-led--blocked",
+  partial:   "nav-led--partial",
+  deferred:  "nav-led--deferred",
+  blocked:   "nav-led--blocked",
 };
 
 function isExpandable(child: ModeChild): boolean {
@@ -60,12 +60,23 @@ export function NavigationTreeItem({
   depth,
   isActive,
   isExpanded,
+  isFocused,
   onActivate,
   onToggle,
 }: NavigationTreeItemProps): JSX.Element {
+  const ref = useRef<HTMLDivElement>(null);
   const expandable = isExpandable(child);
   const paddingLeft = 12 + (depth - 1) * 16;
   const ledClass = STATE_LED_CLASS[child.state];
+
+  useEffect(() => {
+    if (isFocused) {
+      const node = ref.current;
+      if (node && document.activeElement !== node) {
+        node.focus({ preventScroll: false });
+      }
+    }
+  }, [isFocused]);
 
   const handleToggleClick = (e: MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation();
@@ -85,12 +96,14 @@ export function NavigationTreeItem({
 
   return (
     <div
+      ref={ref}
       className={rowClassName(child, isActive)}
       role="treeitem"
-      tabIndex={isActive ? 0 : -1}
+      tabIndex={isFocused ? 0 : -1}
       aria-selected={isActive}
       aria-expanded={expandable ? isExpanded : undefined}
       data-active={isActive ? "true" : undefined}
+      data-focused={isFocused ? "true" : undefined}
       data-kind={pickKind(child.kind)}
       data-state={child.state}
       data-testid={`nav-sidebar-row-${child.id}`}
@@ -98,10 +111,8 @@ export function NavigationTreeItem({
       onClick={handleRowClick}
       title={title}
     >
-      {/* Status LED */}
       <span className={`nav-led ${ledClass}`} aria-hidden="true" />
 
-      {/* Expand caret or hidden placeholder (keeps labels aligned) */}
       {expandable ? (
         <button
           type="button"
@@ -120,17 +131,14 @@ export function NavigationTreeItem({
         <span className="nav-tree-toggle nav-tree-toggle--placeholder" aria-hidden="true" />
       )}
 
-      {/* Kind icon (when child carries one) */}
       {child.iconId && (
         <span className="nav-sidebar-row__icon" aria-hidden="true">
           <AnthIcon id={child.iconId} size="sm" />
         </span>
       )}
 
-      {/* Label */}
       <span className="nav-sidebar-label">{child.label}</span>
 
-      {/* Numeric badge */}
       {typeof child.badge === "number" && child.badge > 0 && (
         <span className="nav-sidebar-badge">{child.badge}</span>
       )}

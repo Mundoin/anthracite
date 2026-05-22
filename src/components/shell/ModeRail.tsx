@@ -1,4 +1,4 @@
-import type { JSX, ReactNode } from "react";
+import type { JSX, KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import {
   MODE_CATALOGUE,
   projectCatalogueGroups,
@@ -39,6 +39,8 @@ export interface ModeRailProps {
   readonly catalogue?: ModeCatalogue;
   readonly onChange?: (id: ModeId) => void;
   readonly alertCounts?: Readonly<Record<ModeId, number>>;
+  /** D3C — When the operator presses Right on a rail row, focus moves into the sidebar (when present). */
+  readonly onRequestSidebarFocus?: () => void;
 }
 
 /**
@@ -110,6 +112,7 @@ export function ModeRail({
   catalogue = propagateBadges(MODE_CATALOGUE),
   onChange,
   alertCounts,
+  onRequestSidebarFocus,
 }: ModeRailProps): JSX.Element {
   const groups = projectCatalogueGroups(catalogue);
   const allModes = catalogue.modes;
@@ -121,11 +124,26 @@ export function ModeRail({
     ...footEntries.map((f) => f.id as ModeId),
   ];
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key !== "ArrowUp" && e.key !== "ArrowDown" && e.key !== "Enter") return;
+  const handleKeyDown = (e: ReactKeyboardEvent): void => {
+    const { key } = e;
+    if (
+      key !== "ArrowUp" &&
+      key !== "ArrowDown" &&
+      key !== "Home" &&
+      key !== "End" &&
+      key !== "Enter" &&
+      key !== " " &&
+      key !== "ArrowRight"
+    ) {
+      return;
+    }
     e.preventDefault();
 
-    if (e.key === "Enter") {
+    if (key === "ArrowRight") {
+      onRequestSidebarFocus?.();
+      return;
+    }
+    if (key === "Enter" || key === " ") {
       onChange?.(active);
       return;
     }
@@ -133,10 +151,16 @@ export function ModeRail({
     const currentIdx = focusableIds.indexOf(active);
     let nextIdx = currentIdx;
 
-    if (e.key === "ArrowDown") {
-      nextIdx = (currentIdx + 1) % focusableIds.length;
-    } else if (e.key === "ArrowUp") {
-      nextIdx = (currentIdx - 1 + focusableIds.length) % focusableIds.length;
+    if (key === "ArrowDown") {
+      nextIdx = currentIdx === -1 ? 0 : (currentIdx + 1) % focusableIds.length;
+    } else if (key === "ArrowUp") {
+      nextIdx = currentIdx === -1
+        ? focusableIds.length - 1
+        : (currentIdx - 1 + focusableIds.length) % focusableIds.length;
+    } else if (key === "Home") {
+      nextIdx = 0;
+    } else if (key === "End") {
+      nextIdx = focusableIds.length - 1;
     }
 
     const nextId = focusableIds[nextIdx];
@@ -171,9 +195,11 @@ export function ModeRail({
               role="button"
               tabIndex={isActive ? 0 : -1}
               aria-pressed={isActive}
+              aria-current={isActive ? "page" : undefined}
               aria-label={foot.label}
               onClick={() => onChange?.(foot.id as ModeId)}
               data-testid={`nav-rail-foot-${foot.id}`}
+              data-active={isActive ? "true" : undefined}
             >
               <AnthIcon id={foot.iconId} size={variant === "icons" ? "sm" : "sm"} />
               <span className="lbl">{foot.label}</span>
@@ -228,10 +254,11 @@ function RailGroup({
             role="button"
             tabIndex={isActive ? 0 : -1}
             aria-pressed={isActive}
+            aria-current={isActive ? "page" : undefined}
             aria-label={mode.label}
             onClick={() => onChange?.(mode.id as ModeId)}
             data-testid={`nav-rail-mode-${mode.id}`}
-            data-active={isActive}
+            data-active={isActive ? "true" : undefined}
           >
             <div className={stateLedClass}></div>
             <AnthIcon id={mode.iconId} size="sm" />

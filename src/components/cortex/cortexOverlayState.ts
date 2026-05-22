@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   CortexEntry,
+  CortexScope,
   CortexSection,
 } from "../navigation/cortexCatalogueAdapter";
 import {
@@ -28,6 +29,50 @@ import {
   groupCortexEntries,
 } from "../navigation/cortexCatalogueAdapter";
 import type { ModeCatalogue } from "../../contracts/modeCatalogue";
+
+/** D3C — Overlay scope filter. "all" disables filtering. */
+export type CortexScopeFilter = CortexScope | "all";
+
+/** Ordered scope filter cycle for Tab / Shift+Tab. */
+export const SCOPE_FILTER_ORDER: readonly CortexScopeFilter[] = [
+  "all",
+  "modes",
+  "workflows",
+  "tools",
+  "surfaces",
+  "groups",
+  "foot",
+];
+
+export const SCOPE_FILTER_LABEL: Record<CortexScopeFilter, string> = {
+  all:       "All",
+  modes:     "Modes",
+  workflows: "Workflows",
+  tools:     "Tools",
+  surfaces:  "Surfaces",
+  groups:    "Groups",
+  foot:      "Utilities",
+};
+
+/** Filter ranked entries by scope. "all" passes everything through. */
+export function filterByScope(
+  entries: readonly CortexEntry[],
+  scope: CortexScopeFilter,
+): readonly CortexEntry[] {
+  if (scope === "all") return entries;
+  return entries.filter((e) => e.scope === scope);
+}
+
+/** Cycle to the next/previous scope in SCOPE_FILTER_ORDER. */
+export function cycleScope(
+  current: CortexScopeFilter,
+  delta: 1 | -1,
+): CortexScopeFilter {
+  const idx = SCOPE_FILTER_ORDER.indexOf(current);
+  const safe = idx === -1 ? 0 : idx;
+  const next = (safe + delta + SCOPE_FILTER_ORDER.length) % SCOPE_FILTER_ORDER.length;
+  return SCOPE_FILTER_ORDER[next];
+}
 
 const NO_MATCH = Number.POSITIVE_INFINITY;
 
@@ -107,7 +152,10 @@ export interface CortexOverlayState {
   readonly highlightedIndex: number;
   readonly results: readonly CortexEntry[];
   readonly sections: readonly CortexSection[];
+  readonly scope: CortexScopeFilter;
   readonly setQuery: (query: string) => void;
+  readonly setScope: (scope: CortexScopeFilter) => void;
+  readonly cycleScopeBy: (delta: 1 | -1) => void;
   readonly moveHighlight: (delta: number) => void;
   readonly setHighlightedIndex: (index: number) => void;
   readonly activateHighlighted: () => void;
@@ -128,17 +176,20 @@ export interface UseCortexOverlayParams {
 export function useCortexOverlay(params: UseCortexOverlayParams): CortexOverlayState {
   const { catalogue, open, onActivate } = params;
   const [query, setQueryState] = useState("");
+  const [scope, setScopeState] = useState<CortexScopeFilter>("all");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   const index = useMemo(() => getCortexIndex(catalogue), [catalogue]);
 
-  const results = useMemo(() => rankEntries(index, query), [index, query]);
+  const ranked = useMemo(() => rankEntries(index, query), [index, query]);
+  const results = useMemo(() => filterByScope(ranked, scope), [ranked, scope]);
   const sections = useMemo(() => groupCortexEntries(results), [results]);
 
   // Reset on open transition.
   useEffect(() => {
     if (open) {
       setQueryState("");
+      setScopeState("all");
       setHighlightedIndex(0);
     }
   }, [open]);
@@ -173,6 +224,17 @@ export function useCortexOverlay(params: UseCortexOverlayParams): CortexOverlayS
 
   const reset = useCallback(() => {
     setQueryState("");
+    setScopeState("all");
+    setHighlightedIndex(0);
+  }, []);
+
+  const setScope = useCallback((next: CortexScopeFilter) => {
+    setScopeState(next);
+    setHighlightedIndex(0);
+  }, []);
+
+  const cycleScopeBy = useCallback((delta: 1 | -1) => {
+    setScopeState((prior) => cycleScope(prior, delta));
     setHighlightedIndex(0);
   }, []);
 
@@ -181,7 +243,10 @@ export function useCortexOverlay(params: UseCortexOverlayParams): CortexOverlayS
     highlightedIndex,
     results,
     sections,
+    scope,
     setQuery,
+    setScope,
+    cycleScopeBy,
     moveHighlight,
     setHighlightedIndex,
     activateHighlighted,
