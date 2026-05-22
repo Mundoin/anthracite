@@ -55,7 +55,7 @@ describe("getHierarchyView", () => {
     expect(withReadiness.listKpis[0].value).toBe((9945).toLocaleString("en-US"));
 
     const fallback = getHierarchyView(EMPTY_INPUT);
-    const expectedSum = ROW_SEEDS.reduce((acc, s) => acc + (s.id === "apex-prod-emea" ? 2184 : 0) + (s.id === "apex-prod-amer" ? 3041 : 0) + (s.id === "apex-prod-apac" ? 1604 : 0) + (s.id === "apex-edge-retail" ? 1648 : 0) + (s.id === "apex-staging-emea" ? 312 : 0) + (s.id === "apex-lab-london" ? 64 : 0) + (s.id === "apex-iso-mtn-dc" ? 188 : 0) + (s.id === "apex-tenant-novax" ? 904 : 0), 0);
+    const expectedSum = ROW_SEEDS.reduce((acc, s) => acc + (s.id === "apex-prod-emea" ? 2184 : 0) + (s.id === "apex-prod-amer" ? 3041 : 0) + (s.id === "apex-prod-apac" ? 1604 : 0) + (s.id === "apex-edge-retail" ? 1648 : 0) + (s.id === "apex-staging-emea" ? 312 : 0) + (s.id === "apex-lab-london" ? 64 : 0) + (s.id === "apex-iso-mtn-dc" ? 188 : 0) + (s.id === "apex-tenant-novax" ? 904 : 0) + (s.id === "env-fab-demo" ? 3 : 0), 0);
     expect(fallback.listKpis[0].value).toBe(expectedSum.toLocaleString("en-US"));
   });
 

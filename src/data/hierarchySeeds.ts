@@ -12,6 +12,7 @@ export const ROW_SEEDS: readonly RowSeed[] = [
   { group: "non-prod", id: "apex-lab-london", region: "London · MTH-LAB-7", scope: "EMEA · Lab", sites: 1, readiness: 100, l2: 100, l3: 100, ebgp: 100, drift: 0, events: 0, owner: "Platform Eng", last: "8s ago" },
   { group: "special", id: "apex-iso-mtn-dc", region: "Mountain View · DC-3", scope: "AMER · Isolated DC", sites: 1, readiness: 41, l2: 78, l3: 60, ebgp: 55, drift: 188, events: 22, owner: "Compliance", last: "21m ago" },
   { group: "special", id: "apex-tenant-novax", region: "AMS / FRA · MSP", scope: "Tenant · Novax", sites: 18, readiness: 94, l2: 98, l3: 94, ebgp: 90, drift: 7, events: 1, owner: "MSP-A", last: "47s ago" },
+  { group: "special", id: "env-fab-demo", region: "Synthetic · Local", scope: "Demo · Fabricated", sites: 1, readiness: 100, l2: 100, l3: 100, ebgp: 100, drift: 0, events: 0, owner: "Fabricator", last: "fabricated" },
 ];
 
 export const ROW_STATUS_FALLBACK: Record<string, StatusSignal> = {
@@ -23,6 +24,7 @@ export const ROW_STATUS_FALLBACK: Record<string, StatusSignal> = {
   "apex-lab-london": "ok",
   "apex-iso-mtn-dc": "err",
   "apex-tenant-novax": "ok",
+  "env-fab-demo": "idle",
 };
 
 export const DEVICE_FALLBACK: Record<string, number> = {
@@ -34,6 +36,7 @@ export const DEVICE_FALLBACK: Record<string, number> = {
   "apex-lab-london": 64,
   "apex-iso-mtn-dc": 188,
   "apex-tenant-novax": 904,
+  "env-fab-demo": 3,
 };
 
 export const DETAIL_DOMAINS_SEED: readonly ReadinessDomain[] = [
