@@ -95,7 +95,10 @@ export function CortexOverlay({
         <CortexInput
           query={state.query}
           resultCount={state.results.length}
+          scope={state.scope}
           onQueryChange={state.setQuery}
+          onScopeChange={state.setScope}
+          onCycleScope={state.cycleScopeBy}
           onMoveHighlight={state.moveHighlight}
           onActivate={state.activateHighlighted}
           onRequestClose={onClose}

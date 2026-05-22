@@ -37,6 +37,62 @@
 }
 
 /* ============================================================
+   Scope chip row (D3C)
+   ============================================================ */
+
+.cortex-input-block {
+  display: flex;
+  flex-direction: column;
+  background: var(--anth-bg-panel);
+  border-bottom: 1px solid var(--anth-border);
+  flex-shrink: 0;
+}
+
+.cortex-input__scope-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--anth-bg-sunken);
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.cortex-input__scope-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: var(--anth-r-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--anth-text-2);
+  font-family: var(--anth-font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 100ms ease, color 100ms ease;
+}
+
+.cortex-input__scope-chip:hover {
+  background: var(--anth-bg-hover);
+  color: var(--anth-text);
+}
+
+.cortex-input__scope-chip--active {
+  background: var(--anth-action-primary-tint, var(--anth-ok-tint));
+  color: var(--anth-action-primary-ink, var(--anth-ok-ink));
+  border-color: var(--anth-action-primary, var(--anth-accent-action));
+}
+
+.cortex-input__scope-chip:focus-visible {
+  outline: var(--anth-ring-width) solid var(--anth-ring-color);
+  outline-offset: var(--anth-ring-offset);
+}
+
+/* ============================================================
    Input row
    ============================================================ */
 

@@ -10,10 +10,28 @@
  *   - Body: kind sections, each with NavigationTree
  *   - Empty state: when mode has no children
  *
- * Obeys D3_NAV_SPEC §4 (context sidebar) + §11 (component split).
+ * D3C — Keyboard:
+ *   ↑/↓    walk visible rows
+ *   Home   jump to first row
+ *   End    jump to last row
+ *   →      expand if collapsed; descend into first child if expanded
+ *   ←      collapse if expanded; ascend to parent; from depth-1
+ *          with no expansion, request rail focus (onRequestRailFocus)
+ *   Space  toggle expandable node; otherwise activate
+ *   Enter  activate row
+ *   Esc    request rail focus
+ *
+ * Obeys D3_NAV_SPEC §4 + §6.
  */
 
-import type { JSX } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type JSX,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import type {
   CatalogueState,
   ModeChild,
@@ -26,21 +44,18 @@ import {
 } from "../../contracts/modeCatalogue";
 import { AnthIcon } from "../icons/AnthIcon";
 import { NavigationTree } from "./NavigationTree";
+import { flattenVisibleRows, findRowIndex, type VisibleRow } from "./visibleRows";
 import "./ContextSidebar.css";
 
 export interface ContextSidebarProps {
-  /** The mode catalogue (single source of truth). */
   readonly catalogue: ModeCatalogue;
-  /** The currently active mode id. */
   readonly activeMode: string;
-  /** The path to the currently active child (e.g., ["prov-reconcile", "prov-reconcile-device"]). */
   readonly activeChildPath: readonly string[];
-  /** The set of expanded node ids in the tree. */
   readonly openIds: ReadonlySet<string>;
-  /** Called when a child row is clicked to activate. Receives the full path. */
   readonly onActivateChild: (path: readonly string[]) => void;
-  /** Called when a caret is clicked to toggle expand. */
   readonly onToggleNode: (nodeId: string) => void;
+  /** D3C — invoked when Left from depth-1 or Esc requests rail focus. */
+  readonly onRequestRailFocus?: () => void;
 }
 
 interface DescendantCounts {
@@ -77,6 +92,8 @@ function stateLabel(state: CatalogueState): string {
   }
 }
 
+const EMPTY_CHILDREN: readonly ModeChild[] = [];
+
 export function ContextSidebar({
   catalogue,
   activeMode,
@@ -84,18 +101,158 @@ export function ContextSidebar({
   openIds,
   onActivateChild,
   onToggleNode,
+  onRequestRailFocus,
 }: ContextSidebarProps): JSX.Element | null {
   const mode = findModeEntry(catalogue, activeMode);
-  if (!mode) {
-    return null;
-  }
 
-  const children = getModeChildren(catalogue, activeMode);
-  const sections = groupChildrenForSidebar(children);
-  const counts = countDescendants(children);
+  const children = mode ? getModeChildren(catalogue, activeMode) : EMPTY_CHILDREN;
+  const sections = useMemo(
+    () => (mode ? groupChildrenForSidebar(children) : []),
+    [mode, children],
+  );
+  const visibleRows = useMemo<readonly VisibleRow[]>(
+    () => (mode ? flattenVisibleRows(children, openIds) : []),
+    [mode, children, openIds],
+  );
+  const counts = useMemo(() => countDescendants(children), [children]);
+
+  // Focused row state — defaults to active path or first row when sidebar opens.
+  const [focusedPath, setFocusedPath] = useState<readonly string[]>(() => {
+    if (activeChildPath.length > 0) return activeChildPath;
+    return visibleRows.length > 0 ? visibleRows[0].path : [];
+  });
+
+  // When the mode changes, reset focus to active child or first visible row.
+  // Guard against same-value updates to prevent re-render loops when callers
+  // pass new array literals every render (e.g. activeChildPath={[]}).
+  useEffect(() => {
+    const nextPath: readonly string[] =
+      activeChildPath.length > 0
+        ? activeChildPath
+        : visibleRows.length > 0
+          ? visibleRows[0].path
+          : [];
+    setFocusedPath((prior) => {
+      if (prior.length === nextPath.length) {
+        let same = true;
+        for (let i = 0; i < prior.length; i += 1) {
+          if (prior[i] !== nextPath[i]) {
+            same = false;
+            break;
+          }
+        }
+        if (same) return prior;
+      }
+      return nextPath;
+    });
+  }, [activeMode, activeChildPath, visibleRows]);
+
+  const moveFocus = useCallback(
+    (delta: number): void => {
+      if (visibleRows.length === 0) return;
+      const currentIdx = focusedPath.length === 0
+        ? -1
+        : findRowIndex(visibleRows, focusedPath);
+      const startIdx = currentIdx === -1 ? 0 : currentIdx;
+      const nextIdx = (startIdx + delta + visibleRows.length) % visibleRows.length;
+      setFocusedPath(visibleRows[nextIdx].path);
+    },
+    [visibleRows, focusedPath],
+  );
+
+  const jumpFocus = useCallback(
+    (where: "first" | "last"): void => {
+      if (visibleRows.length === 0) return;
+      const row = where === "first" ? visibleRows[0] : visibleRows[visibleRows.length - 1];
+      setFocusedPath(row.path);
+    },
+    [visibleRows],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: ReactKeyboardEvent<HTMLDivElement>): void => {
+      if (visibleRows.length === 0 && e.key !== "Escape") return;
+
+      const currentIdx = findRowIndex(visibleRows, focusedPath);
+      const row = currentIdx >= 0 ? visibleRows[currentIdx] : undefined;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          moveFocus(1);
+          return;
+        case "ArrowUp":
+          e.preventDefault();
+          moveFocus(-1);
+          return;
+        case "Home":
+          e.preventDefault();
+          jumpFocus("first");
+          return;
+        case "End":
+          e.preventDefault();
+          jumpFocus("last");
+          return;
+        case "ArrowRight":
+          if (!row) return;
+          e.preventDefault();
+          if (row.expandable && !row.expanded) {
+            onToggleNode(row.child.id);
+          } else if (row.expandable && row.expanded) {
+            // Descend to first child if any
+            const nextIdx = currentIdx + 1;
+            if (nextIdx < visibleRows.length && visibleRows[nextIdx].depth > row.depth) {
+              setFocusedPath(visibleRows[nextIdx].path);
+            }
+          }
+          return;
+        case "ArrowLeft":
+          if (!row) {
+            onRequestRailFocus?.();
+            return;
+          }
+          e.preventDefault();
+          if (row.expandable && row.expanded) {
+            onToggleNode(row.child.id);
+          } else if (row.depth > 1 && row.parentPath.length > 0) {
+            setFocusedPath(row.parentPath);
+          } else {
+            onRequestRailFocus?.();
+          }
+          return;
+        case " ":
+          if (!row) return;
+          e.preventDefault();
+          if (row.expandable) {
+            onToggleNode(row.child.id);
+          } else {
+            onActivateChild(row.path);
+          }
+          return;
+        case "Enter":
+          if (!row) return;
+          e.preventDefault();
+          onActivateChild(row.path);
+          return;
+        case "Escape":
+          e.preventDefault();
+          onRequestRailFocus?.();
+          return;
+        default:
+          return;
+      }
+    },
+    [visibleRows, focusedPath, moveFocus, jumpFocus, onToggleNode, onActivateChild, onRequestRailFocus],
+  );
+
+  if (!mode) return null;
 
   return (
-    <div className="nav-sidebar" data-testid="nav-sidebar">
+    <div
+      className="nav-sidebar"
+      data-testid="nav-sidebar"
+      onKeyDown={handleKeyDown}
+    >
       {/* Header — mode identity + state */}
       <div className="nav-sidebar__header">
         <span className="nav-sidebar__header-icon">
@@ -164,6 +321,7 @@ export function ContextSidebar({
                 onToggle={onToggleNode}
                 depth={1}
                 parentPath={[]}
+                focusedPath={focusedPath}
               />
             </div>
           ))}

@@ -16,6 +16,7 @@ import {
 import { MODE_CATALOGUE, propagateBadges } from "./contracts/modeCatalogue";
 import { CortexOverlay } from "./components/cortex/CortexOverlay";
 import type { CortexEntry } from "./components/navigation/cortexCatalogueAdapter";
+import { useNarrowViewport } from "./components/navigation/useNarrowViewport";
 import { ModeNotConnected } from "./components/shell/ModeNotConnected";
 import { MODE_STATUS } from "./data/modeStatus";
 import { SubNav, type SubNavItem } from "./components/shell/SubNav";
@@ -999,7 +1000,30 @@ export default function App(): JSX.Element {
     () => catalogue.modes.find((m) => m.id === activeMode),
     [catalogue, activeMode],
   );
+  // D3C — Focus bridge: rail Right-arrow → first sidebar row; sidebar Left/Esc → rail active row.
+  const focusSidebarFirstRow = useCallback((): void => {
+    const root = document.querySelector<HTMLElement>('[data-testid="nav-sidebar"]');
+    if (!root) return;
+    const target =
+      root.querySelector<HTMLElement>('[data-focused="true"]') ??
+      root.querySelector<HTMLElement>('[role="treeitem"]');
+    target?.focus();
+  }, []);
+
+  const focusRailActive = useCallback((): void => {
+    const root = document.querySelector<HTMLElement>('[data-testid="nav-rail"]');
+    if (!root) return;
+    const target =
+      root.querySelector<HTMLElement>('[data-active="true"]') ??
+      root.querySelector<HTMLElement>('[role="button"]');
+    target?.focus();
+  }, []);
+
+  // D3C — Narrow viewport: hide context sidebar when width is constrained.
+  const isNarrow = useNarrowViewport(1100);
+
   const contextSidebar = useMemo(() => {
+    if (isNarrow) return undefined;
     if (!activeModeEntry || activeModeEntry.children.length === 0) return undefined;
     if (activeMode === "hierarchy") return undefined; // Hierarchy uses secondary nav
     return (
@@ -1012,9 +1036,10 @@ export default function App(): JSX.Element {
           navDispatch({ type: "set-child", modeId: activeMode, childPath: path })
         }
         onToggleNode={(nodeId) => navDispatch({ type: "toggle-node", nodeId })}
+        onRequestRailFocus={focusRailActive}
       />
     );
-  }, [activeModeEntry, activeMode, catalogue, navState]);
+  }, [activeModeEntry, activeMode, catalogue, navState, isNarrow, focusRailActive]);
 
   // D3B — Cortex overlay node. Always mounted (renders null when closed).
   const cortexOverlayNode = (
@@ -1035,6 +1060,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
       >
@@ -1052,6 +1078,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         inspector={<Inspector />}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1070,6 +1097,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1098,6 +1126,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1116,6 +1145,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1141,6 +1171,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
@@ -1161,6 +1192,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
@@ -1199,6 +1231,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={statusRight(layoutView, undefined)}
@@ -1222,6 +1255,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
@@ -1246,6 +1280,7 @@ export default function App(): JSX.Element {
         onModeChange={setActiveMode}
         onCortexOpen={openCortex}
         overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
         contextSidebar={contextSidebar}
         statusLeft={statusLeft(readiness, view.rows)}
         statusRight={[
@@ -1304,6 +1339,7 @@ export default function App(): JSX.Element {
       onModeChange={setActiveMode}
       onCortexOpen={openCortex}
       overlay={cortexOverlayNode}
+      onRequestSidebarFocus={focusSidebarFirstRow}
       onCrumbClick={(i) => {
         // "Hierarchy" or "Environments" → return to list.
         if (i <= 1) setLayoutView("list");
