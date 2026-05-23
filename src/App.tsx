@@ -1,6 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useReducer, type JSX } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useReducer, Suspense, lazy, type JSX } from "react";
 import { AppShell } from "./components/shell/AppShell";
-import { HardwareKitPreview } from "./preview/HardwareKitPreview";
+
+// Stage V1BE-A — hardware preview is lazy-loaded so the main shell bundle
+// never pulls in Babylon. The chunk is only fetched when the
+// ?preview=hardware-kit route resolves.
+const HardwareKitPreview = lazy(() =>
+  import("./preview/HardwareKitPreview").then((m) => ({
+    default: m.HardwareKitPreview,
+  })),
+);
 import {
   Inspector,
   type InspectorSubject,
@@ -243,10 +251,38 @@ function isHardwareKitPreviewRoute(): boolean {
 export default function App(): JSX.Element {
   // Stage V1BE — hardware kit preview lives on its own component so the
   // main shell hooks never mount when the preview route is active.
+  // V1BE-A — preview is lazy-loaded behind Suspense; Babylon ships in its
+  // own chunk and is only fetched on the preview route.
   if (isHardwareKitPreviewRoute()) {
-    return <HardwareKitPreview />;
+    return (
+      <Suspense fallback={<HardwareKitPreviewFallback />}>
+        <HardwareKitPreview />
+      </Suspense>
+    );
   }
   return <AppMain />;
+}
+
+function HardwareKitPreviewFallback(): JSX.Element {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#0e1e2c",
+        color: "#92a8b8",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "Cascadia Mono, Consolas, monospace",
+        fontSize: 12,
+        letterSpacing: "0.15em",
+        textTransform: "uppercase",
+      }}
+    >
+      loading hardware kit…
+    </div>
+  );
 }
 
 function AppMain(): JSX.Element {

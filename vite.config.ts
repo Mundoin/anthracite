@@ -27,5 +27,19 @@ export default defineConfig(async () => ({
         : "safari13",
     minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
+    rollupOptions: {
+      // V1BE-A — keep Babylon in its own chunk so the main shell bundle
+      // does not carry it. The HardwareKitPreview lazy import is the only
+      // module that pulls Babylon, so this chunk is only fetched on the
+      // ?preview=hardware-kit route.
+      output: {
+        manualChunks(id: string): string | undefined {
+          if (id.includes("node_modules/@babylonjs/")) {
+            return "babylon";
+          }
+          return undefined;
+        },
+      },
+    },
   },
 }));
