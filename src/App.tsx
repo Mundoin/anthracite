@@ -83,6 +83,12 @@ import {
   DISCOVERY_DEFAULT_TOOL_ID,
 } from "./modes/discovery/DiscoveryMode";
 import {
+  EnvironmentsMode,
+  ENVIRONMENTS_TOOL_META,
+  ENVIRONMENTS_DEFAULT_TOOL_ID,
+  type EnvironmentsToolId,
+} from "./modes/environments/EnvironmentsMode";
+import {
   BuildMode,
   BUILD_TOOL_META,
   BUILD_DEFAULT_TOOL_ID,
@@ -110,8 +116,9 @@ import type {
   TopologyEvidenceSummary,
 } from "./types/topology";
 import { HierarchyMode } from "./modes/hierarchy/HierarchyMode";
-import { getHierarchyView } from "./data/hierarchySource";
+import { getHierarchyView, mergeLifecycleEnvironments } from "./data/hierarchySource";
 import { ROW_SEEDS } from "./data/hierarchySeeds";
+import { useEnvironmentLifecycle } from "./state/EnvironmentLifecycleContext";
 import { emptyHistory, type DiscoveryRunHistory } from "./modes/discovery/discoveryRunHistory";
 import { buildDiscoveryPlanningSummary } from "./modes/discovery/discoveryPlanningSummary";
 import type { SeedEntry } from "./modes/discovery/seedPlanner";
@@ -239,6 +246,7 @@ export default function App(): JSX.Element {
   const [diagnoseActiveTool, setDiagnoseActiveTool] = useState<string>(DIAGNOSE_DEFAULT_TOOL_ID);
   const [discoveryActiveTool, setDiscoveryActiveTool] = useState<string>(DISCOVERY_DEFAULT_TOOL_ID);
   const [topologyActiveTool, setTopologyActiveTool] = useState<string>(TOPOLOGY_DEFAULT_TOOL_ID);
+  const [environmentsActiveTool, setEnvironmentsActiveTool] = useState<EnvironmentsToolId>(ENVIRONMENTS_DEFAULT_TOOL_ID);
   const [envs, setEnvs] = useState<readonly Environment[]>([]);
   const [active, setActive] = useState<Environment | null>(null);
   const [readiness, setReadiness] = useState<EnvironmentReadiness | null>(null);
@@ -556,7 +564,15 @@ export default function App(): JSX.Element {
 
   const selectedRowId = active?.id ?? "apex-prod-emea";
 
-  const view = useMemo(() => getHierarchyView({ envs, readiness }), [envs, readiness]);
+  // V1B6 — wire lifecycle environments into hierarchy view. Lifecycle records
+  // (e.g. env-fab-demo from the synthetic scenario store) take precedence over
+  // hardcoded seed rows via mergeLifecycleEnvironments.
+  const lifecycle = useEnvironmentLifecycle();
+  const view = useMemo(() => {
+    const baseView = getHierarchyView({ envs, readiness });
+    const mergedRows = mergeLifecycleEnvironments(baseView.rows, lifecycle.visible_environments);
+    return { ...baseView, rows: mergedRows };
+  }, [envs, readiness, lifecycle.visible_environments]);
 
   const secondaryGroups = useMemo<readonly SecondaryNavGroup[]>(() => {
     const out: Record<"production" | "non-prod" | "special", SecondaryNavGroup> = {
@@ -1231,6 +1247,36 @@ export default function App(): JSX.Element {
           onEvidenceImportEvent={handleEvidenceImportEvent}
           activeToolId={discoveryActiveTool}
           onToolChange={setDiscoveryActiveTool}
+        />
+      </AppShell>
+    );
+  }
+
+  if (activeMode === "environments") {
+    const environmentsSubnav = (
+      <SubNav
+        items={ENVIRONMENTS_TOOL_META.map((t) => ({ id: t.id, label: t.label }))}
+        activeId={environmentsActiveTool}
+        onChange={(id) => setEnvironmentsActiveTool(id as EnvironmentsToolId)}
+      />
+    );
+    return (
+      <AppShell
+        env={titleBarEnv}
+        crumbs={["Foundation", "Environments"]}
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        onCortexOpen={openCortex}
+        overlay={cortexOverlayNode}
+        onRequestSidebarFocus={focusSidebarFirstRow}
+        contextSidebar={contextSidebar}
+        subnav={environmentsSubnav}
+        statusLeft={statusLeft(readiness, view.rows)}
+        statusRight={statusRight(layoutView, undefined)}
+      >
+        <EnvironmentsMode
+          activeToolId={environmentsActiveTool}
+          onToolChange={setEnvironmentsActiveTool}
         />
       </AppShell>
     );

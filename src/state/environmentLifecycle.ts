@@ -69,12 +69,26 @@ export function createTestClock(opts: {
 }
 
 /**
+ * Deterministic environment UID minter.
+ * Returns a stable identifier: `uid-${environmentId}`.
+ */
+function mintEnvironmentUid(environmentId: string): string {
+  return `uid-${environmentId}`;
+}
+
+/**
  * Create an empty store with no environments.
  */
 export function createEmptyStore(): EnvironmentLifecycleStoreState {
   return {
     environments: [],
     active_environment_id: null,
+    schema_version: "1",
+    store_revision: 1,
+    storage_origin: "local",
+    persistence_kind: "local-browser",
+    last_saved_at: null,
+    last_loaded_at: null,
   };
 }
 
@@ -115,11 +129,22 @@ export function createInitialStore(clock?: LifecycleClock): EnvironmentLifecycle
     source_id: null,
     sync_state: "local-only",
     local_only: true,
+    environment_uid: mintEnvironmentUid("env-fab-demo"),
+    base_revision: 1,
+    last_saved_at: null,
+    last_loaded_at: null,
+    updated_by: null,
   };
 
   return {
     environments: [microLabRecord],
     active_environment_id: "env-fab-demo",
+    schema_version: "1",
+    store_revision: 1,
+    storage_origin: "local",
+    persistence_kind: "local-browser",
+    last_saved_at: null,
+    last_loaded_at: null,
   };
 }
 
@@ -184,8 +209,13 @@ export function createEnvironmentFromScenario(
     revision: 1,
     origin: "local",
     source_id: null,
-    sync_state: "local-only",
+    sync_state: "dirty",
     local_only: true,
+    environment_uid: mintEnvironmentUid(environmentId),
+    base_revision: 1,
+    last_saved_at: null,
+    last_loaded_at: null,
+    updated_by: null,
   };
 
   return {
@@ -282,6 +312,7 @@ export function renameEnvironment(
     name: newName,
     revision: env.revision + 1,
     updated_at: c.now(),
+    sync_state: env.sync_state === "local-only" ? "local-only" : "dirty",
   };
 
   return {
@@ -358,8 +389,13 @@ export function duplicateEnvironment(
     revision: 1,
     origin: "local",
     source_id: null,
-    sync_state: "local-only",
+    sync_state: "dirty",
     local_only: true,
+    environment_uid: mintEnvironmentUid(newEnvironmentId),
+    base_revision: 1,
+    last_saved_at: null,
+    last_loaded_at: null,
+    updated_by: null,
   };
 
   return {
@@ -391,6 +427,7 @@ export function archiveEnvironment(
     lifecycle_state: "archived",
     revision: env.revision + 1,
     updated_at: c.now(),
+    sync_state: env.sync_state === "local-only" ? "local-only" : "dirty",
   };
 
   const updatedEnvironments = state.environments.map((e) =>
@@ -408,6 +445,7 @@ export function archiveEnvironment(
   }
 
   return {
+    ...state,
     environments: updatedEnvironments,
     active_environment_id: newActiveId,
   };
@@ -438,6 +476,7 @@ export function restoreEnvironment(
     lifecycle_state: "available",
     revision: env.revision + 1,
     updated_at: c.now(),
+    sync_state: env.sync_state === "local-only" ? "local-only" : "dirty",
   };
 
   return {
@@ -476,4 +515,180 @@ export function getActiveLabEnvironment(state: EnvironmentLifecycleStoreState): 
 export function getActiveFabricatorView(state: EnvironmentLifecycleStoreState): FabricatorEnvironment | null {
   const labEnv = getActiveLabEnvironment(state);
   return labEnv ? toFabricatorView(labEnv) : null;
+}
+
+/**
+ * Load a previously saved state into the store.
+ * Preserves environment sync_state values.
+ * Updates store-level last_loaded_at and increments store_revision.
+ */
+export function loadStore(
+  _state: EnvironmentLifecycleStoreState,
+  loaded: EnvironmentLifecycleStoreState,
+  options?: { readonly clock?: LifecycleClock },
+): EnvironmentLifecycleStoreState {
+  const c = options?.clock ?? DEFAULT_LIFECYCLE_CLOCK;
+  return {
+    ...loaded,
+    last_loaded_at: c.now(),
+    store_revision: loaded.store_revision + 1,
+  };
+}
+
+/**
+ * Reset the store to its default initial state.
+ * Equivalent to createInitialStore but explicit semantic.
+ */
+export function resetToDefault(options?: { readonly clock?: LifecycleClock }): EnvironmentLifecycleStoreState {
+  return createInitialStore(options?.clock);
+}
+
+/**
+ * Export a snapshot of the store.
+ * Pure passthrough so persistence layer has a typed exit.
+ */
+export function exportSnapshot(state: EnvironmentLifecycleStoreState): EnvironmentLifecycleStoreState {
+  return state;
+}
+
+/**
+ * Import a snapshot of the store.
+ * Validates basic shape (environments array, required fields) and sets last_loaded_at.
+ * Throws on malformed input.
+ */
+export function importSnapshot(
+  snapshot: EnvironmentLifecycleStoreState,
+  options?: { readonly clock?: LifecycleClock },
+): EnvironmentLifecycleStoreState {
+  const c = options?.clock ?? DEFAULT_LIFECYCLE_CLOCK;
+
+  // Basic validation
+  if (!snapshot || typeof snapshot !== "object") {
+    throw new Error("Invalid snapshot: input is not an object");
+  }
+  if (!Array.isArray(snapshot.environments)) {
+    throw new Error("Invalid snapshot: environments must be an array");
+  }
+  if (snapshot.active_environment_id !== null && typeof snapshot.active_environment_id !== "string") {
+    throw new Error("Invalid snapshot: active_environment_id must be null or string");
+  }
+
+  return {
+    ...snapshot,
+    last_loaded_at: c.now(),
+  };
+}
+
+/**
+ * Mark the store as saved.
+ * Sets store-level last_saved_at and flips all "dirty" environments to "clean".
+ * Leaves "local-only" environments unchanged.
+ */
+export function markStoreSaved(
+  state: EnvironmentLifecycleStoreState,
+  options?: { readonly clock?: LifecycleClock },
+): EnvironmentLifecycleStoreState {
+  const c = options?.clock ?? DEFAULT_LIFECYCLE_CLOCK;
+  const now = c.now();
+
+  const updatedEnvironments = state.environments.map((env) => {
+    if (env.sync_state === "dirty") {
+      return {
+        ...env,
+        sync_state: "clean" as const,
+        last_saved_at: now,
+      };
+    }
+    return env;
+  });
+
+  return {
+    ...state,
+    environments: updatedEnvironments,
+    last_saved_at: now,
+  };
+}
+
+/**
+ * Bump the store revision.
+ * Used by provider after a mutation to track store updates.
+ */
+export function bumpStoreRevision(state: EnvironmentLifecycleStoreState): EnvironmentLifecycleStoreState {
+  return {
+    ...state,
+    store_revision: state.store_revision + 1,
+  };
+}
+
+/**
+ * Build a preview environment record without mutating state.
+ * Reuses the pure environment-build path via createEnvironmentFromScenario.
+ * Returns a LocalEnvironmentRecord that callers can inspect, edit name, then commit.
+ *
+ * @throws Error if scenario_id does not exist
+ */
+export function buildEnvironmentPreview(
+  state: EnvironmentLifecycleStoreState,
+  scenarioId: string,
+  options?: { readonly name?: string; readonly clock?: LifecycleClock },
+): LocalEnvironmentRecord {
+  const c = options?.clock ?? DEFAULT_LIFECYCLE_CLOCK;
+  const scenario = requireScenarioById(scenarioId);
+
+  const environmentId = c.nextId(scenarioId);
+  let name = options?.name ?? scenario.name;
+
+  // Check for duplicate names in non-archived environments
+  const nonArchivedNames = state.environments
+    .filter((env) => env.lifecycle_state !== "archived")
+    .map((env) => env.name);
+
+  if (nonArchivedNames.includes(name)) {
+    let suffix = 2;
+    let candidateName = `${name} ${suffix}`;
+    while (nonArchivedNames.includes(candidateName)) {
+      suffix++;
+      candidateName = `${name} ${suffix}`;
+    }
+    name = candidateName;
+  }
+
+  const lab = generateLabEnvironment({
+    scenario_id: scenarioId,
+    environment_id: environmentId,
+    environment_name: name,
+  });
+
+  const record: LocalEnvironmentRecord = {
+    environment_id: environmentId,
+    name,
+    kind: "generated-lab",
+    scenario_id: scenarioId,
+    scenario_name: scenario.name,
+    scenario_seed: lab.scenario_seed,
+    provenance: "generated-lab",
+    status: "unknown",
+    created_at: c.now(),
+    updated_at: c.now(),
+    source_summary: `${scenario.name} (lab) — ${lab.device_count} devices, ${lab.link_count} links, ${lab.config_count} configs`,
+    device_count: lab.device_count,
+    link_count: lab.link_count,
+    config_count: lab.config_count,
+    lab_payload: lab,
+    capability_flags: lab.capability_flags,
+    generator_version: lab.generator_version,
+    lifecycle_state: "available",
+    revision: 1,
+    origin: "local",
+    source_id: null,
+    sync_state: "dirty",
+    local_only: true,
+    environment_uid: mintEnvironmentUid(environmentId),
+    base_revision: 1,
+    last_saved_at: null,
+    last_loaded_at: null,
+    updated_by: null,
+  };
+
+  return record;
 }

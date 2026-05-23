@@ -2512,4 +2512,54 @@ describe("TopologyMode", () => {
       ).toBeDisabled();
     });
   });
+
+  describe("B4 — Active Lab Environment Fallback", () => {
+    it("prioritizes imported topology.view when both exist", () => {
+      const view = makeView({
+        nodeCount: 1,
+        isEmpty: false,
+        view: {
+          environment_id: "env-core-eu1",
+          source_state: "real",
+          nodes: [
+            {
+              id: "node-1",
+              label: "router-01",
+              vendor: "arista",
+              platform_id: "DCS-7050SX",
+              layer: "core",
+              device_record_id: "rec-1",
+              hostname: "router-01.local",
+              role_hint: "device",
+              source_kind: "discovery_inventory",
+            },
+          ],
+          edges: [],
+          summary: {
+            environment_id: "env-core-eu1",
+            node_count: 1,
+            edge_count: 0,
+            source_record_count: 1,
+          },
+          message: "ok",
+          adjacency_readiness: defaultReadiness(1),
+        },
+      });
+      render(<TopologyMode topology={view} />);
+      // Should show TopologyGraphPanel with imported view
+      expect(
+        screen.getByText("router-01")
+      ).toBeInTheDocument();
+    });
+
+    it("does not crash when EnvironmentLifecycleProvider is missing", () => {
+      const view = makeView({ view: null });
+      // Should not throw even without provider
+      expect(() => render(<TopologyMode topology={view} />)).not.toThrow();
+      // Should show unavailable message (existing behavior when no provider)
+      expect(
+        screen.getByText("Topology source is not available right now.")
+      ).toBeInTheDocument();
+    });
+  });
 });

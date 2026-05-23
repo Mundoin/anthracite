@@ -1,0 +1,379 @@
+.dossier-panel {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--anth-bg-app);
+}
+
+.dossier-panel__container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px 24px 32px;
+}
+
+.dossier-panel__title {
+  margin: 0 0 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--anth-text);
+  font-family: var(--anth-font-display);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--anth-border-strong);
+}
+
+/* Section frame — every section becomes a contained passport card */
+.dossier-panel__section {
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-sm);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.dossier-panel__section-title {
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--anth-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+/* Field grid — label / value rows with thin dividers */
+.dossier-panel__grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  column-gap: 24px;
+  row-gap: 0;
+  margin: 0;
+}
+
+.dossier-panel__grid--secondary {
+  grid-template-columns: 180px 1fr;
+}
+
+.dossier-panel__label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--anth-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--anth-border);
+  margin: 0;
+  align-self: center;
+}
+
+.dossier-panel__value {
+  font-size: 12.5px;
+  color: var(--anth-text);
+  padding: 5px 0;
+  margin: 0;
+  border-bottom: 1px solid var(--anth-border);
+  word-break: break-word;
+  align-self: center;
+}
+
+/* Last row in a grid: drop divider */
+.dossier-panel__grid > .dossier-panel__label:nth-last-of-type(1),
+.dossier-panel__grid > .dossier-panel__value:nth-last-of-type(1) {
+  border-bottom: none;
+}
+
+.dossier-panel__value--mono {
+  font-family: var(--anth-font-mono);
+  font-size: 12px;
+  color: var(--anth-text);
+}
+
+/* Empty state */
+.dossier-panel__empty {
+  text-align: center;
+  padding: 48px 24px;
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-sm);
+  background: var(--anth-bg-panel);
+  max-width: 480px;
+  margin: 32px auto;
+}
+
+.dossier-panel__empty h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--anth-text);
+}
+
+.dossier-panel__empty p {
+  margin: 0 0 16px;
+  color: var(--anth-text-2);
+  font-size: 13px;
+}
+
+/* Chip groups */
+.dossier-panel__chips-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.dossier-panel__chips-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Default chip = quiet line-based */
+.dossier-panel__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--anth-r-sm);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--anth-text-2);
+  border: 1px solid var(--anth-border);
+  white-space: nowrap;
+}
+
+/* Taxonomy chips — quiet line treatment */
+.dossier-panel__chip--vendor,
+.dossier-panel__chip--device-class {
+  background: transparent;
+  color: var(--anth-text);
+  border: 1px solid var(--anth-border);
+}
+
+/* State chips — filled tints */
+.dossier-panel__chip--active,
+.dossier-panel__chip--clean,
+.dossier-panel__chip--sync-clean {
+  background: var(--anth-ok-tint);
+  color: var(--anth-ok-ink);
+  border-color: var(--anth-ok);
+}
+
+.dossier-panel__chip--available,
+.dossier-panel__chip--pending-sync,
+.dossier-panel__chip--sync-pending-sync {
+  background: var(--anth-info-tint);
+  color: var(--anth-info-ink);
+  border-color: var(--anth-info);
+}
+
+.dossier-panel__chip--archived {
+  background: transparent;
+  color: var(--anth-text-3);
+  border: 1px solid var(--anth-border);
+}
+
+.dossier-panel__chip--local-only,
+.dossier-panel__chip--sync-local-only,
+.dossier-panel__chip--dirty,
+.dossier-panel__chip--sync-dirty {
+  background: var(--anth-warn-tint);
+  color: var(--anth-warn-ink);
+  border-color: var(--anth-warn);
+}
+
+.dossier-panel__chip--conflict,
+.dossier-panel__chip--sync-conflict {
+  background: var(--anth-err-tint);
+  color: var(--anth-err-ink);
+  border-color: var(--anth-err);
+}
+
+.dossier-panel__chip--remote-shadow,
+.dossier-panel__chip--sync-remote-shadow {
+  background: transparent;
+  color: var(--anth-text-2);
+  border: 1px solid var(--anth-border);
+}
+
+.dossier-panel__chip--rule-pass {
+  background: var(--anth-ok-tint);
+  color: var(--anth-ok-ink);
+  border-color: var(--anth-ok);
+}
+
+.dossier-panel__chip--rule-fail {
+  background: var(--anth-err-tint);
+  color: var(--anth-err-ink);
+  border-color: var(--anth-err);
+}
+
+/* Inventory metric grid */
+.dossier-panel__inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.dossier-panel__inventory-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  background: var(--anth-bg-sunken);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-sm);
+  align-items: flex-start;
+  text-align: left;
+  gap: 2px;
+}
+
+.dossier-panel__inventory-label {
+  font-size: 10.5px;
+  color: var(--anth-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.dossier-panel__inventory-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--anth-text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+/* Capability grid */
+.dossier-panel__capabilities-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.dossier-panel__capability-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--anth-r-sm);
+  font-size: 12px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-sunken);
+}
+
+.dossier-panel__capability-item--enabled {
+  background: var(--anth-ok-tint);
+  color: var(--anth-ok-ink);
+  border-color: var(--anth-ok);
+}
+
+.dossier-panel__capability-item--disabled {
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-3);
+  border-color: var(--anth-border);
+}
+
+.dossier-panel__capability-badge {
+  font-weight: 700;
+  font-size: 12px;
+  font-family: var(--anth-font-mono);
+}
+
+.dossier-panel__capability-label {
+  text-transform: capitalize;
+}
+
+/* Readiness */
+.dossier-panel__readiness-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.dossier-panel__readiness-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--anth-r-sm);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.dossier-panel__readiness-badge--ready {
+  background: var(--anth-ok-tint);
+  color: var(--anth-ok-ink);
+  border-color: var(--anth-ok);
+}
+
+.dossier-panel__readiness-badge--blocked {
+  background: var(--anth-err-tint);
+  color: var(--anth-err-ink);
+  border-color: var(--anth-err);
+}
+
+.dossier-panel__readiness-summary {
+  margin: 0;
+  color: var(--anth-text-2);
+  font-size: 12.5px;
+}
+
+.dossier-panel__rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+/* Warnings + blockers */
+.dossier-panel__warnings,
+.dossier-panel__blockers {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--anth-r-sm);
+  border: 1px solid;
+}
+
+.dossier-panel__warnings {
+  background: var(--anth-warn-tint);
+  border-color: var(--anth-warn);
+  color: var(--anth-warn-ink);
+}
+
+.dossier-panel__blockers {
+  background: var(--anth-err-tint);
+  border-color: var(--anth-err);
+  color: var(--anth-err-ink);
+}
+
+.dossier-panel__warnings-title,
+.dossier-panel__blockers-title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dossier-panel__warnings-list,
+.dossier-panel__blockers-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: inherit;
+}
+
+.dossier-panel__warning-item,
+.dossier-panel__blocker-item {
+  margin-bottom: 3px;
+}
+
+.dossier-panel__warning-item:last-child,
+.dossier-panel__blocker-item:last-child {
+  margin-bottom: 0;
+}

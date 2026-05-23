@@ -1,0 +1,218 @@
+.configs-panel {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--anth-bg-app);
+}
+
+.configs-panel__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.configs-panel__header {
+  margin-bottom: 2rem;
+}
+
+.configs-panel__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--anth-text);
+}
+
+.configs-panel__subtitle {
+  margin: 0;
+  color: var(--anth-text-2);
+  font-size: 0.9375rem;
+}
+
+.configs-panel__empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--anth-text-2);
+  background: transparent;
+  border: 1px solid var(--anth-border);
+  border-radius: 4px;
+}
+
+.configs-panel__vendors {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.configs-panel__vendor-details {
+  border: 1px solid var(--anth-border);
+  border-radius: 4px;
+  padding: 1rem;
+  background: transparent;
+}
+
+.configs-panel__vendor-details[open] {
+  padding-bottom: 1.5rem;
+}
+
+.configs-panel__vendor-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  color: var(--anth-text);
+  font-size: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--anth-border-strong);
+}
+
+.configs-panel__vendor-summary:hover {
+  color: var(--anth-text);
+}
+
+.configs-panel__vendor-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--anth-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.configs-panel__vendor-count {
+  font-size: 0.875rem;
+  color: var(--anth-text-2);
+  font-weight: 500;
+}
+
+.configs-panel__devices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.configs-panel__device-card {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  gap: 6px;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-sm);
+}
+
+.configs-panel__device-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.configs-panel__device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.configs-panel__device-name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--anth-text);
+}
+
+.configs-panel__device-role {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  background: var(--anth-info-tint);
+  color: var(--anth-info-ink);
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.configs-panel__device-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.configs-panel__badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.configs-panel__badge--kind {
+  background: var(--anth-ok-tint);
+  color: var(--anth-ok-ink);
+}
+
+.configs-panel__badge--lines {
+  background: var(--anth-info-tint);
+  color: var(--anth-info-ink);
+}
+
+.configs-panel__config-preview {
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.configs-panel__config-text {
+  margin: 0;
+  padding: 6px 8px;
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text);
+  border: none;
+  border-radius: var(--anth-r-sm);
+  font-family: var(--anth-font-mono);
+  font-size: 11.5px;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.configs-panel__device-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--anth-border);
+  font-size: 0.8125rem;
+  color: var(--anth-text-2);
+}
+
+.configs-panel__meta-item {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.configs-panel__meta-item strong {
+  color: var(--anth-text);
+}
+
+.configs-panel__config-text--empty {
+  margin: 0;
+  padding: 0.75rem;
+  background: var(--anth-bg-sunken);
+  color: var(--anth-text-2);
+  border: none;
+  border-radius: var(--anth-r-sm);
+  font-family: var(--anth-font-mono);
+  font-size: 0.875rem;
+  text-align: center;
+}

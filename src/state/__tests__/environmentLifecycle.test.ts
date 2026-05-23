@@ -23,6 +23,12 @@ import {
   createTestClock,
   getActiveLabEnvironment,
   getActiveFabricatorView,
+  loadStore,
+  resetToDefault,
+  exportSnapshot,
+  importSnapshot,
+  markStoreSaved,
+  bumpStoreRevision,
 } from "../environmentLifecycle";
 
 const TEST_NOW = "2026-05-22T12:00:00Z";
@@ -655,5 +661,220 @@ describe("Environment Lifecycle Store", () => {
       "datacenter-pod",
       "metro-mega-city",
     ]);
+  });
+
+  // ===== New B1 Sync-Ready Fields Tests =====
+
+  it("createInitialStore has schema_version 1", () => {
+    const store = createInitialStore();
+    expect(store.schema_version).toBe("1");
+  });
+
+  it("createInitialStore has store_revision 1", () => {
+    const store = createInitialStore();
+    expect(store.store_revision).toBe(1);
+  });
+
+  it("createInitialStore has storage_origin local", () => {
+    const store = createInitialStore();
+    expect(store.storage_origin).toBe("local");
+  });
+
+  it("createInitialStore has persistence_kind local-browser", () => {
+    const store = createInitialStore();
+    expect(store.persistence_kind).toBe("local-browser");
+  });
+
+  it("createInitialStore last_saved_at + last_loaded_at are null", () => {
+    const store = createInitialStore();
+    expect(store.last_saved_at).toBeNull();
+    expect(store.last_loaded_at).toBeNull();
+  });
+
+  it("createEmptyStore has schema_version 1", () => {
+    const store = createEmptyStore();
+    expect(store.schema_version).toBe("1");
+  });
+
+  it("createEmptyStore has store_revision 1", () => {
+    const store = createEmptyStore();
+    expect(store.store_revision).toBe(1);
+  });
+
+  it("env-fab-demo record has environment_uid uid-env-fab-demo", () => {
+    const store = createInitialStore();
+    const microLab = store.environments[0];
+    expect(microLab.environment_uid).toBe("uid-env-fab-demo");
+  });
+
+  it("env-fab-demo record has sync_state local-only", () => {
+    const store = createInitialStore();
+    const microLab = store.environments[0];
+    expect(microLab.sync_state).toBe("local-only");
+  });
+
+  it("env-fab-demo record has base_revision 1", () => {
+    const store = createInitialStore();
+    const microLab = store.environments[0];
+    expect(microLab.base_revision).toBe(1);
+  });
+
+  it("createEnvironmentFromScenario new record has sync_state dirty", () => {
+    const clock = createTestClockForTest();
+    let store = createInitialStore(clock);
+    store = createEnvironmentFromScenario(store, "branch-office", { clock });
+
+    const newEnv = store.environments.find((e) => e.scenario_id === "branch-office");
+    expect(newEnv!.sync_state).toBe("dirty");
+  });
+
+  it("createEnvironmentFromScenario new record has environment_uid starting with uid-", () => {
+    const clock = createTestClockForTest();
+    let store = createInitialStore(clock);
+    store = createEnvironmentFromScenario(store, "branch-office", { clock });
+
+    const newEnv = store.environments.find((e) => e.scenario_id === "branch-office");
+    expect(newEnv!.environment_uid).toMatch(/^uid-/);
+  });
+
+  it("renameEnvironment flips sync_state to dirty when not local-only", () => {
+    const clock = createTestClockForTest();
+    let store = createInitialStore(clock);
+    store = createEnvironmentFromScenario(store, "branch-office", { clock });
+
+    const env = store.environments.find((e) => e.scenario_id === "branch-office");
+    // Mark it clean first
+    store = {
+      ...store,
+      environments: store.environments.map((e) =>
+        e.environment_id === env!.environment_id
+          ? { ...e, sync_state: "clean" as const }
+          : e,
+      ),
+    };
+
+    store = renameEnvironment(store, env!.environment_id, "Renamed Office", { clock });
+    const renamed = store.environments.find((e) => e.environment_id === env!.environment_id);
+    expect(renamed!.sync_state).toBe("dirty");
+  });
+
+  it("renameEnvironment on env-fab-demo (local-only) keeps sync_state local-only", () => {
+    const clock = createTestClockForTest();
+    let store = createInitialStore(clock);
+    store = renameEnvironment(store, "env-fab-demo", "New Micro Lab", { clock });
+
+    const renamed = store.environments.find((e) => e.environment_id === "env-fab-demo");
+    expect(renamed!.sync_state).toBe("local-only");
+  });
+
+  it("duplicateEnvironment new record has sync_state dirty", () => {
+    const clock = createTestClockForTest();
+    let store = createInitialStore(clock);
+    store = duplicateEnvironment(store, "env-fab-demo", { clock });
+
+    expect(store.environments).toHaveLength(2);
+    const duplicate = store.environments[1];
+    expect(duplicate.sync_state).toBe("dirty");
+  });
+
+  it("archiveEnvironment preserves sync_state dirty or local-only", () => {
+    const clock = createTestClockForTest();
+    let store = createInitialStore(clock);
+    store = createEnvironmentFromScenario(store, "branch-office", { clock });
+
+    const env = store.environments.find((e) => e.scenario_id === "branch-office");
+    expect(env!.sync_state).toBe("dirty");
+
+    store = archiveEnvironment(store, env!.environment_id, { clock });
+    const archived = store.environments.find((e) => e.environment_id === env!.environment_id);
+    expect(archived!.sync_state).toBe("dirty");
+  });
+
+  it("loadStore sets last_loaded_at + increments store_revision", () => {
+    const clock = createTestClockForTest();
+    const store1 = createInitialStore(clock);
+    const store2 = loadStore(store1, store1, { clock });
+
+    expect(store2.last_loaded_at).toBe(TEST_NOW);
+    expect(store2.store_revision).toBe(2);
+  });
+
+  it("resetToDefault returns store equal to createInitialStore", () => {
+    const clock = createTestClockForTest();
+    const initial = createInitialStore(clock);
+    const reset = resetToDefault({ clock });
+
+    expect(reset.environments).toHaveLength(initial.environments.length);
+    expect(reset.active_environment_id).toBe(initial.active_environment_id);
+    expect(reset.schema_version).toBe(initial.schema_version);
+  });
+
+  it("exportSnapshot returns same state (passthrough)", () => {
+    const store = createInitialStore();
+    const exported = exportSnapshot(store);
+    expect(exported).toEqual(store);
+  });
+
+  it("importSnapshot throws on missing environments array", () => {
+    const invalid = { active_environment_id: null } as any;
+    expect(() => importSnapshot(invalid)).toThrow(/environments must be an array/);
+  });
+
+  it("importSnapshot throws on null/undefined input", () => {
+    expect(() => importSnapshot(null as any)).toThrow(/not an object/);
+    expect(() => importSnapshot(undefined as any)).toThrow(/not an object/);
+  });
+
+  it("importSnapshot sets last_loaded_at", () => {
+    const clock = createTestClockForTest();
+    const store = createInitialStore(clock);
+    const imported = importSnapshot(store, { clock });
+
+    expect(imported.last_loaded_at).toBe(TEST_NOW);
+  });
+
+  it("markStoreSaved sets store last_saved_at", () => {
+    const clock = createTestClockForTest();
+    const store = createInitialStore(clock);
+    const saved = markStoreSaved(store, { clock });
+
+    expect(saved.last_saved_at).toBe(TEST_NOW);
+  });
+
+  it("markStoreSaved flips dirty env sync_states to clean", () => {
+    const clock = createTestClockForTest();
+    let store = createInitialStore(clock);
+    store = createEnvironmentFromScenario(store, "branch-office", { clock });
+
+    const saved = markStoreSaved(store, { clock });
+    const dirty = saved.environments.find((e) => e.scenario_id === "branch-office");
+    expect(dirty!.sync_state).toBe("clean");
+  });
+
+  it("markStoreSaved leaves local-only envs as local-only", () => {
+    const clock = createTestClockForTest();
+    const store = createInitialStore(clock);
+    const saved = markStoreSaved(store, { clock });
+
+    const microLab = saved.environments.find((e) => e.environment_id === "env-fab-demo");
+    expect(microLab!.sync_state).toBe("local-only");
+  });
+
+  it("markStoreSaved sets last_saved_at on dirty env", () => {
+    const clock = createTestClockForTest();
+    let store = createInitialStore(clock);
+    store = createEnvironmentFromScenario(store, "branch-office", { clock });
+
+    const saved = markStoreSaved(store, { clock });
+    const dirty = saved.environments.find((e) => e.scenario_id === "branch-office");
+    expect(dirty!.last_saved_at).toBe(TEST_NOW);
+  });
+
+  it("bumpStoreRevision increments store_revision", () => {
+    const store = createInitialStore();
+    expect(store.store_revision).toBe(1);
+
+    const bumped = bumpStoreRevision(store);
+    expect(bumped.store_revision).toBe(2);
   });
 });

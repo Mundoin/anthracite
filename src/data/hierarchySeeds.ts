@@ -3,6 +3,14 @@ import type { ReadinessDomain, EventRow, SiteRow } from "../components/d2/Enviro
 import type { InspectorHealthCell, InspectorInterfaceRow } from "../components/shell/Inspector";
 import type { RowSeed } from "./hierarchyTypes";
 
+/**
+ * Hierarchy row seeds.
+ *
+ * env-fab-demo is included here as a FALLBACK FIXTURE for tests and offline scenarios.
+ * Live app path: hierarchy rows are sourced from the EnvironmentLifecycleProvider via
+ * `mergeLifecycleEnvironments()` in `hierarchySource.ts`. The lifecycle row for
+ * env-fab-demo takes precedence and replaces this seed entry at render time.
+ */
 export const ROW_SEEDS: readonly RowSeed[] = [
   { group: "production", id: "apex-prod-emea", region: "London / Frankfurt / Amsterdam", scope: "EMEA · Production", sites: 41, readiness: 96, l2: 99, l3: 97, ebgp: 91, drift: 23, events: 4, owner: "NetOps EU", last: "38s ago" },
   { group: "production", id: "apex-prod-amer", region: "Ashburn / SJC / DFW", scope: "AMER · Production", sites: 56, readiness: 92, l2: 98, l3: 95, ebgp: 88, drift: 41, events: 2, owner: "NetOps US", last: "1m ago" },

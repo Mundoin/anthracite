@@ -4,7 +4,7 @@
  * Covers:
  *   - HierarchyMode renders ModeWorkbenchShell
  *   - Default tool is Inventory
- *   - Rail exposes Inventory, Coverage Map, Inventory Diff
+ *   - Rail exposes Inventory, Coverage Map, Inventory Diff (no environments tool)
  *   - Switching tools shows only the relevant slice
  *   - Inventory Diff renders honest deferred state (no fake snapshot)
  */
@@ -12,11 +12,22 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
 import { HierarchyMode } from "../HierarchyMode";
 import type { DiscoverySourceView } from "../../../data/discoverySource";
 import type { DiscoveryDeviceRecord } from "../../../types/discovery";
 import type { DeviceModel } from "../../../types/networkModel";
 import type { WorkbenchIntakeSummary } from "../../../state/workbenchContextSummary";
+import { EnvironmentLifecycleProvider } from "../../../state/EnvironmentLifecycleContext";
+import { MemoryStorageAdapter } from "../../../state/environmentPersistenceAdapter";
+
+function renderWithProvider(ui: ReactElement) {
+  return render(
+    <EnvironmentLifecycleProvider storageAdapter={new MemoryStorageAdapter()} autoSave={false}>
+      {ui}
+    </EnvironmentLifecycleProvider>,
+  );
+}
 
 function makeDeviceModel(over: {
   hostname?: string | null;
@@ -130,12 +141,12 @@ function makeViewEmpty(): DiscoverySourceView {
 
 describe("HierarchyMode — workbench (V1BM)", () => {
   it("renders ModeWorkbenchShell", () => {
-    render(<HierarchyMode discovery={makeViewEmpty()} />);
+    renderWithProvider(<HierarchyMode discovery={makeViewEmpty()} />);
     expect(screen.getByTestId("mode-workbench")).toBeInTheDocument();
   });
 
   it("defaults to Inventory", () => {
-    render(<HierarchyMode discovery={makeViewEmpty()} />);
+    renderWithProvider(<HierarchyMode discovery={makeViewEmpty()} />);
     expect(
       screen
         .getByTestId("mode-workbench-active")
@@ -143,21 +154,24 @@ describe("HierarchyMode — workbench (V1BM)", () => {
     ).toBe("inventory");
   });
 
-  it("rail exposes all three Hierarchy tools", () => {
-    render(<HierarchyMode discovery={makeViewEmpty()} />);
+  it("rail exposes Hierarchy tools: Inventory, Coverage Map, Inventory Diff", () => {
+    renderWithProvider(<HierarchyMode discovery={makeViewEmpty()} />);
     expect(screen.getByTestId("mwb-tool-inventory")).toBeInTheDocument();
     expect(screen.getByTestId("mwb-tool-coverage_map")).toBeInTheDocument();
     expect(screen.getByTestId("mwb-tool-inventory_diff")).toBeInTheDocument();
+    expect(screen.queryByTestId("mwb-tool-environments")).not.toBeInTheDocument();
   });
 
-  it("Inventory default shows inv-summary", () => {
-    render(<HierarchyMode discovery={makeViewEmpty()} />);
+  it("Inventory tab shows inv-summary when selected", async () => {
+    const user = userEvent.setup();
+    renderWithProvider(<HierarchyMode discovery={makeViewEmpty()} />);
+    await user.click(screen.getByTestId("mwb-tool-inventory"));
     expect(screen.getByTestId("inv-summary")).toBeInTheDocument();
   });
 
   it("switching to Coverage Map shows the panel and hides inv-summary", async () => {
     const user = userEvent.setup();
-    render(<HierarchyMode discovery={makeViewEmpty()} />);
+    renderWithProvider(<HierarchyMode discovery={makeViewEmpty()} />);
     await user.click(screen.getByTestId("mwb-tool-coverage_map"));
     // Panel may render incrementally; check that tool switched
     expect(
@@ -170,7 +184,7 @@ describe("HierarchyMode — workbench (V1BM)", () => {
 
   it("Inventory Diff renders deferred state with planned controls and no snapshot view", async () => {
     const user = userEvent.setup();
-    render(<HierarchyMode discovery={makeViewEmpty()} />);
+    renderWithProvider(<HierarchyMode discovery={makeViewEmpty()} />);
     await user.click(screen.getByTestId("mwb-tool-inventory_diff"));
     expect(screen.getByTestId("mwb-deferred-inventory_diff")).toBeInTheDocument();
     expect(
@@ -187,7 +201,7 @@ describe("HierarchyMode — workbench (V1BM)", () => {
   });
 
   it("Inventory Diff tool has deferred status data attribute", () => {
-    render(<HierarchyMode discovery={makeViewEmpty()} />);
+    renderWithProvider(<HierarchyMode discovery={makeViewEmpty()} />);
     expect(
       screen.getByTestId("mwb-tool-inventory_diff").getAttribute("data-tool-status"),
     ).toBe("deferred");
@@ -195,7 +209,7 @@ describe("HierarchyMode — workbench (V1BM)", () => {
 
   it("switching back to Inventory from Inventory Diff restores inv-summary", async () => {
     const user = userEvent.setup();
-    render(<HierarchyMode discovery={makeViewEmpty()} />);
+    renderWithProvider(<HierarchyMode discovery={makeViewEmpty()} />);
     await user.click(screen.getByTestId("mwb-tool-inventory_diff"));
     expect(screen.queryByTestId("inv-summary")).toBeNull();
     await user.click(screen.getByTestId("mwb-tool-inventory"));
@@ -215,7 +229,7 @@ describe("HierarchyMode — workbench (V1BM)", () => {
       finding_count: 1,
     };
 
-    render(<HierarchyMode discovery={makeView(records)} intakeSummary={intakeSummary} />);
+    renderWithProvider(<HierarchyMode discovery={makeView(records)} intakeSummary={intakeSummary} />);
 
     // Switch to Coverage Map
     await user.click(screen.getByTestId("mwb-tool-coverage_map"));

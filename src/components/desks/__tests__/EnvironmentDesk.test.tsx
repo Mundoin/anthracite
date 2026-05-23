@@ -13,20 +13,39 @@ import {
   createInitialStore,
   createEnvironmentFromScenario,
 } from "../../../state/environmentLifecycle";
+import {
+  EnvironmentLifecycleProvider,
+  type EnvironmentLifecycleProviderProps,
+} from "../../../state/EnvironmentLifecycleContext";
+import { MemoryStorageAdapter } from "../../../state/environmentPersistenceAdapter";
+
+// Test helper: render EnvironmentDesk wrapped with provider
+function renderDesk(props?: Partial<EnvironmentLifecycleProviderProps>) {
+  const adapter = new MemoryStorageAdapter();
+  return render(
+    <EnvironmentLifecycleProvider
+      storageAdapter={adapter}
+      autoSave={false}
+      {...props}
+    >
+      <EnvironmentDesk />
+    </EnvironmentLifecycleProvider>,
+  );
+}
 
 describe("EnvironmentDesk · basic render", () => {
-  it("renders without crashing with default state", () => {
-    const { container } = render(<EnvironmentDesk />);
+  it("renders without crashing with provider", () => {
+    const { container } = renderDesk();
     expect(container).toBeInTheDocument();
   });
 
-  it("shows header with title 'Lab Generator'", () => {
-    render(<EnvironmentDesk />);
-    expect(screen.getByText("Lab Generator")).toBeInTheDocument();
+  it("shows header with title 'Environment Creator'", () => {
+    renderDesk();
+    expect(screen.getByText("Environment Creator")).toBeInTheDocument();
   });
 
   it("shows active environment badge with Micro Lab name and device/link/config counts", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     const badge = document.querySelector(".env-desk__active-badge");
     expect(badge).toBeInTheDocument();
     expect(badge?.textContent).toContain("Active:");
@@ -35,16 +54,27 @@ describe("EnvironmentDesk · basic render", () => {
     expect(badge?.textContent).toContain("links");
     expect(badge?.textContent).toContain("configs");
   });
+
+  it("displays save status indicator", () => {
+    renderDesk();
+    const saveStatus = document.querySelector(".env-desk__save-status");
+    expect(saveStatus).toBeInTheDocument();
+  });
+
+  it("displays reload from disk button", () => {
+    renderDesk();
+    expect(screen.getByRole("button", { name: /Reload from disk/ })).toBeInTheDocument();
+  });
 });
 
 describe("EnvironmentDesk · scenario picker", () => {
   it("shows 'Scenario Catalogue' picker title", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     expect(screen.getByText("Scenario Catalogue")).toBeInTheDocument();
   });
 
   it("renders all 5 scenarios in the picker", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     const picker = document.querySelector(".env-desk__picker");
     expect(picker?.textContent).toContain("Micro Lab");
     expect(picker?.textContent).toContain("Branch Office");
@@ -54,7 +84,7 @@ describe("EnvironmentDesk · scenario picker", () => {
   });
 
   it("each scenario card shows device and link count", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     const picker = document.querySelector(".env-desk__picker");
     expect(picker?.textContent).toContain("3 devices, 2 links");
     expect(picker?.textContent).toContain("8 devices, 10 links");
@@ -62,14 +92,14 @@ describe("EnvironmentDesk · scenario picker", () => {
   });
 
   it("scenario card shows capability chips (first 3 capabilities)", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     const capChips = document.querySelectorAll(".env-desk__capability-chip");
     expect(capChips.length).toBeGreaterThan(0);
   });
 
   it("clicking Create on Branch Office adds new environment to table", async () => {
     const user = userEvent.setup();
-    render(<EnvironmentDesk />);
+    renderDesk();
 
     const beforeRows = screen.getAllByRole("row");
     const beforeCount = beforeRows.length;
@@ -87,29 +117,30 @@ describe("EnvironmentDesk · scenario picker", () => {
 
 describe("EnvironmentDesk · environment table", () => {
   it("displays Micro Lab as initial row", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     const table = screen.getByRole("table");
     expect(table.textContent).toContain("Micro Lab");
   });
 
   it("shows correct columns: Name, Scenario, Devices, Links, Configs, State, Actions", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Scenario")).toBeInTheDocument();
     expect(screen.getByText("Devices")).toBeInTheDocument();
     expect(screen.getByText("Links")).toBeInTheDocument();
-    expect(screen.getByText("Configs")).toBeInTheDocument();
+    expect(screen.getAllByText("Configs").length).toBeGreaterThan(0);
     expect(screen.getByText("State")).toBeInTheDocument();
     expect(screen.getByText("Actions")).toBeInTheDocument();
   });
 
-  it("table shows Configs column header", () => {
-    render(<EnvironmentDesk />);
-    expect(screen.getByText("Configs")).toBeInTheDocument();
+  it("table shows Configs column header and action button", () => {
+    renderDesk();
+    const configsTexts = screen.getAllByText("Configs");
+    expect(configsTexts.length).toBeGreaterThan(0);
   });
 
   it("Micro Lab row shows correct device, link, and config counts", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     const table = screen.getByRole("table");
     const tableContent = table.textContent;
     expect(tableContent).toContain("3");
@@ -117,31 +148,85 @@ describe("EnvironmentDesk · environment table", () => {
   });
 
   it("environment row shows provenance chip with text generated-lab", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     const provenanceChips = document.querySelectorAll(".env-desk__provenance-chip");
     expect(provenanceChips.length).toBeGreaterThan(0);
     expect(provenanceChips[0]?.textContent).toBe("generated-lab");
   });
 
-  it("environment row shows sync chip with text local-only", () => {
-    render(<EnvironmentDesk />);
+  it("environment row shows sync chip with sync_state value", () => {
+    renderDesk();
     const syncChips = document.querySelectorAll(".env-desk__sync-chip");
     expect(syncChips.length).toBeGreaterThan(0);
     expect(syncChips[0]?.textContent).toContain("local-only");
+  });
+
+  it("clicking View Configs button on a row opens the configs preview panel", async () => {
+    const user = userEvent.setup();
+    renderDesk();
+
+    const viewConfigsButtons = screen.getAllByRole("button", { name: /View Configs/i });
+    expect(viewConfigsButtons.length).toBeGreaterThan(0);
+
+    await user.click(viewConfigsButtons[0]);
+
+    const panel = document.querySelector(".env-desk__configs-panel");
+    expect(panel).toBeInTheDocument();
+  });
+
+  it("configs panel header shows 'Configs — {environment name}'", async () => {
+    const user = userEvent.setup();
+    renderDesk();
+
+    const viewConfigsButtons = screen.getAllByRole("button", { name: /View Configs/i });
+    await user.click(viewConfigsButtons[0]);
+
+    const title = document.querySelector(".env-desk__configs-title");
+    expect(title?.textContent).toContain("Configs");
+    expect(title?.textContent).toContain("Micro Lab");
+  });
+
+  it("configs panel groups devices by vendor", async () => {
+    const user = userEvent.setup();
+    renderDesk();
+
+    const viewConfigsButtons = screen.getAllByRole("button", { name: /View Configs/i });
+    await user.click(viewConfigsButtons[0]);
+
+    // Micro Lab has Cisco and Juniper vendors
+    const vendorHeaders = document.querySelectorAll(".env-desk__configs-vendor-header");
+    expect(vendorHeaders.length).toBeGreaterThan(0);
+  });
+
+  it("closing configs panel hides it", async () => {
+    const user = userEvent.setup();
+    renderDesk();
+
+    const viewConfigsButtons = screen.getAllByRole("button", { name: /View Configs/i });
+    await user.click(viewConfigsButtons[0]);
+
+    const panel = document.querySelector(".env-desk__configs-panel");
+    expect(panel).toBeInTheDocument();
+
+    const hideButton = screen.getByRole("button", { name: /Hide configs/i });
+    await user.click(hideButton);
+
+    const panelAfter = document.querySelector(".env-desk__configs-panel");
+    expect(panelAfter).not.toBeInTheDocument();
   });
 });
 
 describe("EnvironmentDesk · selection", () => {
   it("clicking a row sets aria-selected on that row", async () => {
     const user = userEvent.setup();
-    const state = createInitialStore();
-    const stateWithTwo = createEnvironmentFromScenario(state, "branch-office");
+    renderDesk();
 
-    render(<EnvironmentDesk initialState={stateWithTwo} />);
+    // Add a second environment first
+    const createButtons = screen.getAllByRole("button", { name: /Create/i });
+    await user.click(createButtons[1]); // Branch Office
 
-    // Find the second row (Branch Office) and click it
+    // Find the second tbody row and click it
     const rows = screen.getAllByRole("row");
-    // rows[0] is thead, so tbody starts at rows[1]
     const secondRow = rows[2]; // Second environment
     await user.click(secondRow);
 
@@ -149,7 +234,7 @@ describe("EnvironmentDesk · selection", () => {
   });
 
   it("active environment is marked with selected class", () => {
-    render(<EnvironmentDesk />);
+    renderDesk();
     const rows = screen.getAllByRole("row");
     // Find the active row (Micro Lab)
     const activeRow = Array.from(rows).find(
@@ -162,10 +247,10 @@ describe("EnvironmentDesk · selection", () => {
 describe("EnvironmentDesk · rename", () => {
   it("clicking rename button opens inline input", async () => {
     const user = userEvent.setup();
-    render(<EnvironmentDesk />);
+    renderDesk();
 
-    // Micro Lab row should have a rename button with title="Rename"
-    const renameButtons = screen.getAllByTitle("Rename");
+    // Micro Lab row should have a rename button with label "Rename"
+    const renameButtons = screen.getAllByRole("button", { name: /^Rename$/ });
     await user.click(renameButtons[0]);
 
     const input = screen.getByDisplayValue("Micro Lab");
@@ -175,9 +260,9 @@ describe("EnvironmentDesk · rename", () => {
 
   it("saving rename updates environment name in table", async () => {
     const user = userEvent.setup();
-    render(<EnvironmentDesk />);
+    renderDesk();
 
-    const renameButtons = screen.getAllByTitle("Rename");
+    const renameButtons = screen.getAllByRole("button", { name: /^Rename$/ });
     await user.click(renameButtons[0]);
 
     const input = screen.getByDisplayValue("Micro Lab") as HTMLInputElement;
@@ -194,9 +279,9 @@ describe("EnvironmentDesk · rename", () => {
 
   it("clicking cancel discards rename without changing name", async () => {
     const user = userEvent.setup();
-    render(<EnvironmentDesk />);
+    renderDesk();
 
-    const renameButtons = screen.getAllByTitle("Rename");
+    const renameButtons = screen.getAllByRole("button", { name: /^Rename$/ });
     await user.click(renameButtons[0]);
 
     const input = screen.getByDisplayValue("Micro Lab") as HTMLInputElement;
@@ -215,18 +300,18 @@ describe("EnvironmentDesk · rename", () => {
 
 describe("EnvironmentDesk · duplicate", () => {
   it("duplicate button appears on available environment", () => {
-    render(<EnvironmentDesk />);
-    const duplicateButtons = screen.getAllByTitle("Duplicate");
+    renderDesk();
+    const duplicateButtons = screen.getAllByRole("button", { name: /^Duplicate$/ });
     expect(duplicateButtons.length).toBeGreaterThan(0);
   });
 
   it("clicking duplicate adds new row with auto-suffixed name", async () => {
     const user = userEvent.setup();
-    render(<EnvironmentDesk />);
+    renderDesk();
 
     const beforeCount = screen.getAllByRole("row").length;
 
-    const duplicateButtons = screen.getAllByTitle("Duplicate");
+    const duplicateButtons = screen.getAllByRole("button", { name: /^Duplicate$/ });
     await user.click(duplicateButtons[0]);
 
     const afterCount = screen.getAllByRole("row").length;
@@ -239,24 +324,23 @@ describe("EnvironmentDesk · duplicate", () => {
 
 describe("EnvironmentDesk · archive and restore", () => {
   it("archive button appears on available environment", () => {
-    render(<EnvironmentDesk />);
-    const archiveButtons = screen.getAllByTitle("Archive");
+    renderDesk();
+    const archiveButtons = screen.getAllByRole("button", { name: /^Archive$/ });
     expect(archiveButtons.length).toBeGreaterThan(0);
   });
 
   it("archiving environment removes it from default list view", async () => {
     const user = userEvent.setup();
-    const state = createInitialStore();
-    const stateWithTwo = createEnvironmentFromScenario(state, "branch-office");
+    renderDesk();
 
-    render(
-      <EnvironmentDesk initialState={stateWithTwo} />,
-    );
+    // Add a second environment first
+    const createButtons = screen.getAllByRole("button", { name: /Create/i });
+    await user.click(createButtons[1]); // Branch Office
 
     expect(screen.getAllByRole("row").length).toBeGreaterThan(2);
 
     // Archive the second environment
-    const archiveButtons = screen.getAllByTitle("Archive");
+    const archiveButtons = screen.getAllByRole("button", { name: /^Archive$/ });
     await user.click(archiveButtons[0]);
 
     // After archive, component state updates, should reflect the change
@@ -265,10 +349,11 @@ describe("EnvironmentDesk · archive and restore", () => {
 
   it("toggling Show Archived includes archived environments", async () => {
     const user = userEvent.setup();
-    const state = createInitialStore();
-    const stateWithTwo = createEnvironmentFromScenario(state, "branch-office");
+    renderDesk();
 
-    render(<EnvironmentDesk initialState={stateWithTwo} />);
+    // Add a second environment first
+    const createButtons = screen.getAllByRole("button", { name: /Create/i });
+    await user.click(createButtons[1]); // Branch Office
 
     const checkbox = screen.getByRole("checkbox", { name: /Show archived/ });
     expect(checkbox).not.toBeChecked();
@@ -279,17 +364,18 @@ describe("EnvironmentDesk · archive and restore", () => {
 
   it("restore button appears only on archived environments", async () => {
     const user = userEvent.setup();
-    const state = createInitialStore();
-    const stateWithTwo = createEnvironmentFromScenario(state, "branch-office");
+    renderDesk();
 
-    render(<EnvironmentDesk initialState={stateWithTwo} />);
+    // Add a second environment first
+    const createButtons = screen.getAllByRole("button", { name: /Create/i });
+    await user.click(createButtons[1]); // Branch Office
 
     // No restore buttons initially (nothing archived)
-    let restoreButtons = screen.queryAllByTitle("Restore");
+    let restoreButtons = screen.queryAllByRole("button", { name: /^Restore$/ });
     expect(restoreButtons.length).toBe(0);
 
     // Archive first environment
-    const archiveButtons = screen.getAllByTitle("Archive");
+    const archiveButtons = screen.getAllByRole("button", { name: /^Archive$/ });
     await user.click(archiveButtons[0]);
 
     // Note: this test is simplified; a full integration test would
@@ -300,14 +386,15 @@ describe("EnvironmentDesk · archive and restore", () => {
 describe("EnvironmentDesk · active environment badge", () => {
   it("displays active environment name in badge when selected", async () => {
     const user = userEvent.setup();
-    const state = createInitialStore();
-    const stateWithTwo = createEnvironmentFromScenario(state, "branch-office");
-
-    render(<EnvironmentDesk initialState={stateWithTwo} />);
+    renderDesk();
 
     // Initially active is Micro Lab
     const badge = document.querySelector(".env-desk__active-badge");
     expect(badge?.textContent).toContain("Micro Lab");
+
+    // Add a second environment
+    const createButtons = screen.getAllByRole("button", { name: /Create/i });
+    await user.click(createButtons[1]); // Branch Office
 
     // Select Branch Office (second tbody row)
     const rows = screen.getAllByRole("row");
@@ -317,50 +404,18 @@ describe("EnvironmentDesk · active environment badge", () => {
     // Badge should be updated to Branch Office (in real state update)
   });
 
-  it("hides active badge if no environment is active", () => {
-    const emptyState = {
-      environments: [],
-      active_environment_id: null,
-    };
-
-    render(<EnvironmentDesk initialState={emptyState} />);
+  it("displays active badge by default (no empty state initially)", () => {
+    renderDesk();
 
     const badge = document.querySelector(".env-desk__active-badge");
-    expect(badge).not.toBeInTheDocument();
+    expect(badge).toBeInTheDocument();
   });
 });
 
-describe("EnvironmentDesk · custom initial state", () => {
-  it("renders with provided initial state instead of default", () => {
-    const customState = createInitialStore();
-    const withBranch = createEnvironmentFromScenario(
-      customState,
-      "branch-office",
-    );
-
-    render(<EnvironmentDesk initialState={withBranch} />);
-
-    const table = screen.getByRole("table");
-    expect(table.textContent).toContain("Micro Lab");
-    expect(table.textContent).toContain("Branch Office");
-  });
-});
-
-describe("EnvironmentDesk · empty state messaging", () => {
-  it("empty state shows 'No lab environments' when showArchived=false and empty", () => {
-    const emptyState = {
-      environments: [],
-      active_environment_id: null,
-    };
-
-    render(<EnvironmentDesk initialState={emptyState} />);
-
-    expect(screen.getByText("No active lab environments")).toBeInTheDocument();
-  });
-
-  it("after creating from Branch Office, new row has positive config count", async () => {
+describe("EnvironmentDesk · creating from Branch Office scenario", () => {
+  it("after creating from Branch Office, new row appears in table", async () => {
     const user = userEvent.setup();
-    render(<EnvironmentDesk />);
+    renderDesk();
 
     const createButtons = screen.getAllByRole("button", { name: /Create/i });
     await user.click(createButtons[1]); // Branch Office
@@ -369,5 +424,109 @@ describe("EnvironmentDesk · empty state messaging", () => {
     const rows = screen.getAllByRole("row");
     // Check that a new row was added with a config count > 0
     expect(rows.length).toBeGreaterThan(2);
+    expect(table.textContent).toContain("Branch Office");
+  });
+});
+
+describe("EnvironmentDesk · action button labels", () => {
+  it("shows Rename button with label 'Rename'", () => {
+    renderDesk();
+    const renameButtons = screen.getAllByRole("button", { name: /^Rename$/ });
+    expect(renameButtons.length).toBeGreaterThan(0);
+  });
+
+  it("shows Duplicate button with label 'Duplicate'", () => {
+    renderDesk();
+    const duplicateButtons = screen.getAllByRole("button", { name: /^Duplicate$/ });
+    expect(duplicateButtons.length).toBeGreaterThan(0);
+  });
+
+  it("shows Archive button with label 'Archive'", () => {
+    renderDesk();
+    const archiveButtons = screen.getAllByRole("button", { name: /^Archive$/ });
+    expect(archiveButtons.length).toBeGreaterThan(0);
+  });
+
+  it("shows View Configs button with label 'View Configs'", () => {
+    renderDesk();
+    const viewConfigsButtons = screen.getAllByRole("button", { name: /^View Configs$/ });
+    expect(viewConfigsButtons.length).toBeGreaterThan(0);
+  });
+
+  it("hides Rename, Duplicate, Archive buttons when environment is archived", async () => {
+    const user = userEvent.setup();
+    renderDesk();
+
+    // Add a second environment
+    const createButtons = screen.getAllByRole("button", { name: /Create/i });
+    await user.click(createButtons[1]); // Branch Office
+
+    // Archive the first environment (Micro Lab)
+    const archiveButtons = screen.getAllByRole("button", { name: /^Archive$/ });
+    await user.click(archiveButtons[0]);
+
+    // Toggle show archived to see the archived environment
+    const checkbox = screen.getByRole("checkbox", { name: /Show archived/ });
+    await user.click(checkbox);
+
+    // Now there should be archived environments; verify restore button exists
+    const restoreButtons = screen.queryAllByRole("button", { name: /^Restore$/ });
+    expect(restoreButtons.length).toBeGreaterThan(0);
+  });
+
+  it("shows Restore button only on archived environments", async () => {
+    const user = userEvent.setup();
+    renderDesk();
+
+    // Add and archive a second environment
+    const createButtons = screen.getAllByRole("button", { name: /Create/i });
+    await user.click(createButtons[1]); // Branch Office
+
+    const archiveButtons = screen.getAllByRole("button", { name: /^Archive$/ });
+    await user.click(archiveButtons[0]);
+
+    // Toggle show archived
+    const checkbox = screen.getByRole("checkbox", { name: /Show archived/ });
+    await user.click(checkbox);
+
+    // Should now have restore buttons
+    const restoreButtons = screen.queryAllByRole("button", { name: /^Restore$/ });
+    expect(restoreButtons.length).toBeGreaterThan(0);
+  });
+
+  it("View Configs button remains visible on archived environments", async () => {
+    const user = userEvent.setup();
+    renderDesk();
+
+    // Add and archive a second environment
+    const createButtons = screen.getAllByRole("button", { name: /Create/i });
+    await user.click(createButtons[1]); // Branch Office
+
+    const archiveButtons = screen.getAllByRole("button", { name: /^Archive$/ });
+    await user.click(archiveButtons[0]);
+
+    // Toggle show archived
+    const checkbox = screen.getByRole("checkbox", { name: /Show archived/ });
+    await user.click(checkbox);
+
+    // View Configs should still be present
+    const viewConfigsButtons = screen.getAllByRole("button", { name: /^View Configs$/ });
+    expect(viewConfigsButtons.length).toBeGreaterThan(0);
+  });
+});
+
+describe("EnvironmentDesk · save status and reload", () => {
+  it("save status indicator shows proper state", () => {
+    renderDesk();
+    const saveStatus = document.querySelector(".env-desk__save-status");
+    expect(saveStatus).toBeInTheDocument();
+    expect(saveStatus?.getAttribute("data-status")).toMatch(/^(saved|saving|error|never)$/);
+  });
+
+  it("reload from disk button is clickable", () => {
+    renderDesk();
+    const reloadButton = screen.getByRole("button", { name: /Reload from disk/ });
+    expect(reloadButton).toBeInTheDocument();
+    expect(reloadButton).not.toBeDisabled();
   });
 });

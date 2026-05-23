@@ -1291,6 +1291,36 @@
   border-color: #E5E7EB;
 }
 
+/* B4 — Empty state when no topology view and no active lab env */
+
+.tg-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  padding: 24px;
+  text-align: center;
+  color: var(--anth-text-2);
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: var(--anth-r-md);
+}
+
+.tg-empty__title {
+  margin: 0 0 8px 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--anth-text);
+}
+
+.tg-empty__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--anth-text-2);
+  max-width: 420px;
+}
+
 .topology-mode .tm-adjacency-table th,
 .topology-mode .tm-adjacency-table td {
   border-color: #E5E7EB;

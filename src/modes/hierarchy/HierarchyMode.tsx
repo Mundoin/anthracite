@@ -17,7 +17,6 @@ import { InventoryBrowser } from "./InventoryBrowser";
 import { CoverageMapPanel } from "./CoverageMapPanel";
 import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShell";
 import type { ModeTool } from "../../components/workbench/types";
-import { EnvironmentDesk } from "../../components/desks/EnvironmentDesk";
 
 export interface HierarchyModeProps {
   discovery: DiscoverySourceView;
@@ -35,20 +34,7 @@ export function HierarchyMode({ discovery, intakeSummary }: HierarchyModeProps):
     <CoverageMapPanel discovery={discovery} intakeSummary={intakeSummary} />
   );
 
-  const renderEnvironments = (): ReactNode => <EnvironmentDesk />;
-
   const tools: ModeTool[] = [
-    {
-      id: "environments",
-      kind: "live",
-      label: "Lab Generator",
-      description:
-        "Generate, list, select, rename, duplicate, and archive local Lab Environments from the scenario catalogue.",
-      group: "primary",
-      status: "available",
-      role: "engine_analysis",
-      render: renderEnvironments,
-    },
     {
       id: "inventory",
       kind: "live",

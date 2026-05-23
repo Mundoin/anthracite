@@ -1,0 +1,26 @@
+.environments-mode {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--anth-bg-app);
+  color: var(--anth-text);
+}
+
+/* Light Industrial inside Environments — white data surfaces */
+:root[data-theme="light-industrial"] .environments-mode {
+  --anth-bg-panel: #FFFFFF;
+  --anth-bg-sunken: #F5F7FA;
+  --anth-bg-hover: #F0F3F7;
+}
+
+/* Graphite Command inside Environments — slightly whiter warm near-white for data */
+:root[data-theme="graphite-command"] .environments-mode {
+  --anth-bg-panel: #FDFCF8;     /* warm near-white, slightly whiter than prior */
+  --anth-bg-sunken: #F7F4EC;
+  --anth-bg-hover: #F4EFE3;
+}
+
+/* Technical Blueprint env-scope override removed: global Blueprint theme
+ * (themes.css D3T-BP2) now carries the same pale silver-white treatment
+ * + drafting-grid hint across every mode. No env-specific override needed. */

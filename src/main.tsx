@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { RootErrorBoundary } from "./components/shell/RootErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { EnvironmentLifecycleProvider } from "./state/EnvironmentLifecycleContext";
 import "./styles/tokens.css";
 import "./styles/themes.css";
 import "./styles/shell.css";
@@ -44,7 +45,9 @@ ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <RootErrorBoundary>
       <ThemeProvider>
-        <App />
+        <EnvironmentLifecycleProvider>
+          <App />
+        </EnvironmentLifecycleProvider>
       </ThemeProvider>
     </RootErrorBoundary>
   </React.StrictMode>,

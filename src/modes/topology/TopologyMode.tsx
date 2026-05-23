@@ -4,6 +4,11 @@ import { ModeWorkbenchShell } from "../../components/workbench/ModeWorkbenchShel
 import type { ModeTool } from "../../components/workbench/types";
 import { DataSourceTag } from "../../components/shell/DataSourceTag";
 import type { TopologySourceView } from "../../data/topologySource";
+import { useEnvironmentLifecycle } from "../../state/EnvironmentLifecycleContext";
+import {
+  activeRecordToGraphReadyView,
+  LAB_RENDER_DATA_SOURCE,
+} from "../../engines/labTopologyActivation";
 import type {
   TopologyAdjacencyFactSourceState,
   TopologyAdjacencyReadiness,
@@ -1234,6 +1239,20 @@ export function TopologyMode({
     else setInternalActiveToolId(id);
   };
 
+  // B4 — active lab environment rendering
+  // Gracefully handle missing provider (for test compatibility)
+  const envLifecycle = (() => {
+    try {
+      return useEnvironmentLifecycle();
+    } catch {
+      return null;
+    }
+  })();
+  const labView = useMemo(
+    () => (envLifecycle ? activeRecordToGraphReadyView(envLifecycle.active) : null),
+    [envLifecycle],
+  );
+
   const renderGraphMap = (): ReactNode => (
     <>
       <div className="tm-source-row">
@@ -1255,7 +1274,7 @@ export function TopologyMode({
         <span className="tm-summary-message">{topology.message}</span>
       </section>
 
-      {topology.view === null ? (
+      {topology.view === null && !labView ? (
         <section
           className="tm-body tm-body--unavailable"
           role="status"
@@ -1263,6 +1282,18 @@ export function TopologyMode({
         >
           <p>Topology source is not available right now.</p>
           <p className="tm-muted">{topology.message}</p>
+        </section>
+      ) : topology.view === null && labView ? (
+        // B4 — When no imported topology but active lab env exists, render it
+        <section className="tm-body tm-body--lab-view">
+          {(() => {
+            return (
+              <TopologyGraphPanel
+                view={labView}
+                data_source={LAB_RENDER_DATA_SOURCE}
+              />
+            );
+          })()}
         </section>
       ) : topology.isEmpty ? (
         <>
@@ -1306,7 +1337,7 @@ export function TopologyMode({
               Nodes ({topology.nodeCount})
             </h3>
             <ul className="tm-node-list">
-              {topology.view.nodes.map((node) => (
+              {topology.view!.nodes.map((node) => (
                 <li
                   key={node.id}
                   className="tm-node-card"
@@ -1364,8 +1395,8 @@ export function TopologyMode({
           )}
 
           <TopologyReviewSurface
-            model={buildTopologyReviewModel(topology.view)}
-            sourceEdges={topology.view.edges}
+            model={buildTopologyReviewModel(topology.view!)}
+            sourceEdges={topology.view!.edges}
             hasRejectedEvidence={
               topology.evidenceStats
                 ? topology.evidenceStats.evidence_total - topology.evidenceStats.accepted > 0
@@ -1373,8 +1404,9 @@ export function TopologyMode({
             }
           />
 
-          {topology.view && (() => {
-            const reviewModel = buildTopologyReviewModel(topology.view);
+          {(() => {
+            // Priority 1: imported topology evidence with review surface
+            const reviewModel = buildTopologyReviewModel(topology.view!);
             // Determine data source honestly from topology state
             const dataSource: RenderGraphDataSource =
               topology.sourceState === "real"

@@ -19,6 +19,7 @@ export type ModeId =
   | "devices"
   | "intake"
   | "discovery"
+  | "environments"
   | "provisioning"
   | "operate"
   | "topology"
@@ -69,6 +70,7 @@ export function assertCatalogueIdsCoverModeId(catalogue: ModeCatalogue = MODE_CA
     devices: true,
     intake: true,
     discovery: true,
+    environments: true,
     provisioning: true,
     operate: true,
     topology: true,

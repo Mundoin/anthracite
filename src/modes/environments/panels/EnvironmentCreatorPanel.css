@@ -1,0 +1,136 @@
+.environment-creator-panel {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--anth-bg-app);
+}
+
+.environment-creator-panel__container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--anth-gap-section);
+  padding: 16px 20px;
+}
+
+.environment-creator-panel__header {
+  margin-bottom: 2rem;
+}
+
+.environment-creator-panel__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--anth-text);
+}
+
+.environment-creator-panel__subtitle {
+  margin: 0;
+  color: var(--anth-text-2);
+  font-size: 0.9375rem;
+}
+
+.environment-creator-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.environment-creator-panel__card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: var(--anth-bg-panel);
+  border: 1px solid var(--anth-border);
+  border-radius: 6px;
+  transition: border-color 200ms ease-out;
+}
+
+.environment-creator-panel__card:hover {
+  border-color: var(--anth-text-2);
+}
+
+.environment-creator-panel__card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.environment-creator-panel__card-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--anth-text);
+  flex: 1;
+}
+
+.environment-creator-panel__scale-chip {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  background: var(--anth-info-tint);
+  color: var(--anth-info-ink);
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.environment-creator-panel__card-counts {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.environment-creator-panel__count-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.environment-creator-panel__count-label {
+  font-size: 0.75rem;
+  color: var(--anth-text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.environment-creator-panel__count-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--anth-text);
+}
+
+.environment-creator-panel__card-capabilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  min-height: 2rem;
+}
+
+.environment-creator-panel__capability-chip {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  background: var(--anth-bg-app);
+  color: var(--anth-text-2);
+  border: 1px solid var(--anth-border);
+  border-radius: 3px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.environment-creator-panel__capability-overflow {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  color: var(--anth-text-2);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.environment-creator-panel__create-button {
+  width: 100%;
+  margin-top: auto;
+}

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getHierarchyView } from "../hierarchySource";
+import { getHierarchyView, projectLifecycleEnvironmentToRow, mergeLifecycleEnvironments } from "../hierarchySource";
 import { ROW_SEEDS } from "../hierarchySeeds";
 import type { Environment, EnvironmentReadiness } from "../../types/environment";
+import type { LocalEnvironmentRecord } from "../../types/localEnvironment";
 
 const EMPTY_INPUT = { envs: [] as readonly Environment[], readiness: null };
 
@@ -107,5 +108,394 @@ describe("getHierarchyView", () => {
     expect(v.detailDomains[0].id).toBe("l2");
     expect(v.detailEvents[0].sev).toBe("err");
     expect(v.inspectorHealth[0].label).toBe("CPU avg");
+  });
+});
+
+describe("projectLifecycleEnvironmentToRow", () => {
+  it("projects environment_id → row.id", () => {
+    const record: LocalEnvironmentRecord = {
+      environment_id: "env-fab-demo",
+      name: "Demo Fabricated",
+      scenario_id: "scenario-001",
+      scenario_name: "Demo",
+      kind: "synthetic",
+      provenance: "Fabricated",
+      device_count: 3,
+      link_count: 2,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "running",
+    };
+    const row = projectLifecycleEnvironmentToRow(record);
+    expect(row.id).toBe("env-fab-demo");
+  });
+
+  it("sets group implicit: status idle, region 'Synthetic · Local'", () => {
+    const record: LocalEnvironmentRecord = {
+      environment_id: "test-env",
+      name: "Test",
+      scenario_id: "s1",
+      scenario_name: "Test Scenario",
+      kind: "synthetic",
+      provenance: "Test",
+      device_count: 5,
+      link_count: 2,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    };
+    const row = projectLifecycleEnvironmentToRow(record);
+    expect(row.status).toBe("idle");
+    expect(row.region).toBe("Synthetic · Local");
+  });
+
+  it("builds scope from scenario_name and provenance", () => {
+    const record: LocalEnvironmentRecord = {
+      environment_id: "test",
+      name: "Test",
+      scenario_id: "s1",
+      scenario_name: "MyScenario",
+      kind: "synthetic",
+      provenance: "MyProvenance",
+      device_count: 1,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    };
+    const row = projectLifecycleEnvironmentToRow(record);
+    expect(row.scope).toBe("MyScenario · MyProvenance");
+  });
+
+  it("uses device_count from record", () => {
+    const record: LocalEnvironmentRecord = {
+      environment_id: "test",
+      name: "Test",
+      scenario_id: "s1",
+      scenario_name: "Scenario",
+      kind: "synthetic",
+      provenance: "Prov",
+      device_count: 42,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    };
+    const row = projectLifecycleEnvironmentToRow(record);
+    expect(row.devices).toBe(42);
+  });
+
+  it("sets owner 'Environment Creator'", () => {
+    const record: LocalEnvironmentRecord = {
+      environment_id: "test",
+      name: "Test",
+      scenario_id: "s1",
+      scenario_name: "S",
+      kind: "synthetic",
+      provenance: "P",
+      device_count: 1,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    };
+    const row = projectLifecycleEnvironmentToRow(record);
+    expect(row.owner).toBe("Environment Creator");
+  });
+
+  it("maps sync_state clean → last 'synced'", () => {
+    const record: LocalEnvironmentRecord = {
+      environment_id: "test",
+      name: "Test",
+      scenario_id: "s1",
+      scenario_name: "S",
+      kind: "synthetic",
+      provenance: "P",
+      device_count: 1,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    };
+    const row = projectLifecycleEnvironmentToRow(record);
+    expect(row.last).toBe("synced");
+  });
+
+  it("maps sync_state local-only → last 'synced'", () => {
+    const record: LocalEnvironmentRecord = {
+      environment_id: "test",
+      name: "Test",
+      scenario_id: "s1",
+      scenario_name: "S",
+      kind: "synthetic",
+      provenance: "P",
+      device_count: 1,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "local-only",
+      lifecycle_state: "ready",
+    };
+    const row = projectLifecycleEnvironmentToRow(record);
+    expect(row.last).toBe("synced");
+  });
+
+  it("maps sync_state other → last 'dirty'", () => {
+    const record: LocalEnvironmentRecord = {
+      environment_id: "test",
+      name: "Test",
+      scenario_id: "s1",
+      scenario_name: "S",
+      kind: "synthetic",
+      provenance: "P",
+      device_count: 1,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "dirty",
+      lifecycle_state: "ready",
+    };
+    const row = projectLifecycleEnvironmentToRow(record);
+    expect(row.last).toBe("dirty");
+  });
+
+  it("sets readiness, l2, l3, ebgp to 100 and drift, events to 0", () => {
+    const record: LocalEnvironmentRecord = {
+      environment_id: "test",
+      name: "Test",
+      scenario_id: "s1",
+      scenario_name: "S",
+      kind: "synthetic",
+      provenance: "P",
+      device_count: 1,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    };
+    const row = projectLifecycleEnvironmentToRow(record);
+    expect(row.readiness).toBe(100);
+    expect(row.l2).toBe(100);
+    expect(row.l3).toBe(100);
+    expect(row.ebgp).toBe(100);
+    expect(row.drift).toBe(0);
+    expect(row.events).toBe(0);
+  });
+});
+
+describe("mergeLifecycleEnvironments", () => {
+  it("returns baseRows unchanged when no lifecycle records", () => {
+    const baseRows = [ROW_SEEDS[0], ROW_SEEDS[1]].map((s) => ({
+      id: s.id,
+      status: "ok" as const,
+      region: s.region,
+      scope: s.scope,
+      devices: 100,
+      sites: s.sites,
+      readiness: s.readiness,
+      l2: s.l2,
+      l3: s.l3,
+      ebgp: s.ebgp,
+      drift: s.drift,
+      events: s.events,
+      owner: s.owner,
+      last: s.last,
+    }));
+    const result = mergeLifecycleEnvironments(baseRows, []);
+    expect(result).toEqual(baseRows);
+  });
+
+  it("prepends lifecycle records to baseRows", () => {
+    const baseRows: ReturnType<typeof projectLifecycleEnvironmentToRow>[] = [];
+    const lifecycleRecords: LocalEnvironmentRecord[] = [
+      {
+        environment_id: "env-1",
+        name: "Env1",
+        scenario_id: "s1",
+        scenario_name: "Scenario1",
+        kind: "synthetic",
+        provenance: "Prov1",
+        device_count: 10,
+        link_count: 1,
+        config_count: 1,
+        sync_state: "clean",
+        lifecycle_state: "ready",
+      },
+    ];
+    const result = mergeLifecycleEnvironments(baseRows, lifecycleRecords);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("env-1");
+  });
+
+  it("filters out baseRows whose id collides with lifecycle id", () => {
+    const collideRecord: LocalEnvironmentRecord = {
+      environment_id: "env-fab-demo",
+      name: "Demo",
+      scenario_id: "s1",
+      scenario_name: "Demo",
+      kind: "synthetic",
+      provenance: "Fab",
+      device_count: 3,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    };
+    const baseRow = projectLifecycleEnvironmentToRow({
+      environment_id: "other",
+      name: "Other",
+      scenario_id: "s2",
+      scenario_name: "Other",
+      kind: "synthetic",
+      provenance: "Other",
+      device_count: 5,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    });
+    const collideRow = projectLifecycleEnvironmentToRow(
+      { ...collideRecord, environment_id: "env-fab-demo" } as LocalEnvironmentRecord
+    );
+    const baseRows = [collideRow, baseRow];
+    const result = mergeLifecycleEnvironments(baseRows, [collideRecord]);
+    // collideRow dropped; baseRow kept; lifecycle row prepended
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe("env-fab-demo"); // lifecycle
+    expect(result[1].id).toBe("other");         // baseRow
+  });
+
+  it("preserves non-colliding baseRows", () => {
+    const lifecycle: LocalEnvironmentRecord = {
+      environment_id: "lc-1",
+      name: "LC1",
+      scenario_id: "s1",
+      scenario_name: "LC",
+      kind: "synthetic",
+      provenance: "LC",
+      device_count: 10,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    };
+    const baseRow = projectLifecycleEnvironmentToRow({
+      environment_id: "base-1",
+      name: "Base1",
+      scenario_id: "s2",
+      scenario_name: "Base",
+      kind: "synthetic",
+      provenance: "Base",
+      device_count: 20,
+      link_count: 1,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "ready",
+    });
+    const result = mergeLifecycleEnvironments([baseRow], [lifecycle]);
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe("lc-1");
+    expect(result[1].id).toBe("base-1");
+  });
+
+  it("handles multiple lifecycle records and baseRows", () => {
+    const lcRecords: LocalEnvironmentRecord[] = [
+      {
+        environment_id: "lc-1",
+        name: "LC1",
+        scenario_id: "s1",
+        scenario_name: "LC1",
+        kind: "synthetic",
+        provenance: "LC",
+        device_count: 5,
+        link_count: 1,
+        config_count: 1,
+        sync_state: "clean",
+        lifecycle_state: "ready",
+      },
+      {
+        environment_id: "lc-2",
+        name: "LC2",
+        scenario_id: "s2",
+        scenario_name: "LC2",
+        kind: "synthetic",
+        provenance: "LC",
+        device_count: 6,
+        link_count: 1,
+        config_count: 1,
+        sync_state: "clean",
+        lifecycle_state: "ready",
+      },
+    ];
+    const baseRows = [
+      projectLifecycleEnvironmentToRow({
+        environment_id: "base-1",
+        name: "Base1",
+        scenario_id: "s3",
+        scenario_name: "Base1",
+        kind: "synthetic",
+        provenance: "Base",
+        device_count: 10,
+        link_count: 1,
+        config_count: 1,
+        sync_state: "clean",
+        lifecycle_state: "ready",
+      }),
+      projectLifecycleEnvironmentToRow({
+        environment_id: "base-2",
+        name: "Base2",
+        scenario_id: "s4",
+        scenario_name: "Base2",
+        kind: "synthetic",
+        provenance: "Base",
+        device_count: 11,
+        link_count: 1,
+        config_count: 1,
+        sync_state: "clean",
+        lifecycle_state: "ready",
+      }),
+    ];
+    const result = mergeLifecycleEnvironments(baseRows, lcRecords);
+    expect(result).toHaveLength(4);
+    expect(result[0].id).toBe("lc-1");
+    expect(result[1].id).toBe("lc-2");
+    expect(result[2].id).toBe("base-1");
+    expect(result[3].id).toBe("base-2");
+  });
+
+  it("env-fab-demo lifecycle record projected correctly and replaces seed", () => {
+    const fabDemoRecord: LocalEnvironmentRecord = {
+      environment_id: "env-fab-demo",
+      name: "Fabricated Demo",
+      scenario_id: "fab-scenario",
+      scenario_name: "Fabricated Demo",
+      kind: "synthetic",
+      provenance: "Fabricated",
+      device_count: 3,
+      link_count: 2,
+      config_count: 1,
+      sync_state: "clean",
+      lifecycle_state: "running",
+    };
+    // Seed-based fallback row (from ROW_SEEDS)
+    const seedRow: ReturnType<typeof projectLifecycleEnvironmentToRow> = {
+      id: "env-fab-demo",
+      status: "idle",
+      region: "Synthetic · Local",
+      scope: "Demo · Fabricated",
+      devices: 3,
+      sites: 1,
+      readiness: 100,
+      l2: 100,
+      l3: 100,
+      ebgp: 100,
+      drift: 0,
+      events: 0,
+      owner: "Fabricator",
+      last: "fabricated",
+    };
+    const result = mergeLifecycleEnvironments([seedRow], [fabDemoRecord]);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("env-fab-demo");
+    expect(result[0].owner).toBe("Environment Creator"); // lifecycle, not seed "Fabricator"
+    expect(result[0].last).toBe("synced");           // lifecycle, not seed "fabricated"
   });
 });

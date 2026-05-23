@@ -25,11 +25,24 @@ export interface LocalEnvironmentRecord {
   readonly revision: number;
   readonly origin: "local";
   readonly source_id: string | null;
-  readonly sync_state: "local-only";
+  readonly sync_state: "local-only" | "clean" | "dirty" | "pending-sync" | "conflict" | "remote-shadow";
   readonly local_only: boolean;
+  // Sync-ready fields
+  readonly environment_uid: string;
+  readonly base_revision: number;
+  readonly last_saved_at: string | null;
+  readonly last_loaded_at: string | null;
+  readonly updated_by: string | null;
 }
 
 export interface EnvironmentLifecycleStoreState {
   readonly environments: readonly LocalEnvironmentRecord[];
   readonly active_environment_id: string | null;
+  // Store-level sync & schema tracking
+  readonly schema_version: "1";
+  readonly store_revision: number;
+  readonly storage_origin: "local";
+  readonly persistence_kind: "local-browser" | "local-file" | "memory";
+  readonly last_saved_at: string | null;
+  readonly last_loaded_at: string | null;
 }

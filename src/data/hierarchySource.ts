@@ -4,9 +4,56 @@ import type { InspectorIdentityRow, InspectorHealthCell, InspectorInterfaceRow }
 import type { StatusSignal } from "../components/shell/StatusBar";
 import type { DataSourceState } from "../types/dataSource";
 import type { Environment, EnvironmentReadiness, EnvironmentStatus } from "../types/environment";
+import type { LocalEnvironmentRecord } from "../types/localEnvironment";
 import { ROW_SEEDS, ROW_STATUS_FALLBACK, DEVICE_FALLBACK, DETAIL_DOMAINS_SEED, DETAIL_EVENTS_SEED, DETAIL_SITES_SEED, INSPECTOR_HEALTH_SEED, INSPECTOR_INTERFACES_SEED } from "./hierarchySeeds";
 
 const SIG: Record<EnvironmentStatus, StatusSignal> = { healthy: "ok", degraded: "warn", offline: "err", unknown: "idle" };
+
+/**
+ * Project a LocalEnvironmentRecord from the lifecycle store into an EnvRow for hierarchy display.
+ * Maps lifecycle state fields to hierarchy row shape: scenario_name → scope,
+ * sync_state → last (synced/dirty), provenance as secondary scope indicator.
+ */
+export function projectLifecycleEnvironmentToRow(record: LocalEnvironmentRecord): EnvRow {
+  const lastSyncLabel = record.sync_state === "clean" || record.sync_state === "local-only"
+    ? "synced"
+    : "dirty";
+
+  return {
+    id: record.environment_id,
+    status: "idle",
+    region: "Synthetic · Local",
+    scope: `${record.scenario_name} · ${record.provenance}`,
+    devices: record.device_count,
+    sites: 1,
+    readiness: 100,
+    l2: 100,
+    l3: 100,
+    ebgp: 100,
+    drift: 0,
+    events: 0,
+    owner: "Environment Creator",
+    last: lastSyncLabel,
+  };
+}
+
+/**
+ * Merge lifecycle-backed environment rows with seed rows, giving precedence to lifecycle.
+ * Lifecycle rows are prepended; seed rows whose ids collide with lifecycle rows are filtered out.
+ * Caller is responsible for filtering visible_environments (archived excluded).
+ */
+export function mergeLifecycleEnvironments(
+  baseRows: readonly EnvRow[],
+  lifecycleRecords: readonly LocalEnvironmentRecord[],
+): readonly EnvRow[] {
+  // Build a set of ids owned by lifecycle to avoid duplicates
+  const lifecycleIds = new Set(lifecycleRecords.map((r) => r.environment_id));
+  // Drop any base row whose id collides with a lifecycle record
+  const filteredBase = baseRows.filter((row) => !lifecycleIds.has(row.id));
+  // Project lifecycle records to rows and prepend
+  const lifecycleRows = lifecycleRecords.map(projectLifecycleEnvironmentToRow);
+  return [...lifecycleRows, ...filteredBase];
+}
 
 export interface HierarchyView {
   readonly rows: readonly EnvRow[];
