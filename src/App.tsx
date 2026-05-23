@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useReducer, type JSX } from "react";
 import { AppShell } from "./components/shell/AppShell";
+import { HardwareKitPreview } from "./preview/HardwareKitPreview";
 import {
   Inspector,
   type InspectorSubject,
@@ -231,7 +232,24 @@ const INSPECTOR_TABS: readonly InspectorTabSpec[] = [
   { id: "events", label: "Events" },
 ];
 
+function isHardwareKitPreviewRoute(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    new URLSearchParams(window.location.search).get("preview") ===
+    "hardware-kit"
+  );
+}
+
 export default function App(): JSX.Element {
+  // Stage V1BE — hardware kit preview lives on its own component so the
+  // main shell hooks never mount when the preview route is active.
+  if (isHardwareKitPreviewRoute()) {
+    return <HardwareKitPreview />;
+  }
+  return <AppMain />;
+}
+
+function AppMain(): JSX.Element {
   const [layoutView, setLayoutView] = useState<View>("list");
   const [activeMode, setActiveMode] = useState<ModeId>("hierarchy");
   const [listSegment, setListSegment] = useState<string>("all");
