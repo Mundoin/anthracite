@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Anthracite — Hardware Model Kit · runtime preview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="hardware-desk.tokens.css" />
+  <link rel="stylesheet" href="hardware-desk.css" />
+
+  <!-- Babylon.js 7 (UMD; loads as global BABYLON) -->
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js" defer></script>
+
+  <!-- Babel standalone for inline TypeScript -->
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+          integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+          crossorigin="anonymous"></script>
+
+  <!-- TypeScript source — load order matters because Babel preset has no module linker -->
+  <script type="text/babel" data-presets="typescript" src="../src/hardwareModelTypes.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="../src/hardwareProfiles.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="../src/materials.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="../src/pickableZones.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="../src/telemetryDemo.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="../src/buildHardwareModel.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="../src/buildSwitchModels.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="../src/buildRouterModels.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="../src/buildFirewallModels.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="../src/buildSupportModels.ts"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="hd-header">
+      <div class="hd-brand">
+        <span class="hd-brand-mark">▣</span>
+        <span class="hd-brand-text">Anthracite · Hardware Model Kit <em>v0</em></span>
+      </div>
+      <div class="hd-controls">
+        <label class="hd-field">
+          <span class="hd-field-label">Model</span>
+          <select id="modelSelect" class="hd-select"></select>
+        </label>
+        <label class="hd-field">
+          <span class="hd-field-label">Telemetry</span>
+          <div class="hd-segmented" id="telemetrySeg">
+            <button data-state="up"       class="active">up</button>
+            <button data-state="warning">warning</button>
+            <button data-state="critical">critical</button>
+            <button data-state="down">down</button>
+            <button data-state="unknown">unknown</button>
+          </div>
+        </label>
+        <button id="resetCam" class="hd-btn">↺ Reset camera</button>
+      </div>
+    </header>
+
+    <main class="hd-stage">
+      <canvas id="renderCanvas" touch-action="none"></canvas>
+
+      <aside class="hd-inspector" id="inspector">
+        <div class="hd-card">
+          <div class="hd-card-strip"></div>
+          <header class="hd-card-hd">
+            <span class="hd-card-eyebrow" id="cardEyebrow">No selection</span>
+            <h2 class="hd-card-title" id="cardTitle">Click a part to inspect</h2>
+            <span class="hd-card-id" id="cardMeshId">—</span>
+          </header>
+          <dl class="hd-kv">
+            <div><dt>family</dt><dd id="kvFamily">—</dd></div>
+            <div><dt>kind</dt><dd id="kvKind">—</dd></div>
+            <div><dt>index</dt><dd id="kvIndex">—</dd></div>
+            <div><dt>state</dt><dd id="kvState">—</dd></div>
+            <div><dt>mesh id</dt><dd id="kvId" class="mono">—</dd></div>
+          </dl>
+          <footer class="hd-card-foot">
+            <span class="hd-tip">⌘ click and drag to orbit · scroll to zoom · ⇧ drag to pan</span>
+          </footer>
+        </div>
+
+        <div class="hd-card hd-card-meta">
+          <header class="hd-card-hd">
+            <span class="hd-card-eyebrow">Model profile</span>
+            <h2 class="hd-card-title" id="profileName">—</h2>
+          </header>
+          <dl class="hd-kv">
+            <div><dt>id</dt>     <dd id="profId" class="mono">—</dd></div>
+            <div><dt>vendor</dt> <dd id="profVendor">—</dd></div>
+            <div><dt>model</dt>  <dd id="profModel" class="mono">—</dd></div>
+            <div><dt>dims (mm)</dt><dd id="profDims" class="mono">—</dd></div>
+            <div><dt>finish</dt> <dd id="profFinish">—</dd></div>
+          </dl>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="hd-footer">
+      <span class="hd-footer-l">ANTHRACITE · TOPOLOGY HARDWARE DESK · MODEL KIT v0</span>
+      <span class="hd-footer-r">
+        <span id="modelCount">20</span> models ·
+        Babylon.js 7 · ArcRotate · shadows · SSAO2
+      </span>
+    </footer>
+  </div>
+
+  <!-- ── App boot (plain JS — the TS sources above already loaded via Babel) ── -->
+  <script>
+    (async () => {
+      // Babel-loaded TS scripts above are async; wait a beat for all globals to register.
+      await new Promise(r => setTimeout(r, 80));
+
+      const canvas = document.getElementById('renderCanvas');
+      const engine = new BABYLON.Engine(canvas, true, {
+        preserveDrawingBuffer: false, stencil: true, antialias: true,
+      });
+      const scene = new BABYLON.Scene(engine);
+      scene.clearColor = new BABYLON.Color4(0.902, 0.929, 0.945, 1.0);
+      scene.ambientColor = new BABYLON.Color3(0.40, 0.42, 0.45);
+
+      // ── camera ─────────────────────────────────────────────────────────
+      const camera = new BABYLON.ArcRotateCamera('cam',
+        -Math.PI / 2 - 0.6, 1.10, 1.6,
+        new BABYLON.Vector3(0, 0, 0), scene);
+      camera.attachControl(canvas, true);
+      camera.wheelPrecision = 80;
+      camera.lowerRadiusLimit = 0.5;
+      camera.upperRadiusLimit = 6;
+      camera.minZ = 0.05;
+      camera.maxZ = 50;
+
+      // ── lights ─────────────────────────────────────────────────────────
+      const hemi = new BABYLON.HemisphericLight('hemi',
+        new BABYLON.Vector3(0, 1, 0), scene);
+      hemi.intensity = 0.55;
+      hemi.diffuse  = new BABYLON.Color3(0.90, 0.93, 0.96);
+      hemi.groundColor = new BABYLON.Color3(0.55, 0.58, 0.60);
+
+      const dir = new BABYLON.DirectionalLight('dir',
+        new BABYLON.Vector3(-0.4, -1.0, -0.5), scene);
+      dir.position = new BABYLON.Vector3(2, 4, 2);
+      dir.intensity = 0.95;
+
+      const shadow = new BABYLON.ShadowGenerator(1024, dir);
+      shadow.useBlurExponentialShadowMap = true;
+      shadow.blurKernel = 32;
+      shadow.darkness = 0.55;
+
+      // ── floor (engineering desk surface, receives shadows) ────────────
+      const floor = BABYLON.MeshBuilder.CreateGround('floor',
+        { width: 8, height: 8 }, scene);
+      const floorMat = new BABYLON.StandardMaterial('floor.mat', scene);
+      floorMat.diffuseColor  = new BABYLON.Color3(0.902, 0.929, 0.945);
+      floorMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+      floor.material = floorMat;
+      floor.receiveShadows = true;
+      floor.position.y = -0.18;
+      floor.isPickable = false;
+
+      // ── AO-style depth via SSAO2 ──────────────────────────────────────
+      try {
+        const ssao = new BABYLON.SSAO2RenderingPipeline('ssao', scene, 0.75, [camera]);
+        ssao.radius = 0.6;
+        ssao.totalStrength = 1.1;
+        ssao.expensiveBlur = false;
+        ssao.samples = 8;
+        ssao.maxZ = 8;
+      } catch (e) {
+        console.warn('SSAO2 unavailable; continuing without AO pass');
+      }
+
+      // ── highlight layer (cyan glow on selection + hover) ──────────────
+      const hl = new BABYLON.HighlightLayer('hl', scene);
+      hl.outerGlow = true;
+      hl.innerGlow = false;
+
+      // ── build all 20 models (hidden until selected) ──────────────────
+      const mats = window.AnthraciteMaterials.buildMaterials(scene);
+      const builders = window.AnthraciteBuilders;
+      const allBuilt = {
+        ...builders.buildSwitchModels(scene, mats, { shadowGenerator: shadow }),
+        ...builders.buildRouterModels(scene, mats, { shadowGenerator: shadow }),
+        ...builders.buildFirewallModels(scene, mats, { shadowGenerator: shadow }),
+        ...builders.buildSupportModels(scene, mats, { shadowGenerator: shadow }),
+      };
+
+      for (const id in allBuilt) {
+        allBuilt[id].root.getChildMeshes().forEach((m) => {
+          shadow.addShadowCaster(m);
+          m.receiveShadows = true;
+        });
+      }
+
+      // ── selector dropdown ─────────────────────────────────────────────
+      const profiles = window.AnthraciteProfiles.AllProfiles;
+      const sel = document.getElementById('modelSelect');
+      const groups = {};
+      for (const p of profiles) {
+        let g = groups[p.family];
+        if (!g) {
+          g = document.createElement('optgroup');
+          g.label = p.family.toUpperCase();
+          sel.appendChild(g);
+          groups[p.family] = g;
+        }
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        g.appendChild(opt);
+      }
+      document.getElementById('modelCount').textContent = String(profiles.length);
+
+      let currentId = profiles[0].id;
+      let currentTelemetry = 'up';
+
+      function showModel(id) {
+        for (const k in allBuilt) allBuilt[k].root.setEnabled(false);
+        allBuilt[id].root.setEnabled(true);
+        currentId = id;
+        const p = profiles.find((x) => x.id === id);
+        document.getElementById('profileName').textContent = p.name;
+        document.getElementById('profId').textContent     = p.id;
+        document.getElementById('profVendor').textContent = p.vendor;
+        document.getElementById('profModel').textContent  = p.model;
+        document.getElementById('profDims').textContent   =
+          p.dims.w.toFixed(0) + ' × ' + p.dims.h.toFixed(0) + ' × ' + p.dims.d.toFixed(0);
+        document.getElementById('profFinish').textContent = p.finish + (p.virtual ? ' · virtual' : '');
+        allBuilt[id].setTelemetry(currentTelemetry);
+        resetCamera();
+        clearSelection();
+      }
+      sel.addEventListener('change', () => showModel(sel.value));
+
+      function resetCamera() {
+        const p = profiles.find((x) => x.id === currentId);
+        const span = Math.max(p.dims.w, p.dims.h, p.dims.d) / 100;
+        camera.target = new BABYLON.Vector3(0, 0, 0);
+        camera.alpha  = -Math.PI / 2 - 0.45;
+        camera.beta   = 1.10;
+        camera.radius = span * 1.65 + 0.5;
+      }
+      document.getElementById('resetCam').addEventListener('click', resetCamera);
+
+      const seg = document.getElementById('telemetrySeg');
+      seg.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t.tagName !== 'BUTTON') return;
+        for (const b of Array.from(seg.children)) b.classList.remove('active');
+        t.classList.add('active');
+        currentTelemetry = t.dataset.state;
+        allBuilt[currentId].setTelemetry(currentTelemetry);
+      });
+
+      let hoverMesh = null;
+      let selectMesh = null;
+
+      function clearSelection() {
+        if (selectMesh) hl.removeMesh(selectMesh);
+        selectMesh = null;
+        document.getElementById('cardEyebrow').textContent = 'No selection';
+        document.getElementById('cardTitle').textContent   = 'Click a part to inspect';
+        document.getElementById('cardMeshId').textContent  = '—';
+        ['kvFamily','kvKind','kvIndex','kvState','kvId'].forEach((k) => {
+          document.getElementById(k).textContent = '—';
+        });
+      }
+
+      scene.onPointerMove = () => {
+        const pick = scene.pick(scene.pointerX, scene.pointerY);
+        const hit = (pick && pick.hit && pick.pickedMesh && pick.pickedMesh.metadata && pick.pickedMesh.metadata.anthracite) ? pick.pickedMesh : null;
+        if (hit === hoverMesh) return;
+        if (hoverMesh && hoverMesh !== selectMesh) hl.removeMesh(hoverMesh);
+        hoverMesh = hit;
+        if (hoverMesh && hoverMesh !== selectMesh) {
+          hl.addMesh(hoverMesh, new BABYLON.Color3(0.40, 0.74, 0.85));
+        }
+        canvas.style.cursor = hoverMesh ? 'pointer' : 'default';
+      };
+
+      scene.onPointerDown = () => {
+        const pick = scene.pick(scene.pointerX, scene.pointerY);
+        const hit = (pick && pick.hit && pick.pickedMesh && pick.pickedMesh.metadata && pick.pickedMesh.metadata.anthracite) ? pick.pickedMesh : null;
+        if (!hit) { clearSelection(); return; }
+        if (selectMesh) hl.removeMesh(selectMesh);
+        selectMesh = hit;
+        hl.addMesh(selectMesh, new BABYLON.Color3(0.05, 0.45, 0.62));
+        const tag = selectMesh.metadata.anthracite;
+        const p = profiles.find((x) => x.id === tag.modelId);
+        document.getElementById('cardEyebrow').textContent = tag.modelId + ' · ' + tag.kind;
+        document.getElementById('cardTitle').textContent   = tag.kind.toUpperCase() + ' ' + String(tag.index).padStart(2, '0');
+        document.getElementById('cardMeshId').textContent  = selectMesh.id;
+        document.getElementById('kvFamily').textContent = p.family;
+        document.getElementById('kvKind').textContent   = tag.kind;
+        document.getElementById('kvIndex').textContent  = String(tag.index);
+        document.getElementById('kvState').textContent  = currentTelemetry;
+        document.getElementById('kvId').textContent     = selectMesh.id;
+      };
+
+      sel.value = profiles[0].id;
+      showModel(profiles[0].id);
+      engine.runRenderLoop(() => scene.render());
+      window.addEventListener('resize', () => engine.resize());
+    })();
+  </script>
+</body>
+</html>

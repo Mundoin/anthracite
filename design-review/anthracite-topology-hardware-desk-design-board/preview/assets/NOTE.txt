@@ -1,0 +1,11 @@
+preview/assets/
+=========================
+
+Intentionally near-empty.
+
+The Topology Hardware Desk is parameter-driven: every glyph, primitive,
+and faceplate is inline SVG inside ../../source/*.jsx. There are no
+bitmaps, sprites, or font files to ship.
+
+PNG snapshots of the sheets live in ../../sheets/, not here.
+This folder may be deleted by OCC once the no-bitmap rule is internalised.

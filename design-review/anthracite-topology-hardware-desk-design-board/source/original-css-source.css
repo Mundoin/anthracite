@@ -1,0 +1,368 @@
+/* Anthracite Topology Hardware Desk — visual language
+ * Blueprint canvas · drafting cyan · crisp grey lines · axonometric 3D primitives.
+ * Independent of D3T themes — this is the topology workspace's own language.
+ * Lives under .topo root.
+ */
+
+:root {
+  --topo-canvas:        #E6EDF1;    /* engineering desk surface */
+  --topo-canvas-deep:   #DAE3EA;
+  --topo-paper:         #FAFCFD;    /* paper plate on desk */
+  --topo-paper-sunken:  #ECF1F4;
+  --topo-paper-selected:#BFD3E3;
+
+  /* Drafting cyan — the line language */
+  --topo-line:          #0E1E2C;    /* hairline ink for primary geometry */
+  --topo-line-2:        #4A6072;    /* secondary geometry */
+  --topo-line-3:        #8AA1B0;    /* construction lines */
+  --topo-line-4:        #C8D5DE;    /* grid / extension lines */
+
+  --topo-cyan:          #0E72A0;    /* signal — focus, selection, port live */
+  --topo-cyan-deep:     #074C6E;
+  --topo-cyan-soft:     #D3E6EE;
+  --topo-cyan-rule:     rgba(14,114,160,0.08);
+  --topo-grid-rule:     rgba(14,30,44,0.05);    /* drafting grid — ink-tinted, not cyan */
+
+  --topo-ink:           #0E1E2C;
+  --topo-ink-2:         #2F4458;
+  --topo-ink-3:         #557082;
+  --topo-ink-4:         #93A8B7;
+
+  /* Operational signal — same five states as D3T */
+  --topo-ok:            #2C8456;
+  --topo-warn:          #C77A0E;
+  --topo-err:           #B83333;
+  --topo-deferred:      #7A8A95;
+  --topo-critical:      #D32E2E;
+
+  --topo-fill-frame:    #FAFCFD;    /* device interior fill */
+  --topo-fill-port:     #0E1E2C;    /* port cavity (dark slot) */
+  --topo-fill-bay:      #1B2630;    /* module bay opening */
+
+  --topo-font-ui:       "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --topo-font-mono:     "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+  --topo-font-stencil:  "Segoe UI Variable Display", "Segoe UI", sans-serif;
+}
+
+.topo {
+  width: 100%; height: 100%;
+  background: var(--topo-canvas);
+  color: var(--topo-ink);
+  font-family: var(--topo-font-ui);
+  font-size: 12px; line-height: 1.4;
+  letter-spacing: 0.005em;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  position: relative;
+  /* Engineering desk grid — 32 px, faint ink (NOT cyan; cyan is reserved for signal) */
+  background-image:
+    linear-gradient(var(--topo-grid-rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--topo-grid-rule) 1px, transparent 1px);
+  background-size: 32px 32px, 32px 32px;
+}
+.topo * { box-sizing: border-box; }
+.topo .mono    { font-family: var(--topo-font-mono); font-feature-settings: "zero","ss01"; letter-spacing: 0; }
+.topo .stencil { font-family: var(--topo-font-stencil); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+.topo .micro   { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--topo-ink-3); font-weight: 700; }
+.topo .nano    { font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--topo-ink-4); font-weight: 700; }
+
+/* Sheet header — the title block on a drafting sheet */
+.topo-sheet {
+  width: 100%; height: 100%;
+  padding: 24px 28px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 16px;
+  position: relative;
+}
+.topo-sheet-head {
+  display: flex; align-items: flex-end; gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--topo-line);   /* ink rule, not cyan */
+}
+.topo-sheet-head .ttl-block { flex: 1; }
+.topo-sheet-head .sheet-no {
+  font-family: var(--topo-font-mono);
+  font-size: 10px; letter-spacing: 0.08em;
+  color: var(--topo-ink-3);
+  display: flex; gap: 14px;
+  margin-bottom: 4px;
+}
+.topo-sheet-head h1 {
+  margin: 0;
+  font-family: var(--topo-font-stencil);
+  font-size: 24px; font-weight: 800;
+  letter-spacing: -0.005em;
+  color: var(--topo-ink);
+}
+.topo-sheet-head .subtitle {
+  margin-top: 3px;
+  font-size: 12px; color: var(--topo-ink-2);
+  max-width: 60em;
+}
+.topo-sheet-head .stamp {
+  display: flex; flex-direction: column; gap: 2px;
+  font-family: var(--topo-font-mono); font-size: 10px;
+  text-align: right; color: var(--topo-ink-3);
+  padding: 6px 10px;
+  border: 1px solid var(--topo-line-3);
+  border-radius: 1px;
+  background: var(--topo-paper);
+  min-width: 180px;
+}
+.topo-sheet-head .stamp .row { display: flex; justify-content: space-between; gap: 12px; }
+.topo-sheet-head .stamp .row b { color: var(--topo-ink); font-weight: 700; }
+
+.topo-sheet-foot {
+  display: flex; align-items: center; gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--topo-line-4);
+  font-family: var(--topo-font-mono);
+  font-size: 9.5px; color: var(--topo-ink-3);
+  letter-spacing: 0.04em;
+}
+.topo-sheet-foot .sep { width: 1px; height: 10px; background: var(--topo-line-4); }
+.topo-sheet-foot .grow { flex: 1; }
+
+/* Body grid */
+.topo-sheet-body { min-height: 0; overflow: auto; }
+
+/* Cell — one drafting tile */
+.topo-cell {
+  background: var(--topo-paper);
+  border: 1px solid var(--topo-line-4);
+  border-radius: 1px;
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  position: relative;
+}
+.topo-cell.flush { padding: 0; overflow: hidden; }
+.topo-cell .cell-no {
+  position: absolute; top: 6px; right: 8px;
+  font-family: var(--topo-font-mono);
+  font-size: 9px; letter-spacing: 0.08em;
+  color: var(--topo-ink-4);
+}
+.topo-cell .cell-hd {
+  display: flex; align-items: baseline; gap: 8px;
+}
+.topo-cell .cell-hd .name {
+  font-family: var(--topo-font-stencil);
+  font-size: 12px; letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 700;
+  color: var(--topo-ink);
+}
+.topo-cell .cell-hd .slug {
+  font-family: var(--topo-font-mono);
+  font-size: 10px; color: var(--topo-ink-3);
+  letter-spacing: 0.05em;
+}
+.topo-cell .cell-hd .spec {
+  margin-left: auto;
+  font-family: var(--topo-font-mono); font-size: 10px;
+  color: var(--topo-ink-3);
+}
+.topo-cell .cell-bd {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 200px;
+  background: var(--topo-paper);
+  position: relative;
+}
+.topo-cell .cell-meta {
+  display: flex; gap: 12px;
+  font-family: var(--topo-font-mono);
+  font-size: 10px; color: var(--topo-ink-3);
+  flex-wrap: wrap;
+}
+.topo-cell .cell-meta b { color: var(--topo-ink); font-weight: 700; }
+.topo-cell .cell-meta .kvp { display: inline-flex; gap: 4px; }
+.topo-cell .cell-meta .kvp .k { color: var(--topo-ink-4); }
+
+/* Annotation callout used on drafting boards */
+.topo-anno {
+  font-family: var(--topo-font-mono);
+  font-size: 9.5px;
+  color: var(--topo-ink-2);
+  letter-spacing: 0.02em;
+}
+.topo-anno .lbl { color: var(--topo-ink); font-weight: 700; }
+
+/* Status LED chip */
+.topo-led {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--topo-ok);
+  box-shadow: 0 0 0 1px var(--topo-paper);
+}
+.topo-led.ok   { background: var(--topo-ok); }
+.topo-led.warn { background: var(--topo-warn); }
+.topo-led.err  { background: var(--topo-err); }
+.topo-led.crit { background: var(--topo-critical); box-shadow: 0 0 0 1px var(--topo-paper), 0 0 0 3px rgba(211,46,46,0.18); }
+.topo-led.idle { background: var(--topo-deferred); opacity: 0.6; }
+
+/* Hairline classes — used by inline svg */
+.hl       { stroke: var(--topo-line);    stroke-width: 1;   fill: none; }
+.hl-2     { stroke: var(--topo-line-2);  stroke-width: 0.75;fill: none; }
+.hl-3     { stroke: var(--topo-line-3);  stroke-width: 0.5; fill: none; }
+.hl-4     { stroke: var(--topo-line-4);  stroke-width: 0.5; fill: none; }
+.hl-cyan  { stroke: var(--topo-cyan);    stroke-width: 1;   fill: none; }
+.hl-thick { stroke: var(--topo-line);    stroke-width: 1.5; fill: none; }
+.fill-frame { fill: var(--topo-fill-frame); }
+.fill-port  { fill: var(--topo-fill-port); }
+.fill-bay   { fill: var(--topo-fill-bay); }
+.fill-cyan  { fill: var(--topo-cyan); }
+.fill-cyan-soft { fill: var(--topo-cyan-soft); }
+.fill-ink   { fill: var(--topo-ink); }
+.fill-ok    { fill: var(--topo-ok); }
+.fill-warn  { fill: var(--topo-warn); }
+.fill-err   { fill: var(--topo-err); }
+.fill-crit  { fill: var(--topo-critical); }
+.fill-paper { fill: var(--topo-paper); }
+
+/* Storyboard frame */
+.story-frame {
+  background: var(--topo-paper);
+  border: 1px solid var(--topo-line-3);
+  border-radius: 1px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.story-frame-hd {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--topo-line);   /* ink rule, not cyan */
+  background: var(--topo-paper-sunken);
+}
+.story-frame-hd .step {
+  font-family: var(--topo-font-mono);
+  font-size: 10px; color: var(--topo-cyan-deep);
+  letter-spacing: 0.08em; font-weight: 700;
+  padding: 1px 6px;
+  background: var(--topo-cyan-soft);
+  border: 1px solid var(--topo-cyan);
+  border-radius: 1px;
+}
+.story-frame-hd .ttl {
+  font-family: var(--topo-font-stencil);
+  font-size: 11px; letter-spacing: 0.06em;
+  text-transform: uppercase; font-weight: 700;
+}
+.story-frame-hd .input {
+  margin-left: auto;
+  font-family: var(--topo-font-mono); font-size: 9.5px;
+  color: var(--topo-ink-3); letter-spacing: 0.04em;
+}
+.story-frame-hd .input kbd {
+  display: inline-block; padding: 0 4px;
+  font-family: var(--topo-font-mono); font-size: 9.5px;
+  border: 1px solid var(--topo-line-3); border-radius: 1px;
+  background: var(--topo-paper);
+  color: var(--topo-ink);
+}
+.story-frame-bd {
+  flex: 1; min-height: 0;
+  position: relative;
+  background: var(--topo-canvas);
+  background-image:
+    linear-gradient(var(--topo-grid-rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--topo-grid-rule) 1px, transparent 1px);
+  background-size: 24px 24px, 24px 24px;
+  overflow: hidden;
+}
+.story-frame-cap {
+  position: absolute; left: 12px; right: 12px; bottom: 10px;
+  font-size: 10.5px; color: var(--topo-ink-2);
+  line-height: 1.45;
+  background: rgba(250,252,253,0.92);
+  border-left: 2px solid var(--topo-cyan);
+  padding: 6px 10px;
+  backdrop-filter: blur(2px);
+}
+.story-frame-cap b { color: var(--topo-ink); font-weight: 700; }
+
+/* Floating inspector card */
+.inspector-card {
+  background: var(--topo-paper);
+  border: 1px solid var(--topo-line-2);
+  box-shadow: 0 12px 28px rgba(14,55,80,0.16);
+  width: 280px;
+  font-size: 11px;
+  position: absolute;
+}
+.inspector-card .ic-strip { height: 3px; background: var(--topo-cyan); }
+.inspector-card .ic-hd {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--topo-line-4);
+}
+.inspector-card .ic-hd .hn {
+  font-family: var(--topo-font-mono); font-size: 12px; font-weight: 700;
+  color: var(--topo-ink);
+}
+.inspector-card .ic-hd .meta {
+  font-size: 10.5px; color: var(--topo-ink-3); margin-top: 2px;
+}
+.inspector-card .ic-kv {
+  display: grid; grid-template-columns: auto 1fr;
+  gap: 3px 10px;
+  padding: 8px 12px;
+  font-size: 10.5px;
+}
+.inspector-card .ic-kv .k { color: var(--topo-ink-3); }
+.inspector-card .ic-kv .v { color: var(--topo-ink); font-family: var(--topo-font-mono); }
+.inspector-card .ic-foot {
+  display: flex; gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--topo-line-4);
+}
+.inspector-card .ic-foot .btn {
+  flex: 1; padding: 4px 8px;
+  font-size: 10.5px; text-align: center;
+  border: 1px solid var(--topo-line-3);
+  background: var(--topo-paper);
+  border-radius: 1px;
+}
+.inspector-card .ic-foot .btn.primary {
+  background: var(--topo-cyan); color: #fff; border-color: var(--topo-cyan);
+  font-weight: 700;
+}
+
+/* Port detail callout */
+.port-callout {
+  background: var(--topo-paper);
+  border: 1px solid var(--topo-line-2);
+  box-shadow: 0 12px 28px rgba(14,55,80,0.18);
+  width: 260px;
+  font-size: 11px;
+  position: absolute;
+}
+.port-callout .pc-strip {
+  height: 3px;
+}
+.port-callout .pc-hd {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--topo-line-4);
+}
+.port-callout .pc-hd .pid {
+  font-family: var(--topo-font-mono); font-weight: 700; font-size: 12px;
+}
+.port-callout .pc-hd .state {
+  margin-left: auto;
+  font-family: var(--topo-font-mono); font-size: 9.5px;
+  padding: 1px 6px; border-radius: 1px;
+  letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700;
+}
+.port-callout .pc-kv {
+  display: grid; grid-template-columns: auto 1fr;
+  gap: 3px 10px;
+  padding: 8px 12px;
+  font-size: 10.5px;
+}
+.port-callout .pc-kv .k { color: var(--topo-ink-3); }
+.port-callout .pc-kv .v { color: var(--topo-ink); font-family: var(--topo-font-mono); }
+
+/* Connector lines (drafted) — thin extension lines + arrow ticks */
+.ext-line { stroke: var(--topo-line-3); stroke-width: 0.5; stroke-dasharray: 0; fill: none; }
+.ext-tick { stroke: var(--topo-line-3); stroke-width: 1; fill: none; }

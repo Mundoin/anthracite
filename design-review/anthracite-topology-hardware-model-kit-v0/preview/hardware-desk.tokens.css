@@ -1,0 +1,42 @@
+/* Anthracite — Hardware Model Kit · tokens
+ *
+ * Surface, type, and signal tokens for the desk-chrome around the
+ * Babylon canvas. NOT the per-mesh material colours — those live in
+ * src/materials.ts (Babylon Color3) and are the runtime source of truth.
+ */
+
+:root {
+  /* surface */
+  --hd-canvas:        #E6EDF1;
+  --hd-paper:         #FAFCFD;
+  --hd-paper-sunken:  #ECF1F4;
+
+  /* drafting line language */
+  --hd-line:    #0E1E2C;
+  --hd-line-2:  #4A6072;
+  --hd-line-3:  #8AA1B0;
+  --hd-line-4:  #C8D5DE;
+
+  /* cyan signal */
+  --hd-cyan:      #0E72A0;
+  --hd-cyan-deep: #074C6E;
+  --hd-cyan-soft: #D3E6EE;
+
+  /* ink */
+  --hd-ink:   #0E1E2C;
+  --hd-ink-2: #2F4458;
+  --hd-ink-3: #557082;
+  --hd-ink-4: #93A8B7;
+
+  /* operational signal */
+  --hd-ok:       #2C8456;
+  --hd-warn:     #C77A0E;
+  --hd-err:      #B83333;
+  --hd-deferred: #7A8A95;
+  --hd-critical: #D32E2E;
+
+  /* type */
+  --hd-font-ui:      "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --hd-font-mono:    "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+  --hd-font-stencil: "Segoe UI Variable Display", "Segoe UI", sans-serif;
+}

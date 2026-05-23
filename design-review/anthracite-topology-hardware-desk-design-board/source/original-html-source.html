@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Anthracite — Topology Hardware Desk · visual language</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="styles/topology-desk.css" />
+
+  <style>
+    html, body { margin: 0; height: 100%; background: #f0eee9; }
+    body { font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif; color: #1A202C; }
+    .topo-section-note {
+      font-size: 12px; color: #5a4a2a; opacity: 0.85; line-height: 1.55;
+      max-width: 1000px;
+    }
+    .topo-section-note b { color: #14181F; opacity: 1; }
+    .topo-section-note .tag {
+      display: inline-block; padding: 1px 6px; border-radius: 2px;
+      background: rgba(20,24,31,0.06); margin: 0 2px;
+      font-family: "Cascadia Mono", Consolas, monospace; font-size: 10.5px;
+      color: #14181F;
+    }
+  </style>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="design-canvas.jsx"></script>
+
+  <script type="text/babel" src="directions/topology-2d-nodes.jsx"></script>
+  <script type="text/babel" src="directions/topology-3d-primitives.jsx"></script>
+  <script type="text/babel" src="directions/topology-storyboard.jsx"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="env,react">
+    function App() {
+      const W2D    = 1680, H2D    = 1180;
+      const W3D    = 1680, H3D    = 1300;
+      const Wstory = 1840, Hstory = 1100;
+
+      return (
+        <DesignCanvas>
+          <DCSection
+            id="overview"
+            title="Anthracite · Topology Hardware Desk"
+            subtitle="Three drafting sheets defining the visual language for the topology workspace: 2D node families, 3D procedural primitives, and the interaction storyboard that links them."
+          >
+            <div className="topo-section-note">
+              <b>The premise.</b> The topology desk is a pristine light engineering surface. The operator works on it with crisp grey hairlines, drafting-cyan signal, and serious geometric device frames. No cartoon icons; no SaaS dashboard tropes; no rendered hardware. Hardware is drawn from primitive parameters — what a CNC operator would call a part program, not a photograph.
+            </div>
+            <div className="topo-section-note" style={{ marginTop: 8 }}>
+              <b>Three sheets.</b>
+              <span className="tag">2D-01</span> Topology node families — eight glyphs that live on the map (access · distribution · core · firewall · edge · server / VM · wireless AP · unknown).
+              <span className="tag">3D-01</span> Hardware primitive family — six axonometric form factors with procedural faceplates and pickable zones (1U · 2U · 4U · blade · virtual · module).
+              <span className="tag">IXN-01</span> Interaction storyboard — map → click → double-click → 3D inspection → port click.
+            </div>
+            <div className="topo-section-note" style={{ marginTop: 8 }}>
+              <b>Tokens.</b> Lives at <span className="tag">styles/topology-desk.css</span> — independent of the D3T theme system. Cyan signal <span className="tag">#0E72A0</span> · drafting hairlines <span className="tag">#0E1E2C → #C8D5DE</span> · port cavity <span className="tag">#0E1E2C</span> · bay opening <span className="tag">#1B2630</span>. Capability states reuse the D3T semantic palette.
+            </div>
+          </DCSection>
+
+          {/* ── 2D NODE SHEET ────────────────────────────────────────── */}
+          <DCSection
+            id="sheet-2d"
+            title="Sheet 2D-01 · Topology Node Families"
+            subtitle="Eight device families. Each glyph carries the topology role; the outer ring carries operational state; the meta strip carries the family code. Drawn at 1.0 × and at 0.45 × map-scale to verify legibility at zoom-out."
+          >
+            <DCArtboard id="sheet-2d-01" label="2D-01 · Eight node families · 1.0 × + 0.45 × · five state outlines" width={W2D} height={H2D}>
+              <Sheet2DNodes />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ── 3D PRIMITIVE SHEET ───────────────────────────────────── */}
+          <DCSection
+            id="sheet-3d"
+            title="Sheet 3D-01 · Hardware Primitive Family"
+            subtitle="Six procedural primitives drawn as drafting axonometric (cabinet projection, 30°, depth × 0.5). Each cell shows the hero view, flat faceplate detail, procedural parameter rows, and the pickable-zone taxonomy."
+          >
+            <DCArtboard id="sheet-3d-01" label="3D-01 · 1U · 2U · 4U · 10U blade · virtual · SFP/QSFP module" width={W3D} height={H3D}>
+              <Sheet3DPrimitives />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ── STORYBOARD ───────────────────────────────────────────── */}
+          <DCSection
+            id="sheet-ixn"
+            title="Sheet IXN-01 · Interaction Storyboard"
+            subtitle="Five frames covering the operator's full descent from topology overview to a single optic. Frames 1–3 are 2D; frames 4–5 are the 3D hardware inspection viewport."
+          >
+            <DCArtboard id="sheet-ixn-01" label="IXN-01 · map → click → transition → orbit → port" width={Wstory} height={Hstory}>
+              <SheetStoryboard />
+            </DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

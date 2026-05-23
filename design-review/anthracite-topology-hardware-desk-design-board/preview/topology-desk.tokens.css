@@ -1,0 +1,62 @@
+/* Anthracite Topology Hardware Desk — design tokens
+ * Extracted from topology-desk.css. Single source of truth for colour, type, signal.
+ * Scope: lives under .topo root; independent of D3T theme system.
+ */
+
+:root {
+  /* ── Surface ─────────────────────────────────────────────────────────── */
+  --topo-canvas:         #E6EDF1;
+  --topo-canvas-deep:    #DAE3EA;
+  --topo-paper:          #FAFCFD;
+  --topo-paper-sunken:   #ECF1F4;
+  --topo-paper-selected: #BFD3E3;
+
+  /* ── Drafting line language ─────────────────────────────────────────── */
+  --topo-line:    #0E1E2C;    /* primary geometry (1.5 px frames)         */
+  --topo-line-2:  #4A6072;    /* secondary geometry                       */
+  --topo-line-3:  #8AA1B0;    /* construction lines                       */
+  --topo-line-4:  #C8D5DE;    /* grid / extension lines                   */
+
+  /* ── Cyan SIGNAL only (focus, selection, signal flow, live link) ────── */
+  --topo-cyan:      #0E72A0;
+  --topo-cyan-deep: #074C6E;
+  --topo-cyan-soft: #D3E6EE;  /* used as fill for "active screen" surfaces */
+  --topo-cyan-rule: rgba(14,114,160,0.08);
+  --topo-grid-rule: rgba(14, 30, 44,0.05);  /* drafting grid — ink-tinted */
+
+  /* ── Ink ramp (chrome, labels, vendor strips) ───────────────────────── */
+  --topo-ink:   #0E1E2C;
+  --topo-ink-2: #2F4458;
+  --topo-ink-3: #557082;
+  --topo-ink-4: #93A8B7;
+
+  /* ── Operational signal (mirrors D3T semantic palette) ──────────────── */
+  --topo-ok:       #2C8456;
+  --topo-warn:     #C77A0E;
+  --topo-err:      #B83333;
+  --topo-deferred: #7A8A95;
+  --topo-critical: #D32E2E;
+
+  /* ── Procedural fills ───────────────────────────────────────────────── */
+  --topo-fill-frame: #FAFCFD;
+  --topo-fill-port:  #0E1E2C;
+  --topo-fill-bay:   #1B2630;
+
+  /* ── Type ──────────────────────────────────────────────────────────── */
+  --topo-font-ui:      "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --topo-font-mono:    "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+  --topo-font-stencil: "Segoe UI Variable Display", "Segoe UI", sans-serif;
+}
+
+/* ── Conventions ────────────────────────────────────────────────────────────
+ *   Stroke weights:  1.5 frame · 1.0 hairline · 0.75 bezel · 0.5 grid
+ *   Dash patterns:   solid known · 4/3 unclassified · 2/1.5 virtual frame
+ *                    3/2 trust split · 6/4 deferred state ring
+ *   State ring:      3 px ok|warn|err|deferred · 4 px critical + 6 px halo @ 25 %
+ *   Cyan budget:     focus ring, selection, signal-flow arrows, AS plate,
+ *                    inspection plane, screen content on cyan-soft surfaces,
+ *                    LED/port live indicators. NOT chrome — never sheet rules,
+ *                    grids, vendor labels, or reference frames.
+ *   Zoom collapse:   ≥1.00x full · ≥0.45x bands collapse · ≥0.20x silhouette
+ *                    + state ring only · <0.20x dot at state-ring colour.
+ */

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Anthracite — Topology Hardware Desk · OCC preview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="topology-desk.tokens.css" />
+  <link rel="stylesheet" href="topology-desk.css" />
+
+  <style>
+    html, body { margin: 0; height: 100%; background: #f0eee9; }
+    body { font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; color: #1A202C; }
+    .topo-section-note { font-size: 12px; color: #5a4a2a; opacity: 0.85; line-height: 1.55; max-width: 1000px; }
+    .topo-section-note b { color: #14181F; opacity: 1; }
+    .topo-section-note .tag {
+      display: inline-block; padding: 1px 6px; border-radius: 2px;
+      background: rgba(20,24,31,0.06); margin: 0 2px;
+      font-family: "Cascadia Mono", Consolas, monospace; font-size: 10.5px;
+      color: #14181F;
+    }
+  </style>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="../source/design-canvas.jsx"></script>
+  <script type="text/babel" src="../source/topology-2d-nodes.jsx"></script>
+  <script type="text/babel" src="../source/topology-3d-primitives.jsx"></script>
+  <script type="text/babel" src="../source/topology-storyboard.jsx"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="env,react">
+    function App() {
+      const W2D = 1680, H2D = 1180;
+      const W3D = 1680, H3D = 1300;
+      const Wstory = 1840, Hstory = 1100;
+
+      return (
+        <DesignCanvas>
+          <DCSection
+            id="overview"
+            title="Anthracite · Topology Hardware Desk"
+            subtitle="OCC preview package. Three drafting sheets defining the visual language for the topology workspace: 2D node families, 3D procedural primitives, and the interaction storyboard."
+          >
+            <div className="topo-section-note">
+              <b>The premise.</b> The topology desk is a pristine light engineering surface. The operator works on it with crisp grey hairlines, drafting-cyan signal, and serious geometric device frames. No cartoon icons; no SaaS dashboard tropes; no rendered hardware. Hardware is drawn from primitive parameters — what a CNC operator would call a part program, not a photograph.
+            </div>
+            <div className="topo-section-note" style={{ marginTop: 8 }}>
+              <b>Tokens.</b> <span className="tag">topology-desk.tokens.css</span> · cyan budget <span className="tag">#0E72A0</span> reserved for signal only · drafting hairlines <span className="tag">#0E1E2C → #C8D5DE</span> · port cavity <span className="tag">#0E1E2C</span> · bay opening <span className="tag">#1B2630</span>.
+            </div>
+          </DCSection>
+
+          <DCSection id="sheet-2d" title="Sheet 2D-01 · Topology Node Families"
+            subtitle="Eight device families. Each glyph carries the topology role; the outer ring carries operational state; the meta strip carries the family code.">
+            <DCArtboard id="sheet-2d-01" label="2D-01 · Eight node families · 1.0x + 0.45x · five state outlines" width={W2D} height={H2D}>
+              <Sheet2DNodes />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="sheet-3d" title="Sheet 3D-01 · Hardware Primitive Family"
+            subtitle="Six procedural primitives drawn as drafting axonometric (cabinet projection, 30°, depth × 0.5).">
+            <DCArtboard id="sheet-3d-01" label="3D-01 · 1U · 2U · 4U · 10U blade · virtual · SFP/QSFP module" width={W3D} height={H3D}>
+              <Sheet3DPrimitives />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="sheet-ixn" title="Sheet IXN-01 · Interaction Storyboard"
+            subtitle="Five frames covering the operator's descent from topology overview to a single optic.">
+            <DCArtboard id="sheet-ixn-01" label="IXN-01 · map → click → transition → orbit → port" width={Wstory} height={Hstory}>
+              <SheetStoryboard />
+            </DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
