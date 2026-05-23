@@ -2563,3 +2563,52 @@ describe("TopologyMode", () => {
     });
   });
 });
+
+// V1BJ hotfix regression — TopologyMode must route active lab
+// projection to the Blueprint canvas when imported topology view is
+// empty / not_connected / unavailable. Previously the empty branch
+// short-circuited the lab fallback because topology.view is non-null
+// even when empty.
+describe("TopologyMode — V1BJ hotfix lab-routing", () => {
+  it("renders lab view when imported view is empty but active env exists", async () => {
+    vi.resetModules();
+    vi.doMock("../../../engines/labTopologyActivation", () => ({
+      LAB_RENDER_DATA_SOURCE: "simulated" as const,
+      activeRecordToGraphReadyView: () => ({
+        environment_id: "env-active-lab",
+        nodes: [
+          {
+            id: "lab-node-1",
+            label: "lab-router-1",
+            vendor: "anthracite",
+            platform_id: null,
+            role_hint: "core router",
+            layer: "physical",
+          },
+        ],
+        edges: [],
+        renderer_attached: false as const,
+        note: "lab projection",
+      }),
+    }));
+    vi.doMock("../../../state/EnvironmentLifecycleContext", () => ({
+      useEnvironmentLifecycle: () => ({
+        active: { environment_id: "env-active-lab", name: "Mega City Lab" },
+      }),
+      EnvironmentLifecycleContext: { Provider: ({ children }: { children: React.ReactNode }) => children },
+    }));
+    const { TopologyMode: ReroutedTopologyMode } = await import("../TopologyMode");
+    const view = makeView(); // sourceState="empty", view non-null, isEmpty true
+    render(<ReroutedTopologyMode topology={view} />);
+    expect(screen.getByTestId("tm-body-lab-view")).toBeInTheDocument();
+    // empty-state evidence banner must NOT render in this branch
+    expect(
+      screen.queryByText(
+        "No topology to render — discovery inventory is empty for this scope.",
+      ),
+    ).toBeNull();
+    vi.doUnmock("../../../engines/labTopologyActivation");
+    vi.doUnmock("../../../state/EnvironmentLifecycleContext");
+    vi.resetModules();
+  });
+});

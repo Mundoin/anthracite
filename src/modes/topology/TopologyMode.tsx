@@ -1274,7 +1274,24 @@ export function TopologyMode({
         <span className="tm-summary-message">{topology.message}</span>
       </section>
 
-      {topology.view === null && !labView ? (
+      {labView &&
+      (topology.sourceState === "empty" ||
+        topology.sourceState === "not_connected" ||
+        topology.sourceState === "unavailable") ? (
+        // V1BJ hotfix — active generated-lab environment is rendered as
+        // the Blueprint canvas whenever the imported-evidence topology
+        // is empty / not_connected / unavailable. Imported evidence
+        // ("real") still wins; see the imported branch below.
+        <section
+          className="tm-body tm-body--lab-view"
+          data-testid="tm-body-lab-view"
+        >
+          <TopologyGraphPanel
+            view={labView}
+            data_source={LAB_RENDER_DATA_SOURCE}
+          />
+        </section>
+      ) : topology.view === null ? (
         <section
           className="tm-body tm-body--unavailable"
           role="status"
@@ -1282,18 +1299,6 @@ export function TopologyMode({
         >
           <p>Topology source is not available right now.</p>
           <p className="tm-muted">{topology.message}</p>
-        </section>
-      ) : topology.view === null && labView ? (
-        // B4 — When no imported topology but active lab env exists, render it
-        <section className="tm-body tm-body--lab-view">
-          {(() => {
-            return (
-              <TopologyGraphPanel
-                view={labView}
-                data_source={LAB_RENDER_DATA_SOURCE}
-              />
-            );
-          })()}
         </section>
       ) : topology.isEmpty ? (
         <>
