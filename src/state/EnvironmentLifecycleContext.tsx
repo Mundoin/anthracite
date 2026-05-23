@@ -73,7 +73,11 @@ export interface EnvironmentLifecycleContextValue {
   listAll(includeArchived?: boolean): readonly LocalEnvironmentRecord[];
 }
 
-const EnvironmentLifecycleContext = createContext<EnvironmentLifecycleContextValue | null>(null);
+// Exported so callers that prefer optional consumption (e.g. components
+// that render in both lifecycle-wrapped and stand-alone contexts) can
+// use `useContext` directly. Stage V1BF.
+export const EnvironmentLifecycleContext =
+  createContext<EnvironmentLifecycleContextValue | null>(null);
 
 type ProviderAction =
   | { type: "create"; scenarioId: string; name?: string }

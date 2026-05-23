@@ -17,6 +17,7 @@ import type { GraphReadyTopologyView } from "./topologyReview";
 import { TopologyGraphSurface } from "./TopologyGraphSurface";
 import { TopologyGraphInspector } from "./TopologyGraphInspector";
 import { RenderGraphSourceBadge } from "./RenderGraphSourceBadge";
+import { BlueprintTopologyCanvas } from "./blueprint/BlueprintTopologyCanvas";
 import "./TopologyGraphPanel.css";
 
 export interface TopologyGraphPanelProps {
@@ -40,6 +41,23 @@ export function TopologyGraphPanel({
   useEffect(() => {
     setSelection(null);
   }, [model]);
+
+  // V1BF — the active Lab Environment renders as a blueprint canvas
+  // when no imported evidence is overriding it. Imported / unknown /
+  // demo data sources keep the existing V1AY surface intact.
+  if (data_source === "simulated") {
+    return (
+      <div className="tg-panel" data-testid="tg-panel">
+        <div className="tg-header">
+          <h3 className="tg-title">Blueprint (V1BF)</h3>
+          <RenderGraphSourceBadge data_source={data_source} />
+        </div>
+        <div className="tg-content tg-content--blueprint">
+          <BlueprintTopologyCanvas view={view} dataSource={data_source} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="tg-panel" data-testid="tg-panel">

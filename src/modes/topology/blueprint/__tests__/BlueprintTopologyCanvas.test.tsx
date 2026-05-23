@@ -1,0 +1,231 @@
+/**
+ * V1BF — Blueprint Topology Canvas unit tests.
+ *
+ * Covers:
+ *   - density band selection (3 / 8 / 24 / 32 / 96 scenarios)
+ *   - role_hint → family code mapping
+ *   - active env name + scenario + provenance render in header
+ *   - click node selects, second click deselects
+ *   - connected edges receive is-active class on selection
+ *   - high-density (>48) collapses glyphs to dots
+ *
+ * The lifecycle provider is stubbed via a thin context wrapper rather
+ * than mocked, so the test exercises the same code path the real shell
+ * uses.
+ */
+
+import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import type { JSX, ReactNode } from "react";
+
+import { BlueprintTopologyCanvas } from "../BlueprintTopologyCanvas";
+import { pickDensityBand, familyOf } from "../blueprintGlyph";
+import type {
+  GraphReadyTopologyEdge,
+  GraphReadyTopologyNode,
+  GraphReadyTopologyView,
+} from "../../topologyReview";
+import {
+  EnvironmentLifecycleContext,
+  type EnvironmentLifecycleContextValue,
+} from "../../../../state/EnvironmentLifecycleContext";
+import type { LocalEnvironmentRecord } from "../../../../types/localEnvironment";
+
+function makeNode(
+  id: string,
+  role_hint: string,
+  label?: string,
+): GraphReadyTopologyNode {
+  return {
+    id,
+    label: label ?? id,
+    vendor: null,
+    platform_id: null,
+    role_hint,
+    layer: "physical",
+  };
+}
+
+function makeEdge(
+  id: string,
+  source: string,
+  target: string,
+): GraphReadyTopologyEdge {
+  return {
+    id,
+    source_node_id: source,
+    target_node_id: target,
+    kind: "lldp",
+    local_interface: null,
+    remote_interface: null,
+    evidence_count: 1,
+  };
+}
+
+function makeView(
+  nodes: GraphReadyTopologyNode[],
+  edges: GraphReadyTopologyEdge[],
+): GraphReadyTopologyView {
+  return {
+    environment_id: "env-test",
+    nodes,
+    edges,
+    renderer_attached: false,
+    note: "test",
+  };
+}
+
+function chainNodes(count: number, role = "switch"): GraphReadyTopologyNode[] {
+  return Array.from({ length: count }, (_, i) =>
+    makeNode(`n${String(i).padStart(2, "0")}`, role, `host-${i}`),
+  );
+}
+
+function chainEdges(count: number): GraphReadyTopologyEdge[] {
+  const out: GraphReadyTopologyEdge[] = [];
+  for (let i = 0; i + 1 < count; i++) {
+    out.push(
+      makeEdge(`e${i}`, `n${String(i).padStart(2, "0")}`, `n${String(i + 1).padStart(2, "0")}`),
+    );
+  }
+  return out;
+}
+
+interface FakeActiveOpts {
+  name?: string;
+  scenarioId?: string | null;
+  provenance?: string;
+}
+
+function fakeActive(opts: FakeActiveOpts = {}): LocalEnvironmentRecord {
+  return {
+    environment_id: "env-test",
+    name: opts.name ?? "Test Lab",
+    provenance: (opts.provenance ?? "generated-lab") as LocalEnvironmentRecord["provenance"],
+    lifecycle_state: "active",
+    created_at: "2026-05-23T00:00:00Z",
+    updated_at: "2026-05-23T00:00:00Z",
+    lab_payload: {
+      scenario_id: opts.scenarioId ?? "branch-office",
+    } as unknown as LocalEnvironmentRecord["lab_payload"],
+  } as LocalEnvironmentRecord;
+}
+
+function withActive(active: LocalEnvironmentRecord, ui: ReactNode): JSX.Element {
+  // Cast to the full context shape — the canvas only reads `.active`.
+  const value = { active } as unknown as EnvironmentLifecycleContextValue;
+  return (
+    <EnvironmentLifecycleContext.Provider value={value}>
+      {ui}
+    </EnvironmentLifecycleContext.Provider>
+  );
+}
+
+describe("blueprintGlyph", () => {
+  it("picks density band per the 5 lab scenarios", () => {
+    expect(pickDensityBand(3)).toBe("full");
+    expect(pickDensityBand(8)).toBe("full");
+    expect(pickDensityBand(24)).toBe("faceplate");
+    expect(pickDensityBand(32)).toBe("silhouette");
+    expect(pickDensityBand(96)).toBe("dot");
+  });
+
+  it("maps role_hint into 8 families", () => {
+    expect(familyOf(makeNode("a", "access switch"))).toBe("ACC-SW");
+    expect(familyOf(makeNode("a", "distribution switch"))).toBe("DIST-SW");
+    expect(familyOf(makeNode("a", "core router"))).toBe("CORE-RT");
+    expect(familyOf(makeNode("a", "edge router"))).toBe("EDGE-RT");
+    expect(familyOf(makeNode("a", "firewall"))).toBe("FW");
+    expect(familyOf(makeNode("a", "server"))).toBe("SRV");
+    expect(familyOf(makeNode("a", "wireless ap"))).toBe("WAP");
+    expect(familyOf(makeNode("a", "anything-else"))).toBe("UNK");
+  });
+});
+
+describe("BlueprintTopologyCanvas — source pedigree header", () => {
+  it("shows active env name, scenario id, node + link counts, provenance", () => {
+    const view = makeView(chainNodes(8), chainEdges(8));
+    const active = fakeActive({ name: "branch-office-04", scenarioId: "branch-office" });
+    render(
+      withActive(
+        active,
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const header = screen.getByTestId("bt-header");
+    expect(header).toHaveTextContent("branch-office-04");
+    expect(header).toHaveTextContent("branch-office");
+    expect(header).toHaveTextContent(/nodes\s*8/i);
+    expect(header).toHaveTextContent(/links\s*7/i);
+    expect(screen.getByTestId("bt-header-prov")).toHaveTextContent(
+      "generated-lab",
+    );
+  });
+
+  it("falls back to view.environment_id when no provider is mounted", () => {
+    const view = makeView(chainNodes(3), chainEdges(3));
+    render(<BlueprintTopologyCanvas view={view} dataSource="simulated" />);
+    expect(screen.getByTestId("bt-header")).toHaveTextContent("env-test");
+    expect(screen.getByTestId("bt-header-prov")).toHaveTextContent("simulated");
+  });
+});
+
+describe("BlueprintTopologyCanvas — selection", () => {
+  it("clicking a node opens the summary; second click clears it", () => {
+    const view = makeView(chainNodes(3, "switch"), chainEdges(3));
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const target = screen.getByTestId("bt-node-n01");
+    fireEvent.click(target);
+    const summary = screen.getByTestId("bt-summary");
+    expect(within(summary).getByText("n01")).toBeInTheDocument();
+    fireEvent.click(target);
+    expect(within(summary).getByText(/click any node/i)).toBeInTheDocument();
+  });
+
+  it("highlights connected edges when a node is selected", () => {
+    const view = makeView(chainNodes(3, "switch"), chainEdges(3));
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n01"));
+    const e0 = container.querySelector('[data-testid="bt-edge-e0"]');
+    const e1 = container.querySelector('[data-testid="bt-edge-e1"]');
+    expect(e0?.getAttribute("class")).toContain("is-active");
+    expect(e1?.getAttribute("class")).toContain("is-active");
+  });
+});
+
+describe("BlueprintTopologyCanvas — density at scenario boundaries", () => {
+  it("renders the 3-node scenario at full density with labels", () => {
+    const view = makeView(chainNodes(3, "switch"), chainEdges(3));
+    const { container } = render(
+      withActive(
+        fakeActive({ scenarioId: "micro-lab" }),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(container.querySelector('[data-density="full"]')).toBeTruthy();
+    expect(container.querySelectorAll(".bt-node-label").length).toBe(3);
+  });
+
+  it("renders the 96-node scenario as dots", () => {
+    const view = makeView(chainNodes(96, "router"), chainEdges(96));
+    const { container } = render(
+      withActive(
+        fakeActive({ scenarioId: "metro-backbone" }),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(container.querySelector('[data-density="dot"]')).toBeTruthy();
+    expect(container.querySelectorAll(".bt-node-faceplate").length).toBe(0);
+    expect(container.querySelectorAll(".bt-node-label").length).toBe(0);
+  });
+});

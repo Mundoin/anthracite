@@ -1,0 +1,255 @@
+/* Blueprint Topology Canvas — V1BF
+ * Tokens scoped to .blueprint-topology so the canvas owns its visual law
+ * without polluting the app-level token surface. Mirrors the desk
+ * design-board's topology-desk.tokens.css.
+ */
+
+.blueprint-topology {
+  /* surface */
+  --topo-canvas:         #E6EDF1;
+  --topo-canvas-deep:    #DAE3EA;
+  --topo-paper:          #FAFCFD;
+  --topo-paper-sunken:   #ECF1F4;
+  --topo-paper-selected: #BFD3E3;
+
+  /* drafting lines */
+  --topo-line:    #0E1E2C;
+  --topo-line-2:  #4A6072;
+  --topo-line-3:  #8AA1B0;
+  --topo-line-4:  #C8D5DE;
+
+  /* cyan = SIGNAL only */
+  --topo-cyan:      #0E72A0;
+  --topo-cyan-deep: #074C6E;
+  --topo-cyan-soft: #D3E6EE;
+  --topo-grid-rule: rgba(14, 30, 44, 0.05);
+
+  /* ink ramp */
+  --topo-ink:   #0E1E2C;
+  --topo-ink-2: #2F4458;
+  --topo-ink-3: #557082;
+  --topo-ink-4: #93A8B7;
+
+  /* operational state */
+  --topo-ok:       #2C8456;
+  --topo-warn:     #C77A0E;
+  --topo-err:      #B83333;
+  --topo-deferred: #7A8A95;
+  --topo-critical: #D32E2E;
+
+  /* typography */
+  --topo-font-ui:   "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --topo-font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr 280px;
+  grid-template-areas:
+    "header   header"
+    "canvas   summary";
+  height: 100%;
+  min-height: 0;
+  background: var(--topo-canvas);
+  color: var(--topo-ink);
+  font-family: var(--topo-font-ui);
+  overflow: hidden;
+}
+
+/* header — source pedigree strip */
+.bt-header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 16px;
+  background: var(--topo-paper);
+  border-bottom: 1px solid var(--topo-line-4);
+  font-size: 12px;
+}
+
+.bt-header-name {
+  font-weight: 600;
+  color: var(--topo-ink);
+}
+
+.bt-header-pair {
+  display: inline-flex;
+  gap: 6px;
+  color: var(--topo-ink-2);
+}
+
+.bt-header-pair > span:first-child {
+  color: var(--topo-ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+
+.bt-header-prov {
+  margin-left: auto;
+  padding: 2px 8px;
+  border: 1px solid var(--topo-line-4);
+  background: var(--topo-paper-sunken);
+  color: var(--topo-ink-2);
+  font-family: var(--topo-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bt-header-prov[data-prov="generated-lab"] {
+  border-color: var(--topo-cyan);
+  color: var(--topo-cyan-deep);
+}
+
+/* canvas — blueprint drafting surface */
+.bt-canvas-wrap {
+  grid-area: canvas;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: var(--topo-canvas);
+  overflow: hidden;
+}
+
+.bt-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+/* grid pattern */
+.bt-grid-line {
+  stroke: var(--topo-grid-rule);
+  stroke-width: 0.5;
+  fill: none;
+}
+
+/* edges */
+.bt-edge {
+  stroke: var(--topo-line-3);
+  stroke-width: 1;
+  fill: none;
+  pointer-events: none;
+}
+
+.bt-edge.is-active {
+  stroke: var(--topo-cyan);
+  stroke-width: 1.5;
+}
+
+/* glyph frame */
+.bt-node {
+  cursor: pointer;
+}
+
+.bt-node-frame {
+  fill: var(--topo-paper);
+  stroke: var(--topo-line);
+  stroke-width: 1.5;
+}
+
+.bt-node-frame.is-virtual {
+  stroke-dasharray: 2 1.5;
+}
+
+.bt-node-state-ring {
+  fill: none;
+  stroke-width: 3;
+}
+
+.bt-node-state-ring.is-critical {
+  stroke-width: 4;
+}
+
+.bt-node-focus-ring {
+  fill: none;
+  stroke: var(--topo-cyan);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.bt-node-faceplate {
+  fill: var(--topo-fill-port, #0E1E2C);
+  opacity: 0.8;
+}
+
+.bt-node-family-code {
+  fill: var(--topo-ink);
+  font-family: var(--topo-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  user-select: none;
+}
+
+.bt-node-label {
+  fill: var(--topo-ink-2);
+  font-family: var(--topo-font-mono);
+  font-size: 10px;
+  text-anchor: middle;
+  dominant-baseline: hanging;
+  pointer-events: none;
+  user-select: none;
+}
+
+.bt-node-dot {
+  pointer-events: visiblePainted;
+}
+
+/* selection summary */
+.bt-summary {
+  grid-area: summary;
+  padding: 14px 16px;
+  background: var(--topo-paper);
+  border-left: 1px solid var(--topo-line-4);
+  font-size: 12px;
+  overflow-y: auto;
+}
+
+.bt-summary h3 {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--topo-ink-3);
+  font-weight: 500;
+}
+
+.bt-summary-id {
+  font-family: var(--topo-font-mono);
+  font-size: 13px;
+  color: var(--topo-cyan-deep);
+  background: var(--topo-cyan-soft);
+  border-left: 3px solid var(--topo-cyan);
+  padding: 6px 10px;
+  margin-bottom: 12px;
+  word-break: break-all;
+}
+
+.bt-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--topo-line-4);
+}
+
+.bt-summary-row > span {
+  color: var(--topo-ink-3);
+}
+
+.bt-summary-row > strong {
+  color: var(--topo-ink);
+  font-weight: 500;
+  text-align: right;
+}
+
+.bt-summary-empty {
+  color: var(--topo-ink-3);
+  font-style: italic;
+  font-size: 12px;
+}
