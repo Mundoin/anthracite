@@ -32,14 +32,33 @@
 }
 
 /* V1BF — blueprint canvas owns the whole content area; the canvas
- * component carries its own header + summary grid. */
+ * component carries its own header + summary grid.
+ *
+ * V1BJ hotfix 3 — must define an explicit `height` here (not just
+ * min-height) so the receiver + Blueprint chain, which uses
+ * `height: 100%`, has a definite reference. Percentage heights
+ * resolve to 0 against a parent that has only `min-height`, which
+ * caused the dark `.tg-panel` background to bleed through as an
+ * "empty black rectangle". The drafting-paper fallback background
+ * also kept here so a 0-frame paint never reveals the dark panel.
+ */
 .tg-content--blueprint {
-  display: block;
+  display: flex;
+  flex-direction: column;
   padding: 0;
+  height: 640px;
   min-height: 520px;
   border: 1px solid #333333;
   border-radius: 4px;
   overflow: hidden;
+  background: #E6EDF1; /* --topo-canvas fallback */
+}
+
+.tg-content--blueprint > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
 }
 
 .tg-surface-container {

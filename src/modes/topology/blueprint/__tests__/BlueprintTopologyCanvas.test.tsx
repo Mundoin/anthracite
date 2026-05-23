@@ -307,6 +307,49 @@ describe("BlueprintTopologyCanvas — inspect bridge (V1BG)", () => {
   });
 });
 
+describe("BlueprintTopologyCanvas — 96-node visibility (V1BJ hotfix 3)", () => {
+  it("renders an SVG <g> node element for every node in a 96-node graph", () => {
+    const view = makeView(chainNodes(96, "router"), chainEdges(96));
+    const { container } = render(
+      withActive(
+        fakeActive({ scenarioId: "metro-backbone" }),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const nodeGroups = container.querySelectorAll('[data-testid^="bt-node-"]');
+    expect(nodeGroups.length).toBe(96);
+  });
+
+  it("renders SVG <line> edge elements for every link in a 96-node graph", () => {
+    const view = makeView(chainNodes(96, "router"), chainEdges(96));
+    const { container } = render(
+      withActive(
+        fakeActive({ scenarioId: "metro-backbone" }),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const edgeLines = container.querySelectorAll('[data-testid^="bt-edge-"]');
+    // chainEdges(96) produces 95 edges
+    expect(edgeLines.length).toBe(95);
+  });
+
+  it("uses the .blueprint-topology surface class (light drafting paper), not a black panel", () => {
+    const view = makeView(chainNodes(8), chainEdges(8));
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const root = container.querySelector(".blueprint-topology");
+    expect(root).not.toBeNull();
+    // Canvas wrap must be present with its own light surface class
+    expect(container.querySelector(".bt-canvas-wrap")).not.toBeNull();
+    // Make sure no dark `tg-panel` class is leaking into the blueprint root
+    expect(root!.classList.contains("tg-panel")).toBe(false);
+  });
+});
+
 describe("BlueprintTopologyCanvas — empty payload guard (V1BJ hotfix 2)", () => {
   it("renders explicit empty overlay when no nodes reach the canvas", () => {
     const view = makeView([], []);
