@@ -14,7 +14,14 @@ form of the underlying HardwarePrimitive. See sheet **2D-01**.
 | EDGE-RT  | Edge / WAN Router   | 2U appliance             |
 | SRV · VM | Server / Virtual    | virtual primitive        |
 | WAP      | Wireless AP         | compact wireless module  |
-| UNK      | Unknown             | generic fallback         |
+| UNK      | Unknown             | `unk1u` (generic 1U)     |
+
+The **UNK** family is a real profile (`unk1u` in
+`hardwareProfiles.ts`), not a placeholder. It renders a generic 1U
+chassis with a single `chassis` zone, an IDLE-state LED bank, and the
+text `UNKNOWN DEVICE · <provenance>` on its hostname plate. There is
+no silent substitution into another family's profile — see
+`role-to-glyph-to-primitive-map.md` rule 5.
 
 ## Composition rule
 

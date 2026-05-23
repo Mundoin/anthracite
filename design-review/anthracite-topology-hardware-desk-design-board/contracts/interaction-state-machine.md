@@ -57,19 +57,74 @@ states; four transitions. See sheet **IXN-01** for the visual storyboard.
   inspection viewport.
 - Stencil text: "ENTERING HARDWARE INSPECTION · <model> · <hostname>".
 
+**Lifecycle ordering — forward (FOCUSED → ORBIT):**
+
+```
+t=−ε  : resolve role → profileId via role-to-glyph-to-primitive-map
+        spin up Babylon engine + scene
+        call buildHardwareModel(scene, profile, mats) → BuiltModel
+        BuiltModel.root.setEnabled(false)
+t=0   : tween starts; SVG glyph at 1.0, Babylon canvas at 0.0
+t=80  : BuiltModel.root.setEnabled(true) (Babylon now drawing into hidden canvas)
+        SVG scales 1 → 2.4; Babylon canvas fades 0 → 1
+t=240 : SVG removed; Babylon owns the viewport (state = ORBIT)
+```
+
+The Babylon scene is built *before* the tween starts so the first
+visible Babylon frame is fully populated — no pop-in.
+
+**Lifecycle ordering — reverse (ORBIT|DETAIL → MAP):**
+
+```
+t=0   : reverse tween starts; Babylon canvas at 1.0, SVG glyph at 0.0
+t=200 : Babylon canvas fades 1 → 0; SVG glyph scales 2.4 → 1
+t=280 : tween ends; SVG owns the viewport (state = MAP)
+t=280+: scene.dispose(); engine.dispose(); BuiltModel discarded
+```
+
+Dispose **after** the reverse tween completes — never during. Tearing
+down the engine mid-fade produces a black flash. The 280 ms is the
+visual contract; disposal is bookkeeping that runs in the next frame.
+
 ### ORBIT (3D node)
 - Babylon scene. Primitive rendered with the same procedural rules as
   the 2D faceplate — no PBR, no textures. Hairlines only.
 - Camera orbit compass in top-right (cyan vector on ink ticks).
 - All PickableZones live; hover outlines them in 1 px cyan.
 
-### DETAIL (port / module / blade)
-- Port callout floats over the 3D scene (260 px, ink frame, 3 px cyan
+### DETAIL (port / module / blade / screen / label)
+- Callout floats over the 3D scene (260 px, ink frame, 3 px cyan
   top strip).
 - Highlight ring at the clicked zone (1.4 px cyan, r = 14 px).
 - Leader line connects the ring to the callout.
 - Card carries: pid, link state, speed, neighbour, last error, "Open
   in Diagnose ▸" cyan CTA.
+
+**Payload source — three inputs merged at click time:**
+
+```
+mesh.metadata.anthracite          → { modelId, kind, index }   // identity
+HardwareProfile.faceplate[index]  → static spec                // labels, port kind, layout
+topologyAdapter.live(modelId, …)  → live state                 // link, neighbour, errors, screen text
+```
+
+Per-zone payload composition:
+
+| zone kind | static spec from profile             | live data from adapter            |
+|-----------|--------------------------------------|------------------------------------|
+| `port`    | port kind (1g/10g/25g/40g/100g), idPrefix | link state, speed, neighbour, errors |
+| `bay`     | bay slot, cardKind capability        | populated card pid, state          |
+| `module`  | module slot                          | module pid, version, state         |
+| `blade`   | blade slot                           | blade pid, role, CPU, state        |
+| `psu`     | (none)                               | input voltage, draw, alarms        |
+| `fan`     | (none)                               | rpm, alarms                        |
+| `led`     | label (`SYS`, `FAN`, …)              | current colour state, last change  |
+| `screen`  | static line set from `faceplate.text` | live line replacement              |
+| `label`   | hostname plate text                   | resolved hostname + asset id       |
+| `chassis` | profile id, vendor, model, dims, U-count | mgmt IP, uptime, overall state    |
+
+The renderer never invents data. If the adapter has no live data for
+a zone, the callout shows the static spec plus "no live data".
 
 ## Non-states
 

@@ -6,32 +6,46 @@ canonical mapping between the three layers.
 
 ## Mapping
 
-| discovered role        | 2D glyph (NodeGlyphs key) | 3D primitive family |
-|------------------------|---------------------------|---------------------|
-| access switch          | access                    | 1U fixed switch     |
-| distribution switch    | distribution              | 1U / 2U switch      |
-| core router            | core                      | 4U modular chassis  |
-| firewall               | firewall                  | 2U appliance        |
-| edge / WAN router      | edge                      | 2U appliance        |
-| server / VM            | server                    | virtual primitive   |
-| wireless AP            | wap                       | compact wireless    |
-| unknown                | unknown                   | generic fallback    |
+Canonical role → glyph → kit `profileId`. This table is the single
+source of truth — the kit's `topology-selection-to-model-map.md`
+mirrors it. Changes here propagate to the kit.
+
+| discovered role            | family code | 2D glyph (NodeGlyphs key) | kit `profileId` (default)  | alternates (by form factor)    |
+|----------------------------|-------------|---------------------------|----------------------------|---------------------------------|
+| access switch              | ACC-SW      | access                    | `access24`                 | `access48`, `leaf32q`           |
+| distribution switch        | DIST-SW     | distribution              | `dist2u`                   | —                               |
+| core router                | CORE-RT     | core                      | `core4u_rt`                | `core4u_sw` (core switch)       |
+| firewall                   | FW          | firewall                  | `fw1u`                     | `fw2u_ha`, `fw_dc`, `fw_branch`, `vfirewall` |
+| edge / WAN router          | EDGE-RT     | edge                      | `edge1u`                   | `branch2u`, `wancore2u`, `vrouter` |
+| server / VM                | SRV · VM    | server                    | `server1u`                 | `blade10u` (blade chassis)      |
+| wireless AP                | WAP         | wap                       | `wap`                      | —                               |
+| unknown                    | UNK         | unknown                   | `unk1u`                    | — (no silent fallback)          |
+
+Two kit families have no glyph because they only appear inside another
+device's inspection view, never on the map:
+
+| kit `profileId` | role             | where it surfaces                          |
+|-----------------|------------------|--------------------------------------------|
+| `sfp_module`    | optic module     | DETAIL callout on a port zone              |
+| `patch1u`       | passive panel    | rack view (out of v1 scope) — not on map   |
 
 ## Rules
 
-1. **Every role MUST resolve.** Unknown roles fall through to `unknown` →
-   generic fallback primitive. No null glyphs, no blank tiles on the map.
-2. **Resolution is deterministic.** Same role + same HardwarePrimitive →
-   same glyph + same primitive, forever.
+1. **Every role MUST resolve.** Unknown roles fall through to the `UNK`
+   family → `unknown` glyph → `unk1u` profile. No null glyphs, no blank
+   tiles, no silent substitution into another family's profile.
+2. **Resolution is deterministic.** Same role + same form factor → same
+   glyph + same `profileId`, forever.
 3. **The mapping is one-way.** Glyphs do not infer roles. If the
    discovery layer is wrong, fix discovery — do not patch in the renderer.
-4. **Virtual flag is orthogonal.** `virtual: true` modifies the *render*
-   (dashed strokes) but not the family selection. A virtualised firewall
-   is still glyph: firewall, family: 2U appliance, virtual: true.
-5. **Hardware fallback is advisory.** The map shows the glyph; the
-   inspection view shows the primitive. If hardware data is missing,
-   the inspection view renders the fallback family with empty bays /
-   greyed faceplate, not a dialog.
+4. **Virtual flag picks the glass variant.** A virtualised router
+   resolves to `vrouter`; a virtualised firewall to `vfirewall`. The
+   glyph stays the same (edge / firewall); only the kit profile changes.
+5. **No silent fallback to a real device.** If classification fails,
+   the resolver returns `unk1u`. Substituting `access24` (or any other
+   real profile) for an unknown device is a contract violation — the
+   operator must see "UNKNOWN" in the inspection viewport, not a
+   plausible-looking access switch.
 
 ## Provenance tagging
 

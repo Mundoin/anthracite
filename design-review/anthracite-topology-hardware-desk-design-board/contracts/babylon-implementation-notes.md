@@ -32,30 +32,50 @@ A second wireframe pass renders the hairlines as line meshes (1 px) using
 
 ## Stable mesh IDs
 
-Every PickableZone produces exactly one mesh. Mesh `id` MUST follow:
+Every PickableZone produces exactly one mesh. Mesh `id` MUST follow
+the kit-canonical rule (ratified 2026-05-23, see
+`anthracite-topology-hardware-model-kit-v0/contracts/pickable-zone-id-contract.md`):
 
 ```
-<family>.<role>.<n>
+<modelId>.<zoneKind>.<index>
 ```
 
 Examples:
 
 ```
-1u.port.17
-1u.led.3
-4u.blade.2
-2u.psu.1
-virtual.chassis.0
+access48.port.17
+access48.led.3
+core4u_rt.blade.2
+fw2u_ha.psu.1
+vrouter.chassis.0
+sfp_module.port.2000
+unk1u.chassis.0
 ```
 
 Where:
-- `family` ∈ { 1u, 2u, 4u, blade, virtual, module }
-- `role`   ∈ pickable zone kind (chassis|port|bay|module|led|psu|fan|blade)
-- `n`      = zero-based index within the family + role
+- `modelId`  = `HardwareProfile.id` from `hardwareProfiles.ts`
+              (`access24`, `core4u_rt`, `fw2u_ha`, `vrouter`, `unk1u`, …)
+- `zoneKind` ∈ the closed taxonomy (chassis | port | bay | module | led | psu | fan | blade | screen | label)
+- `index`    = zero-based index within the (modelId, zoneKind) pair
+
+**Port index ranges** (single `port` zoneKind, ranges keep types
+distinguishable):
+- RJ45: 0 … N − 1
+- SFP:  1000 … 1000 + N − 1
+- QSFP: 2000 … 2000 + N − 1
 
 **IDs are stable across reloads, restarts, hot reloads, and Tauri
 window recreations.** OCC may rely on them as event keys, undo-stack
 keys, and selection-restore keys. Renaming requires a contract revision.
+
+Mesh metadata mirrors the id structurally:
+
+```ts
+mesh.metadata.anthracite = { modelId: string, kind: ZoneKind, index: number }
+```
+
+Use `window.AnthraciteZones.readZone(mesh)` to read; never parse the
+id string in product code.
 
 ## Picking
 

@@ -340,6 +340,21 @@ const SupportProfiles: HardwareProfile[] = [
       portGridRJ45(60, 14, 12, 2, 'lc'),
     ],
   },
+  // UNK fallback — resolved when topology classification fails. Generic 1U
+  // chassis, idle LEDs, hostname plate stamps "UNKNOWN DEVICE". No silent
+  // substitution into a real device's profile. See
+  // contracts/topology-selection-to-model-map.md rule 3.
+  {
+    id: 'unk1u', family: 'support', name: 'Unknown Device · generic 1U fallback',
+    dims: { w: W19, h: U, d: 280 }, rackUnits: 1, finish: 'lightMetal',
+    vendor: 'ANTHRACITE', model: 'AXU-UNK',
+    faceplate: [
+      { kind: 'label', x: 8, y: 6, text: 'UNKNOWN DEVICE  ·  unclassified', vendorPlate: true },
+      ledBank(8, 18, ['SYS','UNK','UNK','UNK']),
+      // single hostname plate zone (pickable label) — OCC overwrites text at runtime
+      { kind: 'label', x: 80, y: 16, text: 'hostname: unknown', size: 4 },
+    ],
+  },
 ];
 
 // ── master export ────────────────────────────────────────────────────────────

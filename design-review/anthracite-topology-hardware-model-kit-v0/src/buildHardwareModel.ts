@@ -159,7 +159,10 @@ function buildItem(
       screen.position.x = mapX(item.x, item.w);
       screen.position.y = mapY(item.y, item.h);
       screen.position.z = faceZ + 0.001;
-      tag(screen, 'screen', 0);
+      // dense per-profile screen index (count existing screen zones)
+      let screenIdx = 0;
+      for (const v of zoneMap.values()) if (v.kind === 'screen') screenIdx++;
+      tag(screen, 'screen', screenIdx);
       // recessed dark frame behind the screen
       const frame = BABYLON.MeshBuilder.CreateBox(`screen.${item.idPrefix}.frame`, {
         width: (item.w + 2) * MM, height: (item.h + 2) * MM, depth: 0.004,
@@ -260,7 +263,10 @@ function buildItem(
       break;
     }
     case 'label': {
-      // vendor plate — type rendered as a small flat plane
+      // type rendered as a small flat plane
+      // vendorPlate items = decorative vendor strip, not pickable (per
+      // desk pickable-zone-taxonomy rule 7). All other labels = hostname
+      // / asset placards, pickable as `label` zones.
       const labelW = Math.min(item.text.length * 2.8, profile.dims.w - 12);
       const labelH = Math.max(item.size || 4, 4);
       const plane = textPlane(scene, `label.${item.x}.${item.y}`,
@@ -271,7 +277,14 @@ function buildItem(
       plane.position.x = mapX(item.x, labelW);
       plane.position.y = mapY(item.y, labelH);
       plane.position.z = faceZ + 0.0005;
-      plane.isPickable = false;
+      if (item.vendorPlate) {
+        plane.isPickable = false;
+      } else {
+        // dense per-profile label index
+        let labelIdx = 0;
+        for (const v of zoneMap.values()) if (v.kind === 'label') labelIdx++;
+        tag(plane, 'label', labelIdx);
+      }
       break;
     }
     case 'ventStrip': {

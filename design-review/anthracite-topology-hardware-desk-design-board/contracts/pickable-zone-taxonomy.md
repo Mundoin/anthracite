@@ -6,16 +6,18 @@ no anonymous mesh hits.
 
 ## Zone kinds
 
-| kind     | what it is                          | typical action            |
-|----------|-------------------------------------|---------------------------|
-| chassis  | the body of the device              | select device · open card |
-| port     | a single RJ45 / SFP / QSFP slot     | open port detail callout  |
-| bay      | a module bay (populated or empty)   | insert / inspect module   |
-| module   | a populated module inside a bay     | open module detail        |
-| led      | a single status LED                 | tooltip · history         |
-| psu      | a power supply unit                 | open PSU panel            |
-| fan      | a fan tray or single fan            | open fan panel            |
-| blade    | a single blade in a blade chassis   | open blade detail         |
+| kind     | what it is                                       | typical action            |
+|----------|--------------------------------------------------|---------------------------|
+| chassis  | the body of the device                           | select device · open card |
+| port     | a single RJ45 / SFP / QSFP slot                  | open port detail callout  |
+| bay      | a module bay (populated or empty)                | insert / inspect module   |
+| module   | a populated module inside a bay                  | open module detail        |
+| led      | a single status LED                              | tooltip · history         |
+| psu      | a power supply unit                              | open PSU panel            |
+| fan      | a fan tray or single fan                         | open fan panel            |
+| blade    | a single blade in a blade chassis                | open blade detail         |
+| screen   | LCD / OLED / appliance display block             | open screen detail · live readout |
+| label    | hostname plate or vendor/asset placard           | copy hostname · open asset card |
 
 ## Rules
 
@@ -25,7 +27,16 @@ no anonymous mesh hits.
    ticks, construction lines — all `isPickable = false`.
 3. **Zone rectangles do not overlap** within a single primitive. A
    pointer event resolves to exactly one zone.
-4. **`kind` is closed.** No new zone kinds without a contract revision.
+4. **`kind` is closed** (10 kinds — last revised 2026-05-23 to promote
+   `screen` and `label` from decoration to first-class zones). No new
+   zone kinds without a contract revision.
+6. **`screen` zones** carry the live text payload from
+   `HardwareProfile.faceplate[*].text`. Click opens a detail card with
+   the same lines plus history; LCD/OLED appliance screens, supervisor
+   readouts, and fabric panels all use this kind.
+7. **`label` zones** are reserved for hostname plates and asset
+   placards. Decorative vendor strips, regulatory text, and dimensional
+   ticks remain `isPickable = false` and have no zone.
 5. **Hover state** must be consistent across kinds: 1 px cyan outline on
    the zone, no fill change, no lift. The card on the right is the
    payload, not the hover effect.

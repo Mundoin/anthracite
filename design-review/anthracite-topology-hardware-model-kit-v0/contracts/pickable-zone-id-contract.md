@@ -20,8 +20,21 @@ Every clickable mesh in the kit carries an ID following this rule:
 chassis   port   bay   module   led   psu   fan   blade   screen   label
 ```
 
-`label` is reserved for future use; v0 marks all labels as
-`isPickable = false`.
+Taxonomy parity with the design board:
+`anthracite-topology-hardware-desk-design-board/contracts/pickable-zone-taxonomy.md`.
+Both packages share the same 10 kinds; ratified 2026-05-23.
+
+**`screen` zones** carry the live text payload from
+`faceplate[*].text`. LCD/OLED appliance screens, supervisor readouts,
+fabric panels — all pickable, all surface a DETAIL callout that shows
+the static lines plus any live replacement from the topology adapter.
+
+**`label` zones** are reserved for hostname plates and asset
+placards — i.e. `faceplate.label` items whose text encodes the
+device's identity (`hostname-01`, `asset-12345`, vendor + model). v0
+emits these as pickable; click opens an asset card. Decorative vendor
+strips, regulatory text, dimensional ticks, and `vendorPlate: true`
+items remain `isPickable = false` and have no zone.
 
 ## Examples
 

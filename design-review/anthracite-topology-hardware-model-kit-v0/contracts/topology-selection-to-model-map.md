@@ -25,7 +25,7 @@ inspection viewport. This file is the canonical mapping.
 | WAP                                | wireless ap    | wap                        |
 | (port detail)                      | optic module   | sfp_module                 |
 | (passive)                          | patch panel    | patch1u                    |
-| UNK                                | unknown        | (fallback) access24        |
+| UNK                                | unknown        | `unk1u`                    |
 
 ## Resolution rules
 
@@ -36,10 +36,12 @@ inspection viewport. This file is the canonical mapping.
    resolver picks the smallest profile that fits the device's port
    manifest. The resolver implementation is OCC's; this file specifies
    only the allowed mapping target.
-3. **Unknown devices** fall back to `access24` so the operator gets
-   *something* to inspect even when classification fails. The `unknown`
-   glyph still marks the node on the map; the 3D viewport's model is
-   the fallback.
+3. **Unknown devices** resolve to `unk1u` — a real profile with a
+   generic 1U chassis, idle LED bank, and the text "UNKNOWN DEVICE ·
+   <provenance>" on its hostname plate. No silent fallback into a
+   real device's profile (no `access24` substitution). The operator
+   must always see "UNKNOWN" in the inspection viewport; never a
+   plausible-looking access switch. Ratified 2026-05-23.
 4. **Virtual devices** (`HardwarePrimitive.virtual === true`) MUST
    resolve to the `vrouter` / `vfirewall` glass-finish profiles —
    never to a metal chassis, even if the discovered ports match.
