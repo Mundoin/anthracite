@@ -1,25 +1,50 @@
 /**
- * V1BI — Inspection lock marks.
+ * V1BI + V1BJ — Inspection lock marks.
  *
  * Cyan radial reticles + corner lock brackets that fire during the
  * 240 ms forward tween and the 280 ms reverse tween. Pure SVG, no
  * Babylon, no runtime deps — drops into the receiver as an overlay
  * layer that pointer-events: none.
+ *
+ * V1BJ — accepts an optional `anchor` rect + `viewport` size so the
+ * reticle + sweep originate from the selected glyph's screen position
+ * instead of viewport centre. Falls back to centre when no anchor is
+ * supplied.
  */
 
-import type { JSX } from "react";
+import type { CSSProperties, JSX } from "react";
+
+import type { AnchorRect } from "../blueprint/hardwarePassport";
 
 export type LockMarksPhase = "map" | "entering" | "scene" | "exiting";
 
 export interface InspectionLockMarksProps {
   readonly phase: LockMarksPhase;
+  readonly anchor?: AnchorRect;
+  readonly viewport?: { readonly w: number; readonly h: number };
 }
 
 const RETICLE_R = 28;
 const RETICLE_TICK = 8;
 
+function anchorOriginPct(
+  anchor: AnchorRect | undefined,
+  viewport: InspectionLockMarksProps["viewport"],
+): { xPct: number; yPct: number; anchored: boolean } {
+  if (!anchor || !viewport || viewport.w <= 0 || viewport.h <= 0) {
+    return { xPct: 50, yPct: 50, anchored: false };
+  }
+  const cx = anchor.x + anchor.w / 2;
+  const cy = anchor.y + anchor.h / 2;
+  const xPct = Math.max(0, Math.min(100, (cx / viewport.w) * 100));
+  const yPct = Math.max(0, Math.min(100, (cy / viewport.h) * 100));
+  return { xPct, yPct, anchored: true };
+}
+
 export function InspectionLockMarks({
   phase,
+  anchor,
+  viewport,
 }: InspectionLockMarksProps): JSX.Element | null {
   if (phase === "map") return null;
 
@@ -30,12 +55,20 @@ export function InspectionLockMarks({
         ? "settled"
         : "release";
 
+  const { xPct, yPct, anchored } = anchorOriginPct(anchor, viewport);
+  const style: CSSProperties & Record<string, string> = {
+    "--ilm-anchor-x": `${xPct}%`,
+    "--ilm-anchor-y": `${yPct}%`,
+  };
+
   return (
     <div
       className="inspection-lock-marks"
       data-testid="inspection-lock-marks"
       data-stage={stage}
+      data-anchored={anchored ? "true" : "false"}
       aria-hidden="true"
+      style={style}
     >
       <svg
         className="ilm-svg"
@@ -55,11 +88,9 @@ export function InspectionLockMarks({
         <g className="ilm-corner ilm-corner--br">
           <path d="M 96 84 L 96 96 L 84 96" />
         </g>
-
-        {/* central stencil text strip — rendered via overlay element */}
       </svg>
 
-      {/* central reticle — fixed-size SVG centred via CSS */}
+      {/* central reticle — fixed-size SVG positioned at the anchor */}
       <svg
         className="ilm-reticle"
         viewBox={`-${RETICLE_R + 8} -${RETICLE_R + 8} ${(RETICLE_R + 8) * 2} ${(RETICLE_R + 8) * 2}`}

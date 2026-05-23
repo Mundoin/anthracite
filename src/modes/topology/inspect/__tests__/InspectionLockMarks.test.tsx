@@ -40,6 +40,36 @@ describe("InspectionLockMarks", () => {
     expect(overlay).toHaveAttribute("data-stage", "settled");
   });
 
+  it("anchor + viewport produce data-anchored='true' with CSS percent vars", () => {
+    const { container } = render(
+      <InspectionLockMarks
+        phase="entering"
+        anchor={{ x: 300, y: 150, w: 80, h: 30 }}
+        viewport={{ w: 600, h: 300 }}
+      />,
+    );
+    const el = container.querySelector(
+      "[data-testid='inspection-lock-marks']",
+    ) as HTMLElement | null;
+    expect(el).not.toBeNull();
+    expect(el!.getAttribute("data-anchored")).toBe("true");
+    // centre of anchor is 340,165 → 56.66% / 55% of viewport
+    const styleAttr = el!.getAttribute("style") ?? "";
+    expect(styleAttr).toMatch(/--ilm-anchor-x:\s*56\.\d+%/);
+    expect(styleAttr).toMatch(/--ilm-anchor-y:\s*55(\.\d+)?%/);
+  });
+
+  it("falls back to centre when no anchor is supplied", () => {
+    const { container } = render(<InspectionLockMarks phase="entering" />);
+    const el = container.querySelector(
+      "[data-testid='inspection-lock-marks']",
+    ) as HTMLElement | null;
+    expect(el!.getAttribute("data-anchored")).toBe("false");
+    const styleAttr = el!.getAttribute("style") ?? "";
+    expect(styleAttr).toMatch(/--ilm-anchor-x:\s*50%/);
+    expect(styleAttr).toMatch(/--ilm-anchor-y:\s*50%/);
+  });
+
   it("file contains no @babylonjs/core import", () => {
     const src = readFileSync(
       resolve(__dirname, "../InspectionLockMarks.tsx"),

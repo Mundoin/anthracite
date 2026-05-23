@@ -184,7 +184,9 @@ export function passportOrUnknown(profileId: string): HardwarePassport {
  * Intent payload emitted when the operator asks to inspect the
  * hardware behind a selected topology node. Stage V1BG keeps this
  * inside the Blueprint canvas; V1BH wires the receiver that swaps the
- * canvas for the 3D `HardwareKitPreview`.
+ * canvas for the 3D `HardwareKitPreview`. V1BJ adds an optional
+ * `anchor`/`viewport` pair so the receiver can originate the
+ * transition reticle from the selected node's screen position.
  */
 export interface HardwareInspectIntent {
   readonly source: "blueprint";
@@ -198,4 +200,20 @@ export interface HardwareInspectIntent {
   readonly trigger: "cta" | "doubleclick";
   /** Hostname / display label at the time of the intent. */
   readonly label: string;
+  /**
+   * Screen rect of the selected glyph at intent dispatch time,
+   * measured in pixels relative to the inspect receiver's overlay
+   * (which contains both the Blueprint canvas and the inspect scene).
+   * Optional — when absent the receiver falls back to viewport centre.
+   */
+  readonly anchor?: AnchorRect;
+  /** Viewport size of the receiver overlay at intent dispatch. */
+  readonly viewport?: { readonly w: number; readonly h: number };
+}
+
+export interface AnchorRect {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
 }

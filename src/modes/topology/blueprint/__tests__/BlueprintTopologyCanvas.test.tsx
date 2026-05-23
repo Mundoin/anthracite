@@ -265,16 +265,15 @@ describe("BlueprintTopologyCanvas — inspect bridge (V1BG)", () => {
     );
     fireEvent.click(screen.getByTestId("bt-node-sw-01"));
     fireEvent.click(screen.getByTestId("bt-inspect-cta"));
-    expect(intents).toEqual([
-      {
-        source: "blueprint",
-        nodeId: "sw-01",
-        profileId: "access24",
-        family: "ACC-SW",
-        trigger: "cta",
-        label: "sw-01",
-      },
-    ]);
+    expect(intents).toHaveLength(1);
+    expect(intents[0]).toMatchObject({
+      source: "blueprint",
+      nodeId: "sw-01",
+      profileId: "access24",
+      family: "ACC-SW",
+      trigger: "cta",
+      label: "sw-01",
+    });
   });
 
   it("double-click on a node fires intent with trigger='doubleclick'", () => {

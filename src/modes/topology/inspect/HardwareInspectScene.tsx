@@ -41,6 +41,7 @@ import {
   type ZoneTag,
 } from "../../../topology/hardware";
 import type { HardwareInspectIntent } from "../blueprint/hardwarePassport";
+import { placeCallout } from "./calloutPlacement";
 
 import "./HardwareInspectScene.css";
 
@@ -61,6 +62,10 @@ interface CalloutAnchor {
   /** Position relative to the canvas wrap, in pixels. */
   x: number;
   y: number;
+  /** Wrap size captured at click time so callout placement is
+   *  deterministic without an extra ResizeObserver. */
+  wrapW: number;
+  wrapH: number;
 }
 
 function framingRadius(profile: HardwareProfile): number {
@@ -173,6 +178,8 @@ export function HardwareInspectScene({
         setCalloutAnchor({
           x: pe.clientX - rect.left,
           y: pe.clientY - rect.top,
+          wrapW: rect.width,
+          wrapH: rect.height,
         });
       }
       setPickedZone(zone);
@@ -311,72 +318,90 @@ interface PickCalloutProps {
 }
 
 const CALLOUT_W = 240;
-const CALLOUT_OFFSET = 36;
+const CALLOUT_H_EST = 140; // rows + strip + paddings; refined via measurement is overkill at v0
 
 function PickCallout({ anchor, zone, profileId }: PickCalloutProps): JSX.Element {
-  // place callout up-and-right of the pick by default; the wrap clips
-  // overflow so even off-screen anchors collapse gracefully.
-  const left = Math.max(8, anchor.x + CALLOUT_OFFSET);
-  const top = Math.max(8, anchor.y - CALLOUT_OFFSET - 64);
+  const placement = placeCallout(
+    { x: anchor.x, y: anchor.y },
+    { w: CALLOUT_W, h: CALLOUT_H_EST },
+    { w: anchor.wrapW, h: anchor.wrapH },
+  );
 
-  // leader line — two-segment path from anchor up to callout top
-  // (using inline SVG so it composes with the wrap's overflow rules)
-  const leaderHeight = Math.max(0, anchor.y - top);
+  // Leader: line from pick to the attach point on the card corner.
+  // SVG covers the bbox between pick and attach point.
+  const leftMin = Math.min(placement.pickX, placement.leaderAttachX);
+  const topMin = Math.min(placement.pickY, placement.leaderAttachY);
+  const leaderW = Math.max(8, Math.abs(placement.pickX - placement.leaderAttachX) + 8);
+  const leaderH = Math.max(8, Math.abs(placement.pickY - placement.leaderAttachY) + 8);
+  const pxLocal = placement.pickX - leftMin;
+  const pyLocal = placement.pickY - topMin;
+  const ax = placement.leaderAttachX - leftMin;
+  const ay = placement.leaderAttachY - topMin;
 
   return (
-    <div
-      className="his-callout"
-      data-testid="his-callout"
-      style={{ left, top, width: CALLOUT_W }}
-    >
+    <>
       <svg
         className="his-callout-leader"
         style={{
-          left: anchor.x - left,
-          top: -leaderHeight + (top + 0),
-          // anchor leader from callout top-left
-          width: Math.max(4, Math.abs(anchor.x - left) + 4),
-          height: leaderHeight + 4,
+          position: "absolute",
+          left: leftMin,
+          top: topMin,
+          width: leaderW,
+          height: leaderH,
+          overflow: "visible",
+          pointerEvents: "none",
+          zIndex: 3,
         }}
         aria-hidden="true"
       >
         <circle
-          cx={anchor.x - left}
-          cy={leaderHeight}
+          cx={pxLocal}
+          cy={pyLocal}
           r={6}
           className="his-callout-ring"
         />
         <line
-          x1={anchor.x - left}
-          y1={leaderHeight - 6}
-          x2={0}
-          y2={0}
+          x1={pxLocal}
+          y1={pyLocal}
+          x2={ax}
+          y2={ay}
           className="his-callout-line"
         />
       </svg>
 
-      <div className="his-callout-strip" data-testid="his-callout-strip" />
-      <div className="his-callout-id" data-testid="his-callout-id">
-        {zone.modelId}.{zone.kind}.{zone.index}
-      </div>
-      <div className="his-callout-row">
-        <span>zone kind</span>
-        <strong>{zone.kind}</strong>
-      </div>
-      <div className="his-callout-row">
-        <span>index</span>
-        <strong>{zone.index}</strong>
-      </div>
-      {zone.kind === "port" && (
-        <div className="his-callout-row">
-          <span>port type</span>
-          <strong>{portTypeFor(zone.index)}</strong>
+      <div
+        className="his-callout"
+        data-testid="his-callout"
+        data-side={placement.side}
+        style={{
+          left: placement.cardLeft,
+          top: placement.cardTop,
+          width: CALLOUT_W,
+        }}
+      >
+        <div className="his-callout-strip" data-testid="his-callout-strip" />
+        <div className="his-callout-id" data-testid="his-callout-id">
+          {zone.modelId}.{zone.kind}.{zone.index}
         </div>
-      )}
-      <div className="his-callout-row his-callout-row--meta">
-        <span>profile</span>
-        <strong>{profileId}</strong>
+        <div className="his-callout-row">
+          <span>zone kind</span>
+          <strong>{zone.kind}</strong>
+        </div>
+        <div className="his-callout-row">
+          <span>index</span>
+          <strong>{zone.index}</strong>
+        </div>
+        {zone.kind === "port" && (
+          <div className="his-callout-row">
+            <span>port type</span>
+            <strong>{portTypeFor(zone.index)}</strong>
+          </div>
+        )}
+        <div className="his-callout-row his-callout-row--meta">
+          <span>profile</span>
+          <strong>{profileId}</strong>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

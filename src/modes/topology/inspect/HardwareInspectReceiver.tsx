@@ -140,30 +140,23 @@ export function HardwareInspectReceiver({
         </div>
       )}
 
-      <InspectionLockMarks phase={phase} />
+      <InspectionLockMarks
+        phase={phase}
+        anchor={intent?.anchor}
+        viewport={intent?.viewport}
+      />
     </div>
   );
 }
 
 function SceneFallback(): ReactNode {
+  // V1BJ — choreographed loading state: drafting grid backdrop,
+  // cyan accent strip, mono caps stencil. Reads as "loading
+  // intentionally", not "broken".
   return (
-    <div
-      className="hir-fallback"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-        height: "100%",
-        background: "#E6EDF1",
-        color: "#557082",
-        fontFamily: "Cascadia Mono, Consolas, monospace",
-        fontSize: 12,
-        letterSpacing: "0.12em",
-        textTransform: "uppercase",
-      }}
-    >
-      loading hardware scene…
+    <div className="hir-fallback" data-testid="hir-fallback">
+      <div className="hir-fallback-strip" />
+      <div className="hir-fallback-stencil">loading hardware scene…</div>
     </div>
   );
 }

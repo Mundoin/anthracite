@@ -37,6 +37,54 @@
   pointer-events: none;
 }
 
+/* ── V1BJ Suspense fallback ────────────────────────────────────────
+ * Drafting backdrop + cyan top strip + mono caps stencil.
+ */
+
+.hir-fallback {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(rgba(14, 30, 44, 0.04) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, rgba(14, 30, 44, 0.04) 1px, transparent 1px) 0 0 / 32px 32px,
+    #E6EDF1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hir-fallback-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    #0E72A0 0%,
+    #074C6E 40%,
+    transparent 100%
+  );
+}
+
+.hir-fallback-stencil {
+  padding: 6px 16px;
+  background: #FAFCFD;
+  border: 1px solid #0E72A0;
+  color: #074C6E;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  animation: hir-fallback-pulse 1400ms ease-in-out infinite;
+}
+
+@keyframes hir-fallback-pulse {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 1.0;  }
+}
+
 /* ── V1BI lock marks ────────────────────────────────────────────────
  * Overlay that fires during transition + scene phases. Pointer-events
  * are disabled so picks pass through to the Babylon canvas underneath.
@@ -104,13 +152,21 @@
 }
 
 .ilm-reticle {
+  /* V1BJ — anchor variables default to centre if not provided */
+  --ilm-anchor-x: 50%;
+  --ilm-anchor-y: 50%;
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: var(--ilm-anchor-y, 50%);
+  left: var(--ilm-anchor-x, 50%);
   width: 96px;
   height: 96px;
   transform: translate(-50%, -50%);
   overflow: visible;
+}
+
+.inspection-lock-marks .ilm-reticle {
+  top: var(--ilm-anchor-y, 50%);
+  left: var(--ilm-anchor-x, 50%);
 }
 
 .ilm-reticle-ring {
@@ -138,8 +194,8 @@
 
 .ilm-stencil {
   position: absolute;
-  left: 50%;
-  top: calc(50% + 64px);
+  left: var(--ilm-anchor-x, 50%);
+  top: calc(var(--ilm-anchor-y, 50%) + 64px);
   transform: translateX(-50%);
   padding: 4px 10px;
   background: var(--ilm-paper);
@@ -152,7 +208,11 @@
   white-space: nowrap;
 }
 
-/* sweep — thin cyan line that travels left → right during lock */
+/* sweep — thin cyan line that travels through the anchor X column.
+ * V1BJ: when an anchor is supplied, the sweep starts at the anchor
+ * and fans outward over the 240ms; when no anchor, it sweeps the
+ * full width left → right.
+ */
 .inspection-lock-marks[data-stage="lock"]::after,
 .inspection-lock-marks[data-stage="release"]::after {
   content: "";
@@ -171,6 +231,13 @@
   animation: ilm-sweep 240ms ease-out forwards;
 }
 
+/* Anchored sweep originates at the anchor column then fans out to
+ * the viewport edge. Centre fallback keeps the original full sweep. */
+.inspection-lock-marks[data-anchored="true"][data-stage="lock"]::after,
+.inspection-lock-marks[data-anchored="true"][data-stage="release"]::after {
+  animation-name: ilm-sweep-from-anchor;
+}
+
 .inspection-lock-marks[data-stage="release"]::after {
   animation-duration: 280ms;
   animation-direction: reverse;
@@ -180,4 +247,10 @@
   0%   { left: -2px;  opacity: 0; }
   20%  { opacity: 1; }
   100% { left: 100%; opacity: 0; }
+}
+
+@keyframes ilm-sweep-from-anchor {
+  0%   { left: var(--ilm-anchor-x, 50%); opacity: 0; width: 2px; }
+  25%  { opacity: 1; width: 2px; }
+  100% { left: var(--ilm-anchor-x, 50%); opacity: 0; width: 100%; transform: translateX(-50%); }
 }

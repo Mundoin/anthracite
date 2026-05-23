@@ -10,7 +10,15 @@
  * the desk design-board's density-and-zoom-rules.
  */
 
-import { useCallback, useContext, useEffect, useMemo, useState, type JSX } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type JSX,
+} from "react";
 
 import { EnvironmentLifecycleContext } from "../../../state/EnvironmentLifecycleContext";
 import type {
@@ -336,6 +344,8 @@ export function BlueprintTopologyCanvas({
     setSelectedId(null);
   }, []);
 
+  const rootRef = useRef<HTMLElement | null>(null);
+
   const dispatchInspect = useCallback(
     (nodeId: string, trigger: HardwareInspectIntent["trigger"]): void => {
       const target = layoutById.get(nodeId);
@@ -344,6 +354,32 @@ export function BlueprintTopologyCanvas({
         (target.node.role_hint || "").toLowerCase().includes("virtual") ||
         (target.node.role_hint || "").toLowerCase().includes("vm");
       const profileId = defaultProfileIdFor(target.family, { virtual: isVirtual });
+
+      // V1BJ — capture the selected glyph's screen rect relative to
+      // the inspect receiver overlay (or Blueprint root as fallback).
+      // The receiver uses this to originate the transition reticle
+      // from the actual node instead of screen centre.
+      const root = rootRef.current;
+      const nodeEl = root?.querySelector<SVGGraphicsElement>(
+        `[data-testid="bt-node-${nodeId}"]`,
+      );
+      const overlayEl =
+        (root?.closest(".hardware-inspect-receiver") as HTMLElement | null) ??
+        root;
+      let anchor: HardwareInspectIntent["anchor"];
+      let viewport: HardwareInspectIntent["viewport"];
+      if (nodeEl && overlayEl) {
+        const nr = nodeEl.getBoundingClientRect();
+        const or = overlayEl.getBoundingClientRect();
+        anchor = {
+          x: nr.left - or.left,
+          y: nr.top - or.top,
+          w: nr.width,
+          h: nr.height,
+        };
+        viewport = { w: or.width, h: or.height };
+      }
+
       const intent: HardwareInspectIntent = {
         source: "blueprint",
         nodeId,
@@ -351,6 +387,8 @@ export function BlueprintTopologyCanvas({
         family: target.family,
         trigger,
         label: target.node.label,
+        anchor,
+        viewport,
       };
       if (onInspect) {
         onInspect(intent);
@@ -408,6 +446,7 @@ export function BlueprintTopologyCanvas({
 
   return (
     <section
+      ref={rootRef}
       className="blueprint-topology"
       data-testid="blueprint-topology"
       data-density={band}
