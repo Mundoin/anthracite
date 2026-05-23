@@ -307,6 +307,32 @@ describe("BlueprintTopologyCanvas — inspect bridge (V1BG)", () => {
   });
 });
 
+describe("BlueprintTopologyCanvas — empty payload guard (V1BJ hotfix 2)", () => {
+  it("renders explicit empty overlay when no nodes reach the canvas", () => {
+    const view = makeView([], []);
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(screen.getByTestId("bt-empty-overlay")).toHaveTextContent(
+      /simulated graph payload is empty/i,
+    );
+  });
+
+  it("does not render the empty overlay when nodes are present", () => {
+    const view = makeView(chainNodes(3), chainEdges(3));
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(screen.queryByTestId("bt-empty-overlay")).toBeNull();
+  });
+});
+
 describe("BlueprintTopologyCanvas — density at scenario boundaries", () => {
   it("renders the 3-node scenario at full density with labels", () => {
     const view = makeView(chainNodes(3, "switch"), chainEdges(3));

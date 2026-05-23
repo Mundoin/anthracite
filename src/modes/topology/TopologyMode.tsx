@@ -1253,25 +1253,51 @@ export function TopologyMode({
     [envLifecycle],
   );
 
+  // V1BJ hotfix 2 — when the lab projection wins, the summary strip
+  // must reflect lab counts instead of the (empty) imported view.
+  const labWinsRouting =
+    labView !== null &&
+    (topology.sourceState === "empty" ||
+      topology.sourceState === "not_connected" ||
+      topology.sourceState === "unavailable");
+  const labNodeCount = labView?.nodes.length ?? 0;
+  const labEdgeCount = labView?.edges.length ?? 0;
+
   const renderGraphMap = (): ReactNode => (
     <>
       <div className="tm-source-row">
-        <DataSourceTag state={topology.sourceState} />
+        <DataSourceTag
+          state={labWinsRouting ? "real" : topology.sourceState}
+        />
       </div>
       <section className="tm-summary" data-testid="tm-summary">
         <span className="tm-summary-cell">
           <span className="tm-summary-label">Nodes</span>
-          <span className="tm-summary-value">{topology.nodeCount}</span>
+          <span className="tm-summary-value" data-testid="tm-summary-nodes">
+            {labWinsRouting ? labNodeCount : topology.nodeCount}
+          </span>
         </span>
         <span className="tm-summary-cell">
           <span className="tm-summary-label">Edges</span>
-          <span className="tm-summary-value">{topology.edgeCount}</span>
+          <span className="tm-summary-value" data-testid="tm-summary-edges">
+            {labWinsRouting ? labEdgeCount : topology.edgeCount}
+          </span>
         </span>
         <span className="tm-summary-cell">
-          <span className="tm-summary-label">Source records</span>
-          <span className="tm-summary-value">{topology.sourceRecordCount}</span>
+          <span className="tm-summary-label">
+            {labWinsRouting ? "Source" : "Source records"}
+          </span>
+          <span className="tm-summary-value" data-testid="tm-summary-source">
+            {labWinsRouting
+              ? "generated-lab"
+              : topology.sourceRecordCount}
+          </span>
         </span>
-        <span className="tm-summary-message">{topology.message}</span>
+        <span className="tm-summary-message">
+          {labWinsRouting
+            ? `Simulated graph from active environment · ${labNodeCount} node${labNodeCount === 1 ? "" : "s"} · ${labEdgeCount} link${labEdgeCount === 1 ? "" : "s"}`
+            : topology.message}
+        </span>
       </section>
 
       {labView &&

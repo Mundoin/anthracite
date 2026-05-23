@@ -2611,4 +2611,57 @@ describe("TopologyMode — V1BJ hotfix lab-routing", () => {
     vi.doUnmock("../../../state/EnvironmentLifecycleContext");
     vi.resetModules();
   });
+
+  it("summary strip reflects lab counts (not empty imported view)", async () => {
+    vi.resetModules();
+    vi.doMock("../../../engines/labTopologyActivation", () => ({
+      LAB_RENDER_DATA_SOURCE: "simulated" as const,
+      activeRecordToGraphReadyView: () => ({
+        environment_id: "env-active-lab",
+        nodes: Array.from({ length: 96 }, (_, i) => ({
+          id: `lab-node-${i}`,
+          label: `lab-host-${i}`,
+          vendor: "anthracite",
+          platform_id: null,
+          role_hint: "core router",
+          layer: "physical" as const,
+        })),
+        edges: Array.from({ length: 240 }, (_, i) => ({
+          id: `lab-edge-${i}`,
+          source_node_id: `lab-node-${i % 96}`,
+          target_node_id: `lab-node-${(i + 1) % 96}`,
+          kind: "manual" as const,
+          local_interface: null,
+          remote_interface: null,
+          evidence_count: 0,
+        })),
+        renderer_attached: false as const,
+        note: "lab projection",
+      }),
+    }));
+    vi.doMock("../../../state/EnvironmentLifecycleContext", () => ({
+      useEnvironmentLifecycle: () => ({
+        active: { environment_id: "env-active-lab", name: "Mega City Lab" },
+      }),
+      EnvironmentLifecycleContext: {
+        Provider: ({ children }: { children: React.ReactNode }) => children,
+      },
+    }));
+    const { TopologyMode: M2 } = await import("../TopologyMode");
+    render(<M2 topology={makeView()} />);
+    expect(screen.getByTestId("tm-summary-nodes")).toHaveTextContent("96");
+    expect(screen.getByTestId("tm-summary-edges")).toHaveTextContent("240");
+    expect(screen.getByTestId("tm-summary-source")).toHaveTextContent(
+      "generated-lab",
+    );
+    // Empty-state imported message must NOT render in this branch
+    expect(
+      screen.queryByText(
+        "No topology to render — discovery inventory is empty for this scope.",
+      ),
+    ).toBeNull();
+    vi.doUnmock("../../../engines/labTopologyActivation");
+    vi.doUnmock("../../../state/EnvironmentLifecycleContext");
+    vi.resetModules();
+  });
 });

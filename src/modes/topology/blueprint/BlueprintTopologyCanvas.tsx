@@ -183,7 +183,10 @@ function Glyph({
     onInspectIntent(node.id);
   };
 
-  // <0.20× equivalent — dot at state-ring colour
+  // <0.20× equivalent — dot at state-ring colour.
+  // V1BJ hotfix 2 — bumped dot size from r=4 to r=8 so dense scenarios
+  // (e.g. 96-node Metro) remain readable inside the standard SVG
+  // viewBox; the selected state grows to r=12 + a focus ring.
   if (band === "dot") {
     return (
       <g
@@ -196,11 +199,13 @@ function Glyph({
       >
         <circle
           className="bt-node-dot"
-          r={selected ? 6 : 4}
+          r={selected ? 12 : 8}
           fill={stateRingColor("ok")}
+          stroke="var(--topo-line)"
+          strokeWidth={selected ? 1.5 : 0.75}
         />
         {selected && (
-          <circle className="bt-node-focus-ring" r={9} />
+          <circle className="bt-node-focus-ring" r={16} />
         )}
       </g>
     );
@@ -452,6 +457,19 @@ export function BlueprintTopologyCanvas({
       data-density={band}
       data-node-count={layouts.length}
     >
+      {view.nodes.length === 0 && (
+        <div
+          className="bt-empty-overlay"
+          data-testid="bt-empty-overlay"
+          role="status"
+          aria-label="Simulated graph payload is empty"
+        >
+          <span>Simulated graph payload is empty</span>
+          <span className="bt-empty-overlay-hint">
+            active environment has no devices to render
+          </span>
+        </div>
+      )}
       <header className="bt-header" data-testid="bt-header">
         <span className="bt-header-name">{envName}</span>
         {scenarioId && (
