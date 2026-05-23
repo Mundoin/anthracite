@@ -28,6 +28,7 @@ import {
 import { BlueprintTopologyCanvas } from "../blueprint/BlueprintTopologyCanvas";
 import type { BlueprintTopologyCanvasProps } from "../blueprint/BlueprintTopologyCanvas";
 import type { HardwareInspectIntent } from "../blueprint/hardwarePassport";
+import { InspectionLockMarks } from "./InspectionLockMarks";
 
 import "./HardwareInspectReceiver.css";
 
@@ -138,6 +139,8 @@ export function HardwareInspectReceiver({
           </Suspense>
         </div>
       )}
+
+      <InspectionLockMarks phase={phase} />
     </div>
   );
 }

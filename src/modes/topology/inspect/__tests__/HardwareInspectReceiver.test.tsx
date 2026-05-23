@@ -163,6 +163,40 @@ describe("HardwareInspectReceiver — intent state machine", () => {
     expect(screen.queryByTestId("hir-scene-layer")).toBeNull();
   });
 
+  it("renders lock marks during entering and exiting; not during map", () => {
+    vi.useFakeTimers();
+    try {
+      const view = makeView([makeNode("sw-01", "access switch")]);
+      render(
+        withActive(
+          <HardwareInspectReceiver
+            canvasProps={{ view, dataSource: "simulated" }}
+          />,
+        ),
+      );
+      // map phase — overlay absent
+      expect(screen.queryByTestId("inspection-lock-marks")).toBeNull();
+
+      fireEvent.click(screen.getByTestId("bt-node-sw-01"));
+      fireEvent.click(screen.getByTestId("bt-inspect-cta"));
+
+      // entering phase — lock stage
+      const lockOverlay = screen.getByTestId("inspection-lock-marks");
+      expect(lockOverlay).toHaveAttribute("data-stage", "lock");
+
+      act(() => {
+        vi.advanceTimersByTime(240);
+      });
+      // scene phase — settled stage (brackets only)
+      expect(screen.getByTestId("inspection-lock-marks")).toHaveAttribute(
+        "data-stage",
+        "settled",
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("double-click on a node also dispatches intent", () => {
     const view = makeView([makeNode("fw-1", "firewall")]);
     render(

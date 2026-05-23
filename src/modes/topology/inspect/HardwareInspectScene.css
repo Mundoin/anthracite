@@ -1,13 +1,18 @@
-/* V1BH — Hardware Inspect Scene
+/* V1BH + V1BI — Hardware Inspect Scene
  * Inline drafting-surface aesthetic; mirrors the desk topology tokens
  * scoped to .hardware-inspect-scene so the scene owns its visual law.
+ * V1BI polish: header chips, corner frame brackets, orbit hint strip,
+ * floating leader-line callout.
  */
 
 .hardware-inspect-scene,
 .his-error {
   --topo-canvas:        #E6EDF1;
+  --topo-canvas-deep:   #DAE3EA;
   --topo-paper:         #FAFCFD;
   --topo-paper-sunken:  #ECF1F4;
+  --topo-line:          #0E1E2C;
+  --topo-line-3:        #557082;
   --topo-line-4:        #C8D5DE;
   --topo-cyan:          #0E72A0;
   --topo-cyan-deep:     #074C6E;
@@ -20,10 +25,6 @@
 
   display: grid;
   grid-template-rows: auto 1fr;
-  grid-template-columns: 1fr 260px;
-  grid-template-areas:
-    "header header"
-    "canvas pick";
   width: 100%;
   height: 100%;
   background: var(--topo-canvas);
@@ -32,19 +33,33 @@
   overflow: hidden;
 }
 
-.his-error {
-  grid-template-areas: "header header" "canvas canvas";
-}
+/* ── header ─────────────────────────────────────────────────────── */
 
 .his-header {
-  grid-area: header;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 10px 16px;
+  gap: 14px;
+  padding: 10px 16px 11px;
   background: var(--topo-paper);
   border-bottom: 1px solid var(--topo-line-4);
   font-size: 12px;
+  position: relative;
+}
+
+/* cyan accent strip at the bottom of the header */
+.his-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--topo-cyan) 0%,
+    var(--topo-cyan-deep) 30%,
+    transparent 80%
+  );
 }
 
 .his-back {
@@ -63,34 +78,55 @@
 .his-back:hover,
 .his-back:focus-visible {
   background: var(--topo-cyan-soft);
+  border-color: var(--topo-cyan);
   outline: none;
 }
 
-.his-label {
-  font-weight: 600;
-  color: var(--topo-ink);
-}
-
+.his-label,
 .his-title {
   font-weight: 600;
   color: var(--topo-ink);
+  font-size: 13px;
 }
 
-.his-pair {
+.his-chip {
   display: inline-flex;
+  align-items: baseline;
   gap: 6px;
+  padding: 3px 9px;
+  background: var(--topo-paper-sunken);
+  border: 1px solid var(--topo-line-4);
+  border-radius: 2px;
   color: var(--topo-ink-2);
+  font-size: 11px;
 }
 
-.his-pair > span:first-child {
+.his-chip > span {
   color: var(--topo-ink-3);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   font-size: 10px;
 }
 
+.his-chip > strong {
+  font-weight: 600;
+  color: var(--topo-ink);
+  font-family: var(--topo-font-mono);
+}
+
+.his-chip--trigger {
+  margin-left: auto;
+  border-color: var(--topo-cyan);
+  background: var(--topo-cyan-soft);
+}
+
+.his-chip--trigger > strong {
+  color: var(--topo-cyan-deep);
+}
+
+/* ── canvas wrap + drafting frame ───────────────────────────────── */
+
 .his-canvas-wrap {
-  grid-area: canvas;
   position: relative;
   min-width: 0;
   min-height: 0;
@@ -105,57 +141,164 @@
   outline: none;
 }
 
-.his-pick {
-  grid-area: pick;
-  padding: 14px 16px;
+.his-frame {
+  position: absolute;
+  inset: 16px;
+  pointer-events: none;
+}
+
+.his-frame-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--topo-line);
+}
+
+.his-frame-corner--tl {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.his-frame-corner--tr {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+}
+
+.his-frame-corner--bl {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+}
+
+.his-frame-corner--br {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+/* ── orbit hint ─────────────────────────────────────────────────── */
+
+.his-orbit-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
   background: var(--topo-paper);
-  border-left: 1px solid var(--topo-line-4);
-  font-size: 12px;
-  overflow-y: auto;
-}
-
-.his-pick h3 {
-  margin: 0 0 10px;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  border: 1px solid var(--topo-line-4);
+  border-radius: 12px;
   color: var(--topo-ink-3);
-  font-weight: 500;
+  font-family: var(--topo-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(14, 30, 44, 0.06);
 }
 
-.his-pick-id {
+.his-orbit-hint .his-sep {
+  color: var(--topo-line-3);
+}
+
+/* ── floating callout ───────────────────────────────────────────── */
+
+.his-callout {
+  position: absolute;
+  background: var(--topo-paper);
+  border: 1px solid var(--topo-line);
+  box-shadow: 0 6px 18px rgba(14, 30, 44, 0.14);
+  padding: 10px 12px 8px;
+  z-index: 3;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.his-callout-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--topo-cyan);
+}
+
+.his-callout-id {
   font-family: var(--topo-font-mono);
-  font-size: 13px;
+  font-size: 12px;
   color: var(--topo-cyan-deep);
   background: var(--topo-cyan-soft);
-  border-left: 3px solid var(--topo-cyan);
-  padding: 6px 10px;
-  margin-bottom: 12px;
+  border-left: 2px solid var(--topo-cyan);
+  padding: 4px 8px;
+  margin: 4px 0 8px;
   word-break: break-all;
 }
 
-.his-row {
+.his-callout-row {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 0;
+  padding: 3px 0;
   border-bottom: 1px solid var(--topo-line-4);
+  font-size: 11px;
 }
 
-.his-row > span {
+.his-callout-row:last-child {
+  border-bottom: none;
+}
+
+.his-callout-row > span {
   color: var(--topo-ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
 }
 
-.his-row > strong {
+.his-callout-row > strong {
   color: var(--topo-ink);
+  font-family: var(--topo-font-mono);
   font-weight: 500;
-  text-align: right;
 }
+
+.his-callout-row--meta {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--topo-line-4);
+}
+
+.his-callout-leader {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.his-callout-line {
+  stroke: var(--topo-cyan);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.his-callout-ring {
+  fill: none;
+  stroke: var(--topo-cyan);
+  stroke-width: 1.4;
+}
+
+/* ── error path ─────────────────────────────────────────────────── */
 
 .his-empty {
   color: var(--topo-ink-3);
   font-style: italic;
   font-size: 12px;
+  padding: 16px;
 }
 
 .his-empty code {
