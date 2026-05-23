@@ -17,7 +17,7 @@ import type { GraphReadyTopologyView } from "./topologyReview";
 import { TopologyGraphSurface } from "./TopologyGraphSurface";
 import { TopologyGraphInspector } from "./TopologyGraphInspector";
 import { RenderGraphSourceBadge } from "./RenderGraphSourceBadge";
-import { BlueprintTopologyCanvas } from "./blueprint/BlueprintTopologyCanvas";
+import { HardwareInspectReceiver } from "./inspect/HardwareInspectReceiver";
 import "./TopologyGraphPanel.css";
 
 export interface TopologyGraphPanelProps {
@@ -45,6 +45,8 @@ export function TopologyGraphPanel({
   // V1BF — the active Lab Environment renders as a blueprint canvas
   // when no imported evidence is overriding it. Imported / unknown /
   // demo data sources keep the existing V1AY surface intact.
+  // V1BH — the Blueprint canvas is wrapped in HardwareInspectReceiver
+  // which lazy-loads the Babylon hardware scene on inspect intent.
   if (data_source === "simulated") {
     return (
       <div className="tg-panel" data-testid="tg-panel">
@@ -53,7 +55,9 @@ export function TopologyGraphPanel({
           <RenderGraphSourceBadge data_source={data_source} />
         </div>
         <div className="tg-content tg-content--blueprint">
-          <BlueprintTopologyCanvas view={view} dataSource={data_source} />
+          <HardwareInspectReceiver
+            canvasProps={{ view, dataSource: data_source }}
+          />
         </div>
       </div>
     );
