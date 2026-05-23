@@ -146,6 +146,15 @@ export const MODE_CATALOGUE: ModeCatalogue = {
   modes: [
     // FOUNDATION
     {
+      id: "environments",
+      label: "Environments",
+      shortLabel: "ENV",
+      iconId: "mode-environments",
+      group: "Foundation",
+      state: "available",
+      children: [],
+    },
+    {
       id: "hierarchy",
       label: "Hierarchy",
       shortLabel: "HIER",

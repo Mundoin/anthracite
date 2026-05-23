@@ -33,9 +33,9 @@ describe("MODE_STATUS", () => {
     }
   });
 
-  it("exactly 7 not_connected and 8 built (post-D3A devices + events add)", () => {
+  it("exactly 7 not_connected and 9 built (post-D4 environments add)", () => {
     const entries = Object.values(MODE_STATUS);
     expect(entries.filter((s) => s.state === "not_connected").length).toBe(7);
-    expect(entries.filter((s) => s.state === "built").length).toBe(8);
+    expect(entries.filter((s) => s.state === "built").length).toBe(9);
   });
 });

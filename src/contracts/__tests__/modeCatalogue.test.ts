@@ -66,10 +66,11 @@ describe("modeCatalogue · groups", () => {
 });
 
 describe("modeCatalogue · Foundation order", () => {
-  it("places modes in spec order: Hierarchy → Devices → Intake → Discovery → Provisioning", () => {
+  it("places modes in spec order: Environments → Hierarchy → Devices → Intake → Discovery → Provisioning", () => {
     const foundation = projectCatalogueGroups().find((g) => g.label === "Foundation");
     expect(foundation).toBeDefined();
     expect(foundation?.modes.map((m) => m.id)).toEqual([
+      "environments",
       "hierarchy",
       "devices",
       "intake",

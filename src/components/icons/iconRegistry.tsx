@@ -70,6 +70,7 @@ const ICONS: ReadonlyArray<IconDescriptor> = [
   { id: "mode-ops-console", group: "mode", render: () => svgPaths(<rect key="a" x="3" y="4" width="18" height="16" />, <path key="b" d="m7 9 3 3-3 3M13 15h4" />) },
   { id: "mode-devices", group: "mode", render: () => svgPaths(<rect key="a" x="3" y="6" width="18" height="10" />, <path key="b" d="M7 10v2M11 10v2M15 10v2M19 10v2M3 19h18" />) },
   { id: "mode-events", group: "mode", render: () => svgPaths(<path key="a" d="M6 8a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6" />, <path key="b" d="M10 20a2 2 0 0 0 4 0" />) },
+  { id: "mode-environments", group: "mode", render: () => svgPaths(<path key="a" d="M3 7l9-4 9 4-9 4z" />, <path key="b" d="M3 12l9 4 9-4" />, <path key="c" d="M3 17l9 4 9-4" />) },
 
   // navigation
   { id: "nav-caret-right", group: "shell", render: () => svgPaths(<path key="a" d="m9 6 6 6-6 6" />) },

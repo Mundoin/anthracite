@@ -13,6 +13,7 @@ export const MODE_STATUS: Record<ModeId, ModeStatus> = {
   devices:      { state: "not_connected", engineName: "Device Engine",              plannedStage: "post-D3" },
   intake:       { state: "built",         engineName: "Intake / Parser" },
   discovery:    { state: "built",         engineName: "Discovery Runner" }, // Added V1AX
+  environments: { state: "built",         engineName: "Environment Engine" }, // Added V1BZ
   provisioning: { state: "not_connected", engineName: "Provisioning Engine" },
   assess:       { state: "built",         engineName: "Validator / Receipt" },
   operate:      { state: "not_connected", engineName: "Monitoring / Sentinel Engine" },

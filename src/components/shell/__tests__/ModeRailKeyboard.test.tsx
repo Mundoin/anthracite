@@ -36,7 +36,7 @@ describe("ModeRail · D3C keyboard", () => {
     const onChange = vi.fn();
     render(<ModeRail active="settings" onChange={onChange} />);
     fireEvent.keyDown(screen.getByTestId("nav-rail"), { key: "Home" });
-    expect(onChange).toHaveBeenCalledWith("hierarchy");
+    expect(onChange).toHaveBeenCalledWith("environments");
   });
 
   it("End jumps to the last focusable item (opsConsole foot)", () => {
