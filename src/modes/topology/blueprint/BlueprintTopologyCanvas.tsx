@@ -21,17 +21,30 @@ import type {
 import type { RenderGraphDataSource } from "../renderGraph";
 import {
   FAMILY_FRAME,
+  defaultProfileIdFor,
   familyOf,
   pickDensityBand,
   stateRingColor,
   type DensityBand,
   type NodeFamilyCode,
 } from "./blueprintGlyph";
+import {
+  passportFor,
+  type HardwareInspectIntent,
+  type HardwarePassport,
+} from "./hardwarePassport";
 import "./BlueprintTopologyCanvas.css";
 
 export interface BlueprintTopologyCanvasProps {
   readonly view: GraphReadyTopologyView;
   readonly dataSource: RenderGraphDataSource;
+  /**
+   * Receives intents dispatched from the `Inspect Hardware ▸` CTA or a
+   * node double-click. Stage V1BG keeps the receiver optional — when
+   * absent, intents are logged via `console.info` so the bridge stays
+   * observable until V1BH wires the topology-mode-level handler.
+   */
+  readonly onInspect?: (intent: HardwareInspectIntent) => void;
 }
 
 interface NodeLayout {
@@ -139,15 +152,27 @@ interface GlyphProps {
   band: DensityBand;
   selected: boolean;
   onSelect: (nodeId: string) => void;
+  onInspectIntent: (nodeId: string) => void;
 }
 
-function Glyph({ layout, band, selected, onSelect }: GlyphProps): JSX.Element {
+function Glyph({
+  layout,
+  band,
+  selected,
+  onSelect,
+  onInspectIntent,
+}: GlyphProps): JSX.Element {
   const { node, family, x, y } = layout;
   const frame = FAMILY_FRAME[family];
 
   const handleClick = (e: React.MouseEvent): void => {
     e.stopPropagation();
     onSelect(node.id);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent): void => {
+    e.stopPropagation();
+    onInspectIntent(node.id);
   };
 
   // <0.20× equivalent — dot at state-ring colour
@@ -157,6 +182,7 @@ function Glyph({ layout, band, selected, onSelect }: GlyphProps): JSX.Element {
         className="bt-node"
         transform={`translate(${x} ${y})`}
         onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
         data-testid={`bt-node-${node.id}`}
         data-density="dot"
       >
@@ -181,6 +207,7 @@ function Glyph({ layout, band, selected, onSelect }: GlyphProps): JSX.Element {
       className="bt-node"
       transform={`translate(${x} ${y})`}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       data-testid={`bt-node-${node.id}`}
       data-density={band}
       data-family={family}
@@ -267,6 +294,7 @@ function Edge({ edge, from, to, active }: EdgeProps): JSX.Element {
 export function BlueprintTopologyCanvas({
   view,
   dataSource,
+  onInspect,
 }: BlueprintTopologyCanvasProps): JSX.Element {
   // Optional consumption — when the canvas is rendered outside a
   // lifecycle provider (e.g. minimal unit tests) the header gracefully
@@ -308,6 +336,46 @@ export function BlueprintTopologyCanvas({
     setSelectedId(null);
   }, []);
 
+  const dispatchInspect = useCallback(
+    (nodeId: string, trigger: HardwareInspectIntent["trigger"]): void => {
+      const target = layoutById.get(nodeId);
+      if (!target) return;
+      const isVirtual =
+        (target.node.role_hint || "").toLowerCase().includes("virtual") ||
+        (target.node.role_hint || "").toLowerCase().includes("vm");
+      const profileId = defaultProfileIdFor(target.family, { virtual: isVirtual });
+      const intent: HardwareInspectIntent = {
+        source: "blueprint",
+        nodeId,
+        profileId,
+        family: target.family,
+        trigger,
+        label: target.node.label,
+      };
+      if (onInspect) {
+        onInspect(intent);
+      } else {
+        // Keep the bridge observable until V1BH wires the receiver.
+        // eslint-disable-next-line no-console
+        console.info("[blueprint] inspect intent", intent);
+      }
+    },
+    [layoutById, onInspect],
+  );
+
+  const onInspectIntent = useCallback(
+    (nodeId: string): void => {
+      setSelectedId(nodeId);
+      dispatchInspect(nodeId, "doubleclick");
+    },
+    [dispatchInspect],
+  );
+
+  const onInspectCtaClick = useCallback((): void => {
+    if (!selectedId) return;
+    dispatchInspect(selectedId, "cta");
+  }, [selectedId, dispatchInspect]);
+
   const envName =
     active?.name ?? view.environment_id ?? "(no active environment)";
   // LocalEnvironmentRecord.lab_payload carries the scenario id when generated
@@ -319,6 +387,15 @@ export function BlueprintTopologyCanvas({
 
   const selectedNode = selectedId ? layoutById.get(selectedId)?.node ?? null : null;
   const selectedFamily = selectedId ? layoutById.get(selectedId)?.family ?? null : null;
+  const selectedPassport: HardwarePassport | null = useMemo(() => {
+    if (!selectedFamily) return null;
+    const isVirtual =
+      !!selectedNode &&
+      ((selectedNode.role_hint || "").toLowerCase().includes("virtual") ||
+        (selectedNode.role_hint || "").toLowerCase().includes("vm"));
+    const profileId = defaultProfileIdFor(selectedFamily, { virtual: isVirtual });
+    return passportFor(profileId);
+  }, [selectedFamily, selectedNode]);
   const selectedNeighbours = useMemo(() => {
     if (!selectedId) return [] as string[];
     const out = new Set<string>();
@@ -400,6 +477,7 @@ export function BlueprintTopologyCanvas({
                 band={band}
                 selected={selectedId === l.node.id}
                 onSelect={onSelect}
+                onInspectIntent={onInspectIntent}
               />
             ))}
           </g>
@@ -439,6 +517,87 @@ export function BlueprintTopologyCanvas({
               <span>neighbours</span>
               <strong>{selectedNeighbours.length}</strong>
             </div>
+
+            {selectedPassport && (
+              <div
+                className="bt-summary-passport"
+                data-testid="bt-summary-passport"
+              >
+                <h4>Hardware passport</h4>
+                <div className="bt-summary-row">
+                  <span>profile id</span>
+                  <strong data-testid="bt-passport-profile">
+                    {selectedPassport.profileId}
+                  </strong>
+                </div>
+                <div className="bt-summary-row">
+                  <span>chassis</span>
+                  <strong>{selectedPassport.chassisFamily}</strong>
+                </div>
+                <div className="bt-summary-row">
+                  <span>model</span>
+                  <strong>
+                    {selectedPassport.vendor} · {selectedPassport.model}
+                  </strong>
+                </div>
+                {selectedPassport.rackUnits !== null && (
+                  <div className="bt-summary-row">
+                    <span>rack units</span>
+                    <strong>{selectedPassport.rackUnits}U</strong>
+                  </div>
+                )}
+                {selectedPassport.virtual && (
+                  <div className="bt-summary-row bt-summary-virtual">
+                    <span>form</span>
+                    <strong>virtual appliance</strong>
+                  </div>
+                )}
+                {selectedPassport.counts.totalPorts > 0 && (
+                  <div className="bt-summary-row">
+                    <span>ports (RJ45 / SFP / QSFP)</span>
+                    <strong>
+                      {selectedPassport.counts.rj45} /{" "}
+                      {selectedPassport.counts.sfp} /{" "}
+                      {selectedPassport.counts.qsfp}
+                    </strong>
+                  </div>
+                )}
+                {selectedPassport.counts.bays > 0 && (
+                  <div className="bt-summary-row">
+                    <span>module bays</span>
+                    <strong>{selectedPassport.counts.bays}</strong>
+                  </div>
+                )}
+                {selectedPassport.counts.blades > 0 && (
+                  <div className="bt-summary-row">
+                    <span>blade slots</span>
+                    <strong>{selectedPassport.counts.blades}</strong>
+                  </div>
+                )}
+                {selectedPassport.counts.psu > 0 && (
+                  <div className="bt-summary-row">
+                    <span>PSU</span>
+                    <strong>{selectedPassport.counts.psu}</strong>
+                  </div>
+                )}
+                {selectedPassport.counts.fan > 0 && (
+                  <div className="bt-summary-row">
+                    <span>fan trays</span>
+                    <strong>{selectedPassport.counts.fan}</strong>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="bt-inspect-cta"
+              data-testid="bt-inspect-cta"
+              onClick={onInspectCtaClick}
+              aria-label={`Inspect hardware for ${selectedNode.label}`}
+            >
+              Inspect Hardware ▸
+            </button>
           </>
         ) : (
           <div className="bt-summary-empty">click any node</div>

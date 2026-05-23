@@ -203,6 +203,111 @@ describe("BlueprintTopologyCanvas — selection", () => {
   });
 });
 
+describe("BlueprintTopologyCanvas — hardware passport (V1BG)", () => {
+  it("renders passport facts for the selected node (access switch)", () => {
+    const view = makeView([makeNode("sw-01", "access switch", "sw-01")], []);
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-sw-01"));
+    const passport = screen.getByTestId("bt-summary-passport");
+    expect(within(passport).getByTestId("bt-passport-profile")).toHaveTextContent(
+      "access24",
+    );
+    expect(passport).toHaveTextContent("ANTHRACITE · AXS-124-G");
+    expect(passport).toHaveTextContent(/ports.*24\s*\/\s*4\s*\/\s*0/i);
+  });
+
+  it("resolves UNK glyphs to the unk1u profile (no silent fallback)", () => {
+    const view = makeView([makeNode("mystery", "anything-else", "mystery")], []);
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-mystery"));
+    expect(screen.getByTestId("bt-passport-profile")).toHaveTextContent("unk1u");
+  });
+
+  it("picks vrouter when role_hint says virtual router", () => {
+    const view = makeView(
+      [makeNode("vr", "virtual edge router", "vr")],
+      [],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-vr"));
+    expect(screen.getByTestId("bt-passport-profile")).toHaveTextContent("vrouter");
+  });
+});
+
+describe("BlueprintTopologyCanvas — inspect bridge (V1BG)", () => {
+  it("Inspect Hardware ▸ CTA fires intent with trigger='cta'", () => {
+    const view = makeView([makeNode("sw-01", "access switch", "sw-01")], []);
+    const intents: unknown[] = [];
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas
+          view={view}
+          dataSource="simulated"
+          onInspect={(intent) => intents.push(intent)}
+        />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-sw-01"));
+    fireEvent.click(screen.getByTestId("bt-inspect-cta"));
+    expect(intents).toEqual([
+      {
+        source: "blueprint",
+        nodeId: "sw-01",
+        profileId: "access24",
+        family: "ACC-SW",
+        trigger: "cta",
+        label: "sw-01",
+      },
+    ]);
+  });
+
+  it("double-click on a node fires intent with trigger='doubleclick'", () => {
+    const view = makeView([makeNode("fw-1", "firewall", "fw-1")], []);
+    const intents: { trigger?: string; profileId?: string }[] = [];
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas
+          view={view}
+          dataSource="simulated"
+          onInspect={(intent) => intents.push(intent)}
+        />,
+      ),
+    );
+    fireEvent.doubleClick(screen.getByTestId("bt-node-fw-1"));
+    expect(intents).toHaveLength(1);
+    expect(intents[0].trigger).toBe("doubleclick");
+    expect(intents[0].profileId).toBe("fw1u");
+  });
+
+  it("CTA is hidden when nothing is selected", () => {
+    const view = makeView([makeNode("a", "access switch")], []);
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(screen.queryByTestId("bt-inspect-cta")).toBeNull();
+  });
+});
+
 describe("BlueprintTopologyCanvas — density at scenario boundaries", () => {
   it("renders the 3-node scenario at full density with labels", () => {
     const view = makeView(chainNodes(3, "switch"), chainEdges(3));

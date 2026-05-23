@@ -253,3 +253,46 @@
   font-style: italic;
   font-size: 12px;
 }
+
+.bt-summary-passport {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--topo-line-4);
+}
+
+.bt-summary-passport h4 {
+  margin: 0 0 8px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--topo-ink-3);
+  font-weight: 500;
+}
+
+.bt-summary-virtual strong {
+  color: var(--topo-cyan-deep);
+}
+
+.bt-inspect-cta {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 8px 12px;
+  background: var(--topo-cyan-soft);
+  color: var(--topo-cyan-deep);
+  border: 1px solid var(--topo-cyan);
+  border-radius: 2px;
+  font-family: var(--topo-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+}
+
+.bt-inspect-cta:hover,
+.bt-inspect-cta:focus-visible {
+  background: var(--topo-cyan);
+  color: var(--topo-paper);
+  outline: none;
+}

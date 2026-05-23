@@ -94,3 +94,37 @@ export function stateRingColor(state: OperationalState): string {
     case "critical": return "var(--topo-critical)";
   }
 }
+
+/**
+ * Resolve a topology family into a default hardware profile id, per the
+ * desk doctrine `role-to-glyph-to-primitive-map.md` (default column) and
+ * the kit's `topology-selection-to-model-map.md`. UNK must resolve to
+ * `unk1u` — never a silent substitution into a real device's profile.
+ *
+ * The `virtual` flag picks the glass-finish profile variant
+ * (`vrouter`/`vfirewall`) where one exists.
+ */
+export function defaultProfileIdFor(
+  family: NodeFamilyCode,
+  options: { virtual?: boolean } = {},
+): string {
+  const virtual = options.virtual === true;
+  switch (family) {
+    case "ACC-SW":
+      return "access24";
+    case "DIST-SW":
+      return "dist2u";
+    case "CORE-RT":
+      return "core4u_rt";
+    case "EDGE-RT":
+      return virtual ? "vrouter" : "edge1u";
+    case "FW":
+      return virtual ? "vfirewall" : "fw1u";
+    case "SRV":
+      return "server1u";
+    case "WAP":
+      return "wap";
+    case "UNK":
+      return "unk1u";
+  }
+}
