@@ -114,8 +114,8 @@ function DotMini({
   family: NodeFamilyCode;
   selected: boolean;
 }): JSX.Element {
-  const fill = selected ? "var(--topo-cyan)" : "var(--topo-ink-2)";
-  const stroke = "var(--topo-line-2)";
+  const fill = selected ? "var(--topo-cyan)" : "var(--topo-node-dot-known)";
+  const stroke = "var(--topo-node-stroke)";
   const sw = selected ? 1.5 : 0.5;
   switch (family) {
     case "FW":
@@ -207,7 +207,7 @@ function DotMini({
         <circle
           className="bt-node-dot bt-node-dot--unk"
           r={selected ? 9 : 6}
-          fill={selected ? "var(--topo-cyan)" : "var(--topo-ink-3)"}
+          fill={selected ? "var(--topo-cyan)" : "var(--topo-node-dot-unknown)"}
           stroke={stroke}
           strokeWidth={sw}
           opacity={0.75}

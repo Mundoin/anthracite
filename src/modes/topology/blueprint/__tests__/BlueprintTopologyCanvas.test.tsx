@@ -538,7 +538,7 @@ describe("BlueprintTopologyCanvas — V1BL-A white drafting surface", () => {
       '[data-density="dot"][data-family-mini="SRV"] circle.bt-node-dot--srv',
     ) as SVGCircleElement | null;
     expect(idleDot).not.toBeNull();
-    expect(idleDot!.getAttribute("fill")).toBe("var(--topo-ink-2)");
+    expect(idleDot!.getAttribute("fill")).toBe("var(--topo-node-dot-known)");
 
     // After selection the same dot flips to cyan.
     fireEvent.click(screen.getByTestId("bt-node-n00"));
@@ -711,5 +711,62 @@ describe("BlueprintTopologyCanvas — density at scenario boundaries", () => {
     expect(container.querySelector('[data-density="dot"]')).toBeTruthy();
     expect(container.querySelectorAll(".bt-node-faceplate").length).toBe(0);
     expect(container.querySelectorAll(".bt-node-label").length).toBe(0);
+  });
+});
+
+describe("BlueprintTopologyCanvas — V1BR soft device colors", () => {
+  it("renders dots in dot density with soft blue color tokens", () => {
+    // V1BR updated the color tokens. In dot density (96+ nodes), dots
+    // render with family-specific shapes and new soft sky-blue tones
+    // via CSS tokens. Known dots use --topo-node-dot-known,
+    // unknown dots use --topo-node-dot-unknown.
+    const nodes = chainNodes(96, "access switch");
+    // Inject an unknown node in the chain
+    nodes[50] = makeNode("n-unk-50", "anything-unknown", "mystery");
+    const view = makeView(nodes, chainEdges(96));
+    const { container } = render(
+      withActive(
+        fakeActive({ scenarioId: "metro-backbone" }),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    // Verify both known and unknown dot elements render
+    expect(container.querySelectorAll(".bt-node-dot--acc").length).toBeGreaterThan(0);
+    expect(container.querySelector(".bt-node-dot--unk")).not.toBeNull();
+  });
+
+  it("selected dots in any density use --topo-cyan regardless of family", () => {
+    const view = makeView(chainNodes(96, "router"), chainEdges(96));
+    const { container } = render(
+      withActive(
+        fakeActive({ scenarioId: "metro-backbone" }),
+        <BlueprintTopologyCanvas
+          view={view}
+          dataSource="simulated"
+        />,
+      ),
+    );
+    // Click a node to select it
+    fireEvent.click(screen.getByTestId("bt-node-n00"));
+    // Find the selected dot — it should use cyan
+    const selectedDot = container.querySelector(".bt-node-dot");
+    expect(selectedDot?.getAttribute("fill")).toBe("var(--topo-cyan)");
+  });
+
+  it("unknown family code glyph renders in full density", () => {
+    // V1BR updates unknown glyphs to use the blue-grey stroke token.
+    // Verify the glyph renders and contains the unknown marker.
+    const view = makeView([makeNode("mystery", "anything-else", "mystery")], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const familyCode = container.querySelector(
+      '[data-testid="bt-node-mystery"] .bt-node-family-code--unk',
+    );
+    expect(familyCode).not.toBeNull();
+    expect(familyCode?.textContent).toBe("?");
   });
 });

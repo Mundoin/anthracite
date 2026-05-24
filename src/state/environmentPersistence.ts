@@ -205,7 +205,15 @@ export function deserializeSnapshot(snapshot: unknown): PersistenceValidationRes
       actualLinkCount !== expectedLinkCount ||
       actualConfigCount !== expectedConfigCount;
 
-    if (hasCountRepairs) {
+    // Check and default lifecycle_state if missing (backward compat with V1BO)
+    const hasLifecycleState = "lifecycle_state" in envObj &&
+      (envObj.lifecycle_state === "active" || envObj.lifecycle_state === "available" || envObj.lifecycle_state === "archived");
+
+    if (!hasLifecycleState) {
+      repairs.push(`Environment ${envObj.environment_id}: missing lifecycle_state; defaulting to "available"`);
+    }
+
+    if (hasCountRepairs || !hasLifecycleState) {
       if (actualDeviceCount !== expectedDeviceCount) {
         repairs.push(`Environment ${envObj.environment_id}: recomputed device_count from ${actualDeviceCount} to ${expectedDeviceCount}`);
       }
@@ -224,6 +232,7 @@ export function deserializeSnapshot(snapshot: unknown): PersistenceValidationRes
         device_count: expectedDeviceCount,
         link_count: expectedLinkCount,
         config_count: expectedConfigCount,
+        lifecycle_state: (hasLifecycleState ? envObj.lifecycle_state : "available") as "active" | "available" | "archived",
       };
       validatedEnvironments.push(repairedEnv);
     } else {

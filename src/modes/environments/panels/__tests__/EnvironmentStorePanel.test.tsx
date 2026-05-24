@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EnvironmentStorePanel } from "../EnvironmentStorePanel";
 import { EnvironmentLifecycleProvider } from "../../../../state/EnvironmentLifecycleContext";
+import { MemoryStorageAdapter } from "../../../../state/environmentPersistenceAdapter";
 import type { LocalEnvironmentRecord } from "../../../../types/localEnvironment";
 import type { LabEnvironment } from "../../../../types/labEnvironment";
 
@@ -121,5 +122,86 @@ describe("EnvironmentStorePanel", () => {
     renderWithContext(<EnvironmentStorePanel />);
     expect(screen.getByText("Environment Store")).toBeInTheDocument();
     expect(screen.getByTestId("environments-store")).toBeInTheDocument();
+  });
+
+  it("renders the 'Show archived' toggle", () => {
+    renderWithContext(<EnvironmentStorePanel />);
+    expect(screen.getByTestId("archive-toggle")).toBeInTheDocument();
+    expect(screen.getByText("Show archived")).toBeInTheDocument();
+  });
+
+  // V1BR: archive flow surfacing. Use a fresh MemoryStorageAdapter so the
+  // provider seeds the initial Micro Lab env. Archiving it should remove it
+  // from the default list; toggling "Show archived" or selecting the
+  // "Archived" filter pill should bring it back as an archived row.
+
+  const renderWithFreshStore = () =>
+    render(
+      <EnvironmentLifecycleProvider storageAdapter={new MemoryStorageAdapter()}>
+        <EnvironmentStorePanel />
+      </EnvironmentLifecycleProvider>,
+    );
+
+  // Row presence is detected via the Archive/Restore action button which is unique per row,
+  // and via the "archived" lifecycle chip. The env's display name "Micro Lab" collides with
+  // its scenario name (also "Micro Lab"), so the name string alone is not a row signal.
+
+  it("archived envs are hidden by default after archiving", async () => {
+    const user = userEvent.setup();
+    renderWithFreshStore();
+
+    expect(screen.getByText("Archive")).toBeInTheDocument();
+
+    await user.click(screen.getByText("Archive"));
+
+    expect(screen.queryByText("Archive")).not.toBeInTheDocument();
+    expect(screen.queryByText("Restore")).not.toBeInTheDocument();
+    expect(screen.getByText("No environments match this filter.")).toBeInTheDocument();
+  });
+
+  it("archived envs are visible when 'Show archived' toggle is enabled", async () => {
+    const user = userEvent.setup();
+    renderWithFreshStore();
+
+    await user.click(screen.getByText("Archive"));
+    expect(screen.queryByText("Restore")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("archive-toggle"));
+
+    expect(screen.getByText("archived")).toBeInTheDocument();
+    expect(screen.getByText("Restore")).toBeInTheDocument();
+  });
+
+  it("clicking 'Archived' pill shows archived envs without the toggle", async () => {
+    const user = userEvent.setup();
+    renderWithFreshStore();
+
+    await user.click(screen.getByText("Archive"));
+
+    await user.click(screen.getByTestId("store-filter-archived"));
+
+    expect(screen.getByTestId("store-filter-archived")).toHaveClass(
+      "environment-store-panel__filter-pill--active",
+    );
+    expect(screen.getByText("Restore")).toBeInTheDocument();
+    expect(screen.getByText("archived")).toBeInTheDocument();
+  });
+
+  it("clicking Restore on an archived env returns it to the default view", async () => {
+    const user = userEvent.setup();
+    renderWithFreshStore();
+
+    await user.click(screen.getByText("Archive"));
+    await user.click(screen.getByTestId("archive-toggle"));
+    expect(screen.getByText("Restore")).toBeInTheDocument();
+
+    await user.click(screen.getByText("Restore"));
+
+    expect(screen.getByText("Archive")).toBeInTheDocument();
+    expect(screen.queryByText("Restore")).not.toBeInTheDocument();
+    expect(screen.queryByText("archived")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("archive-toggle"));
+    expect(screen.getByText("Archive")).toBeInTheDocument();
   });
 });

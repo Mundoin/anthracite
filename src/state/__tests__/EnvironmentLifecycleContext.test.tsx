@@ -525,4 +525,202 @@ describe("EnvironmentLifecycleContext", () => {
 
     expect(parsed.saved_at).toBe("2026-05-23T12:34:56.000Z");
   });
+
+  it("21. Archive and restore lifecycle_state round-trip", async () => {
+    const user = userEvent.setup();
+    const adapter = new MemoryStorageAdapter();
+
+    render(
+      <EnvironmentLifecycleProvider storageAdapter={adapter}>
+        <TestConsumer />
+      </EnvironmentLifecycleProvider>,
+    );
+
+    // Initial state: 1 visible env
+    expect(screen.getByTestId("visible-count")).toHaveTextContent("1");
+
+    // Archive the active env
+    await user.click(screen.getByTestId("archive-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("visible-count")).toHaveTextContent("0");
+      expect(screen.getByTestId("save-status")).toHaveTextContent("saved");
+    });
+
+    // Restore the archived env
+    await user.click(screen.getByTestId("restore-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("visible-count")).toHaveTextContent("1");
+      expect(screen.getByTestId("save-status")).toHaveTextContent("saved");
+    });
+  });
+
+  it("22. Legacy snapshot without lifecycle_state field defaults to 'available'", async () => {
+    // This test verifies backward compat: old V1BO snapshots lack lifecycle_state
+    const adapter = new MemoryStorageAdapter();
+
+    // Manually write a legacy snapshot missing lifecycle_state
+    const legacySnapshot = {
+      schema_version: "1",
+      saved_at: "2026-05-23T00:00:00Z",
+      store_revision: 1,
+      active_environment_id: "env-fab-demo",
+      environments_count: 1,
+      store: {
+        environments: [
+          {
+            environment_id: "env-fab-demo",
+            name: "Micro Lab",
+            kind: "fabricated",
+            scenario_id: "micro-lab",
+            scenario_name: "Micro Lab",
+            scenario_seed: "seed-123",
+            provenance: "synthetic",
+            status: "idle",
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-02T00:00:00Z",
+            source_summary: "Micro Lab",
+            device_count: 2,
+            link_count: 1,
+            config_count: 0,
+            lab_payload: {
+              environment_id: "env-fab-demo",
+              name: "Micro Lab",
+              scenario_id: "micro-lab",
+              scenario_name: "Micro Lab",
+              scenario_seed: "seed-123",
+              source_kind: "network-lab",
+              provenance: "synthetic",
+              source_state: "lab",
+              generator_version: "lab-engine/0.1.0",
+              schema_version: "1",
+              devices: [],
+              links: [],
+              address_plan: {
+                management_subnet: "10.10.0.0/24",
+                loopback_subnet: "10.255.0.0/24",
+                transit_subnet: "10.20.0.0/16",
+                vlan_subnets: [],
+                site_subnets: [],
+                allocated: [],
+              },
+              configs: [],
+              capability_flags: {
+                topology: true,
+                inventory: true,
+                interfaces: true,
+                addressing: true,
+                configs: true,
+                routing: true,
+                services: true,
+                security: true,
+              },
+              device_count: 2,
+              link_count: 1,
+              config_count: 0,
+            },
+            capability_flags: {
+              topology: true,
+              inventory: true,
+              interfaces: true,
+              addressing: true,
+              configs: true,
+              routing: true,
+              services: true,
+              security: true,
+            },
+            generator_version: "lab-engine/0.1.0",
+            // NOTE: lifecycle_state is intentionally missing
+            revision: 1,
+            origin: "local",
+            source_id: null,
+            sync_state: "clean",
+            local_only: false,
+            environment_uid: "uid-123",
+            base_revision: 1,
+            last_saved_at: "2024-01-02T00:00:00Z",
+            last_loaded_at: "2024-01-02T00:00:00Z",
+            updated_by: "test-user",
+          },
+        ],
+        active_environment_id: "env-fab-demo",
+        schema_version: "1",
+        store_revision: 1,
+        storage_origin: "local",
+        persistence_kind: "local-browser",
+        last_saved_at: "2026-05-23T00:00:00Z",
+        last_loaded_at: "2026-05-23T00:00:00Z",
+      },
+    };
+
+    (adapter as any).store.set("anthracite.env-lifecycle.v1", JSON.stringify(legacySnapshot));
+
+    render(
+      <EnvironmentLifecycleProvider storageAdapter={adapter}>
+        <TestConsumer />
+      </EnvironmentLifecycleProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("load-status")).toHaveTextContent("ok");
+    });
+
+    // Env should be visible (lifecycle_state defaults to "available" which is not "archived")
+    expect(screen.getByTestId("visible-count")).toHaveTextContent("1");
+  });
+
+  it("23. archive preserves topology_presentation and survives durable round-trip", async () => {
+    const {
+      createInitialStore,
+      archiveEnvironment,
+      restoreEnvironment,
+      updateEnvironmentTopologyPositions,
+    } = await import("../environmentLifecycle");
+    const { serializeStore, deserializeSnapshot } = await import("../environmentPersistence");
+
+    const clock = createTestClock({
+      now: "2026-05-24T10:00:00Z",
+      idSequence: [],
+    });
+    let state = createInitialStore(clock);
+    const envId = state.environments[0].environment_id;
+
+    // V1BQ: persist topology node positions.
+    state = updateEnvironmentTopologyPositions(state, envId, {
+      "node-a": { x: 12, y: 34 },
+      "node-b": { x: 56, y: 78 },
+    });
+
+    // Archive the env.
+    state = archiveEnvironment(state, envId, { clock });
+    const archived = state.environments.find((e) => e.environment_id === envId);
+    expect(archived?.lifecycle_state).toBe("archived");
+    expect(archived?.topology_presentation?.node_positions).toEqual({
+      "node-a": { x: 12, y: 34 },
+      "node-b": { x: 56, y: 78 },
+    });
+
+    // Durable round-trip: serialize → deserialize.
+    const snapshot = serializeStore(state, "2026-05-24T10:05:00Z");
+    const reloaded = deserializeSnapshot(snapshot);
+    expect(reloaded.ok).toBe(true);
+    const reloadedEnv = reloaded.repaired_state?.environments.find(
+      (e) => e.environment_id === envId,
+    );
+    expect(reloadedEnv?.lifecycle_state).toBe("archived");
+    expect(reloadedEnv?.topology_presentation?.node_positions).toEqual({
+      "node-a": { x: 12, y: 34 },
+      "node-b": { x: 56, y: 78 },
+    });
+
+    // Restore preserves positions.
+    const restoredState = restoreEnvironment(state, envId, { clock });
+    const restored = restoredState.environments.find((e) => e.environment_id === envId);
+    expect(restored?.lifecycle_state).toBe("available");
+    expect(restored?.topology_presentation?.node_positions).toEqual({
+      "node-a": { x: 12, y: 34 },
+      "node-b": { x: 56, y: 78 },
+    });
+  });
 });

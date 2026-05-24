@@ -21,10 +21,15 @@ export function EnvironmentStorePanel({
 }: EnvironmentStorePanelProps = {}): JSX.Element {
   const lifecycle = useEnvironmentLifecycle();
   const [filter, setFilter] = useState<EnvironmentStoreFilterType>("all");
+  const [showArchived, setShowArchived] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
 
-  const allEnvs = lifecycle.listAll(false);
+  // Derive includeArchived: show when toggle is on OR when archived filter is selected
+  const includeArchived = showArchived || filter === "archived";
+  const allEnvs = lifecycle.listAll(includeArchived);
+  // Used to differentiate "store is truly empty" from "filter hides everything".
+  const totalEnvsIncludingArchived = lifecycle.listAll(true).length;
   const active = lifecycle.active;
 
   const visibleEnvs = allEnvs.filter((env) => {
@@ -37,7 +42,8 @@ export function EnvironmentStorePanel({
         return env.lifecycle_state === "archived";
       case "all":
       default:
-        return env.lifecycle_state !== "archived";
+        // Toggle ON: include archived alongside non-archived. Toggle OFF: hide archived.
+        return showArchived || env.lifecycle_state !== "archived";
     }
   });
 
@@ -95,29 +101,42 @@ export function EnvironmentStorePanel({
         </div>
 
         <div className="environment-store-panel__filters">
-          {(["all", "active", "generated-lab", "archived"] as const).map((filterOption) => (
-            <button
-              key={filterOption}
-              className={`environment-store-panel__filter-pill ${
-                filter === filterOption ? "environment-store-panel__filter-pill--active" : ""
-              }`}
-              onClick={() => setFilter(filterOption)}
-              data-testid={`store-filter-${filterOption}`}
-            >
-              {filterOption === "all"
-                ? "All"
-                : filterOption === "generated-lab"
-                  ? "Generated Lab"
-                  : filterOption === "active"
-                    ? "Active"
-                    : "Archived"}
-            </button>
-          ))}
+          <div className="environment-store-panel__filter-pills">
+            {(["all", "active", "generated-lab", "archived"] as const).map((filterOption) => (
+              <button
+                key={filterOption}
+                className={`environment-store-panel__filter-pill ${
+                  filter === filterOption ? "environment-store-panel__filter-pill--active" : ""
+                }`}
+                onClick={() => setFilter(filterOption)}
+                data-testid={`store-filter-${filterOption}`}
+              >
+                {filterOption === "all"
+                  ? "All"
+                  : filterOption === "generated-lab"
+                    ? "Generated Lab"
+                    : filterOption === "active"
+                      ? "Active"
+                      : "Archived"}
+              </button>
+            ))}
+          </div>
+          <label className="environment-store-panel__archive-toggle">
+            <input
+              type="checkbox"
+              checked={showArchived}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setShowArchived(e.target.checked)
+              }
+              data-testid="archive-toggle"
+            />
+            <span>Show archived</span>
+          </label>
         </div>
 
         {visibleEnvs.length === 0 ? (
           <div className="environment-store-panel__empty">
-            {allEnvs.length === 0 ? (
+            {totalEnvsIncludingArchived === 0 ? (
               <>
                 <p>Create your first Environment to start working.</p>
                 {onNavigate && (

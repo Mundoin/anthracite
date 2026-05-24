@@ -40,6 +40,15 @@
   --topo-deferred: #9AA3AD;
   --topo-critical: #D32E2E;
 
+  /* V1BR — soft device node palette */
+  --topo-node-fill:           #F1F6FB;  /* soft sky tint, replaces flat white where appropriate */
+  --topo-node-stroke:         #5B7A93;  /* deeper blue-grey, replaces neutral --topo-line-2 for device frames */
+  --topo-node-unknown-fill:   #EDF1F5;  /* pale blue-grey for uncertain devices */
+  --topo-node-unknown-stroke: #8FA0B0;  /* muted, signals "unconfirmed" without dead gray */
+  --topo-node-dot-known:      #B8D9E8;  /* soft sky for Metro dot known devices */
+  --topo-node-dot-unknown:    #D4DEE8;  /* lighter sky for Metro dot unknown */
+  --topo-node-hover-stroke:   #3F6582;  /* slightly darker blue-grey for hover */
+
   /* typography */
   --topo-font-ui:   "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   --topo-font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
@@ -265,7 +274,7 @@
 
 .bt-node-frame {
   fill: var(--topo-paper);
-  stroke: var(--topo-line-2);
+  stroke: var(--topo-node-stroke);
   stroke-width: 1.25;
 }
 
@@ -308,7 +317,7 @@
 /* V1BM.hotfix-1 — unknown family glyph face. Quiet `?` in muted ink
  * so the hostname label below the glyph stays the primary identifier. */
 .bt-node-family-code--unk {
-  fill: var(--topo-ink-4);
+  fill: var(--topo-node-unknown-stroke);
   font-size: 13px;
   letter-spacing: 0;
   font-weight: 400;

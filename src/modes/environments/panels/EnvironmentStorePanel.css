@@ -27,10 +27,17 @@
 
 .environment-store-panel__filters {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 10px;
   padding: 4px 0 10px 0;
   border-bottom: 1px solid var(--anth-border);
   margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.environment-store-panel__filter-pills {
+  display: flex;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
@@ -242,4 +249,27 @@
 .environment-store-panel__created-text {
   flex: 1;
   font-size: 13px;
+}
+
+.environment-store-panel__archive-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--anth-text-2);
+  cursor: pointer;
+  user-select: none;
+  margin-left: auto;
+  padding-right: 4px;
+}
+
+.environment-store-panel__archive-toggle:hover {
+  color: var(--anth-text);
+}
+
+.environment-store-panel__archive-toggle input[type="checkbox"] {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--anth-info);
 }
