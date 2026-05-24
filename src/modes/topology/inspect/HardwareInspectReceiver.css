@@ -20,9 +20,22 @@
    * and the parent chain collapsed it to ~header height in some
    * browsers (canvas rendered as a thin top strip). Restoring flex
    * on the receiver gives the in-flow map child real height again;
-   * the bay stays absolute on top (V1BL-F overlay behaviour kept). */
+   * the bay stays absolute on top (V1BL-F overlay behaviour kept).
+   *
+   * V1BM.hotfix-2 — drafting grid moved here (was on .bt-canvas-wrap
+   * in hotfix-1). The wrap's computed size was driven by the flex
+   * chain via .blueprint-topology > .bt-canvas-wrap, which for
+   * small/medium scenarios could end up smaller than the visible
+   * work surface; the grid painted only inside that bbox-sized
+   * island. Painting on the receiver guarantees the grid covers
+   * the whole topology desk regardless of node count or layout
+   * size. The bay's opaque white background masks the grid where
+   * the 3D card overlays the surface. */
   display: flex;
-  background: #FFFFFF; /* V1BL-E — pure white drafting paper */
+  background:
+    linear-gradient(rgba(26, 37, 48, 0.04) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, rgba(26, 37, 48, 0.04) 1px, transparent 1px) 0 0 / 32px 32px,
+    #FFFFFF;
   overflow: hidden;
 }
 
