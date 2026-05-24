@@ -5,12 +5,14 @@
  */
 
 .blueprint-topology {
-  /* V1BL-A — white drafting surface; cool-paper tints retired.
-   * Cyan remains, scoped to ACTIVE focus / selection / live signal. */
-  --topo-canvas:         #FAFCFD;
-  --topo-canvas-deep:    #F2F5F7;
+  /* V1BL-E — pure white drafting surface. Canvas + paper share
+   * #FFFFFF; the map and the inspector bay read as one continuous
+   * surface across the split. Cyan remains, scoped to ACTIVE focus
+   * / selection / live signal. */
+  --topo-canvas:         #FFFFFF;
+  --topo-canvas-deep:    #FFFFFF;
   --topo-paper:          #FFFFFF;
-  --topo-paper-sunken:   #F4F6F8;
+  --topo-paper-sunken:   #F6F8FA;
   --topo-paper-selected: #E5EEF3;
 
   /* drafting lines — graphite ramp (warmer than V1BL ink ramp) */

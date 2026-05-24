@@ -163,7 +163,7 @@ describe("HardwareInspectReceiver — intent state machine", () => {
     expect(screen.queryByTestId("hir-scene-layer")).toBeNull();
   });
 
-  it("renders lock marks during entering and exiting; not during map", () => {
+  it("V1BL-E — does not render the lock-marks reticle in any phase", () => {
     vi.useFakeTimers();
     try {
       const view = makeView([makeNode("sw-01", "access switch")]);
@@ -180,18 +180,14 @@ describe("HardwareInspectReceiver — intent state machine", () => {
       fireEvent.click(screen.getByTestId("bt-node-sw-01"));
       fireEvent.click(screen.getByTestId("bt-inspect-cta"));
 
-      // entering phase — lock stage
-      const lockOverlay = screen.getByTestId("inspection-lock-marks");
-      expect(lockOverlay).toHaveAttribute("data-stage", "lock");
+      // entering phase — V1BL-E removed the sniper reticle; no overlay
+      expect(screen.queryByTestId("inspection-lock-marks")).toBeNull();
 
       act(() => {
         vi.advanceTimersByTime(240);
       });
-      // scene phase — settled stage (brackets only)
-      expect(screen.getByTestId("inspection-lock-marks")).toHaveAttribute(
-        "data-stage",
-        "settled",
-      );
+      // scene phase — still no overlay
+      expect(screen.queryByTestId("inspection-lock-marks")).toBeNull();
     } finally {
       vi.useRealTimers();
     }

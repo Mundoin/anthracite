@@ -87,9 +87,11 @@ function portTypeFor(index: number): string {
 export function HardwareInspectScene({
   intent,
   onClose,
-  widthMode = "wide",
-  onChangeWidth,
 }: HardwareInspectSceneProps): JSX.Element {
+  // V1BL-E — `widthMode` / `onChangeWidth` props are accepted (for
+  // callers that still pass them) but no width-toggle UI is rendered.
+  // Keeping the prop surface intact lets a future width control wire
+  // back in without churning the receiver call site.
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneRef = useRef<SceneHandles | null>(null);
@@ -108,8 +110,10 @@ export function HardwareInspectScene({
       antialias: true,
     });
     const scene = new Scene(engine);
-    scene.clearColor = new Color4(0.902, 0.929, 0.945, 1);
-    scene.ambientColor = new Color3(0.40, 0.42, 0.45);
+    // V1BL-E — pure white drafting surface (#FFFFFF). Cyan reserved
+    // for active pick / selection only — no resting tint.
+    scene.clearColor = new Color4(1, 1, 1, 1);
+    scene.ambientColor = new Color3(0.42, 0.44, 0.46);
 
     const camera = new ArcRotateCamera(
       "inspect-cam",
@@ -201,6 +205,16 @@ export function HardwareInspectScene({
     const handleResize = (): void => engine.resize();
     window.addEventListener("resize", handleResize);
 
+    // V1BL-D — react to bay-driven layout changes (open animation,
+    // Compact↔Wide switch, parent shell resize). Without this the
+    // canvas keeps its initial width and visibly escapes the bay's
+    // right edge after the slide-in.
+    let observer: ResizeObserver | null = null;
+    if (canvasWrapRef.current && typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => engine.resize());
+      observer.observe(canvasWrapRef.current);
+    }
+
     sceneRef.current = {
       engine,
       scene,
@@ -208,6 +222,7 @@ export function HardwareInspectScene({
       highlight,
       dispose: () => {
         window.removeEventListener("resize", handleResize);
+        observer?.disconnect();
         scene.dispose();
         engine.dispose();
       },
@@ -232,10 +247,13 @@ export function HardwareInspectScene({
             className="his-back"
             onClick={onBack}
             data-testid="his-back"
+            title="Back to map"
           >
-            ◂ Back to map
+            ◂ Back
           </button>
-          <span className="his-title">Unknown profile</span>
+          <div className="his-id">
+            <span className="his-label his-title">Unknown profile</span>
+          </div>
         </header>
         <div className="his-empty">
           No hardware profile registered for id{" "}
@@ -253,71 +271,32 @@ export function HardwareInspectScene({
           className="his-back"
           onClick={onBack}
           data-testid="his-back"
+          title="Back to map"
         >
-          ◂ Back to map
+          ◂ Back
         </button>
-        <span className="his-label" data-testid="his-label">
-          {intent.label}
-        </span>
-        <span className="his-chip" data-chip="family">
-          <span>family</span>
-          <strong>{intent.family}</strong>
-        </span>
-        <span className="his-chip" data-chip="profile">
-          <span>profile</span>
-          <strong data-testid="his-profile-id">{intent.profileId}</strong>
-        </span>
-        <span className="his-chip" data-chip="model">
-          <span>model</span>
-          <strong>
-            {profile.vendor} · {profile.model}
-          </strong>
-        </span>
-        <span
-          className="his-chip his-chip--trigger"
-          data-chip="trigger"
-          data-testid="his-trigger-chip"
-        >
-          <span>opened via</span>
-          <strong>{intent.trigger}</strong>
-        </span>
-        {onChangeWidth && (
-          <div
-            className="his-width-controls"
-            data-testid="his-width-controls"
-            role="group"
-            aria-label="Bay width"
-          >
-            <button
-              type="button"
-              className={
-                widthMode === "compact"
-                  ? "his-width-btn is-active"
-                  : "his-width-btn"
-              }
-              data-testid="his-width-compact"
-              aria-pressed={widthMode === "compact"}
-              onClick={() => onChangeWidth("compact")}
-              title="Compact bay"
-            >
-              ◂ Compact
-            </button>
-            <button
-              type="button"
-              className={
-                widthMode === "wide"
-                  ? "his-width-btn is-active"
-                  : "his-width-btn"
-              }
-              data-testid="his-width-wide"
-              aria-pressed={widthMode === "wide"}
-              onClick={() => onChangeWidth("wide")}
-              title="Wide bay"
-            >
-              Wide ▸
-            </button>
-          </div>
-        )}
+        <div className="his-id" data-testid="his-id">
+          <span className="his-label" data-testid="his-label" title={intent.label}>
+            {intent.label}
+          </span>
+          <span className="his-meta" data-testid="his-meta">
+            <span data-testid="his-profile-id">{intent.profileId}</span>
+            <span className="his-meta-sep">·</span>
+            <span>{intent.family}</span>
+            <span className="his-meta-sep">·</span>
+            <span>
+              {profile.vendor} {profile.model}
+            </span>
+            <span className="his-meta-sep">·</span>
+            <span data-testid="his-trigger" className="his-meta-trigger">
+              via {intent.trigger}
+            </span>
+          </span>
+        </div>
+        {/* V1BL-E — width-arrow buttons removed. Bay stays at the
+         * receiver-default width. `onChangeWidth` / `widthMode` props
+         * are preserved so a future width-toggle UI (cmd palette,
+         * keyboard) can wire back in without touching the API. */}
       </header>
 
       <div
@@ -326,14 +305,6 @@ export function HardwareInspectScene({
         data-testid="his-canvas-wrap"
       >
         <canvas ref={canvasRef} className="his-canvas" />
-
-        {/* drafting frame — corner brackets that frame the inspection viewport */}
-        <div className="his-frame" aria-hidden="true">
-          <span className="his-frame-corner his-frame-corner--tl" />
-          <span className="his-frame-corner his-frame-corner--tr" />
-          <span className="his-frame-corner his-frame-corner--bl" />
-          <span className="his-frame-corner his-frame-corner--br" />
-        </div>
 
         {/* orbit hint — bottom strip with subtle iconography */}
         <div className="his-orbit-hint" data-testid="his-orbit-hint">
