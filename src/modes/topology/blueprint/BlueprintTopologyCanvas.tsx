@@ -56,6 +56,7 @@ import {
 // V1BN — edge routing: elbow for branch/campus/datacenter, curve for
 // metro, straight for fallback / dot density.
 import { routeEdge } from "./blueprintEdges";
+import { TopologyEnvSelector } from "../TopologyEnvSelector";
 import "./BlueprintTopologyCanvas.css";
 
 export interface BlueprintTopologyCanvasProps {
@@ -1020,6 +1021,7 @@ export function BlueprintTopologyCanvas({
         >
           {provenanceLabel}
         </span>
+        <TopologyEnvSelector />
       </header>
 
       <div
