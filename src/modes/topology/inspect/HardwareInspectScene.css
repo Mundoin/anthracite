@@ -116,11 +116,44 @@
 
 .his-chip--trigger {
   margin-left: auto;
-  border-color: var(--topo-cyan);
-  background: var(--topo-cyan-soft);
+  border-color: var(--topo-line-4);
+  background: var(--topo-paper-sunken);
 }
 
 .his-chip--trigger > strong {
+  color: var(--topo-ink-2);
+}
+
+/* V1BL — bay width controls */
+.his-width-controls {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 8px;
+}
+
+.his-width-btn {
+  background: var(--topo-paper-sunken);
+  border: 1px solid var(--topo-line-4);
+  color: var(--topo-ink-2);
+  padding: 4px 9px;
+  font-family: var(--topo-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.his-width-btn:hover,
+.his-width-btn:focus-visible {
+  background: var(--topo-paper);
+  border-color: var(--topo-cyan);
+  outline: none;
+}
+
+.his-width-btn.is-active {
+  background: var(--topo-paper);
+  border-color: var(--topo-cyan);
   color: var(--topo-cyan-deep);
 }
 

@@ -48,11 +48,14 @@ export interface HardwareInspectReceiverProps {
   readonly canvasProps: Omit<BlueprintTopologyCanvasProps, "onInspect">;
 }
 
+type BayWidthMode = "compact" | "wide";
+
 export function HardwareInspectReceiver({
   canvasProps,
 }: HardwareInspectReceiverProps): JSX.Element {
   const [intent, setIntent] = useState<HardwareInspectIntent | null>(null);
   const [phase, setPhase] = useState<Phase>("map");
+  const [bayWidth, setBayWidth] = useState<BayWidthMode>("wide");
 
   // Reset entire receiver when the underlying graph view changes — the
   // selected node may no longer exist.
@@ -106,7 +109,11 @@ export function HardwareInspectReceiver({
       data-phase={phase}
     >
       <div className="hir-map" data-testid="hir-map-layer">
-        <BlueprintTopologyCanvas {...canvasProps} onInspect={onInspect} />
+        <BlueprintTopologyCanvas
+          {...canvasProps}
+          onInspect={onInspect}
+          inspectingNodeId={intent?.nodeId ?? null}
+        />
       </div>
 
       {intent && (
@@ -114,11 +121,17 @@ export function HardwareInspectReceiver({
           className="hir-bay"
           data-testid="hir-bay"
           data-bay-open={bayState}
+          data-bay-width={bayWidth}
           aria-live="polite"
         >
           <div className="hir-bay-inner" data-testid="hir-scene-layer">
             <Suspense fallback={<SceneFallback />}>
-              <HardwareInspectScene intent={intent} onClose={onClose} />
+              <HardwareInspectScene
+                intent={intent}
+                onClose={onClose}
+                widthMode={bayWidth}
+                onChangeWidth={setBayWidth}
+              />
             </Suspense>
             <InspectionLockMarks
               phase={phase}

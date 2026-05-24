@@ -1,19 +1,22 @@
 /**
- * Blueprint Topology Canvas — V1BF.
+ * Blueprint Topology Canvas — V1BF + V1BG + V1BJ + V1BL.
  *
- * 2D readable map of the active Lab Environment when no imported evidence
- * is present. Renders a drafting-grid surface, geometric node frames per
- * the 8-family contract, grey links, state ring, cyan focus ring on
- * selection, and a compact summary of the selected device.
+ * 2D readable map of the active Lab Environment when no imported
+ * evidence is present.
  *
- * Density adapts to node count (full / faceplate / silhouette / dot) per
- * the desk design-board's density-and-zoom-rules.
+ * V1BL — full-surface canvas. The fixed-width right `Selection`
+ * column is gone. Click any node and a compact passport card floats
+ * over the drafting paper near the picked glyph. When a hardware
+ * inspection bay is open (`inspectingNodeId` prop), selecting a
+ * different node surfaces a "Re-inspect to switch" hint inside the
+ * floating card instead of auto-destroying the bay.
  */
 
 import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -41,18 +44,20 @@ import {
   type HardwareInspectIntent,
   type HardwarePassport,
 } from "./hardwarePassport";
+import { placeCallout } from "../inspect/calloutPlacement";
 import "./BlueprintTopologyCanvas.css";
 
 export interface BlueprintTopologyCanvasProps {
   readonly view: GraphReadyTopologyView;
   readonly dataSource: RenderGraphDataSource;
-  /**
-   * Receives intents dispatched from the `Inspect Hardware ▸` CTA or a
-   * node double-click. Stage V1BG keeps the receiver optional — when
-   * absent, intents are logged via `console.info` so the bridge stays
-   * observable until V1BH wires the topology-mode-level handler.
-   */
   readonly onInspect?: (intent: HardwareInspectIntent) => void;
+  /**
+   * V1BL — node id currently mounted inside the hardware inspection
+   * bay. When set and the operator selects a different node, the
+   * floating passport surfaces a "Re-inspect to switch" hint instead
+   * of auto-destroying the active inspection.
+   */
+  readonly inspectingNodeId?: string | null;
 }
 
 interface NodeLayout {
@@ -69,7 +74,6 @@ function layoutNodes(nodes: readonly GraphReadyTopologyNode[]): NodeLayout[] {
   const sorted = [...nodes].sort((a, b) => a.id.localeCompare(b.id));
   const n = sorted.length;
   if (n === 0) return [];
-  // Single ring for small counts; concentric rings as count grows.
   const ringSize = n <= 12 ? n : Math.ceil(Math.sqrt(n) * 2);
   const baseRadius = Math.max(140, 28 * ringSize);
   const out: NodeLayout[] = [];
@@ -183,10 +187,6 @@ function Glyph({
     onInspectIntent(node.id);
   };
 
-  // <0.20× equivalent — dot at state-ring colour.
-  // V1BJ hotfix 2 — bumped dot size from r=4 to r=8 so dense scenarios
-  // (e.g. 96-node Metro) remain readable inside the standard SVG
-  // viewBox; the selected state grows to r=12 + a focus ring.
   if (band === "dot") {
     return (
       <g
@@ -204,14 +204,11 @@ function Glyph({
           stroke="var(--topo-line)"
           strokeWidth={selected ? 1.5 : 0.75}
         />
-        {selected && (
-          <circle className="bt-node-focus-ring" r={16} />
-        )}
+        {selected && <circle className="bt-node-focus-ring" r={16} />}
       </g>
     );
   }
 
-  // Silhouette band — frame + state ring + family code, no faceplate / no label
   const showFaceplate = band === "full" || band === "faceplate";
   const showLabel = band === "full";
 
@@ -225,7 +222,6 @@ function Glyph({
       data-density={band}
       data-family={family}
     >
-      {/* outer state ring (state stays ok at v0 — slot kept open) */}
       <rect
         className="bt-node-state-ring"
         x={-frame.w / 2 - 4}
@@ -235,8 +231,6 @@ function Glyph({
         rx={frame.rx + 2}
         stroke={stateRingColor("ok")}
       />
-
-      {/* silhouette frame */}
       <rect
         className="bt-node-frame"
         x={-frame.w / 2}
@@ -245,8 +239,6 @@ function Glyph({
         height={frame.h}
         rx={frame.rx}
       />
-
-      {/* faceplate band — collapsed port row */}
       {showFaceplate && (
         <rect
           className="bt-node-faceplate"
@@ -256,20 +248,14 @@ function Glyph({
           height={3}
         />
       )}
-
-      {/* family code */}
       <text className="bt-node-family-code" x={0} y={0}>
         {family}
       </text>
-
-      {/* hostname label — only at full density */}
       {showLabel && (
         <text className="bt-node-label" x={0} y={frame.h / 2 + 10}>
           {node.label}
         </text>
       )}
-
-      {/* focus ring inside state ring */}
       {selected && (
         <rect
           className="bt-node-focus-ring"
@@ -304,20 +290,26 @@ function Edge({ edge, from, to, active }: EdgeProps): JSX.Element {
   );
 }
 
+const PASSPORT_W = 280;
+const PASSPORT_H_EST = 220;
+
 export function BlueprintTopologyCanvas({
   view,
   dataSource,
   onInspect,
+  inspectingNodeId,
 }: BlueprintTopologyCanvasProps): JSX.Element {
-  // Optional consumption — when the canvas is rendered outside a
-  // lifecycle provider (e.g. minimal unit tests) the header gracefully
-  // shows the view's environment_id instead of throwing.
   const lifecycle = useContext(EnvironmentLifecycleContext);
   const active = lifecycle?.active ?? null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [passportPos, setPassportPos] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
 
   useEffect(() => {
     setSelectedId(null);
+    setPassportPos(null);
   }, [view]);
 
   const layouts = useMemo(() => layoutNodes(view.nodes), [view.nodes]);
@@ -350,6 +342,33 @@ export function BlueprintTopologyCanvas({
   }, []);
 
   const rootRef = useRef<HTMLElement | null>(null);
+  const canvasWrapRef = useRef<HTMLDivElement | null>(null);
+
+  // V1BL — position the floating passport near the selected glyph in
+  // canvas-wrap coords, using the V1BJ edge-aware placement helper.
+  useLayoutEffect(() => {
+    if (!selectedId) {
+      setPassportPos(null);
+      return;
+    }
+    const wrap = canvasWrapRef.current;
+    const nodeEl = rootRef.current?.querySelector<SVGGraphicsElement>(
+      `[data-testid="bt-node-${selectedId}"]`,
+    );
+    if (!wrap || !nodeEl) return;
+    const wr = wrap.getBoundingClientRect();
+    const nr = nodeEl.getBoundingClientRect();
+    const anchor = {
+      x: nr.left + nr.width / 2 - wr.left,
+      y: nr.top + nr.height / 2 - wr.top,
+    };
+    const placement = placeCallout(
+      anchor,
+      { w: PASSPORT_W, h: PASSPORT_H_EST },
+      { w: wr.width, h: wr.height },
+    );
+    setPassportPos({ left: placement.cardLeft, top: placement.cardTop });
+  }, [selectedId, view, band]);
 
   const dispatchInspect = useCallback(
     (nodeId: string, trigger: HardwareInspectIntent["trigger"]): void => {
@@ -360,10 +379,6 @@ export function BlueprintTopologyCanvas({
         (target.node.role_hint || "").toLowerCase().includes("vm");
       const profileId = defaultProfileIdFor(target.family, { virtual: isVirtual });
 
-      // V1BJ — capture the selected glyph's screen rect relative to
-      // the inspect receiver overlay (or Blueprint root as fallback).
-      // The receiver uses this to originate the transition reticle
-      // from the actual node instead of screen centre.
       const root = rootRef.current;
       const nodeEl = root?.querySelector<SVGGraphicsElement>(
         `[data-testid="bt-node-${nodeId}"]`,
@@ -398,7 +413,6 @@ export function BlueprintTopologyCanvas({
       if (onInspect) {
         onInspect(intent);
       } else {
-        // Keep the bridge observable until V1BH wires the receiver.
         // eslint-disable-next-line no-console
         console.info("[blueprint] inspect intent", intent);
       }
@@ -421,7 +435,6 @@ export function BlueprintTopologyCanvas({
 
   const envName =
     active?.name ?? view.environment_id ?? "(no active environment)";
-  // LocalEnvironmentRecord.lab_payload carries the scenario id when generated
   const scenarioId =
     (active?.lab_payload as { scenario_id?: string } | undefined)?.scenario_id ??
     null;
@@ -448,6 +461,11 @@ export function BlueprintTopologyCanvas({
     }
     return [...out].sort();
   }, [selectedId, view.edges]);
+
+  const showSwitchHint =
+    selectedId !== null &&
+    inspectingNodeId != null &&
+    inspectingNodeId !== selectedId;
 
   return (
     <section
@@ -499,7 +517,7 @@ export function BlueprintTopologyCanvas({
         </span>
       </header>
 
-      <div className="bt-canvas-wrap">
+      <div className="bt-canvas-wrap" ref={canvasWrapRef}>
         <svg
           className="bt-canvas"
           viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
@@ -539,79 +557,69 @@ export function BlueprintTopologyCanvas({
             ))}
           </g>
         </svg>
-      </div>
 
-      <aside className="bt-summary" data-testid="bt-summary">
-        <h3>Selection</h3>
-        {selectedNode ? (
-          <>
-            <div className="bt-summary-id">{selectedNode.id}</div>
-            <div className="bt-summary-row">
+        {selectedNode && (
+          <div
+            className="bt-passport-floating"
+            data-testid="bt-passport-floating"
+            style={
+              passportPos
+                ? { left: passportPos.left, top: passportPos.top }
+                : undefined
+            }
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bt-passport-strip" />
+            <div className="bt-passport-id" data-testid="bt-summary-id">
+              {selectedNode.id}
+            </div>
+            <div className="bt-passport-row">
               <span>label</span>
               <strong>{selectedNode.label}</strong>
             </div>
-            <div className="bt-summary-row">
+            <div className="bt-passport-row">
               <span>family</span>
               <strong>{selectedFamily}</strong>
             </div>
-            <div className="bt-summary-row">
+            <div className="bt-passport-row">
               <span>role hint</span>
               <strong>{selectedNode.role_hint || "—"}</strong>
             </div>
-            <div className="bt-summary-row">
-              <span>vendor</span>
-              <strong>{selectedNode.vendor ?? "—"}</strong>
-            </div>
-            <div className="bt-summary-row">
-              <span>platform</span>
-              <strong>{selectedNode.platform_id ?? "—"}</strong>
-            </div>
-            <div className="bt-summary-row">
-              <span>layer</span>
-              <strong>{selectedNode.layer || "—"}</strong>
-            </div>
-            <div className="bt-summary-row">
+            <div className="bt-passport-row">
               <span>neighbours</span>
               <strong>{selectedNeighbours.length}</strong>
             </div>
 
             {selectedPassport && (
               <div
-                className="bt-summary-passport"
+                className="bt-passport-hw"
                 data-testid="bt-summary-passport"
               >
-                <h4>Hardware passport</h4>
-                <div className="bt-summary-row">
+                <div className="bt-passport-row">
                   <span>profile id</span>
                   <strong data-testid="bt-passport-profile">
                     {selectedPassport.profileId}
                   </strong>
                 </div>
-                <div className="bt-summary-row">
+                <div className="bt-passport-row">
                   <span>chassis</span>
                   <strong>{selectedPassport.chassisFamily}</strong>
                 </div>
-                <div className="bt-summary-row">
+                <div className="bt-passport-row">
                   <span>model</span>
                   <strong>
                     {selectedPassport.vendor} · {selectedPassport.model}
                   </strong>
                 </div>
                 {selectedPassport.rackUnits !== null && (
-                  <div className="bt-summary-row">
+                  <div className="bt-passport-row">
                     <span>rack units</span>
                     <strong>{selectedPassport.rackUnits}U</strong>
                   </div>
                 )}
-                {selectedPassport.virtual && (
-                  <div className="bt-summary-row bt-summary-virtual">
-                    <span>form</span>
-                    <strong>virtual appliance</strong>
-                  </div>
-                )}
                 {selectedPassport.counts.totalPorts > 0 && (
-                  <div className="bt-summary-row">
-                    <span>ports (RJ45 / SFP / QSFP)</span>
+                  <div className="bt-passport-row">
+                    <span>ports</span>
                     <strong>
                       {selectedPassport.counts.rj45} /{" "}
                       {selectedPassport.counts.sfp} /{" "}
@@ -619,30 +627,15 @@ export function BlueprintTopologyCanvas({
                     </strong>
                   </div>
                 )}
-                {selectedPassport.counts.bays > 0 && (
-                  <div className="bt-summary-row">
-                    <span>module bays</span>
-                    <strong>{selectedPassport.counts.bays}</strong>
-                  </div>
-                )}
-                {selectedPassport.counts.blades > 0 && (
-                  <div className="bt-summary-row">
-                    <span>blade slots</span>
-                    <strong>{selectedPassport.counts.blades}</strong>
-                  </div>
-                )}
-                {selectedPassport.counts.psu > 0 && (
-                  <div className="bt-summary-row">
-                    <span>PSU</span>
-                    <strong>{selectedPassport.counts.psu}</strong>
-                  </div>
-                )}
-                {selectedPassport.counts.fan > 0 && (
-                  <div className="bt-summary-row">
-                    <span>fan trays</span>
-                    <strong>{selectedPassport.counts.fan}</strong>
-                  </div>
-                )}
+              </div>
+            )}
+
+            {showSwitchHint && (
+              <div
+                className="bt-passport-switch-hint"
+                data-testid="bt-passport-switch-hint"
+              >
+                Hardware bay shows another device — re-inspect to switch.
               </div>
             )}
 
@@ -653,13 +646,11 @@ export function BlueprintTopologyCanvas({
               onClick={onInspectCtaClick}
               aria-label={`Inspect hardware for ${selectedNode.label}`}
             >
-              Inspect Hardware ▸
+              {showSwitchHint ? "Re-inspect Hardware ▸" : "Inspect Hardware ▸"}
             </button>
-          </>
-        ) : (
-          <div className="bt-summary-empty">click any node</div>
+          </div>
         )}
-      </aside>
+      </div>
     </section>
   );
 }

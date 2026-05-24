@@ -41,6 +41,14 @@
   display: flex;
 }
 
+.hir-bay[data-bay-width="compact"] {
+  flex-basis: 360px;
+}
+
+.hir-bay[data-bay-width="wide"] {
+  flex-basis: 50%;
+}
+
 .hir-bay[data-bay-open="opening"] {
   animation: hir-bay-open 240ms cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
 }

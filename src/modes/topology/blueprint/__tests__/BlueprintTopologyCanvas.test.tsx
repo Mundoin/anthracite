@@ -181,10 +181,13 @@ describe("BlueprintTopologyCanvas — selection", () => {
     );
     const target = screen.getByTestId("bt-node-n01");
     fireEvent.click(target);
-    const summary = screen.getByTestId("bt-summary");
-    expect(within(summary).getByText("n01")).toBeInTheDocument();
+    // V1BL — the fixed summary column is gone. Selection renders as
+    // a floating passport card; clicking the node again deselects
+    // and the card unmounts.
+    const passport = screen.getByTestId("bt-passport-floating");
+    expect(within(passport).getByText("n01")).toBeInTheDocument();
     fireEvent.click(target);
-    expect(within(summary).getByText(/click any node/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("bt-passport-floating")).toBeNull();
   });
 
   it("highlights connected edges when a node is selected", () => {
@@ -219,6 +222,33 @@ describe("BlueprintTopologyCanvas — hardware passport (V1BG)", () => {
     );
     expect(passport).toHaveTextContent("ANTHRACITE · AXS-124-G");
     expect(passport).toHaveTextContent(/ports.*24\s*\/\s*4\s*\/\s*0/i);
+  });
+
+  it("V1BL — surfaces switch-inspection hint when inspecting a different node", () => {
+    const view = makeView(
+      [
+        makeNode("sw-01", "access switch", "sw-01"),
+        makeNode("sw-02", "access switch", "sw-02"),
+      ],
+      [],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas
+          view={view}
+          dataSource="simulated"
+          inspectingNodeId="sw-01"
+        />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-sw-02"));
+    expect(
+      screen.getByTestId("bt-passport-switch-hint"),
+    ).toHaveTextContent(/re-inspect to switch/i);
+    expect(screen.getByTestId("bt-inspect-cta")).toHaveTextContent(
+      /re-inspect/i,
+    );
   });
 
   it("resolves UNK glyphs to the unk1u profile (no silent fallback)", () => {

@@ -81,7 +81,11 @@ export const TOPOLOGY_TOOL_META = [
   { id: "evidence_import", label: "Evidence Import" },
   { id: "collection_plan", label: "Collection Plan" },
   { id: "readiness", label: "Readiness" },
-  { id: "canvas_3d", label: "3D / Canvas" },
+  // V1BL — relabel from "3D / Canvas" so operators stop reading this
+  // as an alternative inspection target. Hardware inspection launches
+  // from the Graph/Map node passport. This tab is reserved for a
+  // future overview / wall view of the map and is empty at v0.
+  { id: "canvas_3d", label: "Wall view (later)" },
 ] as const;
 
 interface AdjacencyReadinessSectionProps {

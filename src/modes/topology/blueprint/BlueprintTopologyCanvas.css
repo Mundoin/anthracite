@@ -41,12 +41,15 @@
   --topo-font-ui:   "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   --topo-font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
 
+  /* V1BL — single-column drafting canvas. The fixed-width right
+   * `Selection` wall is gone; selection renders as a floating
+   * passport overlay anchored near the picked glyph. */
   display: grid;
   grid-template-rows: auto 1fr;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 1fr;
   grid-template-areas:
-    "header   header"
-    "canvas   summary";
+    "header"
+    "canvas";
   height: 100%;
   min-height: 0;
   background: var(--topo-canvas);
@@ -200,58 +203,85 @@
   pointer-events: visiblePainted;
 }
 
-/* selection summary */
-.bt-summary {
-  grid-area: summary;
-  padding: 14px 16px;
+/* V1BL — floating passport card.
+ * Anchored near the selected glyph by JS (left/top inline styles).
+ * Replaces the V1BF fixed-width summary column.
+ */
+
+.bt-passport-floating {
+  position: absolute;
+  z-index: 5;
+  width: 280px;
   background: var(--topo-paper);
-  border-left: 1px solid var(--topo-line-4);
+  border: 1px solid var(--topo-line);
+  box-shadow: 0 6px 18px rgba(14, 30, 44, 0.10);
+  padding: 8px 12px 10px;
   font-size: 12px;
-  overflow-y: auto;
+  pointer-events: auto;
+  cursor: default;
 }
 
-.bt-summary h3 {
-  margin: 0 0 10px;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--topo-ink-3);
-  font-weight: 500;
+.bt-passport-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--topo-cyan);
 }
 
-.bt-summary-id {
+.bt-passport-id {
   font-family: var(--topo-font-mono);
-  font-size: 13px;
-  color: var(--topo-cyan-deep);
-  background: var(--topo-cyan-soft);
-  border-left: 3px solid var(--topo-cyan);
-  padding: 6px 10px;
-  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--topo-ink);
+  background: var(--topo-paper-sunken);
+  border-left: 2px solid var(--topo-cyan);
+  padding: 4px 8px;
+  margin: 6px 0 8px;
   word-break: break-all;
 }
 
-.bt-summary-row {
+.bt-passport-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 4px 0;
+  gap: 10px;
+  padding: 3px 0;
   border-bottom: 1px solid var(--topo-line-4);
+  font-size: 11px;
 }
 
-.bt-summary-row > span {
+.bt-passport-row:last-child {
+  border-bottom: none;
+}
+
+.bt-passport-row > span {
   color: var(--topo-ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
 }
 
-.bt-summary-row > strong {
+.bt-passport-row > strong {
   color: var(--topo-ink);
+  font-family: var(--topo-font-mono);
   font-weight: 500;
   text-align: right;
 }
 
-.bt-summary-empty {
-  color: var(--topo-ink-3);
-  font-style: italic;
-  font-size: 12px;
+.bt-passport-hw {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--topo-line-4);
+}
+
+.bt-passport-switch-hint {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: var(--topo-paper-sunken);
+  border-left: 2px solid var(--topo-cyan-deep);
+  color: var(--topo-ink-2);
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 /* V1BJ hotfix 2 — explicit empty payload overlay so a 0-node view
@@ -285,31 +315,12 @@
   color: var(--topo-ink-3);
 }
 
-.bt-summary-passport {
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid var(--topo-line-4);
-}
-
-.bt-summary-passport h4 {
-  margin: 0 0 8px;
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--topo-ink-3);
-  font-weight: 500;
-}
-
-.bt-summary-virtual strong {
-  color: var(--topo-cyan-deep);
-}
-
 .bt-inspect-cta {
   display: block;
   width: 100%;
-  margin-top: 14px;
-  padding: 8px 12px;
-  background: var(--topo-cyan-soft);
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: var(--topo-paper);
   color: var(--topo-cyan-deep);
   border: 1px solid var(--topo-cyan);
   border-radius: 2px;
@@ -323,7 +334,6 @@
 
 .bt-inspect-cta:hover,
 .bt-inspect-cta:focus-visible {
-  background: var(--topo-cyan);
-  color: var(--topo-paper);
+  background: var(--topo-cyan-soft);
   outline: none;
 }

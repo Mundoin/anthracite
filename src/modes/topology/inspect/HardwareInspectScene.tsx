@@ -45,9 +45,13 @@ import { placeCallout } from "./calloutPlacement";
 
 import "./HardwareInspectScene.css";
 
+export type BayWidthMode = "compact" | "wide";
+
 export interface HardwareInspectSceneProps {
   readonly intent: HardwareInspectIntent;
   readonly onClose: () => void;
+  readonly widthMode?: BayWidthMode;
+  readonly onChangeWidth?: (mode: BayWidthMode) => void;
 }
 
 interface SceneHandles {
@@ -83,6 +87,8 @@ function portTypeFor(index: number): string {
 export function HardwareInspectScene({
   intent,
   onClose,
+  widthMode = "wide",
+  onChangeWidth,
 }: HardwareInspectSceneProps): JSX.Element {
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -114,11 +120,14 @@ export function HardwareInspectScene({
       scene,
     );
     camera.attachControl(canvas, true);
-    camera.wheelPrecision = 80;
-    camera.lowerRadiusLimit = 0.5;
-    camera.upperRadiusLimit = 6.0;
-    camera.minZ = 0.05;
-    camera.maxZ = 50;
+    // V1BL — looser camera so the operator can push in close and pull
+    // back beyond the device for context. Lower wheelPrecision means
+    // faster zoom per scroll click.
+    camera.wheelPrecision = 40;
+    camera.lowerRadiusLimit = 0.2;
+    camera.upperRadiusLimit = 12.0;
+    camera.minZ = 0.02;
+    camera.maxZ = 100;
 
     const hemi = new HemisphericLight(
       "inspect-hemi",
@@ -272,6 +281,43 @@ export function HardwareInspectScene({
           <span>opened via</span>
           <strong>{intent.trigger}</strong>
         </span>
+        {onChangeWidth && (
+          <div
+            className="his-width-controls"
+            data-testid="his-width-controls"
+            role="group"
+            aria-label="Bay width"
+          >
+            <button
+              type="button"
+              className={
+                widthMode === "compact"
+                  ? "his-width-btn is-active"
+                  : "his-width-btn"
+              }
+              data-testid="his-width-compact"
+              aria-pressed={widthMode === "compact"}
+              onClick={() => onChangeWidth("compact")}
+              title="Compact bay"
+            >
+              ◂ Compact
+            </button>
+            <button
+              type="button"
+              className={
+                widthMode === "wide"
+                  ? "his-width-btn is-active"
+                  : "his-width-btn"
+              }
+              data-testid="his-width-wide"
+              aria-pressed={widthMode === "wide"}
+              onClick={() => onChangeWidth("wide")}
+              title="Wide bay"
+            >
+              Wide ▸
+            </button>
+          </div>
+        )}
       </header>
 
       <div
