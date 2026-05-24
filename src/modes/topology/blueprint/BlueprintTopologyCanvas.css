@@ -120,7 +120,58 @@
   display: block;
   width: 100%;
   height: 100%;
-  cursor: crosshair;
+  cursor: grab;
+  touch-action: none; /* V1BL-B — let wheel/pointer drive pan + zoom */
+}
+
+.bt-canvas:active {
+  cursor: grabbing;
+}
+
+/* V1BL-B — canvas navigation strip */
+.bt-nav {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--topo-paper);
+  border: 1px solid var(--topo-line-4);
+  border-radius: 14px;
+  font-family: var(--topo-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--topo-ink-3);
+  box-shadow: 0 2px 8px rgba(26, 37, 48, 0.05);
+  z-index: 4;
+}
+
+.bt-nav-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--topo-ink-2);
+  padding: 3px 8px;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.bt-nav-btn:hover,
+.bt-nav-btn:focus-visible {
+  border-color: var(--topo-cyan);
+  color: var(--topo-cyan-deep);
+  outline: none;
+}
+
+.bt-nav-zoom {
+  min-width: 44px;
+  text-align: right;
+  color: var(--topo-ink-2);
+  border-left: 1px solid var(--topo-line-4);
+  padding-left: 8px;
 }
 
 /* grid pattern */

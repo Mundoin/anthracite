@@ -337,6 +337,72 @@ describe("BlueprintTopologyCanvas — inspect bridge (V1BG)", () => {
   });
 });
 
+describe("BlueprintTopologyCanvas — V1BL-B canvas navigation", () => {
+  it("renders Fit / Reset / zoom indicator nav strip", () => {
+    const view = makeView(chainNodes(3), chainEdges(3));
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(screen.getByTestId("bt-nav")).toBeInTheDocument();
+    expect(screen.getByTestId("bt-nav-fit")).toBeInTheDocument();
+    expect(screen.getByTestId("bt-nav-reset")).toBeInTheDocument();
+    expect(screen.getByTestId("bt-nav-zoom")).toHaveTextContent("100%");
+  });
+
+  it("wheel event changes the zoom indicator", () => {
+    const view = makeView(chainNodes(3), chainEdges(3));
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const svg = screen.getByTestId("bt-svg");
+    fireEvent.wheel(svg, { deltaY: -100, clientX: 100, clientY: 100 });
+    fireEvent.wheel(svg, { deltaY: -100, clientX: 100, clientY: 100 });
+    const indicator = screen.getByTestId("bt-nav-zoom");
+    expect(indicator.textContent).not.toBe("100%");
+    expect(Number.parseInt(indicator.textContent ?? "0", 10)).toBeGreaterThan(100);
+  });
+
+  it("Reset returns to 100%", () => {
+    const view = makeView(chainNodes(3), chainEdges(3));
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const svg = screen.getByTestId("bt-svg");
+    fireEvent.wheel(svg, { deltaY: -100, clientX: 100, clientY: 100 });
+    fireEvent.click(screen.getByTestId("bt-nav-reset"));
+    expect(screen.getByTestId("bt-nav-zoom")).toHaveTextContent("100%");
+  });
+
+  // Note: click-vs-drag deselect path (pointerdown without movement →
+  // clearSelection) is exercised in manual verify. jsdom's pointer
+  // event surface around setPointerCapture / currentTarget is too
+  // shallow to assert reliably; Escape covers the same intent from a
+  // pure-keyboard path.
+
+  it("Escape key dismisses the floating passport", () => {
+    const view = makeView(chainNodes(3), chainEdges(3));
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n01"));
+    expect(screen.getByTestId("bt-passport-floating")).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByTestId("bt-passport-floating")).toBeNull();
+  });
+});
+
 describe("BlueprintTopologyCanvas — V1BL-A white drafting surface", () => {
   it("declares the white-paper canvas token at root scope", () => {
     const view = makeView(chainNodes(3), chainEdges(3));

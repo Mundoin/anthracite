@@ -295,6 +295,20 @@ function Edge({ edge, from, to, active }: EdgeProps): JSX.Element {
 const PASSPORT_W = 280;
 const PASSPORT_H_EST = 220;
 
+// V1BL-B — pan / zoom limits.
+const ZOOM_MIN = 0.2;
+const ZOOM_MAX = 8.0;
+const ZOOM_STEP = 1.12;
+const PAN_THRESHOLD_PX = 5;
+
+interface ViewTransform {
+  tx: number;
+  ty: number;
+  scale: number;
+}
+
+const IDENTITY_TRANSFORM: ViewTransform = { tx: 0, ty: 0, scale: 1 };
+
 export function BlueprintTopologyCanvas({
   view,
   dataSource,
@@ -308,10 +322,22 @@ export function BlueprintTopologyCanvas({
     left: number;
     top: number;
   } | null>(null);
+  // V1BL-B — pan/zoom transform applied to all canvas content via a
+  // wrapping <g transform>. The SVG viewBox stays put.
+  const [transform, setTransform] = useState<ViewTransform>(IDENTITY_TRANSFORM);
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    startTx: number;
+    startTy: number;
+    moved: boolean;
+  } | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
     setSelectedId(null);
     setPassportPos(null);
+    setTransform(IDENTITY_TRANSFORM);
   }, [view]);
 
   const layouts = useMemo(() => layoutNodes(view.nodes), [view.nodes]);
@@ -339,15 +365,136 @@ export function BlueprintTopologyCanvas({
     setSelectedId((curr) => (curr === nodeId ? null : nodeId));
   }, []);
 
-  const onCanvasClick = useCallback((): void => {
+  const clearSelection = useCallback((): void => {
     setSelectedId(null);
   }, []);
+
+  // ── V1BL-B pan / zoom handlers ─────────────────────────────────
+
+  const resetView = useCallback((): void => {
+    setTransform(IDENTITY_TRANSFORM);
+  }, []);
+
+  const screenToViewbox = useCallback(
+    (clientX: number, clientY: number): { x: number; y: number } | null => {
+      const svg = svgRef.current;
+      if (!svg) return null;
+      const rect = svg.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return null;
+      const rx = vb.w / rect.width;
+      const ry = vb.h / rect.height;
+      return {
+        x: vb.x + (clientX - rect.left) * rx,
+        y: vb.y + (clientY - rect.top) * ry,
+      };
+    },
+    [vb.x, vb.y, vb.w, vb.h],
+  );
+
+  const onWheel = useCallback(
+    (e: React.WheelEvent<SVGSVGElement>): void => {
+      e.preventDefault();
+      const ptr = screenToViewbox(e.clientX, e.clientY);
+      const factor = e.deltaY > 0 ? 1 / ZOOM_STEP : ZOOM_STEP;
+      setTransform((t) => {
+        const ns = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, t.scale * factor));
+        if (ns === t.scale) return t;
+        if (!ptr) {
+          // No reliable pointer mapping — fall back to scaling in place.
+          return { ...t, scale: ns };
+        }
+        const k = ns / t.scale;
+        return {
+          tx: ptr.x - (ptr.x - t.tx) * k,
+          ty: ptr.y - (ptr.y - t.ty) * k,
+          scale: ns,
+        };
+      });
+    },
+    [screenToViewbox],
+  );
+
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent<SVGSVGElement>): void => {
+      if (e.button !== 0) return;
+      // ignore drags that start on a node — node click stays a click
+      if ((e.target as Element).closest('[data-testid^="bt-node-"]')) return;
+      dragRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        startTx: transform.tx,
+        startTy: transform.ty,
+        moved: false,
+      };
+      try {
+        (e.currentTarget as Element).setPointerCapture(e.pointerId);
+      } catch {
+        /* jsdom + non-pointer browsers */
+      }
+    },
+    [transform.tx, transform.ty],
+  );
+
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent<SVGSVGElement>): void => {
+      const drag = dragRef.current;
+      if (!drag) return;
+      const dx = e.clientX - drag.startX;
+      const dy = e.clientY - drag.startY;
+      if (!drag.moved && Math.abs(dx) + Math.abs(dy) > PAN_THRESHOLD_PX) {
+        drag.moved = true;
+      }
+      if (drag.moved) {
+        const svg = svgRef.current;
+        if (!svg) return;
+        const rect = svg.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return;
+        const rx = vb.w / rect.width;
+        const ry = vb.h / rect.height;
+        setTransform((t) => ({
+          ...t,
+          tx: drag.startTx + dx * rx,
+          ty: drag.startTy + dy * ry,
+        }));
+      }
+    },
+    [vb.w, vb.h, vb.x, vb.y],
+  );
+
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent<SVGSVGElement>): void => {
+      const drag = dragRef.current;
+      dragRef.current = null;
+      try {
+        (e.currentTarget as Element).releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      if (!drag) return;
+      // Click-without-drag on empty SVG → clear selection (drag is pan)
+      if (!drag.moved) {
+        clearSelection();
+      }
+    },
+    [clearSelection],
+  );
+
+  // Esc dismisses the floating passport.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === "Escape") clearSelection();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [clearSelection]);
 
   const rootRef = useRef<HTMLElement | null>(null);
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
 
   // V1BL — position the floating passport near the selected glyph in
   // canvas-wrap coords, using the V1BJ edge-aware placement helper.
+  // V1BL-B — recompute on every transform change so the passport
+  // tracks pan and zoom.
   useLayoutEffect(() => {
     if (!selectedId) {
       setPassportPos(null);
@@ -370,7 +517,7 @@ export function BlueprintTopologyCanvas({
       { w: wr.width, h: wr.height },
     );
     setPassportPos({ left: placement.cardLeft, top: placement.cardTop });
-  }, [selectedId, view, band]);
+  }, [selectedId, view, band, transform]);
 
   const dispatchInspect = useCallback(
     (nodeId: string, trigger: HardwareInspectIntent["trigger"]): void => {
@@ -519,46 +666,91 @@ export function BlueprintTopologyCanvas({
         </span>
       </header>
 
-      <div className="bt-canvas-wrap" ref={canvasWrapRef}>
+      <div
+        className="bt-canvas-wrap"
+        ref={canvasWrapRef}
+        data-testid="bt-canvas-wrap"
+        data-scale={transform.scale.toFixed(3)}
+        data-tx={transform.tx.toFixed(2)}
+        data-ty={transform.ty.toFixed(2)}
+      >
         <svg
+          ref={svgRef}
           className="bt-canvas"
           viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
           preserveAspectRatio="xMidYMid meet"
-          onClick={onCanvasClick}
+          onWheel={onWheel}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
           data-testid="bt-svg"
         >
-          <BlueprintGrid vbX={vb.x} vbY={vb.y} vbW={vb.w} vbH={vb.h} />
+          <g
+            transform={`translate(${transform.tx} ${transform.ty}) scale(${transform.scale})`}
+            data-testid="bt-transform-root"
+          >
+            <BlueprintGrid vbX={vb.x} vbY={vb.y} vbW={vb.w} vbH={vb.h} />
 
-          <g aria-label="links">
-            {view.edges.map((edge) => {
-              const from = layoutById.get(edge.source_node_id);
-              const to = layoutById.get(edge.target_node_id);
-              if (!from || !to) return null;
-              return (
-                <Edge
-                  key={edge.id}
-                  edge={edge}
-                  from={from}
-                  to={to}
-                  active={activeEdgeIds.has(edge.id)}
+            <g aria-label="links">
+              {view.edges.map((edge) => {
+                const from = layoutById.get(edge.source_node_id);
+                const to = layoutById.get(edge.target_node_id);
+                if (!from || !to) return null;
+                return (
+                  <Edge
+                    key={edge.id}
+                    edge={edge}
+                    from={from}
+                    to={to}
+                    active={activeEdgeIds.has(edge.id)}
+                  />
+                );
+              })}
+            </g>
+
+            <g aria-label="nodes">
+              {layouts.map((l) => (
+                <Glyph
+                  key={l.node.id}
+                  layout={l}
+                  band={band}
+                  selected={selectedId === l.node.id}
+                  onSelect={onSelect}
+                  onInspectIntent={onInspectIntent}
                 />
-              );
-            })}
-          </g>
-
-          <g aria-label="nodes">
-            {layouts.map((l) => (
-              <Glyph
-                key={l.node.id}
-                layout={l}
-                band={band}
-                selected={selectedId === l.node.id}
-                onSelect={onSelect}
-                onInspectIntent={onInspectIntent}
-              />
-            ))}
+              ))}
+            </g>
           </g>
         </svg>
+
+        {/* V1BL-B — canvas navigation strip */}
+        <div className="bt-nav" data-testid="bt-nav" aria-label="Canvas navigation">
+          <button
+            type="button"
+            className="bt-nav-btn"
+            data-testid="bt-nav-fit"
+            onClick={resetView}
+            title="Fit graph to viewport"
+          >
+            Fit
+          </button>
+          <button
+            type="button"
+            className="bt-nav-btn"
+            data-testid="bt-nav-reset"
+            onClick={resetView}
+            title="Reset to default view"
+          >
+            Reset
+          </button>
+          <span
+            className="bt-nav-zoom"
+            data-testid="bt-nav-zoom"
+          >
+            {Math.round(transform.scale * 100)}%
+          </span>
+        </div>
 
         {selectedNode && (
           <div
