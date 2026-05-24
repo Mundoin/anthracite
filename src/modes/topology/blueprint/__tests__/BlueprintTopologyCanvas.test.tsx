@@ -398,7 +398,31 @@ describe("BlueprintTopologyCanvas — V1BL-B canvas navigation", () => {
     // and the indicator stayed put.
   });
 
-  it("Reset returns to 100%", () => {
+  it("V1BL-F — Reset returns to 100% (clears transform + offsets)", () => {
+    const view = makeView(chainNodes(3), chainEdges(3));
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const svg = screen.getByTestId("bt-svg");
+    fireEvent.wheel(svg, {
+      deltaY: -100,
+      clientX: 100,
+      clientY: 100,
+      ctrlKey: true,
+    });
+    fireEvent.click(screen.getByTestId("bt-nav-reset"));
+    expect(screen.getByTestId("bt-nav-zoom")).toHaveTextContent("100%");
+    // Wrap exposes transform components via data attrs.
+    const wrap = screen.getByTestId("bt-canvas-wrap");
+    expect(wrap.getAttribute("data-tx")).toBe("0.00");
+    expect(wrap.getAttribute("data-ty")).toBe("0.00");
+    expect(wrap.getAttribute("data-scale")).toBe("1.000");
+  });
+
+  it("Reset returns to 100% (legacy alias)", () => {
     const view = makeView(chainNodes(3), chainEdges(3));
     render(
       withActive(

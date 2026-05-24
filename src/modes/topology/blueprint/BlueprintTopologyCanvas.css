@@ -199,7 +199,9 @@
 
 /* glyph frame */
 .bt-node {
-  cursor: pointer;
+  /* V1BL-F — glyphs are pointer-draggable; `move` advertises that. */
+  cursor: move;
+  touch-action: none;
 }
 
 .bt-node-frame {

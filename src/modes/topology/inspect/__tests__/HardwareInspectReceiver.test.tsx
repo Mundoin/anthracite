@@ -249,6 +249,46 @@ describe("HardwareInspectReceiver — V1BK split layout", () => {
     }
   });
 
+  it("V1BL-F.hotfix-1 — blueprint canvas wrap stays mounted inside hir-map while bay is open", () => {
+    vi.useFakeTimers();
+    try {
+      const view = makeView([makeNode("sw-01", "access switch")]);
+      const { container } = render(
+        withActive(
+          <HardwareInspectReceiver
+            canvasProps={{ view, dataSource: "simulated" }}
+          />,
+        ),
+      );
+
+      // Pre-inspect: blueprint root + canvas wrap mounted inside hir-map
+      const mapLayerBefore = screen.getByTestId("hir-map-layer");
+      expect(mapLayerBefore.querySelector(".blueprint-topology")).not.toBeNull();
+      expect(mapLayerBefore.querySelector(".bt-canvas-wrap")).not.toBeNull();
+
+      // Open bay
+      fireEvent.click(screen.getByTestId("bt-node-sw-01"));
+      fireEvent.click(screen.getByTestId("bt-inspect-cta"));
+      act(() => {
+        vi.advanceTimersByTime(240);
+      });
+      expect(screen.getByTestId("hir-bay")).toHaveAttribute(
+        "data-bay-open",
+        "open",
+      );
+
+      // Post-open: canvas wrap STILL mounted inside hir-map (regression
+      // guard against the V1BL-F absolute-positioning collapse where
+      // .hir-map lost its place in the flex chain).
+      const mapLayerAfter = screen.getByTestId("hir-map-layer");
+      expect(mapLayerAfter.querySelector(".blueprint-topology")).not.toBeNull();
+      expect(mapLayerAfter.querySelector(".bt-canvas-wrap")).not.toBeNull();
+      expect(container.querySelector(".bt-svg, [data-testid='bt-svg']")).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("view change collapses bay and keeps map mounted", () => {
     // Under jsdom the lazy scene resolves to the Suspense fallback,
     // so the scene's `◂ Back to map` button is not mountable here.

@@ -165,6 +165,9 @@ interface GlyphProps {
   selected: boolean;
   onSelect: (nodeId: string) => void;
   onInspectIntent: (nodeId: string) => void;
+  // V1BL-F — initiated by Glyph's onPointerDown; parent runs the
+  // window-level pointermove/up listeners that turn it into a drag.
+  onNodeDragStart: (nodeId: string, clientX: number, clientY: number) => void;
 }
 
 function Glyph({
@@ -173,6 +176,7 @@ function Glyph({
   selected,
   onSelect,
   onInspectIntent,
+  onNodeDragStart,
 }: GlyphProps): JSX.Element {
   const { node, family, x, y } = layout;
   const frame = FAMILY_FRAME[family];
@@ -187,6 +191,13 @@ function Glyph({
     onInspectIntent(node.id);
   };
 
+  const handlePointerDown = (e: React.PointerEvent<SVGGElement>): void => {
+    if (e.button !== 0) return;
+    // Stop the SVG-level pointerdown (canvas pan) from also firing.
+    e.stopPropagation();
+    onNodeDragStart(node.id, e.clientX, e.clientY);
+  };
+
   if (band === "dot") {
     // V1BL-A — graphite fill when idle, cyan only when selected.
     // Drops the green "soldier" look on high-density scenarios.
@@ -196,6 +207,7 @@ function Glyph({
         transform={`translate(${x} ${y})`}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
+        onPointerDown={handlePointerDown}
         data-testid={`bt-node-${node.id}`}
         data-density="dot"
       >
@@ -220,6 +232,7 @@ function Glyph({
       transform={`translate(${x} ${y})`}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
+      onPointerDown={handlePointerDown}
       data-testid={`bt-node-${node.id}`}
       data-density={band}
       data-family={family}
@@ -300,6 +313,10 @@ const ZOOM_MIN = 0.2;
 const ZOOM_MAX = 8.0;
 const ZOOM_STEP = 1.12;
 const PAN_THRESHOLD_PX = 5;
+// V1BL-F — minimum content visible after clamp (in viewBox units).
+const PAN_GUARD_VBU = 96;
+// V1BL-F — Fit leaves a comfortable margin around the bounding box.
+const FIT_MARGIN_PX = 48;
 
 interface ViewTransform {
   tx: number;
@@ -308,6 +325,39 @@ interface ViewTransform {
 }
 
 const IDENTITY_TRANSFORM: ViewTransform = { tx: 0, ty: 0, scale: 1 };
+
+interface Vb {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+interface PointOffset {
+  dx: number;
+  dy: number;
+}
+
+/**
+ * V1BL-F — clamp a candidate transform so at least PAN_GUARD_VBU of
+ * content stays visible inside the SVG's viewBox on each axis. Without
+ * this the operator can pan the graph indefinitely off-screen and lose
+ * the devices.
+ */
+function clampTransform(t: ViewTransform, vb: Vb): ViewTransform {
+  const txMin = vb.x + PAN_GUARD_VBU - (vb.x + vb.w) * t.scale;
+  const txMax = vb.x + vb.w - PAN_GUARD_VBU - vb.x * t.scale;
+  const tyMin = vb.y + PAN_GUARD_VBU - (vb.y + vb.h) * t.scale;
+  const tyMax = vb.y + vb.h - PAN_GUARD_VBU - vb.y * t.scale;
+  // When zoomed-out so far the bounds invert (txMin > txMax), centre.
+  const cx = (vb.x + vb.w * 0.5) * (1 - t.scale);
+  const cy = (vb.y + vb.h * 0.5) * (1 - t.scale);
+  return {
+    tx: txMin > txMax ? cx : Math.min(txMax, Math.max(txMin, t.tx)),
+    ty: tyMin > tyMax ? cy : Math.min(tyMax, Math.max(tyMin, t.ty)),
+    scale: t.scale,
+  };
+}
 
 export function BlueprintTopologyCanvas({
   view,
@@ -338,9 +388,26 @@ export function BlueprintTopologyCanvas({
     setSelectedId(null);
     setPassportPos(null);
     setTransform(IDENTITY_TRANSFORM);
+    // V1BL-F — clear per-node drag offsets when the view itself
+    // changes (env switch, evidence reimport). The node ids might
+    // not exist in the new view anyway.
+    setNodeOffsets({});
   }, [view]);
 
-  const layouts = useMemo(() => layoutNodes(view.nodes), [view.nodes]);
+  // V1BL-F — per-node offsets from generated layout, applied on top of
+  // the deterministic `layoutNodes` output. Drag-to-reposition writes
+  // here; Reset clears the map.
+  const [nodeOffsets, setNodeOffsets] = useState<Record<string, PointOffset>>({});
+  const suppressNextClickRef = useRef<string | null>(null);
+
+  const baseLayouts = useMemo(() => layoutNodes(view.nodes), [view.nodes]);
+  const layouts = useMemo(() => {
+    if (Object.keys(nodeOffsets).length === 0) return baseLayouts;
+    return baseLayouts.map((l) => {
+      const off = nodeOffsets[l.node.id];
+      return off ? { ...l, x: l.x + off.dx, y: l.y + off.dy } : l;
+    });
+  }, [baseLayouts, nodeOffsets]);
   const layoutById = useMemo(() => {
     const m = new Map<string, NodeLayout>();
     for (const l of layouts) m.set(l.node.id, l);
@@ -362,6 +429,12 @@ export function BlueprintTopologyCanvas({
   }, [selectedId, view.edges]);
 
   const onSelect = useCallback((nodeId: string): void => {
+    // V1BL-F — if this click was the tail of a drag, swallow it so
+    // selection doesn't toggle on drop.
+    if (suppressNextClickRef.current === nodeId) {
+      suppressNextClickRef.current = null;
+      return;
+    }
     setSelectedId((curr) => (curr === nodeId ? null : nodeId));
   }, []);
 
@@ -371,9 +444,50 @@ export function BlueprintTopologyCanvas({
 
   // ── V1BL-B pan / zoom handlers ─────────────────────────────────
 
+  // V1BL-F — `resetView` restores the generated layout (clears all
+  // node offsets) AND returns the transform to identity. `fitView`
+  // computes a real fit-to-content transform (scale + centred
+  // translate) from the current bounding box, so even after wild
+  // panning the operator can recover the graph.
   const resetView = useCallback((): void => {
+    setNodeOffsets({});
     setTransform(IDENTITY_TRANSFORM);
   }, []);
+
+  const fitView = useCallback((): void => {
+    const svg = svgRef.current;
+    if (!svg) {
+      setTransform(IDENTITY_TRANSFORM);
+      return;
+    }
+    const rect = svg.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) {
+      setTransform(IDENTITY_TRANSFORM);
+      return;
+    }
+    // Content bbox in world coords (vb already inflates by VIEWBOX_PAD
+    // on every side, so inner content lives in [vb.x+PAD, vb.x+vb.w-PAD]).
+    const contentMinX = vb.x + VIEWBOX_PAD;
+    const contentMinY = vb.y + VIEWBOX_PAD;
+    const contentW = Math.max(1, vb.w - VIEWBOX_PAD * 2);
+    const contentH = Math.max(1, vb.h - VIEWBOX_PAD * 2);
+    const marginVbX = (FIT_MARGIN_PX * vb.w) / rect.width;
+    const marginVbY = (FIT_MARGIN_PX * vb.h) / rect.height;
+    const targetScale = Math.min(
+      (vb.w - marginVbX * 2) / contentW,
+      (vb.h - marginVbY * 2) / contentH,
+    );
+    const scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, targetScale));
+    const contentCenterX = contentMinX + contentW / 2;
+    const contentCenterY = contentMinY + contentH / 2;
+    const visibleCenterX = vb.x + vb.w / 2;
+    const visibleCenterY = vb.y + vb.h / 2;
+    setTransform({
+      tx: visibleCenterX - scale * contentCenterX,
+      ty: visibleCenterY - scale * contentCenterY,
+      scale,
+    });
+  }, [vb.x, vb.y, vb.w, vb.h]);
 
   const screenToViewbox = useCallback(
     (clientX: number, clientY: number): { x: number; y: number } | null => {
@@ -415,15 +529,17 @@ export function BlueprintTopologyCanvas({
         setTransform((t) => {
           const ns = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, t.scale * factor));
           if (ns === t.scale) return t;
-          if (!ptr) {
-            return { ...t, scale: ns };
-          }
-          const k = ns / t.scale;
-          return {
-            tx: ptr.x - (ptr.x - t.tx) * k,
-            ty: ptr.y - (ptr.y - t.ty) * k,
-            scale: ns,
-          };
+          const next: ViewTransform = !ptr
+            ? { ...t, scale: ns }
+            : (() => {
+                const k = ns / t.scale;
+                return {
+                  tx: ptr.x - (ptr.x - t.tx) * k,
+                  ty: ptr.y - (ptr.y - t.ty) * k,
+                  scale: ns,
+                };
+              })();
+          return clampTransform(next, vb);
         });
         return;
       }
@@ -438,7 +554,9 @@ export function BlueprintTopologyCanvas({
       const panDx = swap ? -e.deltaY * rx : -e.deltaX * rx;
       const panDy = swap ? 0 : -e.deltaY * ry;
       if (panDx === 0 && panDy === 0) return;
-      setTransform((t) => ({ ...t, tx: t.tx + panDx, ty: t.ty + panDy }));
+      setTransform((t) =>
+        clampTransform({ ...t, tx: t.tx + panDx, ty: t.ty + panDy }, vb),
+      );
     };
     svg.addEventListener("wheel", handler, { passive: false });
     return () => svg.removeEventListener("wheel", handler);
@@ -481,11 +599,12 @@ export function BlueprintTopologyCanvas({
         if (rect.width <= 0 || rect.height <= 0) return;
         const rx = vb.w / rect.width;
         const ry = vb.h / rect.height;
-        setTransform((t) => ({
-          ...t,
-          tx: drag.startTx + dx * rx,
-          ty: drag.startTy + dy * ry,
-        }));
+        setTransform((t) =>
+          clampTransform(
+            { ...t, tx: drag.startTx + dx * rx, ty: drag.startTy + dy * ry },
+            vb,
+          ),
+        );
       }
     },
     [vb.w, vb.h, vb.x, vb.y],
@@ -517,6 +636,83 @@ export function BlueprintTopologyCanvas({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [clearSelection]);
+
+  // ── V1BL-F node-drag ──────────────────────────────────────────────
+  //
+  // A node-drag is triggered by `Glyph.onPointerDown` and tracked
+  // entirely outside React state until it crosses PAN_THRESHOLD_PX.
+  // Once it crosses the threshold, we commit position updates to
+  // `nodeOffsets` so the SVG re-renders the glyph + adjacent edges
+  // at the new world coords. On pointerup, if the drag crossed the
+  // threshold we suppress the synthetic `click` that fires last so
+  // selection doesn't toggle. Below-threshold pointerup falls through
+  // and the existing click handler runs (selection toggle).
+  const nodeDragRef = useRef<{
+    nodeId: string;
+    startCX: number;
+    startCY: number;
+    startDx: number;
+    startDy: number;
+    moved: boolean;
+  } | null>(null);
+
+  const onNodeDragStart = useCallback(
+    (nodeId: string, clientX: number, clientY: number): void => {
+      const off = nodeOffsets[nodeId];
+      nodeDragRef.current = {
+        nodeId,
+        startCX: clientX,
+        startCY: clientY,
+        startDx: off?.dx ?? 0,
+        startDy: off?.dy ?? 0,
+        moved: false,
+      };
+    },
+    [nodeOffsets],
+  );
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent): void => {
+      const d = nodeDragRef.current;
+      if (!d) return;
+      const dx = e.clientX - d.startCX;
+      const dy = e.clientY - d.startCY;
+      if (!d.moved && Math.abs(dx) + Math.abs(dy) > PAN_THRESHOLD_PX) {
+        d.moved = true;
+      }
+      if (!d.moved) return;
+      const svg = svgRef.current;
+      if (!svg) return;
+      const rect = svg.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      const rx = vb.w / rect.width;
+      const ry = vb.h / rect.height;
+      // Transform scales world coords by `transform.scale`, so a
+      // 1-px screen drag corresponds to (rx / scale) world units.
+      const worldDx = (dx * rx) / transform.scale;
+      const worldDy = (dy * ry) / transform.scale;
+      setNodeOffsets((prev) => ({
+        ...prev,
+        [d.nodeId]: { dx: d.startDx + worldDx, dy: d.startDy + worldDy },
+      }));
+    };
+    const onUp = (): void => {
+      const d = nodeDragRef.current;
+      nodeDragRef.current = null;
+      if (d && d.moved) {
+        // Suppress the trailing click so drag doesn't toggle selection.
+        suppressNextClickRef.current = d.nodeId;
+      }
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, [vb.w, vb.h, transform.scale]);
 
   const rootRef = useRef<HTMLElement | null>(null);
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
@@ -764,6 +960,7 @@ export function BlueprintTopologyCanvas({
                   selected={selectedId === l.node.id}
                   onSelect={onSelect}
                   onInspectIntent={onInspectIntent}
+                  onNodeDragStart={onNodeDragStart}
                 />
               ))}
             </g>
@@ -776,7 +973,7 @@ export function BlueprintTopologyCanvas({
             type="button"
             className="bt-nav-btn"
             data-testid="bt-nav-fit"
-            onClick={resetView}
+            onClick={fitView}
             title="Fit graph to viewport"
           >
             Fit
@@ -786,7 +983,7 @@ export function BlueprintTopologyCanvas({
             className="bt-nav-btn"
             data-testid="bt-nav-reset"
             onClick={resetView}
-            title="Reset to default view"
+            title="Reset layout + view (clears moved nodes)"
           >
             Reset
           </button>

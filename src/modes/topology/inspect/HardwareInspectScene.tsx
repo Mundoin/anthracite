@@ -279,19 +279,33 @@ export function HardwareInspectScene({
           <span className="his-label" data-testid="his-label" title={intent.label}>
             {intent.label}
           </span>
-          <span className="his-meta" data-testid="his-meta">
-            <span data-testid="his-profile-id">{intent.profileId}</span>
-            <span className="his-meta-sep">·</span>
-            <span>{intent.family}</span>
-            <span className="his-meta-sep">·</span>
-            <span>
-              {profile.vendor} {profile.model}
-            </span>
-            <span className="his-meta-sep">·</span>
-            <span data-testid="his-trigger" className="his-meta-trigger">
-              via {intent.trigger}
-            </span>
-          </span>
+          {/* V1BL-F — meta line carries only signal. `via <trigger>` was
+           * operator-internal data and is removed from the UI. UNK
+           * profiles render only the role hint; concrete profiles
+           * render `role · vendor model`. */}
+          {(() => {
+            const isUnknown = intent.profileId === "unk1u";
+            if (isUnknown) {
+              return (
+                <span className="his-meta" data-testid="his-meta">
+                  <span>{intent.family}</span>
+                  <span className="his-meta-sep">·</span>
+                  <span data-testid="his-profile-id">unknown profile</span>
+                </span>
+              );
+            }
+            return (
+              <span className="his-meta" data-testid="his-meta">
+                <span>{intent.family}</span>
+                <span className="his-meta-sep">·</span>
+                <span data-testid="his-profile-id">{intent.profileId}</span>
+                <span className="his-meta-sep">·</span>
+                <span>
+                  {profile.vendor} {profile.model}
+                </span>
+              </span>
+            );
+          })()}
         </div>
         {/* V1BL-E — width-arrow buttons removed. Bay stays at the
          * receiver-default width. `onChangeWidth` / `widthMode` props
