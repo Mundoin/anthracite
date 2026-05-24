@@ -16,6 +16,7 @@ pub mod engines;
 
 use engines::discovery::{DiscoveryEngine, JsonDiscoveryFileStore};
 use engines::environment::{EnvironmentEngine, JsonFileStore};
+use engines::lab_blob_store::LabBlobStore;
 use engines::server_key_store::ServerKeyStore;
 use engines::topology::TopologyEngine;
 use engines::topology_evidence_store::{TopologyEvidenceStore, JsonFileTopologyEvidenceStore};
@@ -57,6 +58,11 @@ pub fn run() {
                 Box::new(JsonFileTopologyEvidenceStore::new(data_dir.clone()));
             app.manage(evidence_store);
             app.manage(ServerKeyStore::new(data_dir.join("server_keys.json")));
+            // V1BO — durable saved-lab persistence. Opaque JSON blob
+            // owned shape-wise by the frontend (EnvironmentLifecycle
+            // StoreState serializer). Rust just round-trips the string
+            // crash-safely so generated labs survive app restart.
+            app.manage(LabBlobStore::new(data_dir.join("saved_environments.json")));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -65,6 +71,8 @@ pub fn run() {
             commands::environment::get_active_environment,
             commands::environment::set_active_environment,
             commands::environment::get_environment_readiness,
+            commands::lab_persistence::read_saved_environments_blob,
+            commands::lab_persistence::write_saved_environments_blob,
             commands::vendor_registry::list_vendor_platforms,
             commands::vendor_registry::get_vendor_platform,
             commands::config_detection::detect_config_platform,

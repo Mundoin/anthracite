@@ -9,6 +9,7 @@ pub mod config_splitter;
 pub mod discovery;
 pub mod discovery_runner;
 pub mod environment;
+pub mod lab_persistence;
 pub mod live_collection;
 pub mod parser;
 pub mod receipt;

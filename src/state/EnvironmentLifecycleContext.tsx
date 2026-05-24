@@ -28,9 +28,15 @@ import {
 } from "./environmentPersistenceIO";
 import {
   BrowserLocalStorageAdapter,
+  MemoryStorageAdapter,
   type StorageAdapter,
 } from "./environmentPersistenceAdapter";
-import type { PersistenceLoadResult } from "./environmentPersistence";
+import {
+  PERSISTENCE_STORAGE_KEY,
+  type PersistenceLoadResult,
+} from "./environmentPersistence";
+import { DurableEnvironmentAdapter } from "./durableEnvironmentAdapter";
+import { readTauriLabBlob } from "./tauriLabBlobBridge";
 
 export interface SaveStatus {
   readonly status: "saved" | "saving" | "error" | "never";
@@ -151,7 +157,12 @@ export function EnvironmentLifecycleProvider({
   clock,
   autoSave = true,
 }: EnvironmentLifecycleProviderProps): JSX.Element {
-  const adapterRef = useRef<StorageAdapter>(storageAdapter ?? new BrowserLocalStorageAdapter());
+  // V1BO — default adapter is the durable Tauri-mirrored decorator.
+  // Test callers passing their own `storageAdapter` (Memory*, mock)
+  // bypass the durable wrap, so existing tests keep their isolation.
+  const adapterRef = useRef<StorageAdapter>(
+    storageAdapter ?? new DurableEnvironmentAdapter(new BrowserLocalStorageAdapter()),
+  );
   const clockRef = useRef<LifecycleClock>(clock ?? DEFAULT_LIFECYCLE_CLOCK);
 
   // Initial state: try load from adapter, else createInitialStore
@@ -202,6 +213,54 @@ export function EnvironmentLifecycleProvider({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.store_revision, autoSave]);
+
+  // V1BO — durable Tauri hydrate on mount.
+  //
+  // The initial sync load (above) reads BrowserLocalStorage so the
+  // first render has SOMETHING to display immediately. If the user
+  // cleared localStorage but the durable Tauri file still has saved
+  // labs, we hydrate from disk one tick later and dispatch `load` to
+  // replace state with the durable snapshot. We also mirror the
+  // durable blob back into localStorage so subsequent sync reads
+  // and the auto-save round-trip stay coherent.
+  //
+  // No-op in non-Tauri runtimes (vite dev, vitest jsdom) — the
+  // bridge resolves to `null` and this effect returns.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const blob = await readTauriLabBlob();
+      if (cancelled || !blob) return;
+      // Reuse the existing snapshot parser via a seeded memory adapter
+      // so all migration / validation / repair paths run unchanged.
+      const seed = new MemoryStorageAdapter();
+      seed.write(PERSISTENCE_STORAGE_KEY, blob);
+      const result = loadStoreFromAdapter(seed, () =>
+        createInitialStore(clockRef.current),
+      );
+      if (cancelled) return;
+      if (result.status === "ok" || result.status === "no-snapshot") {
+        if (result.status === "ok") {
+          dispatch({ type: "load", state: result.state });
+          adapterRef.current.write(PERSISTENCE_STORAGE_KEY, blob);
+          // After dispatching `load`, bump the revision tracker so
+          // the next auto-save doesn't immediately re-write the same
+          // blob back through the adapter chain (idempotent, but
+          // wasteful).
+          lastSavedRevisionRef.current = result.state.store_revision;
+        }
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "[EnvironmentLifecycleContext] durable hydrate parse warnings:",
+          result.warnings,
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Derived
   const active = useMemo(() => getActiveEnvironmentOp(state) ?? null, [state]);
