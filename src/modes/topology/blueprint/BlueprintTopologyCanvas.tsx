@@ -461,10 +461,24 @@ export function BlueprintTopologyCanvas({
     setSelectedId(null);
     setPassportPos(null);
     setTransform(IDENTITY_TRANSFORM);
-    // V1BL-F — clear per-node drag offsets when the view itself
-    // changes (env switch, evidence reimport). The node ids might
-    // not exist in the new view anyway.
-    setNodeOffsets({});
+    // V1BQ — load persisted overrides for the incoming environment.
+    // Read via ref so `lifecycle` is not a dep (adding it would re-fire on
+    // every position-persist, resetting the transform mid-session).
+    const savedPositions =
+      lifecycleRef.current?.active?.topology_presentation?.node_positions ?? {};
+    if (Object.keys(savedPositions).length === 0) {
+      setNodeOffsets({});
+    } else {
+      const offsets: Record<string, PointOffset> = {};
+      for (const l of baseLayoutsRef.current) {
+        const pos = savedPositions[l.node.id];
+        if (pos) {
+          offsets[l.node.id] = { dx: pos.x - l.x, dy: pos.y - l.y };
+        }
+      }
+      setNodeOffsets(offsets);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 
   // V1BN.hotfix-2 — initial auto-fit ref. Declared here so the
@@ -472,10 +486,20 @@ export function BlueprintTopologyCanvas({
   const initialFitRef = useRef<GraphReadyTopologyView | null>(null);
 
   // V1BL-F — per-node offsets from generated layout, applied on top of
-  // the deterministic `layoutNodes` output. Drag-to-reposition writes
-  // here; Reset clears the map.
+  // the deterministic `layoutNodes` output. V1BQ — drag writes here and
+  // persists to env record; Reset/Fit do not clear persisted placements.
   const [nodeOffsets, setNodeOffsets] = useState<Record<string, PointOffset>>({});
   const suppressNextClickRef = useRef<string | null>(null);
+
+  // V1BQ — stable refs for use inside window-level event listeners without
+  // stale closure issues. Updated synchronously before window handlers run.
+  const baseLayoutsRef = useRef<NodeLayout[]>([]);
+  const nodeOffsetsRef = useRef<Record<string, PointOffset>>({});
+  const activeEnvIdRef = useRef<string | null>(null);
+  const updateTopologyPositionsRef = useRef<((envId: string, positions: Record<string, { readonly x: number; readonly y: number }>) => void) | null>(null);
+  // V1BQ — lifecycle ref so the view-change effect reads current lifecycle
+  // without adding it to the dep array (which would fire on every persist).
+  const lifecycleRef = useRef(lifecycle);
 
   // V1BM — scenario-aware layout selection. The hint is derived from
   // the active lab record's `scenario_id` + name + the view's
@@ -517,6 +541,14 @@ export function BlueprintTopologyCanvas({
   const band = useMemo(() => pickDensityBand(layouts.length), [layouts.length]);
   const vb = useMemo(() => viewboxOf(layouts), [layouts]);
 
+  // V1BQ — keep refs current so window-level drag handlers and the view-change
+  // effect can read latest values without adding them to dep arrays.
+  lifecycleRef.current = lifecycle;
+  baseLayoutsRef.current = baseLayouts;
+  nodeOffsetsRef.current = nodeOffsets;
+  activeEnvIdRef.current = active?.environment_id ?? null;
+  updateTopologyPositionsRef.current = lifecycle?.updateTopologyPositions ?? null;
+
   const activeEdgeIds = useMemo(() => {
     if (!selectedId) return new Set<string>();
     const ids = new Set<string>();
@@ -544,13 +576,9 @@ export function BlueprintTopologyCanvas({
 
   // ── V1BL-B pan / zoom handlers ─────────────────────────────────
 
-  // V1BL-F — `resetView` restores the generated layout (clears all
-  // node offsets) AND returns the transform to identity. `fitView`
-  // computes a real fit-to-content transform (scale + centred
-  // translate) from the current bounding box, so even after wild
-  // panning the operator can recover the graph.
+  // V1BQ — Reset only restores pan/zoom. Persisted node placements
+  // are NOT cleared here; they survive Reset/Fit per spec.
   const resetView = useCallback((): void => {
-    setNodeOffsets({});
     setTransform(IDENTITY_TRANSFORM);
   }, []);
 
@@ -814,8 +842,19 @@ export function BlueprintTopologyCanvas({
       const d = nodeDragRef.current;
       nodeDragRef.current = null;
       if (d && d.moved) {
-        // Suppress the trailing click so drag doesn't toggle selection.
         suppressNextClickRef.current = d.nodeId;
+        // V1BQ — persist final node position for active environment.
+        const envId = activeEnvIdRef.current;
+        const persistFn = updateTopologyPositionsRef.current;
+        if (envId && persistFn) {
+          const off = nodeOffsetsRef.current[d.nodeId];
+          const base = baseLayoutsRef.current.find((l) => l.node.id === d.nodeId);
+          if (off && base) {
+            persistFn(envId, {
+              [d.nodeId]: { x: base.x + off.dx, y: base.y + off.dy },
+            });
+          }
+        }
       }
     };
     window.addEventListener("pointermove", onMove);
@@ -1103,7 +1142,7 @@ export function BlueprintTopologyCanvas({
             className="bt-nav-btn"
             data-testid="bt-nav-reset"
             onClick={resetView}
-            title="Reset layout + view (clears moved nodes)"
+            title="Reset pan/zoom (node placements preserved)"
           >
             Reset
           </button>

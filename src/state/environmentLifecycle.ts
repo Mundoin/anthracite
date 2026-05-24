@@ -6,7 +6,7 @@
  * All operations return new state; inputs are never mutated.
  */
 
-import type { LocalEnvironmentRecord, EnvironmentLifecycleStoreState } from "../types/localEnvironment";
+import type { LocalEnvironmentRecord, EnvironmentLifecycleStoreState, TopologyPresentation } from "../types/localEnvironment";
 import type { Environment } from "../types/environment";
 import { requireScenarioById } from "../data/scenarioCatalogue";
 import { generateLabEnvironment } from "../engines/networkLabEngine";
@@ -541,6 +541,37 @@ export function loadStore(
  */
 export function resetToDefault(options?: { readonly clock?: LifecycleClock }): EnvironmentLifecycleStoreState {
   return createInitialStore(options?.clock);
+}
+
+/**
+ * Merge topology layout position overrides for one environment.
+ * Per-key upsert: only provided node ids are updated; others unchanged.
+ */
+export function updateEnvironmentTopologyPositions(
+  state: EnvironmentLifecycleStoreState,
+  envId: string,
+  positions: Record<string, { readonly x: number; readonly y: number }>,
+): EnvironmentLifecycleStoreState {
+  const idx = state.environments.findIndex((e) => e.environment_id === envId);
+  if (idx === -1) return state;
+  const env = state.environments[idx];
+  const existing = env.topology_presentation?.node_positions ?? {};
+  const merged: Record<string, { readonly x: number; readonly y: number }> = {
+    ...existing,
+    ...positions,
+  };
+  const updated: LocalEnvironmentRecord = {
+    ...env,
+    topology_presentation: { version: 1, node_positions: merged } satisfies TopologyPresentation,
+  };
+  return {
+    ...state,
+    environments: [
+      ...state.environments.slice(0, idx),
+      updated,
+      ...state.environments.slice(idx + 1),
+    ],
+  };
 }
 
 /**

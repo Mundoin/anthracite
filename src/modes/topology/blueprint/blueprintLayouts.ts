@@ -12,9 +12,9 @@
  *   • fallback   — the original concentric ring (kept verbatim)
  *
  * Pure, deterministic, no React, no DOM. Drag-overlay state in
- * `BlueprintTopologyCanvas` still layers per-node `(dx, dy)` offsets
- * on top of these world coords; `Fit` / `Reset` always restore the
- * generated layout for the active scenario.
+ * `BlueprintTopologyCanvas` layers per-node `(dx, dy)` offsets on top
+ * of these world coords. V1BQ — persisted positions survive Reset/Fit;
+ * Fit adjusts pan/zoom only, Reset restores pan/zoom only.
  */
 
 import type { GraphReadyTopologyNode } from "../topologyReview";

@@ -3,6 +3,11 @@ import type { LabEnvironment, LabEnvironmentCapabilityFlags } from "./labEnviron
 export type LocalEnvironmentLifecycleState = "active" | "available" | "archived";
 export type LocalEnvironmentProvenance = "generated-lab" | "synthetic" | "fabricated" | "demo";
 
+export interface TopologyPresentation {
+  readonly version: 1;
+  readonly node_positions: Record<string, { readonly x: number; readonly y: number }>;
+}
+
 export interface LocalEnvironmentRecord {
   readonly environment_id: string;
   readonly name: string;
@@ -33,6 +38,7 @@ export interface LocalEnvironmentRecord {
   readonly last_saved_at: string | null;
   readonly last_loaded_at: string | null;
   readonly updated_by: string | null;
+  readonly topology_presentation?: TopologyPresentation;
 }
 
 export interface EnvironmentLifecycleStoreState {

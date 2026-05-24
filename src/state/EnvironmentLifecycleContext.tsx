@@ -19,6 +19,7 @@ import {
   getEnvironmentById as getEnvironmentByIdOp,
   listEnvironments as listEnvironmentsOp,
   buildEnvironmentPreview as buildEnvironmentPreviewOp,
+  updateEnvironmentTopologyPositions,
   DEFAULT_LIFECYCLE_CLOCK,
   type LifecycleClock,
 } from "./environmentLifecycle";
@@ -77,6 +78,9 @@ export interface EnvironmentLifecycleContextValue {
   // read helpers
   getById(id: string): LocalEnvironmentRecord | undefined;
   listAll(includeArchived?: boolean): readonly LocalEnvironmentRecord[];
+
+  // topology layout
+  updateTopologyPositions(envId: string, positions: Record<string, { readonly x: number; readonly y: number }>): void;
 }
 
 // Exported so callers that prefer optional consumption (e.g. components
@@ -95,7 +99,8 @@ type ProviderAction =
   | { type: "commit_record"; record: LocalEnvironmentRecord; setActive?: boolean }
   | { type: "load"; state: EnvironmentLifecycleStoreState }
   | { type: "reset" }
-  | { type: "mark-saved" };
+  | { type: "mark-saved" }
+  | { type: "update_topology_positions"; envId: string; positions: Record<string, { readonly x: number; readonly y: number }> };
 
 function reducer(state: EnvironmentLifecycleStoreState, action: ProviderAction): EnvironmentLifecycleStoreState {
   let next: EnvironmentLifecycleStoreState;
@@ -135,6 +140,9 @@ function reducer(state: EnvironmentLifecycleStoreState, action: ProviderAction):
       break;
     case "mark-saved":
       next = markStoreSaved(state);
+      break;
+    case "update_topology_positions":
+      next = updateEnvironmentTopologyPositions(state, action.envId, action.positions);
       break;
   }
   // bumps store_revision for every mutation EXCEPT mark-saved (mark-saved already preserves) and select
@@ -325,6 +333,13 @@ export function EnvironmentLifecycleProvider({
     [],
   );
 
+  const updateTopologyPositions = useCallback(
+    (envId: string, positions: Record<string, { readonly x: number; readonly y: number }>) => {
+      dispatch({ type: "update_topology_positions", envId, positions });
+    },
+    [],
+  );
+
   const value = useMemo<EnvironmentLifecycleContextValue>(
     () => ({
       state,
@@ -345,8 +360,9 @@ export function EnvironmentLifecycleProvider({
       saveNow,
       getById,
       listAll,
+      updateTopologyPositions,
     }),
-    [state, saveStatus, loadStatus, active, visibleEnvironments, createFromScenario, selectActive, rename, duplicate, archive, restore, buildPreview, commitEnvironment, reloadFromDisk, resetToDefault, saveNow, getById, listAll],
+    [state, saveStatus, loadStatus, active, visibleEnvironments, createFromScenario, selectActive, rename, duplicate, archive, restore, buildPreview, commitEnvironment, reloadFromDisk, resetToDefault, saveNow, getById, listAll, updateTopologyPositions],
   );
 
   return <EnvironmentLifecycleContext.Provider value={value}>{children}</EnvironmentLifecycleContext.Provider>;
