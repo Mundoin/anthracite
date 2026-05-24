@@ -94,7 +94,7 @@ describe("TopologyGraphPanel", () => {
     expect(screen.getByText("e-test")).toBeInTheDocument();
   });
 
-  it("data source badge renders the provided data_source value", () => {
+  it("data source badge renders the provided data_source value for non-simulated branches", () => {
     const view: GraphReadyTopologyView = {
       environment_id: "env-1",
       nodes: [],
@@ -103,10 +103,32 @@ describe("TopologyGraphPanel", () => {
       note: "test",
     };
 
-    render(<TopologyGraphPanel view={view} data_source="simulated" />);
+    // V1BL-C — the simulated branch is a full-bleed Blueprint canvas
+    // that owns its own provenance strip; the outer `tg-source-badge`
+    // is suppressed for that path. Assert against a non-simulated
+    // source where the workbench header still renders the badge.
+    render(<TopologyGraphPanel view={view} data_source="demo" />);
 
     expect(screen.getByTestId("tg-source-badge")).toBeInTheDocument();
-    expect(screen.getByText("Simulated")).toBeInTheDocument();
+    expect(screen.getByText("Demo")).toBeInTheDocument();
+  });
+
+  it("V1BL-C — simulated branch does NOT render the outer tg-header/badge (canvas owns provenance)", () => {
+    const view: GraphReadyTopologyView = {
+      environment_id: "env-1",
+      nodes: [],
+      edges: [],
+      renderer_attached: false,
+      note: "test",
+    };
+
+    const { container } = render(
+      <TopologyGraphPanel view={view} data_source="simulated" />,
+    );
+
+    expect(screen.queryByTestId("tg-source-badge")).toBeNull();
+    expect(container.querySelector(".tg-header--blueprint")).toBeNull();
+    expect(container.querySelector(".tg-title--blueprint")).toBeNull();
   });
 
   it("resets selection when model changes", async () => {

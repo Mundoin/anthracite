@@ -1252,9 +1252,15 @@ export function TopologyMode({
       return null;
     }
   })();
+  // V1BL-C — depend on the actual lab record, not the whole lifecycle
+  // context value. The context object identity churns on every internal
+  // tick which previously rebuilt `labView` (and the canvas view ref)
+  // on every render, clearing Blueprint selection state and making the
+  // Inspect Hardware CTA flash in and out.
+  const labActive = envLifecycle?.active ?? null;
   const labView = useMemo(
-    () => (envLifecycle ? activeRecordToGraphReadyView(envLifecycle.active) : null),
-    [envLifecycle],
+    () => (labActive ? activeRecordToGraphReadyView(labActive) : null),
+    [labActive],
   );
 
   // V1BJ hotfix 2 — when the lab projection wins, the summary strip
@@ -1269,13 +1275,13 @@ export function TopologyMode({
 
   const renderGraphMap = (): ReactNode => (
     <>
-      {/* V1BL-A — in the lab branch the Blueprint canvas carries its
-       * own header strip (env name / scenario / counts / provenance),
-       * so the verbose tm-source-row + tm-summary bands above the
-       * canvas are redundant gutters. They render only for imported
-       * / unavailable / empty paths. The slim summary testids stay
-       * present (hidden but assertable) so V1BJ regression tests
-       * keep passing. */}
+      {/* V1BL-A / V1BL-C — Blueprint canvas owns the live header strip
+       * (env / scenario / counts / density / provenance). The verbose
+       * tm-source-row + tm-summary bands rendered above the canvas in
+       * non-lab branches are redundant chrome for the lab branch, so
+       * lab-wins now renders only the hidden testid shadow used by
+       * V1BJ regression tests. Non-lab branches keep the visible bands
+       * (no canvas with built-in header in those paths). */}
       {labWinsRouting ? (
         <div className="tm-summary-shadow" aria-hidden="true">
           <span data-testid="tm-summary-nodes">{labNodeCount}</span>
@@ -1538,6 +1544,10 @@ export function TopologyMode({
       group: "primary",
       status: "available",
       role: "engine_analysis",
+      // V1BL-C — full-bleed Blueprint canvas owns its own header strip;
+      // suppress the workbench's title + description + READY chip so
+      // operators don't see a duplicate "Graph / Map · READY" gutter.
+      header_hidden: true,
       render: renderGraphMap,
     },
     {

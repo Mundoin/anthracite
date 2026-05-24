@@ -51,6 +51,13 @@ export type ModeTool =
       status: ModeToolStatus;
       role?: ModeToolRole;
       badge?: number | string;
+      /**
+       * V1BL-C — when true, ModeWorkbenchShell suppresses the
+       * ActiveToolHeader (title + description + status chip) for this
+       * tool. Used by full-bleed canvases that carry their own header
+       * strip (e.g. the Blueprint topology canvas).
+       */
+      header_hidden?: boolean;
       render: () => ReactNode;
     }
   | {
@@ -62,6 +69,7 @@ export type ModeTool =
       status: ModeToolStatus;
       role?: ModeToolRole;
       badge?: number | string;
+      header_hidden?: boolean;
       deferred: {
         reason: string;
         planned_inputs?: ReadonlyArray<string>;

@@ -89,7 +89,9 @@ export const ModeWorkbenchShell: FC<ModeWorkbenchShellProps> = ({
         data-testid="mode-workbench-active"
         data-active-tool={active?.id ?? ""}
       >
-        {active ? <ActiveToolHeader tool={active} /> : null}
+        {active && !active.header_hidden ? (
+          <ActiveToolHeader tool={active} />
+        ) : null}
         <div className="mwb-active-body" data-testid="mode-workbench-body">
           {active ? renderToolBody(active) : <ToolMissingState />}
         </div>

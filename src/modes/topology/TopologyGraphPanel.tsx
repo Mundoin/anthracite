@@ -48,16 +48,15 @@ export function TopologyGraphPanel({
   // V1BH — the Blueprint canvas is wrapped in HardwareInspectReceiver
   // which lazy-loads the Babylon hardware scene on inspect intent.
   if (data_source === "simulated") {
+    // V1BL-C — Blueprint canvas owns its own header strip (env / scenario
+    // / counts / density / provenance). No outer "Topology · Map" title
+    // or duplicate source badge here.
     return (
       <div
         className="tg-panel tg-panel--blueprint"
         data-testid="tg-panel"
         data-surface="blueprint"
       >
-        <div className="tg-header tg-header--blueprint">
-          <h3 className="tg-title tg-title--blueprint">Topology · Map</h3>
-          <RenderGraphSourceBadge data_source={data_source} />
-        </div>
         <div className="tg-content tg-content--blueprint">
           <HardwareInspectReceiver
             canvasProps={{ view, dataSource: data_source }}

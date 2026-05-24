@@ -18,6 +18,7 @@ import {
   lazy,
   useCallback,
   useEffect,
+  useRef,
   useState,
   type JSX,
   type ReactNode,
@@ -25,7 +26,10 @@ import {
 
 import { BlueprintTopologyCanvas } from "../blueprint/BlueprintTopologyCanvas";
 import type { BlueprintTopologyCanvasProps } from "../blueprint/BlueprintTopologyCanvas";
-import type { HardwareInspectIntent } from "../blueprint/hardwarePassport";
+import type {
+  AnchorRect,
+  HardwareInspectIntent,
+} from "../blueprint/hardwarePassport";
 import { InspectionLockMarks } from "./InspectionLockMarks";
 
 import "./HardwareInspectReceiver.css";
@@ -56,12 +60,25 @@ export function HardwareInspectReceiver({
   const [intent, setIntent] = useState<HardwareInspectIntent | null>(null);
   const [phase, setPhase] = useState<Phase>("map");
   const [bayWidth, setBayWidth] = useState<BayWidthMode>("wide");
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  // V1BL-C — `liveAnchor` / `liveViewport` track the selected node's
+  // *current* position inside the receiver overlay (recomputed on every
+  // resize tick), instead of relying on the anchor snapshot captured at
+  // click time. Without this the lock-mark reticle drifts off the node
+  // after the bay slides in (the canvas resizes; the click-time anchor
+  // becomes stale).
+  const [liveAnchor, setLiveAnchor] = useState<AnchorRect | undefined>(undefined);
+  const [liveViewport, setLiveViewport] = useState<
+    { readonly w: number; readonly h: number } | undefined
+  >(undefined);
 
   // Reset entire receiver when the underlying graph view changes — the
   // selected node may no longer exist.
   useEffect(() => {
     setIntent(null);
     setPhase("map");
+    setLiveAnchor(undefined);
+    setLiveViewport(undefined);
   }, [canvasProps.view]);
 
   const onInspect = useCallback((next: HardwareInspectIntent): void => {
@@ -89,9 +106,44 @@ export function HardwareInspectReceiver({
     const id = window.setTimeout(() => {
       setIntent(null);
       setPhase("map");
+      setLiveAnchor(undefined);
+      setLiveViewport(undefined);
     }, EXIT_MS);
     return () => window.clearTimeout(id);
   }, [phase]);
+
+  // V1BL-C — recompute the live anchor whenever the receiver resizes or
+  // a new intent arrives. Reads the selected node's current rect via
+  // the DOM (data-testid="bt-node-${nodeId}") and projects it into the
+  // receiver's coordinate space. Falls back to the intent's snapshot
+  // anchor when the node is no longer rendered.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || !intent) return;
+
+    const recompute = (): void => {
+      const rr = root.getBoundingClientRect();
+      if (rr.width <= 0 || rr.height <= 0) return;
+      setLiveViewport({ w: rr.width, h: rr.height });
+      const nodeEl = root.querySelector<SVGGraphicsElement>(
+        `[data-testid="bt-node-${intent.nodeId}"]`,
+      );
+      if (!nodeEl) return;
+      const nr = nodeEl.getBoundingClientRect();
+      setLiveAnchor({
+        x: nr.left - rr.left,
+        y: nr.top - rr.top,
+        w: nr.width,
+        h: nr.height,
+      });
+    };
+
+    recompute();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => recompute());
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [intent]);
 
   const bayState: "opening" | "open" | "closing" | "closed" =
     phase === "entering"
@@ -104,6 +156,7 @@ export function HardwareInspectReceiver({
 
   return (
     <div
+      ref={rootRef}
       className="hardware-inspect-receiver"
       data-testid="hardware-inspect-receiver"
       data-phase={phase}
@@ -135,8 +188,8 @@ export function HardwareInspectReceiver({
             </Suspense>
             <InspectionLockMarks
               phase={phase}
-              anchor={intent.anchor}
-              viewport={intent.viewport}
+              anchor={liveAnchor ?? intent.anchor}
+              viewport={liveViewport ?? intent.viewport}
             />
           </div>
         </div>

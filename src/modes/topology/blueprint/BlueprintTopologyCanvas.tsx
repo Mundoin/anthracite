@@ -391,28 +391,58 @@ export function BlueprintTopologyCanvas({
     [vb.x, vb.y, vb.w, vb.h],
   );
 
-  const onWheel = useCallback(
-    (e: React.WheelEvent<SVGSVGElement>): void => {
+  // V1BL-C — Figma-native wheel model:
+  //   • plain wheel               → pan (vertical with mouse, both axes with trackpad)
+  //   • Shift + wheel             → pan horizontally (mouse fallback)
+  //   • Ctrl / Cmd + wheel        → zoom around pointer (trackpad pinch is
+  //     surfaced by browsers as Ctrl + wheel, so this matches pinch-to-zoom)
+  //
+  // React's SyntheticEvent onWheel is registered passively in React 17+,
+  // so `e.preventDefault()` from a React handler can't stop the page
+  // scrolling. We bind a non-passive native listener on the SVG element
+  // and keep all state transitions inside React via setTransform.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const handler = (e: WheelEvent): void => {
+      // Always own the wheel when pointer is over the canvas — the page
+      // must never scroll behind us, regardless of pan vs zoom intent.
       e.preventDefault();
-      const ptr = screenToViewbox(e.clientX, e.clientY);
-      const factor = e.deltaY > 0 ? 1 / ZOOM_STEP : ZOOM_STEP;
-      setTransform((t) => {
-        const ns = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, t.scale * factor));
-        if (ns === t.scale) return t;
-        if (!ptr) {
-          // No reliable pointer mapping — fall back to scaling in place.
-          return { ...t, scale: ns };
-        }
-        const k = ns / t.scale;
-        return {
-          tx: ptr.x - (ptr.x - t.tx) * k,
-          ty: ptr.y - (ptr.y - t.ty) * k,
-          scale: ns,
-        };
-      });
-    },
-    [screenToViewbox],
-  );
+
+      if (e.ctrlKey || e.metaKey) {
+        const ptr = screenToViewbox(e.clientX, e.clientY);
+        const factor = e.deltaY > 0 ? 1 / ZOOM_STEP : ZOOM_STEP;
+        setTransform((t) => {
+          const ns = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, t.scale * factor));
+          if (ns === t.scale) return t;
+          if (!ptr) {
+            return { ...t, scale: ns };
+          }
+          const k = ns / t.scale;
+          return {
+            tx: ptr.x - (ptr.x - t.tx) * k,
+            ty: ptr.y - (ptr.y - t.ty) * k,
+            scale: ns,
+          };
+        });
+        return;
+      }
+
+      const rect = svg.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      const rx = vb.w / rect.width;
+      const ry = vb.h / rect.height;
+      // Pan delta in viewBox units. Shift+wheel converts a vertical
+      // mouse wheel into a horizontal pan (browser convention).
+      const swap = e.shiftKey && e.deltaX === 0;
+      const panDx = swap ? -e.deltaY * rx : -e.deltaX * rx;
+      const panDy = swap ? 0 : -e.deltaY * ry;
+      if (panDx === 0 && panDy === 0) return;
+      setTransform((t) => ({ ...t, tx: t.tx + panDx, ty: t.ty + panDy }));
+    };
+    svg.addEventListener("wheel", handler, { passive: false });
+    return () => svg.removeEventListener("wheel", handler);
+  }, [screenToViewbox, vb.w, vb.h]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<SVGSVGElement>): void => {
@@ -491,10 +521,27 @@ export function BlueprintTopologyCanvas({
   const rootRef = useRef<HTMLElement | null>(null);
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
 
+  // V1BL-C — bumped whenever the canvas-wrap element resizes (bay open
+  // / close, window resize). Drives passport repositioning so the card
+  // stays glued to the selected glyph after layout changes.
+  const [resizeTick, setResizeTick] = useState(0);
+
+  useEffect(() => {
+    const wrap = canvasWrapRef.current;
+    if (!wrap || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      setResizeTick((n) => (n + 1) % 1_000_000);
+    });
+    observer.observe(wrap);
+    return () => observer.disconnect();
+  }, []);
+
   // V1BL — position the floating passport near the selected glyph in
   // canvas-wrap coords, using the V1BJ edge-aware placement helper.
   // V1BL-B — recompute on every transform change so the passport
   // tracks pan and zoom.
+  // V1BL-C — `resizeTick` participates so the passport tracks canvas
+  // resize too (split-bay open/close, window resize).
   useLayoutEffect(() => {
     if (!selectedId) {
       setPassportPos(null);
@@ -517,7 +564,7 @@ export function BlueprintTopologyCanvas({
       { w: wr.width, h: wr.height },
     );
     setPassportPos({ left: placement.cardLeft, top: placement.cardTop });
-  }, [selectedId, view, band, transform]);
+  }, [selectedId, view, band, transform, resizeTick]);
 
   const dispatchInspect = useCallback(
     (nodeId: string, trigger: HardwareInspectIntent["trigger"]): void => {
@@ -679,7 +726,6 @@ export function BlueprintTopologyCanvas({
           className="bt-canvas"
           viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
           preserveAspectRatio="xMidYMid meet"
-          onWheel={onWheel}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
