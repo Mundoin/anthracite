@@ -45,13 +45,9 @@ import { placeCallout } from "./calloutPlacement";
 
 import "./HardwareInspectScene.css";
 
-export type BayWidthMode = "compact" | "wide";
-
 export interface HardwareInspectSceneProps {
   readonly intent: HardwareInspectIntent;
   readonly onClose: () => void;
-  readonly widthMode?: BayWidthMode;
-  readonly onChangeWidth?: (mode: BayWidthMode) => void;
 }
 
 interface SceneHandles {
@@ -88,10 +84,6 @@ export function HardwareInspectScene({
   intent,
   onClose,
 }: HardwareInspectSceneProps): JSX.Element {
-  // V1BL-E — `widthMode` / `onChangeWidth` props are accepted (for
-  // callers that still pass them) but no width-toggle UI is rendered.
-  // Keeping the prop surface intact lets a future width control wire
-  // back in without churning the receiver call site.
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneRef = useRef<SceneHandles | null>(null);
@@ -273,33 +265,42 @@ export function HardwareInspectScene({
           data-testid="his-back"
           title="Back to map"
         >
-          ◂ Back
+          Back
         </button>
         <div className="his-id" data-testid="his-id">
           <span className="his-label" data-testid="his-label" title={intent.label}>
             {intent.label}
           </span>
-          {/* V1BL-F — meta line carries only signal. `via <trigger>` was
-           * operator-internal data and is removed from the UI. UNK
-           * profiles render only the role hint; concrete profiles
-           * render `role · vendor model`. */}
+          {/* V1BL-G — meta is a single inline run on the same row as
+           * the label, so the inspector header matches the map header
+           * height exactly (one continuous top rail). UNK profiles
+           * suppress the noisy vendor/model and only carry the role
+           * + a soft "unknown" marker; concrete profiles render
+           * `role · profileId · vendor model`. `via <trigger>` is
+           * dropped — operator-internal data, not header signal. */}
+          <span className="his-meta-sep" aria-hidden="true">—</span>
           {(() => {
             const isUnknown = intent.profileId === "unk1u";
             if (isUnknown) {
               return (
                 <span className="his-meta" data-testid="his-meta">
                   <span>{intent.family}</span>
-                  <span className="his-meta-sep">·</span>
-                  <span data-testid="his-profile-id">unknown profile</span>
+                  <span className="his-meta-dot" aria-hidden="true">·</span>
+                  <span
+                    className="his-meta-soft"
+                    data-testid="his-profile-id"
+                  >
+                    unknown profile
+                  </span>
                 </span>
               );
             }
             return (
               <span className="his-meta" data-testid="his-meta">
                 <span>{intent.family}</span>
-                <span className="his-meta-sep">·</span>
+                <span className="his-meta-dot" aria-hidden="true">·</span>
                 <span data-testid="his-profile-id">{intent.profileId}</span>
-                <span className="his-meta-sep">·</span>
+                <span className="his-meta-dot" aria-hidden="true">·</span>
                 <span>
                   {profile.vendor} {profile.model}
                 </span>
@@ -307,10 +308,18 @@ export function HardwareInspectScene({
             );
           })()}
         </div>
-        {/* V1BL-E — width-arrow buttons removed. Bay stays at the
-         * receiver-default width. `onChangeWidth` / `widthMode` props
-         * are preserved so a future width-toggle UI (cmd palette,
-         * keyboard) can wire back in without touching the API. */}
+        {/* V1BL-G — Expand stub. Honest affordance for the future
+         * deeper-inspection surface (ports, PSUs, fans, firmware,
+         * config facts). Disabled at v0; tooltip explains. */}
+        <button
+          type="button"
+          className="his-expand"
+          data-testid="his-expand"
+          disabled
+          title="Expand inspection — deeper device modules (coming soon)"
+        >
+          Expand
+        </button>
       </header>
 
       <div

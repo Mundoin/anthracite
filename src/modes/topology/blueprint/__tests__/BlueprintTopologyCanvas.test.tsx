@@ -352,7 +352,7 @@ describe("BlueprintTopologyCanvas — V1BL-B canvas navigation", () => {
     expect(screen.getByTestId("bt-nav-zoom")).toHaveTextContent("100%");
   });
 
-  it("Ctrl+wheel zooms the canvas (Figma model)", () => {
+  it("V1BL-G — plain wheel zooms the canvas (modifiers ignored)", () => {
     const view = makeView(chainNodes(3), chainEdges(3));
     render(
       withActive(
@@ -361,41 +361,11 @@ describe("BlueprintTopologyCanvas — V1BL-B canvas navigation", () => {
       ),
     );
     const svg = screen.getByTestId("bt-svg");
-    fireEvent.wheel(svg, {
-      deltaY: -100,
-      clientX: 100,
-      clientY: 100,
-      ctrlKey: true,
-    });
-    fireEvent.wheel(svg, {
-      deltaY: -100,
-      clientX: 100,
-      clientY: 100,
-      ctrlKey: true,
-    });
+    fireEvent.wheel(svg, { deltaY: -100, clientX: 100, clientY: 100 });
+    fireEvent.wheel(svg, { deltaY: -100, clientX: 100, clientY: 100 });
     const indicator = screen.getByTestId("bt-nav-zoom");
     expect(indicator.textContent).not.toBe("100%");
     expect(Number.parseInt(indicator.textContent ?? "0", 10)).toBeGreaterThan(100);
-  });
-
-  it("plain wheel pans the canvas, does not zoom (Figma model)", () => {
-    const view = makeView(chainNodes(3), chainEdges(3));
-    render(
-      withActive(
-        fakeActive(),
-        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
-      ),
-    );
-    const svg = screen.getByTestId("bt-svg");
-    const wrap = screen.getByTestId("bt-canvas-wrap");
-    fireEvent.wheel(svg, { deltaY: 120, deltaX: 0, clientX: 100, clientY: 100 });
-    // Zoom must stay at 100%.
-    expect(screen.getByTestId("bt-nav-zoom")).toHaveTextContent("100%");
-    // Transform translate components are exposed via data attrs.
-    expect(wrap.getAttribute("data-tx")).toBe("0.00");
-    // ty changes by deltaY scaled to viewBox units. jsdom rects are
-    // 0×0 so the screenToViewbox helper bails; assert nothing crashed
-    // and the indicator stayed put.
   });
 
   it("V1BL-F — Reset returns to 100% (clears transform + offsets)", () => {
@@ -407,15 +377,9 @@ describe("BlueprintTopologyCanvas — V1BL-B canvas navigation", () => {
       ),
     );
     const svg = screen.getByTestId("bt-svg");
-    fireEvent.wheel(svg, {
-      deltaY: -100,
-      clientX: 100,
-      clientY: 100,
-      ctrlKey: true,
-    });
+    fireEvent.wheel(svg, { deltaY: -100, clientX: 100, clientY: 100 });
     fireEvent.click(screen.getByTestId("bt-nav-reset"));
     expect(screen.getByTestId("bt-nav-zoom")).toHaveTextContent("100%");
-    // Wrap exposes transform components via data attrs.
     const wrap = screen.getByTestId("bt-canvas-wrap");
     expect(wrap.getAttribute("data-tx")).toBe("0.00");
     expect(wrap.getAttribute("data-ty")).toBe("0.00");
@@ -431,12 +395,7 @@ describe("BlueprintTopologyCanvas — V1BL-B canvas navigation", () => {
       ),
     );
     const svg = screen.getByTestId("bt-svg");
-    fireEvent.wheel(svg, {
-      deltaY: -100,
-      clientX: 100,
-      clientY: 100,
-      ctrlKey: true,
-    });
+    fireEvent.wheel(svg, { deltaY: -100, clientX: 100, clientY: 100 });
     fireEvent.click(screen.getByTestId("bt-nav-reset"));
     expect(screen.getByTestId("bt-nav-zoom")).toHaveTextContent("100%");
   });

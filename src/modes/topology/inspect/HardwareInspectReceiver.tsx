@@ -27,12 +27,6 @@ import { BlueprintTopologyCanvas } from "../blueprint/BlueprintTopologyCanvas";
 import type { BlueprintTopologyCanvasProps } from "../blueprint/BlueprintTopologyCanvas";
 import type { HardwareInspectIntent } from "../blueprint/hardwarePassport";
 
-// V1BL-E — `InspectionLockMarks` is no longer mounted. The 2D→3D
-// transition is just the bay slide-in; the cyan reticle / target
-// brackets read as a sniper-scope animation and were removed. The
-// file is left in place for now (no other consumer) but can be
-// deleted in a follow-up.
-
 import "./HardwareInspectReceiver.css";
 
 // Lazy-loaded so the inspect scene + its Babylon imports drop out of
@@ -53,14 +47,11 @@ export interface HardwareInspectReceiverProps {
   readonly canvasProps: Omit<BlueprintTopologyCanvasProps, "onInspect">;
 }
 
-type BayWidthMode = "compact" | "wide";
-
 export function HardwareInspectReceiver({
   canvasProps,
 }: HardwareInspectReceiverProps): JSX.Element {
   const [intent, setIntent] = useState<HardwareInspectIntent | null>(null);
   const [phase, setPhase] = useState<Phase>("map");
-  const [bayWidth, setBayWidth] = useState<BayWidthMode>("wide");
 
   // Reset entire receiver when the underlying graph view changes — the
   // selected node may no longer exist.
@@ -131,17 +122,11 @@ export function HardwareInspectReceiver({
           className="hir-bay"
           data-testid="hir-bay"
           data-bay-open={bayState}
-          data-bay-width={bayWidth}
           aria-live="polite"
         >
           <div className="hir-bay-inner" data-testid="hir-scene-layer">
             <Suspense fallback={<SceneFallback />}>
-              <HardwareInspectScene
-                intent={intent}
-                onClose={onClose}
-                widthMode={bayWidth}
-                onChangeWidth={setBayWidth}
-              />
+              <HardwareInspectScene intent={intent} onClose={onClose} />
             </Suspense>
           </div>
         </div>

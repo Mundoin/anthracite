@@ -505,58 +505,35 @@ export function BlueprintTopologyCanvas({
     [vb.x, vb.y, vb.w, vb.h],
   );
 
-  // V1BL-C — Figma-native wheel model:
-  //   • plain wheel               → pan (vertical with mouse, both axes with trackpad)
-  //   • Shift + wheel             → pan horizontally (mouse fallback)
-  //   • Ctrl / Cmd + wheel        → zoom around pointer (trackpad pinch is
-  //     surfaced by browsers as Ctrl + wheel, so this matches pinch-to-zoom)
-  //
-  // React's SyntheticEvent onWheel is registered passively in React 17+,
-  // so `e.preventDefault()` from a React handler can't stop the page
-  // scrolling. We bind a non-passive native listener on the SVG element
-  // and keep all state transitions inside React via setTransform.
+  // V1BL-G — wheel = zoom only. The V1BL-C Figma model (plain wheel
+  // pans, Ctrl+wheel zooms, Shift+wheel horizontal pan) was confusing
+  // operators about whether the wheel zoomed the canvas or scrolled
+  // the page. New rule: wheel anywhere over the canvas zooms around
+  // the pointer, modifiers are no-ops. Pan stays exclusively on
+  // click-and-drag. Page never scrolls under the canvas (native
+  // non-passive listener owns preventDefault).
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
     const handler = (e: WheelEvent): void => {
-      // Always own the wheel when pointer is over the canvas — the page
-      // must never scroll behind us, regardless of pan vs zoom intent.
       e.preventDefault();
-
-      if (e.ctrlKey || e.metaKey) {
-        const ptr = screenToViewbox(e.clientX, e.clientY);
-        const factor = e.deltaY > 0 ? 1 / ZOOM_STEP : ZOOM_STEP;
-        setTransform((t) => {
-          const ns = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, t.scale * factor));
-          if (ns === t.scale) return t;
-          const next: ViewTransform = !ptr
-            ? { ...t, scale: ns }
-            : (() => {
-                const k = ns / t.scale;
-                return {
-                  tx: ptr.x - (ptr.x - t.tx) * k,
-                  ty: ptr.y - (ptr.y - t.ty) * k,
-                  scale: ns,
-                };
-              })();
-          return clampTransform(next, vb);
-        });
-        return;
-      }
-
-      const rect = svg.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-      const rx = vb.w / rect.width;
-      const ry = vb.h / rect.height;
-      // Pan delta in viewBox units. Shift+wheel converts a vertical
-      // mouse wheel into a horizontal pan (browser convention).
-      const swap = e.shiftKey && e.deltaX === 0;
-      const panDx = swap ? -e.deltaY * rx : -e.deltaX * rx;
-      const panDy = swap ? 0 : -e.deltaY * ry;
-      if (panDx === 0 && panDy === 0) return;
-      setTransform((t) =>
-        clampTransform({ ...t, tx: t.tx + panDx, ty: t.ty + panDy }, vb),
-      );
+      const ptr = screenToViewbox(e.clientX, e.clientY);
+      const factor = e.deltaY > 0 ? 1 / ZOOM_STEP : ZOOM_STEP;
+      setTransform((t) => {
+        const ns = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, t.scale * factor));
+        if (ns === t.scale) return t;
+        const next: ViewTransform = !ptr
+          ? { ...t, scale: ns }
+          : (() => {
+              const k = ns / t.scale;
+              return {
+                tx: ptr.x - (ptr.x - t.tx) * k,
+                ty: ptr.y - (ptr.y - t.ty) * k,
+                scale: ns,
+              };
+            })();
+        return clampTransform(next, vb);
+      });
     };
     svg.addEventListener("wheel", handler, { passive: false });
     return () => svg.removeEventListener("wheel", handler);

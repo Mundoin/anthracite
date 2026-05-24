@@ -116,6 +116,29 @@
   min-height: 0;
   background: var(--topo-canvas);
   overflow: hidden;
+  /* V1BL-G — graphite scrollbar when content overflows. Subtle but
+   * visible, never browser-default pale. Pan via drag is primary;
+   * scrollbar is a secondary affordance. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--topo-ink-3) var(--topo-paper-sunken);
+}
+
+.bt-canvas-wrap::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.bt-canvas-wrap::-webkit-scrollbar-track {
+  background: var(--topo-paper-sunken);
+}
+
+.bt-canvas-wrap::-webkit-scrollbar-thumb {
+  background: var(--topo-ink-3);
+  border-radius: 4px;
+}
+
+.bt-canvas-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--topo-ink-2);
 }
 
 .bt-canvas {
