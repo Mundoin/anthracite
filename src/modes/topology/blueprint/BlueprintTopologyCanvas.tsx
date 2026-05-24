@@ -188,6 +188,8 @@ function Glyph({
   };
 
   if (band === "dot") {
+    // V1BL-A — graphite fill when idle, cyan only when selected.
+    // Drops the green "soldier" look on high-density scenarios.
     return (
       <g
         className="bt-node"
@@ -200,9 +202,9 @@ function Glyph({
         <circle
           className="bt-node-dot"
           r={selected ? 12 : 8}
-          fill={stateRingColor("ok")}
-          stroke="var(--topo-line)"
-          strokeWidth={selected ? 1.5 : 0.75}
+          fill={selected ? "var(--topo-cyan)" : "var(--topo-ink-2)"}
+          stroke="var(--topo-line-2)"
+          strokeWidth={selected ? 1.5 : 0.5}
         />
         {selected && <circle className="bt-node-focus-ring" r={16} />}
       </g>

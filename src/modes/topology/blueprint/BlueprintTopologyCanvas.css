@@ -5,36 +5,37 @@
  */
 
 .blueprint-topology {
-  /* surface */
-  --topo-canvas:         #E6EDF1;
-  --topo-canvas-deep:    #DAE3EA;
-  --topo-paper:          #FAFCFD;
-  --topo-paper-sunken:   #ECF1F4;
-  --topo-paper-selected: #BFD3E3;
+  /* V1BL-A — white drafting surface; cool-paper tints retired.
+   * Cyan remains, scoped to ACTIVE focus / selection / live signal. */
+  --topo-canvas:         #FAFCFD;
+  --topo-canvas-deep:    #F2F5F7;
+  --topo-paper:          #FFFFFF;
+  --topo-paper-sunken:   #F4F6F8;
+  --topo-paper-selected: #E5EEF3;
 
-  /* drafting lines */
-  --topo-line:    #0E1E2C;
-  --topo-line-2:  #4A6072;
-  --topo-line-3:  #8AA1B0;
-  --topo-line-4:  #C8D5DE;
+  /* drafting lines — graphite ramp (warmer than V1BL ink ramp) */
+  --topo-line:    #1A2530;
+  --topo-line-2:  #4F5A66;
+  --topo-line-3:  #8A949E;
+  --topo-line-4:  #D6DBE0;
 
   /* cyan = SIGNAL only */
   --topo-cyan:      #0E72A0;
   --topo-cyan-deep: #074C6E;
-  --topo-cyan-soft: #D3E6EE;
-  --topo-grid-rule: rgba(14, 30, 44, 0.05);
+  --topo-cyan-soft: #D9EBF2;
+  --topo-grid-rule: rgba(26, 37, 48, 0.04);
 
-  /* ink ramp */
-  --topo-ink:   #0E1E2C;
-  --topo-ink-2: #2F4458;
-  --topo-ink-3: #557082;
-  --topo-ink-4: #93A8B7;
+  /* ink ramp — warm graphite */
+  --topo-ink:   #1A2530;
+  --topo-ink-2: #3A4654;
+  --topo-ink-3: #5F6B77;
+  --topo-ink-4: #9AA3AD;
 
-  /* operational state */
-  --topo-ok:       #2C8456;
+  /* operational state — quieter neutrals; saturated only when triggered */
+  --topo-ok:       #5F6B77;
   --topo-warn:     #C77A0E;
   --topo-err:      #B83333;
-  --topo-deferred: #7A8A95;
+  --topo-deferred: #9AA3AD;
   --topo-critical: #D32E2E;
 
   /* typography */
@@ -131,10 +132,11 @@
 
 /* edges */
 .bt-edge {
-  stroke: var(--topo-line-3);
+  stroke: var(--topo-line-4);
   stroke-width: 1;
   fill: none;
   pointer-events: none;
+  opacity: 0.85;
 }
 
 .bt-edge.is-active {
@@ -149,8 +151,8 @@
 
 .bt-node-frame {
   fill: var(--topo-paper);
-  stroke: var(--topo-line);
-  stroke-width: 1.5;
+  stroke: var(--topo-line-2);
+  stroke-width: 1.25;
 }
 
 .bt-node-frame.is-virtual {

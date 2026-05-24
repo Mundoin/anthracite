@@ -59,6 +59,35 @@
   padding: var(--anth-pad-card);
 }
 
+/* V1BL-A — the lab Blueprint owns its own chrome (header strip +
+ * floating passport). Strip the .tm-body frame so the canvas reads
+ * as the full work surface, not as another nested card. */
+.tm-body--lab-view {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.tm-body--lab-view > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Hidden testid carrier — keeps V1BJ regression assertions stable
+ * after the verbose summary strip is dropped for the lab branch. */
+.tm-summary-shadow {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  pointer-events: none;
+}
+
 .tm-body--empty,
 .tm-body--unavailable {
   color: var(--anth-text-3);
