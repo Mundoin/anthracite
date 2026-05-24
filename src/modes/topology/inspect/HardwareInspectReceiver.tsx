@@ -1,17 +1,16 @@
 /**
- * Hardware Inspect Receiver — V1BH.
+ * Hardware Inspect Receiver — V1BH + V1BJ + V1BK.
  *
- * Wraps the Blueprint topology canvas, swallows the V1BG inspect
- * intent, and lazy-loads the Babylon hardware scene when an inspect
- * begins. Critically: this file contains zero `@babylonjs/core`
- * imports. Babylon arrives in the bundle only after `React.lazy`
- * resolves `HardwareInspectScene` — which happens only after the
- * operator clicks `Inspect Hardware ▸` or double-clicks a node.
+ * V1BK — split layout. The receiver renders the Blueprint canvas as
+ * the main column. When an inspect intent arrives, a right-side bay
+ * slides in (240 ms), mounting a lazy-loaded Babylon hardware scene.
+ * `◂ Back to map` collapses the bay (280 ms) so the operator never
+ * loses sight of the topology surface.
  *
- * Transition (240 ms cross-fade) follows the desk doctrine
- * `interaction-state-machine.md` FOCUSED → ORBIT lifecycle ordering
- * (see V1BD decision 5). Scene build is deferred to React.lazy +
- * Suspense; disposal happens on unmount after the reverse fade ends.
+ * Critically: this file contains zero `@babylonjs/core` imports.
+ * Babylon arrives in the bundle only after `React.lazy` resolves
+ * `HardwareInspectScene` — which happens only after the operator
+ * clicks `Inspect Hardware ▸` or double-clicks a node.
  */
 
 import {
@@ -19,7 +18,6 @@ import {
   lazy,
   useCallback,
   useEffect,
-  useMemo,
   useState,
   type JSX,
   type ReactNode,
@@ -63,17 +61,14 @@ export function HardwareInspectReceiver({
     setPhase("map");
   }, [canvasProps.view]);
 
-  const onInspect = useCallback(
-    (next: HardwareInspectIntent): void => {
-      setIntent(next);
-      setPhase("entering");
-    },
-    [],
-  );
+  const onInspect = useCallback((next: HardwareInspectIntent): void => {
+    setIntent(next);
+    setPhase("entering");
+  }, []);
 
-  // After the scene chunk resolves and renders, settle into the
-  // steady "scene" phase. The "entering" → "scene" hop drives the
-  // 240 ms opacity tween via CSS.
+  // After the bay slide-in finishes (or scene chunk resolves and
+  // renders, whichever is later from a UX standpoint), settle into
+  // the steady "scene" phase.
   useEffect(() => {
     if (phase !== "entering") return;
     const id = window.setTimeout(() => setPhase("scene"), TRANSITION_MS);
@@ -84,7 +79,7 @@ export function HardwareInspectReceiver({
     setPhase("exiting");
   }, []);
 
-  // After the reverse tween ends, unmount the scene so the engine
+  // After the reverse slide finishes, unmount the scene so the engine
   // disposes (cleanup runs in HardwareInspectScene's useEffect return).
   useEffect(() => {
     if (phase !== "exiting") return;
@@ -95,32 +90,14 @@ export function HardwareInspectReceiver({
     return () => window.clearTimeout(id);
   }, [phase]);
 
-  const showScene = intent !== null;
-  const mapOpacityClass = useMemo(() => {
-    switch (phase) {
-      case "map":
-        return "hir-layer hir-layer--visible";
-      case "entering":
-        return "hir-layer hir-layer--fading-out";
-      case "scene":
-        return "hir-layer hir-layer--hidden";
-      case "exiting":
-        return "hir-layer hir-layer--fading-in";
-    }
-  }, [phase]);
-
-  const sceneOpacityClass = useMemo(() => {
-    switch (phase) {
-      case "entering":
-        return "hir-layer hir-layer--fading-in";
-      case "scene":
-        return "hir-layer hir-layer--visible";
-      case "exiting":
-        return "hir-layer hir-layer--fading-out";
-      case "map":
-        return "hir-layer hir-layer--hidden";
-    }
-  }, [phase]);
+  const bayState: "opening" | "open" | "closing" | "closed" =
+    phase === "entering"
+      ? "opening"
+      : phase === "scene"
+        ? "open"
+        : phase === "exiting"
+          ? "closing"
+          : "closed";
 
   return (
     <div
@@ -128,31 +105,36 @@ export function HardwareInspectReceiver({
       data-testid="hardware-inspect-receiver"
       data-phase={phase}
     >
-      <div className={mapOpacityClass} data-testid="hir-map-layer">
+      <div className="hir-map" data-testid="hir-map-layer">
         <BlueprintTopologyCanvas {...canvasProps} onInspect={onInspect} />
       </div>
 
-      {showScene && intent && (
-        <div className={sceneOpacityClass} data-testid="hir-scene-layer">
-          <Suspense fallback={<SceneFallback />}>
-            <HardwareInspectScene intent={intent} onClose={onClose} />
-          </Suspense>
+      {intent && (
+        <div
+          className="hir-bay"
+          data-testid="hir-bay"
+          data-bay-open={bayState}
+          aria-live="polite"
+        >
+          <div className="hir-bay-inner" data-testid="hir-scene-layer">
+            <Suspense fallback={<SceneFallback />}>
+              <HardwareInspectScene intent={intent} onClose={onClose} />
+            </Suspense>
+            <InspectionLockMarks
+              phase={phase}
+              anchor={intent.anchor}
+              viewport={intent.viewport}
+            />
+          </div>
         </div>
       )}
-
-      <InspectionLockMarks
-        phase={phase}
-        anchor={intent?.anchor}
-        viewport={intent?.viewport}
-      />
     </div>
   );
 }
 
 function SceneFallback(): ReactNode {
-  // V1BJ — choreographed loading state: drafting grid backdrop,
-  // cyan accent strip, mono caps stencil. Reads as "loading
-  // intentionally", not "broken".
+  // Choreographed loading: drafting grid backdrop, cyan accent strip,
+  // mono caps stencil. Reads as "loading intentionally", not "broken".
   return (
     <div className="hir-fallback" data-testid="hir-fallback">
       <div className="hir-fallback-strip" />

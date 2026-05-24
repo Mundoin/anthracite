@@ -1,6 +1,12 @@
-/* V1BH — Hardware Inspect Receiver
- * Stacks Blueprint + lazy 3D scene with a 240 ms opacity tween. The
- * receiver only ships eagerly; the scene chunk is dynamic-imported.
+/* V1BK — Hardware Inspect Receiver (split layout)
+ *
+ * Map column stays the primary operating surface. A right-side bay
+ * slides in for hardware inspection (240 ms) and slides out on Back
+ * (280 ms). Both layers share the same surface — no cross-fade
+ * overlay, no full-bleed swap.
+ *
+ * The receiver itself ships eagerly; only the scene chunk is
+ * dynamic-imported.
  */
 
 .hardware-inspect-receiver {
@@ -8,36 +14,66 @@
   width: 100%;
   height: 100%;
   min-height: 0;
+  display: flex;
+  background: #E6EDF1; /* drafting paper fallback */
   overflow: hidden;
 }
 
-.hir-layer {
-  position: absolute;
-  inset: 0;
-  transition: opacity 240ms ease-in-out;
+.hir-map {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
 }
 
-.hir-layer--visible {
-  opacity: 1;
-  pointer-events: auto;
+/* Inspection bay — slides in/out via a width animation. The inner
+ * container keeps fixed dimensions so the Babylon canvas does not
+ * reflow during the slide.
+ */
+.hir-bay {
+  flex: 0 0 50%;
+  min-width: 360px;
+  max-width: 640px;
+  height: 100%;
+  overflow: hidden;
+  border-left: 1px solid #C8D5DE;
+  background: #FAFCFD;
+  display: flex;
 }
 
-.hir-layer--hidden {
-  opacity: 0;
-  pointer-events: none;
+.hir-bay[data-bay-open="opening"] {
+  animation: hir-bay-open 240ms cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
 }
 
-.hir-layer--fading-in {
-  opacity: 1;
-  pointer-events: auto;
+.hir-bay[data-bay-open="closing"] {
+  animation: hir-bay-close 280ms cubic-bezier(0.4, 0.0, 0.8, 0.4) forwards;
 }
 
-.hir-layer--fading-out {
-  opacity: 0;
-  pointer-events: none;
+@keyframes hir-bay-open {
+  0%   { flex-basis: 0;   opacity: 0; }
+  40%  {                  opacity: 1; }
+  100% { flex-basis: 50%; opacity: 1; }
 }
 
-/* ── V1BJ Suspense fallback ────────────────────────────────────────
+@keyframes hir-bay-close {
+  0%   { flex-basis: 50%; opacity: 1; }
+  100% { flex-basis: 0;   opacity: 0; }
+}
+
+.hir-bay-inner {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.hir-bay-inner > * {
+  width: 100%;
+}
+
+/* ── Suspense fallback ─────────────────────────────────────────────
  * Drafting backdrop + cyan top strip + mono caps stencil.
  */
 
@@ -85,10 +121,7 @@
   50%      { opacity: 1.0;  }
 }
 
-/* ── V1BI lock marks ────────────────────────────────────────────────
- * Overlay that fires during transition + scene phases. Pointer-events
- * are disabled so picks pass through to the Babylon canvas underneath.
- */
+/* ── V1BI lock marks (V1BK: now scoped to bay column) ───────────── */
 
 .inspection-lock-marks {
   position: absolute;
@@ -142,7 +175,6 @@
   height: 100%;
 }
 
-/* corner brackets — translate to viewport corners and stroke cyan */
 .ilm-corner path {
   fill: none;
   stroke: var(--ilm-cyan);
@@ -152,7 +184,6 @@
 }
 
 .ilm-reticle {
-  /* V1BJ — anchor variables default to centre if not provided */
   --ilm-anchor-x: 50%;
   --ilm-anchor-y: 50%;
   position: absolute;
@@ -206,51 +237,4 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   white-space: nowrap;
-}
-
-/* sweep — thin cyan line that travels through the anchor X column.
- * V1BJ: when an anchor is supplied, the sweep starts at the anchor
- * and fans outward over the 240ms; when no anchor, it sweeps the
- * full width left → right.
- */
-.inspection-lock-marks[data-stage="lock"]::after,
-.inspection-lock-marks[data-stage="release"]::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    var(--ilm-cyan) 12%,
-    var(--ilm-cyan) 88%,
-    transparent 100%
-  );
-  box-shadow: 0 0 14px var(--ilm-cyan-soft);
-  animation: ilm-sweep 240ms ease-out forwards;
-}
-
-/* Anchored sweep originates at the anchor column then fans out to
- * the viewport edge. Centre fallback keeps the original full sweep. */
-.inspection-lock-marks[data-anchored="true"][data-stage="lock"]::after,
-.inspection-lock-marks[data-anchored="true"][data-stage="release"]::after {
-  animation-name: ilm-sweep-from-anchor;
-}
-
-.inspection-lock-marks[data-stage="release"]::after {
-  animation-duration: 280ms;
-  animation-direction: reverse;
-}
-
-@keyframes ilm-sweep {
-  0%   { left: -2px;  opacity: 0; }
-  20%  { opacity: 1; }
-  100% { left: 100%; opacity: 0; }
-}
-
-@keyframes ilm-sweep-from-anchor {
-  0%   { left: var(--ilm-anchor-x, 50%); opacity: 0; width: 2px; }
-  25%  { opacity: 1; width: 2px; }
-  100% { left: var(--ilm-anchor-x, 50%); opacity: 0; width: 100%; transform: translateX(-50%); }
 }

@@ -49,9 +49,13 @@ export function TopologyGraphPanel({
   // which lazy-loads the Babylon hardware scene on inspect intent.
   if (data_source === "simulated") {
     return (
-      <div className="tg-panel" data-testid="tg-panel">
-        <div className="tg-header">
-          <h3 className="tg-title">Blueprint (V1BF)</h3>
+      <div
+        className="tg-panel tg-panel--blueprint"
+        data-testid="tg-panel"
+        data-surface="blueprint"
+      >
+        <div className="tg-header tg-header--blueprint">
+          <h3 className="tg-title tg-title--blueprint">Topology · Map</h3>
           <RenderGraphSourceBadge data_source={data_source} />
         </div>
         <div className="tg-content tg-content--blueprint">

@@ -213,3 +213,85 @@ describe("HardwareInspectReceiver — intent state machine", () => {
     );
   });
 });
+
+describe("HardwareInspectReceiver — V1BK split layout", () => {
+  it("renders map column alongside inspection bay during scene phase", () => {
+    vi.useFakeTimers();
+    try {
+      const view = makeView([makeNode("sw-01", "access switch")]);
+      render(
+        withActive(
+          <HardwareInspectReceiver
+            canvasProps={{ view, dataSource: "simulated" }}
+          />,
+        ),
+      );
+
+      // pre-inspect: map column present, bay absent
+      expect(screen.getByTestId("hir-map-layer")).toBeInTheDocument();
+      expect(screen.queryByTestId("hir-bay")).toBeNull();
+
+      fireEvent.click(screen.getByTestId("bt-node-sw-01"));
+      fireEvent.click(screen.getByTestId("bt-inspect-cta"));
+
+      // bay mounts in `opening` state alongside the still-mounted map
+      const bay = screen.getByTestId("hir-bay");
+      expect(bay).toHaveAttribute("data-bay-open", "opening");
+      expect(screen.getByTestId("hir-map-layer")).toBeInTheDocument();
+
+      // settle into scene → bay open, map still mounted
+      act(() => {
+        vi.advanceTimersByTime(240);
+      });
+      expect(screen.getByTestId("hir-bay")).toHaveAttribute(
+        "data-bay-open",
+        "open",
+      );
+      expect(screen.getByTestId("hir-map-layer")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("view change collapses bay and keeps map mounted", () => {
+    // Under jsdom the lazy scene resolves to the Suspense fallback,
+    // so the scene's `◂ Back to map` button is not mountable here.
+    // The close path is exercised by re-rendering with a fresh view,
+    // which forces the receiver's reset-on-view effect — and proves
+    // the map column stays mounted across the unmount.
+    vi.useFakeTimers();
+    try {
+      const view1 = makeView([makeNode("sw-01", "access switch")]);
+      const { rerender } = render(
+        withActive(
+          <HardwareInspectReceiver
+            canvasProps={{ view: view1, dataSource: "simulated" }}
+          />,
+        ),
+      );
+      fireEvent.click(screen.getByTestId("bt-node-sw-01"));
+      fireEvent.click(screen.getByTestId("bt-inspect-cta"));
+      act(() => {
+        vi.advanceTimersByTime(240);
+      });
+      expect(screen.getByTestId("hir-bay")).toHaveAttribute(
+        "data-bay-open",
+        "open",
+      );
+
+      const view2 = makeView([makeNode("fw-1", "firewall")]);
+      rerender(
+        withActive(
+          <HardwareInspectReceiver
+            canvasProps={{ view: view2, dataSource: "simulated" }}
+          />,
+        ),
+      );
+      // bay unmounted; map still present
+      expect(screen.queryByTestId("hir-bay")).toBeNull();
+      expect(screen.getByTestId("hir-map-layer")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

@@ -41,6 +41,10 @@
  * caused the dark `.tg-panel` background to bleed through as an
  * "empty black rectangle". The drafting-paper fallback background
  * also kept here so a 0-frame paint never reveals the dark panel.
+ *
+ * V1BK — light hairline border only; the panel chrome is dropped
+ * so Topology reads as the central operating surface, not a boxed
+ * dashboard panel.
  */
 .tg-content--blueprint {
   display: flex;
@@ -48,8 +52,8 @@
   padding: 0;
   height: 640px;
   min-height: 520px;
-  border: 1px solid #333333;
-  border-radius: 4px;
+  border: 1px solid #C8D5DE;
+  border-radius: 2px;
   overflow: hidden;
   background: #E6EDF1; /* --topo-canvas fallback */
 }
@@ -59,6 +63,27 @@
   min-height: 0;
   min-width: 0;
   width: 100%;
+}
+
+/* V1BK — blueprint panel surface: no dark fill, no thick borders. */
+
+.tg-panel--blueprint {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  gap: 8px;
+}
+
+.tg-header--blueprint {
+  padding: 6px 4px 0;
+}
+
+.tg-title--blueprint {
+  color: #0E1E2C;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .tg-surface-container {
