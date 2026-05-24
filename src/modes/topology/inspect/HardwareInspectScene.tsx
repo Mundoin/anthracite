@@ -230,6 +230,31 @@ export function HardwareInspectScene({
     onClose();
   }, [onClose]);
 
+  // V1BN.hotfix-1 — explicit pick dismiss. The PickCallout previously
+  // could only be cleared by Back (leaves inspection) or by clicking
+  // a new mesh. Bujar wants the operator to be able to drop the
+  // callout while staying in the bay. Three exits now:
+  //   • `×` button on the card → calls clearPick
+  //   • Esc key (only when a pick is active) → calls clearPick
+  //   • Picking another zone → existing replace behaviour
+  const clearPick = useCallback((): void => {
+    setPickedZone(null);
+    setCalloutAnchor(null);
+    sceneRef.current?.highlight.removeAllMeshes();
+  }, []);
+
+  useEffect(() => {
+    if (!pickedZone) return;
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        clearPick();
+      }
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [pickedZone, clearPick]);
+
   if (!profile) {
     return (
       <div className="his-error" data-testid="his-error">
@@ -344,6 +369,7 @@ export function HardwareInspectScene({
             anchor={calloutAnchor}
             zone={pickedZone}
             profileId={profile.id}
+            onClose={clearPick}
           />
         )}
       </div>
@@ -355,12 +381,19 @@ interface PickCalloutProps {
   anchor: CalloutAnchor;
   zone: ZoneTag;
   profileId: string;
+  /** V1BN.hotfix-1 — explicit dismiss without leaving the bay. */
+  onClose: () => void;
 }
 
 const CALLOUT_W = 240;
 const CALLOUT_H_EST = 140; // rows + strip + paddings; refined via measurement is overkill at v0
 
-function PickCallout({ anchor, zone, profileId }: PickCalloutProps): JSX.Element {
+function PickCallout({
+  anchor,
+  zone,
+  profileId,
+  onClose,
+}: PickCalloutProps): JSX.Element {
   const placement = placeCallout(
     { x: anchor.x, y: anchor.y },
     { w: CALLOUT_W, h: CALLOUT_H_EST },
@@ -420,6 +453,16 @@ function PickCallout({ anchor, zone, profileId }: PickCalloutProps): JSX.Element
         }}
       >
         <div className="his-callout-strip" data-testid="his-callout-strip" />
+        <button
+          type="button"
+          className="his-callout-close"
+          data-testid="his-callout-close"
+          onClick={onClose}
+          title="Dismiss (Esc)"
+          aria-label="Dismiss pick callout"
+        >
+          ×
+        </button>
         <div className="his-callout-id" data-testid="his-callout-id">
           {zone.modelId}.{zone.kind}.{zone.index}
         </div>

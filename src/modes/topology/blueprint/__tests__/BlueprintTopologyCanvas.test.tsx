@@ -454,6 +454,42 @@ describe("BlueprintTopologyCanvas — V1BM.hotfix-1 unknown glyph + canvas surfa
     expect(glyph?.getAttribute("data-family-glyph")).toBe("known");
   });
 
+  it("V1BN.hotfix-1 — dot-density mini-glyph carries family code via data-family-mini", () => {
+    // 96-node graph → density "dot". Each node should report its
+    // resolved family via `data-family-mini` so dense scenes keep
+    // role identity.
+    const view = makeView(
+      [
+        // 48 firewalls + 48 servers → mix of distinct shapes
+        ...Array.from({ length: 48 }, (_, i) =>
+          makeNode(`fw-fortinet-${String(i).padStart(2, "0")}`, "firewall"),
+        ),
+        ...Array.from({ length: 48 }, (_, i) =>
+          makeNode(`srv-vm-${String(i).padStart(2, "0")}`, "server"),
+        ),
+      ],
+      [],
+    );
+    const { container } = render(
+      withActive(
+        fakeActive({ scenarioId: "metro-backbone" }),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const fwNodes = container.querySelectorAll(
+      '[data-density="dot"][data-family-mini="FW"]',
+    );
+    const srvNodes = container.querySelectorAll(
+      '[data-density="dot"][data-family-mini="SRV"]',
+    );
+    expect(fwNodes.length).toBe(48);
+    expect(srvNodes.length).toBe(48);
+    // FW renders as <rect>, SRV renders as <circle> — confirm shapes
+    // are NOT all identical circles (the V1BN.hf1 fix).
+    expect(fwNodes[0].querySelector("rect.bt-node-dot--fw")).not.toBeNull();
+    expect(srvNodes[0].querySelector("circle.bt-node-dot--srv")).not.toBeNull();
+  });
+
   it("canvas-wrap still mounts (full-surface grid moved to CSS background)", () => {
     const view = makeView(chainNodes(8), chainEdges(8));
     const { container } = render(
@@ -486,8 +522,12 @@ describe("BlueprintTopologyCanvas — V1BL-A white drafting surface", () => {
     expect(root!.className).toContain("blueprint-topology");
   });
 
-  it("paints high-density dots with graphite fill, cyan only when selected", () => {
-    const view = makeView(chainNodes(96, "router"), chainEdges(96));
+  it("paints high-density dots with graphite fill, cyan only when selected (V1BN.hf1: SRV family stays circular)", () => {
+    // V1BN.hotfix-1 — high-density mini-glyph is now role-aware.
+    // SRV nodes stay circular; FW/CORE/EDGE/etc. get distinct
+    // shapes. Use server roles so the original "circle goes from
+    // graphite to cyan on selection" invariant still expresses.
+    const view = makeView(chainNodes(96, "server"), chainEdges(96));
     const { container } = render(
       withActive(
         fakeActive(),
@@ -495,7 +535,7 @@ describe("BlueprintTopologyCanvas — V1BL-A white drafting surface", () => {
       ),
     );
     const idleDot = container.querySelector(
-      '[data-density="dot"] circle.bt-node-dot',
+      '[data-density="dot"][data-family-mini="SRV"] circle.bt-node-dot--srv',
     ) as SVGCircleElement | null;
     expect(idleDot).not.toBeNull();
     expect(idleDot!.getAttribute("fill")).toBe("var(--topo-ink-2)");
@@ -503,7 +543,7 @@ describe("BlueprintTopologyCanvas — V1BL-A white drafting surface", () => {
     // After selection the same dot flips to cyan.
     fireEvent.click(screen.getByTestId("bt-node-n00"));
     const selectedDot = container.querySelector(
-      '[data-testid="bt-node-n00"] circle.bt-node-dot',
+      '[data-testid="bt-node-n00"] circle.bt-node-dot--srv',
     ) as SVGCircleElement | null;
     expect(selectedDot).not.toBeNull();
     expect(selectedDot!.getAttribute("fill")).toBe("var(--topo-cyan)");
@@ -551,6 +591,74 @@ describe("BlueprintTopologyCanvas — 96-node visibility (V1BJ hotfix 3)", () =>
     // Make sure no dark `tg-panel` class is leaking into the blueprint root
     expect(root!.classList.contains("tg-panel")).toBe(false);
   });
+});
+
+describe("BlueprintTopologyCanvas — V1BN.hotfix-3 SVG layer carries topology-svg-layer marker", () => {
+  it("SVG layer carries data-topology-svg-layer for full-surface chain audit", () => {
+    const view = makeView(chainNodes(8), chainEdges(8));
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const svg = container.querySelector("svg[data-topology-svg-layer='true']");
+    expect(svg).not.toBeNull();
+    expect(svg?.classList.contains("bt-canvas")).toBe(true);
+  });
+});
+
+describe("BlueprintTopologyCanvas — V1BN.hotfix-2 surface ownership parity", () => {
+  // Five canonical scenarios (Micro 3, Branch 8, Campus 24, Datacenter 32,
+  // Metro 96) must mount identical surface ownership chains. If any
+  // future change breaks one scenario's surface structure, this test
+  // catches it before Bujar sees a regression.
+  const scenarios: Array<{
+    label: string;
+    count: number;
+    role: string;
+    scenarioId: string;
+  }> = [
+    { label: "Micro 3",       count: 3,  role: "switch", scenarioId: "micro-lab" },
+    { label: "Branch 8",      count: 8,  role: "switch", scenarioId: "branch-office" },
+    { label: "Campus 24",     count: 24, role: "switch", scenarioId: "campus" },
+    { label: "Datacenter 32", count: 32, role: "router", scenarioId: "datacenter-pod" },
+    { label: "Metro 96",      count: 96, role: "router", scenarioId: "metro-backbone" },
+  ];
+
+  for (const s of scenarios) {
+    it(`${s.label} — mounts the full-surface canvas chain (wrap + svg + transform root)`, () => {
+      const view = makeView(chainNodes(s.count, s.role), chainEdges(s.count));
+      const { container } = render(
+        withActive(
+          fakeActive({ scenarioId: s.scenarioId }),
+          <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+        ),
+      );
+
+      // Surface chain: section.blueprint-topology > div.bt-canvas-wrap > svg.bt-canvas > g[data-testid=bt-transform-root]
+      const root = container.querySelector(".blueprint-topology");
+      const wrap = container.querySelector(".bt-canvas-wrap");
+      const svg = container.querySelector("svg.bt-canvas");
+      const transformRoot = container.querySelector('[data-testid="bt-transform-root"]');
+      expect(root).not.toBeNull();
+      expect(wrap).not.toBeNull();
+      expect(svg).not.toBeNull();
+      expect(transformRoot).not.toBeNull();
+
+      // viewBox always present so SVG never falls back to intrinsic 300×150.
+      expect(svg?.getAttribute("viewBox")).toMatch(/-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\s+\d+(\.\d+)?\s+\d+(\.\d+)?/);
+      // preserveAspectRatio set to xMidYMid meet (centred + letterboxed),
+      // initial fit-effect compensates for letterboxing.
+      expect(svg?.getAttribute("preserveAspectRatio")).toBe("xMidYMid meet");
+
+      // No SVG grid-line generator (grid lives on receiver background).
+      expect(container.querySelectorAll(".bt-grid-line").length).toBe(0);
+
+      // Every node accounted for.
+      expect(container.querySelectorAll('[data-testid^="bt-node-"]').length).toBe(s.count);
+    });
+  }
 });
 
 describe("BlueprintTopologyCanvas — empty payload guard (V1BJ hotfix 2)", () => {

@@ -18,7 +18,8 @@
  */
 
 import type { GraphReadyTopologyNode } from "../topologyReview";
-import { familyOf, type NodeFamilyCode } from "./blueprintGlyph";
+import type { NodeFamilyCode } from "./blueprintGlyph";
+import { resolveIdentity } from "./blueprintIdentity";
 
 export interface NodeLayout {
   node: GraphReadyTopologyNode;
@@ -101,7 +102,10 @@ function sortedTagged(
   nodes: readonly GraphReadyTopologyNode[],
 ): readonly Tagged[] {
   const sorted = [...nodes].sort((a, b) => a.id.localeCompare(b.id));
-  return sorted.map((n) => ({ node: n, family: familyOf(n) }));
+  // V1BN — resolveIdentity infers family from vendor/platform/label
+  // when the role_hint alone is generic, so a node like
+  // `fw-fortinet-001` lands in the FW row instead of the UNK row.
+  return sorted.map((n) => ({ node: n, family: resolveIdentity(n).family }));
 }
 
 function rowSpread(items: readonly Tagged[], y: number, spacing: number): NodeLayout[] {
@@ -307,7 +311,7 @@ function layoutFallback(nodes: readonly GraphReadyTopologyNode[]): NodeLayout[] 
     const angle = (2 * Math.PI * slot) / slotsThisRing - Math.PI / 2;
     out.push({
       node: sorted[i],
-      family: familyOf(sorted[i]),
+      family: resolveIdentity(sorted[i]).family,
       x: Math.round(r * Math.cos(angle)),
       y: Math.round(r * Math.sin(angle)),
     });

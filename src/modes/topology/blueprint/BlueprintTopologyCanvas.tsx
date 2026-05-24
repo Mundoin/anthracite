@@ -35,6 +35,7 @@ import {
   pickDensityBand,
   stateRingColor,
   type DensityBand,
+  type NodeFamilyCode,
 } from "./blueprintGlyph";
 import {
   passportFor,
@@ -46,10 +47,15 @@ import { placeCallout } from "../inspect/calloutPlacement";
 // no longer owns the ring formula; it picks a scenario-aware layout
 // via `layoutNodes(view.nodes, layoutHint)`.
 import {
+  detectScenario,
   layoutNodes,
   type LayoutHint,
   type NodeLayout,
+  type ScenarioKind,
 } from "./blueprintLayouts";
+// V1BN — edge routing: elbow for branch/campus/datacenter, curve for
+// metro, straight for fallback / dot density.
+import { routeEdge } from "./blueprintEdges";
 import "./BlueprintTopologyCanvas.css";
 
 export interface BlueprintTopologyCanvasProps {
@@ -95,6 +101,120 @@ function viewboxOf(layouts: NodeLayout[]): {
   };
 }
 
+/**
+ * V1BN.hotfix-1 — dot-density mini-glyph. Per-family shape so dense
+ * scenes (Metro 96) keep role identity. Shapes chosen to be visually
+ * distinct at ~10 px and remain readable when many cluster together.
+ */
+function DotMini({
+  family,
+  selected,
+}: {
+  family: NodeFamilyCode;
+  selected: boolean;
+}): JSX.Element {
+  const fill = selected ? "var(--topo-cyan)" : "var(--topo-ink-2)";
+  const stroke = "var(--topo-line-2)";
+  const sw = selected ? 1.5 : 0.5;
+  switch (family) {
+    case "FW":
+      return (
+        <rect
+          className="bt-node-dot bt-node-dot--fw"
+          x={-7}
+          y={-7}
+          width={14}
+          height={14}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+      );
+    case "CORE-RT":
+      return (
+        <polygon
+          className="bt-node-dot bt-node-dot--core"
+          points="0,-9 9,0 0,9 -9,0"
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+      );
+    case "EDGE-RT":
+      return (
+        <rect
+          className="bt-node-dot bt-node-dot--edge"
+          x={-9}
+          y={-5}
+          width={18}
+          height={10}
+          rx={3}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+      );
+    case "DIST-SW":
+      return (
+        <rect
+          className="bt-node-dot bt-node-dot--dist"
+          x={-5}
+          y={-8}
+          width={10}
+          height={16}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+      );
+    case "ACC-SW":
+      return (
+        <rect
+          className="bt-node-dot bt-node-dot--acc"
+          x={-8}
+          y={-4}
+          width={16}
+          height={8}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+      );
+    case "WAP":
+      return (
+        <polygon
+          className="bt-node-dot bt-node-dot--wap"
+          points="0,-9 9,5 -9,5"
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+      );
+    case "SRV":
+      return (
+        <circle
+          className="bt-node-dot bt-node-dot--srv"
+          r={selected ? 9 : 7}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+      );
+    case "UNK":
+    default:
+      return (
+        <circle
+          className="bt-node-dot bt-node-dot--unk"
+          r={selected ? 9 : 6}
+          fill={selected ? "var(--topo-cyan)" : "var(--topo-ink-3)"}
+          stroke={stroke}
+          strokeWidth={sw}
+          opacity={0.75}
+        />
+      );
+  }
+}
+
 interface GlyphProps {
   layout: NodeLayout;
   band: DensityBand;
@@ -135,8 +255,11 @@ function Glyph({
   };
 
   if (band === "dot") {
-    // V1BL-A — graphite fill when idle, cyan only when selected.
-    // Drops the green "soldier" look on high-density scenarios.
+    // V1BN.hotfix-1 — role-aware mini-glyph in dot density. Metro 96
+    // used to render every device as an identical circle, throwing
+    // away the V1BN identity inference. Now each family carries a
+    // distinct micro shape so firewalls / routers / switches / APs /
+    // servers stay visually distinguishable even at 96+ density.
     return (
       <g
         className="bt-node"
@@ -146,14 +269,9 @@ function Glyph({
         onPointerDown={handlePointerDown}
         data-testid={`bt-node-${node.id}`}
         data-density="dot"
+        data-family-mini={family}
       >
-        <circle
-          className="bt-node-dot"
-          r={selected ? 12 : 8}
-          fill={selected ? "var(--topo-cyan)" : "var(--topo-ink-2)"}
-          stroke="var(--topo-line-2)"
-          strokeWidth={selected ? 1.5 : 0.5}
-        />
+        <DotMini family={family} selected={selected} />
         {selected && <circle className="bt-node-focus-ring" r={16} />}
       </g>
     );
@@ -240,17 +358,21 @@ interface EdgeProps {
   from: NodeLayout;
   to: NodeLayout;
   active: boolean;
+  scenario: ScenarioKind;
+  band: DensityBand;
 }
 
-function Edge({ edge, from, to, active }: EdgeProps): JSX.Element {
+function Edge({ edge, from, to, active, scenario, band }: EdgeProps): JSX.Element {
+  const route = routeEdge({ x: from.x, y: from.y }, { x: to.x, y: to.y }, {
+    scenario,
+    band,
+  });
   return (
-    <line
+    <path
       className={active ? "bt-edge is-active" : "bt-edge"}
-      x1={from.x}
-      y1={from.y}
-      x2={to.x}
-      y2={to.y}
+      d={route.d}
       data-testid={`bt-edge-${edge.id}`}
+      data-route-kind={route.kind}
     />
   );
 }
@@ -344,6 +466,10 @@ export function BlueprintTopologyCanvas({
     setNodeOffsets({});
   }, [view]);
 
+  // V1BN.hotfix-2 — initial auto-fit ref. Declared here so the
+  // useLayoutEffect (placed after fitView below) can read it.
+  const initialFitRef = useRef<GraphReadyTopologyView | null>(null);
+
   // V1BL-F — per-node offsets from generated layout, applied on top of
   // the deterministic `layoutNodes` output. Drag-to-reposition writes
   // here; Reset clears the map.
@@ -367,6 +493,12 @@ export function BlueprintTopologyCanvas({
   const baseLayouts = useMemo(
     () => layoutNodes(view.nodes, layoutHint),
     [view.nodes, layoutHint],
+  );
+
+  // V1BN — scenario kind drives edge routing (elbow / curve / straight).
+  const scenarioKind = useMemo<ScenarioKind>(
+    () => detectScenario(layoutHint, view.nodes.length),
+    [layoutHint, view.nodes.length],
   );
   const layouts = useMemo(() => {
     if (Object.keys(nodeOffsets).length === 0) return baseLayouts;
@@ -455,6 +587,29 @@ export function BlueprintTopologyCanvas({
       scale,
     });
   }, [vb.x, vb.y, vb.w, vb.h]);
+
+  // V1BN.hotfix-2 — initial auto-fit on view change. Pre-hotfix the
+  // canvas mounted with identity transform and a viewBox derived from
+  // layout bbox. For square-ish layouts (metro/datacenter) on wide
+  // SVG rects, `preserveAspectRatio="xMidYMid meet"` letterboxed
+  // content into a top-centred band — Bujar read this as "metro
+  // trapped in upper part of the canvas". Fitting once per view
+  // change after the SVG rect is measured guarantees content fills
+  // the visible work surface on first paint. Subsequent user
+  // pan/zoom is preserved because this fires only on view ref change.
+  useLayoutEffect(() => {
+    if (initialFitRef.current === view) return;
+    initialFitRef.current = view;
+    if (view.nodes.length === 0) return;
+    const raf = requestAnimationFrame(() => {
+      const svg = svgRef.current;
+      if (!svg) return;
+      const rect = svg.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      fitView();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [view, fitView]);
 
   const screenToViewbox = useCallback(
     (clientX: number, clientY: number): { x: number; y: number } | null => {
@@ -885,6 +1040,7 @@ export function BlueprintTopologyCanvas({
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
           data-testid="bt-svg"
+          data-topology-svg-layer="true"
         >
           <g
             transform={`translate(${transform.tx} ${transform.ty}) scale(${transform.scale})`}
@@ -906,6 +1062,8 @@ export function BlueprintTopologyCanvas({
                     from={from}
                     to={to}
                     active={activeEdgeIds.has(edge.id)}
+                    scenario={scenarioKind}
+                    band={band}
                   />
                 );
               })}

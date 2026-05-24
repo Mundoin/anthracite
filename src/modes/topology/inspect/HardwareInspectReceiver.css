@@ -57,6 +57,16 @@
  * carries a subtle hairline + soft shadow so the bay reads as a
  * raised panel against the map underneath.
  */
+/* V1BN.hotfix-2 — bay is a contained top-right card.
+ * border-bottom REMOVED. The pre-hotfix bottom hairline painted a
+ * horizontal split line across the topology surface that Bujar
+ * read as "active upper canvas + dead lower app area" because the
+ * eye stops at the rule even though the map continues under it.
+ * Bay still has border-left (vertical separation), opaque white
+ * background (masks grid where 3D card lives), and box-shadow
+ * (raised affordance) — the shadow alone is enough to read the
+ * lower edge without painting a hairline that bisects the surface.
+ */
 .hir-bay {
   position: absolute;
   top: 0;
@@ -67,7 +77,6 @@
   overflow: hidden;
   display: flex;
   border-left: 1px solid var(--topo-line-4, #D6DBE0);
-  border-bottom: 1px solid var(--topo-line-4, #D6DBE0);
   box-shadow: 0 4px 14px rgba(26, 37, 48, 0.06);
   z-index: 6;
 }

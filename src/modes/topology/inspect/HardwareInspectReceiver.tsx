@@ -107,9 +107,14 @@ export function HardwareInspectReceiver({
     <div
       className="hardware-inspect-receiver"
       data-testid="hardware-inspect-receiver"
+      data-topology-full-surface="true"
       data-phase={phase}
     >
-      <div className="hir-map" data-testid="hir-map-layer">
+      <div
+        className="hir-map"
+        data-testid="hir-map-layer"
+        data-topology-map-layer="true"
+      >
         <BlueprintTopologyCanvas
           {...canvasProps}
           onInspect={onInspect}

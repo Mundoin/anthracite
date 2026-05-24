@@ -228,7 +228,34 @@
   padding: 10px 12px 8px;
   z-index: 3;
   font-size: 12px;
-  pointer-events: none;
+  /* V1BN.hotfix-1 — pointer-events: auto so the × close button is
+   * clickable. The leader-line SVG keeps its own pointer-events:none. */
+  pointer-events: auto;
+}
+
+/* V1BN.hotfix-1 — close button for the pick callout. */
+.his-callout-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--topo-ink-3);
+  font-family: var(--topo-font-ui);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.his-callout-close:hover,
+.his-callout-close:focus-visible {
+  background: var(--topo-paper-sunken);
+  color: var(--topo-cyan-deep);
+  outline: none;
 }
 
 .his-callout-strip {

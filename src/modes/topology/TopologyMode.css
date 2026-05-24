@@ -10,6 +10,31 @@
   min-height: 0;
 }
 
+/* V1BN.hotfix-3 — full-height canvas fix.
+ *
+ * The ModeWorkbenchShell renders `.mwb-active-body` with
+ * `flex: 1; overflow-y: auto;` but NO `display: flex`. That makes it
+ * a block-context scroll viewport. The `.tm-body--lab-view` child
+ * declares `flex: 1 1 auto; min-height: 0; display: flex` — but those
+ * flex props are inert against a non-flex parent, so the lab-view
+ * collapsed to intrinsic content height. The blueprint canvas chain
+ * (`.tg-content--blueprint` had a 320 px min-height floor) then
+ * became the only thing claiming height — i.e. the visible "stuck
+ * upper portion" of the topology surface.
+ *
+ * Scoped to `.topology-mode` so only the topology surface gets the
+ * flex-column shell-body override; other modes keep the block scroll
+ * viewport they were designed against.
+ */
+.topology-mode .mwb-active-body {
+  display: flex;
+  flex-direction: column;
+  /* `overflow-y: auto` stays — topology never overflows the body
+   * (the canvas owns its own pan/zoom + clipped overlays), but
+   * leaving the rule intact preserves shell parity for any future
+   * mode-tool that does spill. */
+}
+
 .tm-source-row {
   display: flex;
   align-items: center;

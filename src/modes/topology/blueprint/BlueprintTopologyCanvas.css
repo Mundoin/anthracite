@@ -146,11 +146,21 @@
 }
 
 .bt-canvas {
+  /* V1BN.hotfix-1 — absolute so the SVG element's size is decoupled
+   * from its viewBox intrinsic dimensions. With the previous block
+   * `width: 100%; height: 100%` and no positioning, browsers could
+   * fall back to viewBox intrinsic when the parent had `height: auto`
+   * upstream, which made the canvas grow/shrink as the layout bbox
+   * changed (drag a node → bbox expands → SVG intrinsic expands →
+   * parent expands → "canvas wakes up"). Absolute + inset:0 fills the
+   * wrap unconditionally. */
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   cursor: grab;
-  touch-action: none; /* V1BL-B — let wheel/pointer drive pan + zoom */
+  touch-action: none;
 }
 
 .bt-canvas:active {
@@ -210,10 +220,12 @@
   fill: none;
 }
 
-/* edges */
+/* edges — V1BN: rendered as <path>, fill must be none. */
 .bt-edge {
   stroke: var(--topo-line-4);
   stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   fill: none;
   pointer-events: none;
   opacity: 0.85;
@@ -222,6 +234,7 @@
 .bt-edge.is-active {
   stroke: var(--topo-cyan);
   stroke-width: 1.5;
+  opacity: 1;
 }
 
 /* glyph frame */
