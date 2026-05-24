@@ -55,7 +55,9 @@
     "canvas";
   height: 100%;
   min-height: 0;
-  background: var(--topo-canvas);
+  /* V1BM.hotfix-2 — transparent so the receiver-level grid shows
+   * through. The header strip has its own opaque white background. */
+  background: transparent;
   color: var(--topo-ink);
   font-family: var(--topo-font-ui);
   overflow: hidden;
@@ -114,11 +116,13 @@
   position: relative;
   min-width: 0;
   min-height: 0;
-  background: var(--topo-canvas);
+  /* V1BM.hotfix-2 — transparent. The grid lives on
+   * .hardware-inspect-receiver so it covers the full topology desk
+   * regardless of this wrap's flex-derived size. Keep the wrap
+   * transparent so the receiver's grid shows through under the SVG. */
+  background: transparent;
   overflow: hidden;
-  /* V1BL-G — graphite scrollbar when content overflows. Subtle but
-   * visible, never browser-default pale. Pan via drag is primary;
-   * scrollbar is a secondary affordance. */
+  /* V1BL-G — graphite scrollbar when content overflows. */
   scrollbar-width: thin;
   scrollbar-color: var(--topo-ink-3) var(--topo-paper-sunken);
 }
@@ -269,6 +273,15 @@
   user-select: none;
 }
 
+/* V1BM.hotfix-1 — unknown family glyph face. Quiet `?` in muted ink
+ * so the hostname label below the glyph stays the primary identifier. */
+.bt-node-family-code--unk {
+  fill: var(--topo-ink-4);
+  font-size: 13px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
 .bt-node-label {
   fill: var(--topo-ink-2);
   font-family: var(--topo-font-mono);
@@ -352,6 +365,15 @@
   margin-top: 8px;
   padding-top: 6px;
   border-top: 1px solid var(--topo-line-4);
+}
+
+/* V1BM.hotfix-1 — unknown profile passport softened. Field values
+ * render in muted italic mono so "unk1u / UNK / ANTHRACITE AXU-UNK"
+ * doesn't read as confident hardware identification. */
+.bt-passport-hw.is-soft strong {
+  color: var(--topo-ink-3);
+  font-style: italic;
+  font-weight: 400;
 }
 
 .bt-passport-switch-hint {

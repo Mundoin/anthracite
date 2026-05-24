@@ -26,18 +26,15 @@ import {
 import { EnvironmentLifecycleContext } from "../../../state/EnvironmentLifecycleContext";
 import type {
   GraphReadyTopologyEdge,
-  GraphReadyTopologyNode,
   GraphReadyTopologyView,
 } from "../topologyReview";
 import type { RenderGraphDataSource } from "../renderGraph";
 import {
   FAMILY_FRAME,
   defaultProfileIdFor,
-  familyOf,
   pickDensityBand,
   stateRingColor,
   type DensityBand,
-  type NodeFamilyCode,
 } from "./blueprintGlyph";
 import {
   passportFor,
@@ -45,6 +42,14 @@ import {
   type HardwarePassport,
 } from "./hardwarePassport";
 import { placeCallout } from "../inspect/calloutPlacement";
+// V1BM — layout engine extracted into its own module. The canvas
+// no longer owns the ring formula; it picks a scenario-aware layout
+// via `layoutNodes(view.nodes, layoutHint)`.
+import {
+  layoutNodes,
+  type LayoutHint,
+  type NodeLayout,
+} from "./blueprintLayouts";
 import "./BlueprintTopologyCanvas.css";
 
 export interface BlueprintTopologyCanvasProps {
@@ -60,38 +65,7 @@ export interface BlueprintTopologyCanvasProps {
   readonly inspectingNodeId?: string | null;
 }
 
-interface NodeLayout {
-  node: GraphReadyTopologyNode;
-  family: NodeFamilyCode;
-  x: number;
-  y: number;
-}
-
-const GRID_SPACING = 32;
 const VIEWBOX_PAD = 64;
-
-function layoutNodes(nodes: readonly GraphReadyTopologyNode[]): NodeLayout[] {
-  const sorted = [...nodes].sort((a, b) => a.id.localeCompare(b.id));
-  const n = sorted.length;
-  if (n === 0) return [];
-  const ringSize = n <= 12 ? n : Math.ceil(Math.sqrt(n) * 2);
-  const baseRadius = Math.max(140, 28 * ringSize);
-  const out: NodeLayout[] = [];
-  for (let i = 0; i < n; i++) {
-    const ringIndex = Math.floor(i / ringSize);
-    const slot = i % ringSize;
-    const slotsThisRing = Math.min(ringSize, n - ringIndex * ringSize);
-    const r = baseRadius + ringIndex * 110;
-    const angle = (2 * Math.PI * slot) / slotsThisRing - Math.PI / 2;
-    out.push({
-      node: sorted[i],
-      family: familyOf(sorted[i]),
-      x: Math.round(r * Math.cos(angle)),
-      y: Math.round(r * Math.sin(angle)),
-    });
-  }
-  return out;
-}
 
 function viewboxOf(layouts: NodeLayout[]): {
   x: number;
@@ -119,44 +93,6 @@ function viewboxOf(layouts: NodeLayout[]): {
     w: maxX - minX + VIEWBOX_PAD * 2,
     h: maxY - minY + VIEWBOX_PAD * 2,
   };
-}
-
-interface BlueprintGridProps {
-  vbX: number;
-  vbY: number;
-  vbW: number;
-  vbH: number;
-}
-
-function BlueprintGrid({ vbX, vbY, vbW, vbH }: BlueprintGridProps): JSX.Element {
-  const lines: JSX.Element[] = [];
-  const startX = Math.floor(vbX / GRID_SPACING) * GRID_SPACING;
-  const startY = Math.floor(vbY / GRID_SPACING) * GRID_SPACING;
-  for (let x = startX; x <= vbX + vbW; x += GRID_SPACING) {
-    lines.push(
-      <line
-        key={`gx${x}`}
-        className="bt-grid-line"
-        x1={x}
-        y1={vbY}
-        x2={x}
-        y2={vbY + vbH}
-      />,
-    );
-  }
-  for (let y = startY; y <= vbY + vbH; y += GRID_SPACING) {
-    lines.push(
-      <line
-        key={`gy${y}`}
-        className="bt-grid-line"
-        x1={vbX}
-        y1={y}
-        x2={vbX + vbW}
-        y2={y}
-      />,
-    );
-  }
-  return <g aria-hidden="true">{lines}</g>;
 }
 
 interface GlyphProps {
@@ -263,8 +199,22 @@ function Glyph({
           height={3}
         />
       )}
-      <text className="bt-node-family-code" x={0} y={0}>
-        {family}
+      {/* V1BM.hotfix-1 — quiet glyph face for unknown family. The
+       * giant `UNK` text competed with the hostname label below.
+       * For unknowns we render a small `?` in muted ink; the
+       * hostname remains the primary identifier. Known families
+       * (`ACC-SW`, `CORE-RT`, …) keep their family code. */}
+      <text
+        className={
+          family === "UNK"
+            ? "bt-node-family-code bt-node-family-code--unk"
+            : "bt-node-family-code"
+        }
+        x={0}
+        y={0}
+        data-family-glyph={family === "UNK" ? "unknown" : "known"}
+      >
+        {family === "UNK" ? "?" : family}
       </text>
       {showLabel && (
         <text className="bt-node-label" x={0} y={frame.h / 2 + 10}>
@@ -400,7 +350,24 @@ export function BlueprintTopologyCanvas({
   const [nodeOffsets, setNodeOffsets] = useState<Record<string, PointOffset>>({});
   const suppressNextClickRef = useRef<string | null>(null);
 
-  const baseLayouts = useMemo(() => layoutNodes(view.nodes), [view.nodes]);
+  // V1BM — scenario-aware layout selection. The hint is derived from
+  // the active lab record's `scenario_id` + name + the view's
+  // environment id; the layout module dispatches to branch / campus /
+  // datacenter / metro / fallback based on keywords + node count.
+  const layoutHint = useMemo<LayoutHint>(() => {
+    const labPayload = active?.lab_payload as
+      | { scenario_id?: string | null }
+      | undefined;
+    return {
+      scenarioId: labPayload?.scenario_id ?? null,
+      envName: active?.name ?? view.environment_id ?? null,
+    };
+  }, [active, view.environment_id]);
+
+  const baseLayouts = useMemo(
+    () => layoutNodes(view.nodes, layoutHint),
+    [view.nodes, layoutHint],
+  );
   const layouts = useMemo(() => {
     if (Object.keys(nodeOffsets).length === 0) return baseLayouts;
     return baseLayouts.map((l) => {
@@ -631,11 +598,32 @@ export function BlueprintTopologyCanvas({
     startDx: number;
     startDy: number;
     moved: boolean;
+    /**
+     * V1BM.hotfix-1 — screen-pixels-per-world-unit, captured at
+     * drag-start. The pre-hotfix handler recomputed `vb.w / rect.w`
+     * on every tick, but the viewBox grew as the dragged node
+     * pushed the layout bbox outward — feedback loop that
+     * accelerated the drag rate mid-gesture (the node outran the
+     * cursor). Snapshotting once on pointerdown keeps the rate
+     * stable for the duration of the gesture. Uses the SVG's
+     * uniform aspectFit so both axes scale correctly even when the
+     * viewBox aspect doesn't match the SVG element aspect.
+     */
+    pxPerWorld: number;
   } | null>(null);
 
   const onNodeDragStart = useCallback(
     (nodeId: string, clientX: number, clientY: number): void => {
       const off = nodeOffsets[nodeId];
+      const svg = svgRef.current;
+      let pxPerWorld = 1;
+      if (svg) {
+        const rect = svg.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          const aspectFit = Math.min(rect.width / vb.w, rect.height / vb.h);
+          pxPerWorld = aspectFit * transform.scale;
+        }
+      }
       nodeDragRef.current = {
         nodeId,
         startCX: clientX,
@@ -643,9 +631,10 @@ export function BlueprintTopologyCanvas({
         startDx: off?.dx ?? 0,
         startDy: off?.dy ?? 0,
         moved: false,
+        pxPerWorld: pxPerWorld > 0 ? pxPerWorld : 1,
       };
     },
-    [nodeOffsets],
+    [nodeOffsets, vb.w, vb.h, transform.scale],
   );
 
   useEffect(() => {
@@ -658,16 +647,8 @@ export function BlueprintTopologyCanvas({
         d.moved = true;
       }
       if (!d.moved) return;
-      const svg = svgRef.current;
-      if (!svg) return;
-      const rect = svg.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-      const rx = vb.w / rect.width;
-      const ry = vb.h / rect.height;
-      // Transform scales world coords by `transform.scale`, so a
-      // 1-px screen drag corresponds to (rx / scale) world units.
-      const worldDx = (dx * rx) / transform.scale;
-      const worldDy = (dy * ry) / transform.scale;
+      const worldDx = dx / d.pxPerWorld;
+      const worldDy = dy / d.pxPerWorld;
       setNodeOffsets((prev) => ({
         ...prev,
         [d.nodeId]: { dx: d.startDx + worldDx, dy: d.startDy + worldDy },
@@ -689,7 +670,7 @@ export function BlueprintTopologyCanvas({
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
     };
-  }, [vb.w, vb.h, transform.scale]);
+  }, []);
 
   const rootRef = useRef<HTMLElement | null>(null);
   const canvasWrapRef = useRef<HTMLDivElement | null>(null);
@@ -909,7 +890,9 @@ export function BlueprintTopologyCanvas({
             transform={`translate(${transform.tx} ${transform.ty}) scale(${transform.scale})`}
             data-testid="bt-transform-root"
           >
-            <BlueprintGrid vbX={vb.x} vbY={vb.y} vbW={vb.w} vbH={vb.h} />
+            {/* V1BM.hotfix-1 — grid moved to CSS background on
+             * .bt-canvas-wrap so it covers the full work surface
+             * regardless of viewBox aspect padding. */}
 
             <g aria-label="links">
               {view.edges.map((edge) => {
@@ -1006,7 +989,11 @@ export function BlueprintTopologyCanvas({
 
             {selectedPassport && (
               <div
-                className="bt-passport-hw"
+                className={
+                  selectedPassport.profileId === "unk1u"
+                    ? "bt-passport-hw is-soft"
+                    : "bt-passport-hw"
+                }
                 data-testid="bt-summary-passport"
               >
                 <div className="bt-passport-row">

@@ -421,6 +421,54 @@ describe("BlueprintTopologyCanvas — V1BL-B canvas navigation", () => {
   });
 });
 
+describe("BlueprintTopologyCanvas — V1BM.hotfix-1 unknown glyph + canvas surface", () => {
+  it("renders a quiet `?` instead of loud `UNK` text inside the glyph", () => {
+    const view = makeView([makeNode("mystery-01", "anything-else", "mystery-01")], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const glyph = container.querySelector(
+      '[data-testid="bt-node-mystery-01"] .bt-node-family-code',
+    );
+    expect(glyph).not.toBeNull();
+    expect(glyph?.textContent).toBe("?");
+    expect(glyph?.getAttribute("data-family-glyph")).toBe("unknown");
+    expect(glyph?.classList.contains("bt-node-family-code--unk")).toBe(true);
+  });
+
+  it("keeps the known family code visible for non-UNK nodes", () => {
+    const view = makeView([makeNode("sw-01", "access switch", "sw-01")], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const glyph = container.querySelector(
+      '[data-testid="bt-node-sw-01"] .bt-node-family-code',
+    );
+    expect(glyph?.textContent).toBe("ACC-SW");
+    expect(glyph?.getAttribute("data-family-glyph")).toBe("known");
+  });
+
+  it("canvas-wrap still mounts (full-surface grid moved to CSS background)", () => {
+    const view = makeView(chainNodes(8), chainEdges(8));
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const wrap = container.querySelector(".bt-canvas-wrap");
+    expect(wrap).not.toBeNull();
+    // SVG grid generator removed; assert no .bt-grid-line in DOM.
+    expect(container.querySelectorAll(".bt-grid-line").length).toBe(0);
+  });
+});
+
 describe("BlueprintTopologyCanvas — V1BL-A white drafting surface", () => {
   it("declares the white-paper canvas token at root scope", () => {
     const view = makeView(chainNodes(3), chainEdges(3));
