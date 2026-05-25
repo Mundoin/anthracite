@@ -51,7 +51,12 @@ export function TopologyGraphPanel({
   // demo data sources keep the existing V1AY surface intact.
   // V1BH — the Blueprint canvas is wrapped in HardwareInspectReceiver
   // which lazy-loads the Babylon hardware scene on inspect intent.
-  if (data_source === "simulated") {
+  // V1CB — imported evidence views are now also routed through the
+  // Blueprint canvas. The V1BY source contract carries Source = Imported
+  // into the header, V1BX affected focus still works, and V1BZ Diagnose
+  // CTA surfaces the handoff. Existing V1AY surface stays available
+  // for `demo` / `unknown` sources during transition.
+  if (data_source === "simulated" || data_source === "imported") {
     // V1BL-C — Blueprint canvas owns its own header strip (env / scenario
     // / counts / density / provenance). No outer "Topology · Map" title
     // or duplicate source badge here.

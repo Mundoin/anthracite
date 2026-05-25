@@ -380,6 +380,7 @@ describe("TopologyMode", () => {
       [
         "tm-clear-button",
         "tm-evidence-import-button",
+        "tm-imported-demo-toggle",
         "tm-live-collection-plan-button",
       ].sort()
     );
@@ -2663,5 +2664,34 @@ describe("TopologyMode — V1BJ hotfix lab-routing", () => {
     vi.doUnmock("../../../engines/labTopologyActivation");
     vi.doUnmock("../../../state/EnvironmentLifecycleContext");
     vi.resetModules();
+  });
+});
+
+describe("TopologyMode — V1CB-HF1 imported-evidence visual harness", () => {
+  it("renders the harness strip with toggle button in graph_map tool", () => {
+    render(<TopologyMode topology={makeView()} />);
+    expect(screen.getByTestId("tm-imported-demo-harness")).toBeInTheDocument();
+    const btn = screen.getByTestId("tm-imported-demo-toggle");
+    expect(btn).toBeInTheDocument();
+    expect(btn.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("toggling on mounts the imported-demo canvas body", () => {
+    render(<TopologyMode topology={makeView()} />);
+    expect(screen.queryByTestId("tm-body-imported-demo")).toBeNull();
+    fireEvent.click(screen.getByTestId("tm-imported-demo-toggle"));
+    expect(screen.getByTestId("tm-body-imported-demo")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("tm-imported-demo-toggle").getAttribute("aria-pressed"),
+    ).toBe("true");
+  });
+
+  it("toggling off hides the imported-demo canvas body", () => {
+    render(<TopologyMode topology={makeView()} />);
+    const btn = screen.getByTestId("tm-imported-demo-toggle");
+    fireEvent.click(btn);
+    expect(screen.getByTestId("tm-body-imported-demo")).toBeInTheDocument();
+    fireEvent.click(btn);
+    expect(screen.queryByTestId("tm-body-imported-demo")).toBeNull();
   });
 });

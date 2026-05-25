@@ -48,6 +48,8 @@ import {
 import { TopologyGraphPanel } from "./TopologyGraphPanel";
 import type { RenderGraphDataSource } from "./renderGraph";
 import type { DiagnoseHandoffPayload } from "./diagnoseHandoff";
+import { attachImportedSourceToTopologyView } from "./importedEvidenceTopologyAdapter";
+import { buildImportedDemoTopologyView } from "./__fixtures__/importedDemoEvidence";
 import "./TopologyMode.css";
 
 export interface TopologyModeProps {
@@ -1250,6 +1252,13 @@ export function TopologyMode({
     else setInternalActiveToolId(id);
   };
 
+  // V1CB-HF1 — imported-evidence visual harness. Toggle reveals a small
+  // fixture-backed imported topology rendered through the V1CB adapter
+  // so Bujar can visually verify Source = Imported + V1BX affected
+  // focus + V1BZ Diagnose handoff against non-Fabricator evidence
+  // without needing a real imported-evidence environment yet.
+  const [importedDemoActive, setImportedDemoActive] = useState<boolean>(false);
+
   // B4 — active lab environment rendering
   // Gracefully handle missing provider (for test compatibility)
   const envLifecycle = (() => {
@@ -1280,8 +1289,64 @@ export function TopologyMode({
   const labNodeCount = labView?.nodes.length ?? 0;
   const labEdgeCount = labView?.edges.length ?? 0;
 
+  // V1CB-HF1 — imported-evidence demo harness strip. Always rendered
+  // inside Graph/Map so the operator has one always-visible affordance
+  // to flip into the imported topology demo + back to lab/imported real
+  // paths. Strip is unobtrusive when the demo is off.
+  const renderImportedDemoHarness = (): ReactNode => (
+    <section
+      className="tm-imported-demo-harness"
+      data-testid="tm-imported-demo-harness"
+      data-active={importedDemoActive ? "true" : "false"}
+      aria-label="Imported evidence demo harness"
+    >
+      <button
+        type="button"
+        className="tm-imported-demo-btn"
+        data-testid="tm-imported-demo-toggle"
+        onClick={() => setImportedDemoActive((v) => !v)}
+        aria-pressed={importedDemoActive ? "true" : "false"}
+      >
+        {importedDemoActive
+          ? "Hide imported evidence demo"
+          : "Show imported evidence demo (V1CB-HF1)"}
+      </button>
+      <span className="tm-imported-demo-hint">
+        {importedDemoActive
+          ? "Rendering a fixture-backed LLDP-style imported topology stamped via the V1CB adapter."
+          : "Loads a small fixture-backed LLDP-style imported topology so Source = Imported, affected focus, and Diagnose handoff can be visually verified."}
+      </span>
+    </section>
+  );
+
+  const renderImportedDemoCanvas = (): ReactNode => {
+    const rawView = buildImportedDemoTopologyView();
+    const stampedView = attachImportedSourceToTopologyView({
+      view: rawView,
+      label: "Imported · Demo (V1CB-HF1)",
+      evidence: ["fixture", "lldp-demo"],
+      producer: "imported-demo/0.1",
+    });
+    return (
+      <section
+        className="tm-body tm-body--lab-view"
+        data-testid="tm-body-imported-demo"
+      >
+        <TopologyGraphPanel
+          view={stampedView}
+          data_source="imported"
+          onOpenDiagnose={onOpenDiagnose}
+        />
+      </section>
+    );
+  };
+
   const renderGraphMap = (): ReactNode => (
     <>
+      {renderImportedDemoHarness()}
+      {importedDemoActive && renderImportedDemoCanvas()}
+      {!importedDemoActive && (
+      <>
       {/* V1BL-A / V1BL-C — Blueprint canvas owns the live header strip
        * (env / scenario / counts / density / provenance). The verbose
        * tm-source-row + tm-summary bands rendered above the canvas in
@@ -1475,10 +1540,27 @@ export function TopologyMode({
                   : topology.sourceState === "unavailable"
                     ? "unknown"
                     : "demo";
+            // V1CB — when the imported branch wins, stamp the view with
+            // TopologySourceInfo kind="imported" so the Blueprint canvas
+            // header reads Source = Imported and V1BZ Diagnose handoff
+            // carries source_kind through to the receiving stub.
+            const renderedView =
+              dataSource === "imported"
+                ? attachImportedSourceToTopologyView({
+                    view: reviewModel.graph_ready,
+                    label: topology.environmentId
+                      ? `Imported · ${topology.environmentId}`
+                      : "Imported",
+                    evidence: topology.evidenceStats
+                      ? [`accepted:${topology.evidenceStats.accepted}`]
+                      : undefined,
+                  })
+                : reviewModel.graph_ready;
             return (
               <TopologyGraphPanel
-                view={reviewModel.graph_ready}
+                view={renderedView}
                 data_source={dataSource}
+                onOpenDiagnose={onOpenDiagnose}
               />
             );
           })()}
@@ -1489,6 +1571,8 @@ export function TopologyMode({
             />
           )}
         </>
+      )}
+      </>
       )}
     </>
   );

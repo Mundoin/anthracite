@@ -45,7 +45,11 @@ describe("TopologyGraphPanel", () => {
       note: "test",
     };
 
-    render(<TopologyGraphPanel view={view} data_source="imported" />);
+    // V1CB — "imported" data_source now routes through the Blueprint
+    // canvas (which has its own selection / passport surface). The V1AY
+    // SVG TopologyGraphSurface still mounts for "demo" / "unknown", so
+    // this test exercises the V1AY surface via "demo" to keep coverage.
+    render(<TopologyGraphPanel view={view} data_source="demo" />);
 
     // Initially empty
     expect(screen.getByTestId("tgi-empty")).toBeInTheDocument();
@@ -111,6 +115,30 @@ describe("TopologyGraphPanel", () => {
 
     expect(screen.getByTestId("tg-source-badge")).toBeInTheDocument();
     expect(screen.getByText("Demo")).toBeInTheDocument();
+  });
+
+  it("V1CB — 'imported' data_source routes through the Blueprint canvas (no outer badge)", () => {
+    const view: GraphReadyTopologyView = {
+      environment_id: "env-import-1",
+      nodes: [
+        { id: "a", label: "A", vendor: null, platform_id: null, role_hint: "core", layer: "l3" },
+      ],
+      edges: [],
+      renderer_attached: false,
+      note: "test",
+    };
+    const { container } = render(
+      <TopologyGraphPanel view={view} data_source="imported" />,
+    );
+    // Blueprint surface mounts (data-surface="blueprint" on tg-panel).
+    expect(screen.getByTestId("tg-panel").getAttribute("data-surface")).toBe(
+      "blueprint",
+    );
+    // V1AY outer surface should NOT mount for imported.
+    expect(screen.queryByTestId("tgi-empty")).toBeNull();
+    expect(screen.queryByTestId("tg-source-badge")).toBeNull();
+    // Blueprint canvas is present (it owns its own provenance).
+    expect(container.querySelector(".blueprint-topology")).not.toBeNull();
   });
 
   it("V1BL-C — simulated branch does NOT render the outer tg-header/badge (canvas owns provenance)", () => {
