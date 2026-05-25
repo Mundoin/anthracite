@@ -2,12 +2,12 @@
   "metadata": {
     "project": "Anthracite V1",
     "repo": "D:\\Repos\\anthracite",
-    "extracted_at_local": "2026-05-19 11:25:00 +02:00",
-    "git_head": "a029db8",
-    "git_head_subject": "docs: document v1ay graph renderer",
-    "working_tree_status": "clean before project-map refresh",
-    "generated_by": "occ",
-    "scope": "status_map_extraction_only"
+    "extracted_at_local": "2026-05-25 14:30:00 +02:00",
+    "git_head": "2b68510",
+    "git_head_subject": "stage-v1ca: polish diagnose topology handoff surface",
+    "working_tree_status": "v1by-hf1 + v1by-hf2 in working tree, ratified, awaiting bujar commit; v1ca in working tree",
+    "generated_by": "claude-opus-4-7",
+    "scope": "project_map_catch_up_v1az_to_v1ca"
   },
   "confidence": {
     "overall": "high",
@@ -463,6 +463,145 @@
           "section": "Stage Group 2 follow-on list",
           "line_hint": "L267-L328",
           "quote_or_summary": "future parser ingestion, edge rendering, and live driver hooks"
+        }
+      ]
+    },
+    {
+      "id": "lab_engine_fabricator_arc",
+      "title": "Fabricator + Lab Engine",
+      "stage_range": "D4A-V1BT",
+      "status": "done",
+      "summary": "Deterministic synthetic-environment engine. D4A seeded the Fabricator; D4C wired fabricated topology plumbing; D4F added the Network Lab engine foundation; D4H landed environments lifecycle + creator surface; V1BT raised fabricator scenario quality.",
+      "key_outputs": [
+        "Fabricator engine",
+        "Lab payload contract",
+        "Environments creator surface",
+        "5 canonical scenarios (Micro / Branch / Campus / Datacenter / Metro)"
+      ],
+      "source_refs": [
+        {
+          "path": "docs/architecture/FABRICATOR_FOUNDATION.md",
+          "section": "Whole doc",
+          "line_hint": "L1-L240",
+          "quote_or_summary": "Fabricator engine contract"
+        }
+      ]
+    },
+    {
+      "id": "environment_lifecycle_arc",
+      "title": "Durable Environment Lifecycle",
+      "stage_range": "V1BO-V1BR",
+      "status": "done",
+      "summary": "Environments are now durable across reloads. V1BO persisted environment records, V1BP added the topology env selector, V1BQ persisted topology layout overrides per env, V1BR added archive/restore.",
+      "key_outputs": [
+        "LocalEnvironmentRecord persistence",
+        "Topology env selector",
+        "Persisted topology_presentation.node_positions",
+        "Archive / restore"
+      ],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BO-durable-environment-persistence.md",
+          "section": "Stage note",
+          "line_hint": "L1-L100",
+          "quote_or_summary": "Durable env persistence"
+        }
+      ]
+    },
+    {
+      "id": "blueprint_topology_canvas_arc",
+      "title": "Blueprint Topology Canvas",
+      "stage_range": "V1BF-V1BS",
+      "status": "done",
+      "summary": "Authoritative 2D topology surface for lab environments. V1BF stood up the blueprint canvas; V1BG/V1BH/V1BI bridged the hardware inspection theatre; V1BJ/V1BK/V1BL* stabilised continuity, split inspection, navigation, full-surface ownership, and visual quality; V1BM added role-aware layouts; V1BN delivered the readability pack; V1BR-HF/V1BS shipped icon-as-frame glyphs.",
+      "key_outputs": [
+        "BlueprintTopologyCanvas (SVG, pan/zoom/drag)",
+        "5 scenario-aware layouts",
+        "Edge routing (elbow/curve/straight) per scenario",
+        "Density bands (full / faceplate / silhouette / dot)",
+        "Icon-as-frame glyph system",
+        "Floating passport card",
+        "Hardware inspect bay (Babylon, lazy-loaded)"
+      ],
+      "source_refs": [
+        {
+          "path": "src/modes/topology/blueprint/BlueprintTopologyCanvas.tsx",
+          "section": "Module",
+          "line_hint": "L1-L1450",
+          "quote_or_summary": "Canvas implementation"
+        }
+      ]
+    },
+    {
+      "id": "hardware_inspection_arc",
+      "title": "Hardware Inspection Theatre",
+      "stage_range": "V1BD-V1BI",
+      "status": "done",
+      "summary": "Hardware passport + Babylon-backed inspection bay. V1BD merged the topology hardware doctrine; V1BE ported the hardware model kit runtime (V1BE-A lazy-loaded the preview); V1BG bridged the topology focus inspector; V1BH bridged inspect → hardware scene; V1BI polished the theatre.",
+      "key_outputs": [
+        "HardwarePassport contract",
+        "HardwareInspectReceiver (Babylon lazy-load seam)",
+        "HardwareInspectScene",
+        "Passport row (chassis, ports, rack units)"
+      ],
+      "source_refs": [
+        {
+          "path": "src/modes/topology/blueprint/hardwarePassport.ts",
+          "section": "Module",
+          "line_hint": "L1-L200",
+          "quote_or_summary": "Passport contract"
+        }
+      ]
+    },
+    {
+      "id": "topology_state_layers_arc",
+      "title": "Topology State + Affected Focus + Source Contract",
+      "stage_range": "V1BU-V1CA",
+      "status": "done",
+      "summary": "Operator-facing situational awareness on the topology canvas. V1BU added device operational state; V1BV added link state; V1BW added the state legend + affected-only toggle; V1BX added affected-path / incident focus; V1BY added the source/freshness contract (HF1 consolidated provenance into one header item, HF2 unified the header rail); V1BZ added the Topology → Diagnose handoff stub; V1CA polished the receiving Diagnose surface.",
+      "key_outputs": [
+        "LabOperationalState ramp (healthy/warning/degraded/down/maintenance/unknown)",
+        "Edge state inference (severity precedence)",
+        "TopologyStateLegend + affected-only toggle",
+        "computeAffectedFocus (V1BX)",
+        "TopologySourceInfo contract + source/freshness pills (V1BY)",
+        "DiagnoseHandoffPayload + builder",
+        "Topology Handoff Diagnose tab"
+      ],
+      "source_refs": [
+        {
+          "path": "src/modes/topology/topologySource.ts",
+          "section": "V1BY contract",
+          "line_hint": "L1-L180",
+          "quote_or_summary": "Source contract"
+        },
+        {
+          "path": "src/modes/topology/diagnoseHandoff.ts",
+          "section": "V1BZ handoff",
+          "line_hint": "L1-L140",
+          "quote_or_summary": "Handoff payload + builder"
+        }
+      ]
+    },
+    {
+      "id": "design_navigation_arc",
+      "title": "Design System + Navigation Polish",
+      "stage_range": "D1-D3T",
+      "status": "done",
+      "summary": "Shell premium pass + navigation tree + cortex overlay + visual theme system. D1/D1B/D1BA premiumised the shell + interaction primitives + button tokens; D2 rendered the dashboard from a handoff contract; D3A-D3C delivered the active navigation catalogue, sidebar tree polish, cortex overlay, navigation interactions; D3T (with P1C, P2B, P2C) shipped the graphite-frame visual theme system and refined the technical blueprint.",
+      "key_outputs": [
+        "ModeRail + ContextSidebar",
+        "NavigationTreeItem",
+        "CortexOverlay + cortex catalogue",
+        "Graphite frame theme tokens",
+        "Dashboard cards from handoff contract"
+      ],
+      "source_refs": [
+        {
+          "path": "src/components/shell/AppShell.tsx",
+          "section": "Shell module",
+          "line_hint": "L1-L400",
+          "quote_or_summary": "App shell + nav"
         }
       ]
     }
@@ -2231,6 +2370,1160 @@
         }
       ],
       "confidence": "high"
+    },
+    {
+      "id": "V1CF",
+      "title": "Operator Session Export",
+      "status": "done",
+      "arc_id": "lab_engine_fabricator_arc",
+      "summary": "Deterministic operator-session export bundle. Captures the active session state for handoff between operators / sessions without exposing internal store mutations.",
+      "outputs": [
+        "Session export bundle"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1AY"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1CF-operator-session-export.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1CF landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1CG",
+      "title": "Design Handoff Contract",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Typed contract used by Codex / Claude to hand designed surfaces to product. Dashboard cards now render from this contract instead of inline definitions.",
+      "outputs": [
+        "designHandoffContract module"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1CF"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1CG-design-handoff-contract.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1CG landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D1",
+      "title": "Shell Premium Pass",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "First premium pass on the shell — surface materials, ramp, baseline shadows.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D1-shell-premium-pass.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D1 landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D1B",
+      "title": "Premium Interaction Primitives",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Primitive interaction set (focus rings, hover ramps, button states) used by the shell.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D1B-premium-interaction-primitives.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D1B landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D1BA",
+      "title": "Button Action Token Semantics",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Aligned button action token semantics across the shell so primary/secondary reads predictably.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D1BA-button-action-token-semantics.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D1BA landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D2",
+      "title": "Dashboard from Handoff Contract",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Dashboard cards now render directly from the designHandoffContract.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1CG"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D2-dashboard-from-handoff-contract.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D2 landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D3A",
+      "title": "Active Navigation Catalogue",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Implemented the active navigation catalogue. Mode rail + sidebar tree read from a single source.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D3A-active-navigation-catalogue.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D3A landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D3AP",
+      "title": "Sidebar Tree Polish",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Polish pass on the navigation sidebar tree.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D3AP-sidebar-tree-polish.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D3AP landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D3B",
+      "title": "Cortex Catalogue Overlay",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Cortex catalogue overlay (Ctrl+K style action surface) reading the navigation catalogue.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D3B-cortex-catalogue-overlay.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D3B landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D3C",
+      "title": "Navigation Interactions",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Completed navigation interactions: keyboard, focus discipline, narrow-viewport adaptations.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D3C-navigation-interactions.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D3C landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D3T-P1C",
+      "title": "Dark Left Navigation Fascia",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Dark left nav fascia for the light industrial visual law.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D3T-P1C-dark-left-navigation-fascia.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D3T-P1C landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D3T-P2C",
+      "title": "Hierarchy Shelf + Top Tabs",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Fixed hierarchy shelf layout + refined the top tabs row.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D3T-P2C-hierarchy-shelf-top-tabs.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D3T-P2C landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D3T",
+      "title": "Visual Theme System",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Visual theme system through the graphite frame refinement. Anthracite token ramp.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D3T-visual-theme-system.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D3T landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D3T-P2B",
+      "title": "Technical Blueprint + Evidence Normalisation",
+      "status": "done",
+      "arc_id": "design_navigation_arc",
+      "summary": "Refined the technical blueprint and normalised evidence surfaces across modes.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D3T-P2B-technical-blueprint-evidence-normalisation.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D3T-P2B landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D4A",
+      "title": "Fabricator Foundation",
+      "status": "done",
+      "arc_id": "lab_engine_fabricator_arc",
+      "summary": "Deterministic synthetic-environment engine seed. No live, no parsers — pure generated lab payloads.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D4A-fabricator-foundation.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D4A landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D4C",
+      "title": "Fabricated Environment Topology Plumbing",
+      "status": "done",
+      "arc_id": "lab_engine_fabricator_arc",
+      "summary": "Wired the fabricated environment into the topology pipeline so generated labs render as graphs.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "D4A"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D4C-fabricated-environment-topology-plumbing.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D4C landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D4F",
+      "title": "Network Lab Engine Foundation",
+      "status": "done",
+      "arc_id": "lab_engine_fabricator_arc",
+      "summary": "Foundation for the network lab engine that drives canonical scenarios (Micro/Branch/Campus/Datacenter/Metro).",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "D4A"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D4F-network-lab-engine-foundation.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D4F landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "D4H",
+      "title": "Environments Lifecycle + Creator",
+      "status": "done",
+      "arc_id": "environment_lifecycle_arc",
+      "summary": "Environments lifecycle + creator surface + navigation coverage. Operator can create, switch, and manage labs.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "D4A",
+        "D4F"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/D4H-environments-lifecycle-creator.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "D4H landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BD",
+      "title": "Topology Hardware Doctrine Merge",
+      "status": "done",
+      "arc_id": "hardware_inspection_arc",
+      "summary": "Merged the topology hardware doctrine: 10-kind zone taxonomy, role→glyph→profileId map, real UNK profile, mesh ID convention.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BD-topology-hardware-doctrine-merge.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BD landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BE",
+      "title": "Hardware Model Kit Runtime",
+      "status": "done",
+      "arc_id": "hardware_inspection_arc",
+      "summary": "Ported the hardware model kit runtime — Babylon scene + chassis families + face/port geometry generation.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BD"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BE-hardware-model-kit-runtime.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BE landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BE-A",
+      "title": "Lazy Load Hardware Preview",
+      "status": "done",
+      "arc_id": "hardware_inspection_arc",
+      "summary": "Lazy-loaded the hardware preview runtime so cold app start does not pay the Babylon cost.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BE"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BE-A-lazy-load-hardware-preview.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BE-A landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BF",
+      "title": "Blueprint Topology Canvas",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "First 2D readable map of the active lab environment. SVG canvas, density-aware glyphs, deterministic ring layout.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1AY"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BF-blueprint-topology-canvas.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BF landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BG",
+      "title": "Topology Focus Inspector Bridge",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Bridged the topology focus into the hardware inspector — selecting a node surfaces its passport.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BF"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BG-topology-focus-inspector-bridge.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BG landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BH",
+      "title": "Bridge Topology Inspect to Hardware Scene",
+      "status": "done",
+      "arc_id": "hardware_inspection_arc",
+      "summary": "Wired topology inspect intent to mount the Babylon hardware scene inside the inspection bay.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BG",
+        "V1BE"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BH-bridge-topology-inspect-to-hardware-scene.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BH landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BI",
+      "title": "Polish Hardware Inspection Theatre",
+      "status": "done",
+      "arc_id": "hardware_inspection_arc",
+      "summary": "Polished the inspection theatre: split-bay layout, hint surfaces, switch-to-re-inspect ergonomics.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BH"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BI-polish-hardware-inspection-theatre.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BI landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BJ",
+      "title": "Anchor Topology Inspection Continuity",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Anchored topology inspection continuity — selection survives Re-inspect, lab branch wins routing when imported view empty.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BI"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BJ-anchor-topology-inspection-continuity.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BJ landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BK",
+      "title": "Topology Surface Split Inspection",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Added split-bay topology surface — canvas + inspection bay share the workbench surface.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BJ"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BK-topology-surface-split-inspection.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BK landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BL",
+      "title": "Topology Canvas Authoritative",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Made the topology canvas authoritative — owns its own header, sources, density.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BK"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BL-topology-canvas-authoritative.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BL landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BL-A",
+      "title": "Topology Canvas White Desk",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Expanded topology canvas to the full white drafting desk.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BL"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BL-A-topology-canvas-white-desk.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BL-A landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BL-B",
+      "title": "Canvas Navigation Controls",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Added Fit / Reset / zoom indicator navigation controls. Wheel zoom around pointer.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BL-A"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BL-B-canvas-navigation-controls.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BL-B landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BL-C",
+      "title": "Stabilize Canvas Interaction",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Stabilised canvas interaction — selection no longer flashes when lifecycle context ticks.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BL-B"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BL-C-stabilize-canvas-interaction.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BL-C landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BL-E",
+      "title": "Clean Topology Inspector Seams",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Cleaned inspector seams. White paper continuous across canvas + bay.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BL-C"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BL-E-clean-topology-inspector-seams.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BL-E landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BL-F",
+      "title": "Canvas Guardrails + Node Drag",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Pan/zoom guardrails, node drag/drop, contained bay. Drag-rate snapshot prevents bbox feedback loop.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BL-E"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BL-F-canvas-guardrails-node-drag.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BL-F landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BL-G",
+      "title": "Rescue Topology Visual Quality",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Visual quality rescue — wheel zoom exclusive, graphite scrollbars, scenario-aware visual cohesion.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BL-F"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BL-G-rescue-topology-visual-quality.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BL-G landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BM",
+      "title": "Role-Aware Topology Layouts",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Scenario-aware layouts: branch / campus / datacenter / metro / fallback with deterministic positioning.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BL-G"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BM-role-aware-topology-layouts.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BM landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BN",
+      "title": "Topology Readability Pack",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Edge routing (elbow/curve/straight) per scenario, role-aware dot glyphs at high density, contrast tuning.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BM"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BN-topology-readability-pack.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BN landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BO",
+      "title": "Durable Environment Persistence",
+      "status": "done",
+      "arc_id": "environment_lifecycle_arc",
+      "summary": "Environments persist across reloads. LocalEnvironmentRecord stored locally; archive/active separation.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "D4H"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BO-durable-environment-persistence.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BO landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BP",
+      "title": "Topology Environment Selector",
+      "status": "done",
+      "arc_id": "environment_lifecycle_arc",
+      "summary": "Compact env selector in the topology header — operator switches lab without leaving the canvas.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BO"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BP-topology-environment-selector.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BP landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BQ",
+      "title": "Persistent Topology Layout Overrides",
+      "status": "done",
+      "arc_id": "environment_lifecycle_arc",
+      "summary": "Node positions persist per environment. Drag survives reloads and env switches.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BP"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BQ-persistent-topology-layout-overrides.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BQ landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BR",
+      "title": "Archive Environments + Topology Colours",
+      "status": "done",
+      "arc_id": "environment_lifecycle_arc",
+      "summary": "Archive/restore environments. Topology colour palette polished (soft sky tones, per-family saturation).",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BQ"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BR-archive-environments-topology-colours.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BR landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BR-HF-V1BS",
+      "title": "Icon-as-Frame Topology Glyphs",
+      "status": "done",
+      "arc_id": "blueprint_topology_canvas_arc",
+      "summary": "Hotfix + V1BS — replaced rectangular faceplates with icon-as-frame: family icon IS the glyph; family colour drives the stroke.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "V1BR"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BR-HF-V1BS-icon-as-frame-topology-glyphs.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BR-HF-V1BS landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BT",
+      "title": "Fabricator Environment Quality",
+      "status": "done",
+      "arc_id": "lab_engine_fabricator_arc",
+      "summary": "Raised fabricator scenario quality: realistic hostnames, role hints, site-zone metadata across all 5 scenarios.",
+      "outputs": [],
+      "scope_out": [],
+      "dependencies": [
+        "D4F"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BT-fabricator-environment-quality.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BT landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BU",
+      "title": "Topology Device State Layer",
+      "status": "done",
+      "arc_id": "topology_state_layers_arc",
+      "summary": "Device operational_state ramp (healthy/warning/degraded/down/maintenance/unknown) carried on every node. State ring around each glyph + passport state row.",
+      "outputs": [
+        "LabOperationalState",
+        "data-state attribute on glyphs",
+        "Passport state row"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1BT"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BU-topology-device-state-layer.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BU landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BV",
+      "title": "Topology Link State Layer",
+      "status": "done",
+      "arc_id": "topology_state_layers_arc",
+      "summary": "Edge operational_state inferred via severity precedence (down > degraded > warning > maintenance > unknown > healthy). Selected cyan still wins on top.",
+      "outputs": [
+        "Edge data-state",
+        "Severity precedence helper"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1BU"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BV-topology-link-state-layer.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BV landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BW",
+      "title": "Topology State Legend + Affected Controls",
+      "status": "done",
+      "arc_id": "topology_state_layers_arc",
+      "summary": "Floating legend with state counts + affected-only toggle that fades healthy nodes/edges to low opacity. Selection always wins.",
+      "outputs": [
+        "TopologyStateLegend component",
+        "affected-only fade"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1BV"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BW-topology-state-legend-affected-controls.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BW landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BX",
+      "title": "Affected Path Incident Focus",
+      "status": "done",
+      "arc_id": "topology_state_layers_arc",
+      "summary": "computeAffectedFocus contract: selecting a node surfaces affected edge ids, affected neighbour ids, worst state, focus counts. Passport renders an Affected Focus block.",
+      "outputs": [
+        "computeAffectedFocus",
+        "AffectedFocus type",
+        "data-focus attributes"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1BW"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BX-affected-path-incident-focus.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BX landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BY",
+      "title": "Topology Source Contract + Live/Fabricator Bridge Prep",
+      "status": "done",
+      "arc_id": "topology_state_layers_arc",
+      "summary": "TopologySourceInfo contract — kind (fabricated/demo/imported/live/unknown) + freshness (static/fresh/stale/unknown) + producer + evidence tags + generated_at/observed_at. Source-neutral so live-discovery (deferred) is a seam, not a rewrite.",
+      "outputs": [
+        "topologySource module",
+        "Source pills in header",
+        "Source kind plumbed through affectedFocus"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1BX"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BY-topology-source-contract-live-fabricator-bridge-prep.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BY landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BY-HF1",
+      "title": "Consolidated Topology Source Header",
+      "status": "current",
+      "arc_id": "topology_state_layers_arc",
+      "summary": "Hotfix — replaced V1BY trio (SOURCE pill + FRESHNESS pill + GENERATED-LAB badge) with single 'Generated Lab · Static' provenance group. Internal source.kind/freshness untouched.",
+      "outputs": [
+        "formatSourceProvenance helper",
+        "bt-header-provenance element"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1BY"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BY-HF1-consolidated-topology-source-header.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BY-HF1 landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BY-HF2",
+      "title": "Uniform Topology Header Rail",
+      "status": "current",
+      "arc_id": "topology_state_layers_arc",
+      "summary": "Header collapsed to one CSS class family (.bt-header-item). One font-size, one weight, one letter-spacing. Dropped duplicate env name + scenario id; selector becomes the single env identity when multiple envs visible.",
+      "outputs": [
+        "Uniform .bt-header-item class",
+        "Single env identity rule"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1BY-HF1"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BY-HF2-uniform-topology-header-rail.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BY-HF2 landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1BZ",
+      "title": "Diagnose Handoff Stub v0",
+      "status": "done",
+      "arc_id": "topology_state_layers_arc",
+      "summary": "Typed DiagnoseHandoffPayload contract + pure builder + Topology CTA ('Open in Diagnose ▸') + receiving Diagnose stub tool. Single typed callback lifted Blueprint canvas → TopologyGraphPanel → TopologyMode → App. App owns mode switch + payload state.",
+      "outputs": [
+        "diagnoseHandoff module",
+        "Topology CTA",
+        "Diagnose Topology Handoff tab"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1BY"
+      ],
+      "enables": [
+        "V1CA"
+      ],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1BZ-diagnose-handoff-stub-v0.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1BZ landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1CA",
+      "title": "Diagnose Handoff Surface Polish",
+      "status": "current",
+      "arc_id": "topology_state_layers_arc",
+      "summary": "Polished the receiving Diagnose card to match Anthracite visual law: header with state pill + stub tag, identity dl rows, affected-scope stat strip, neighbour-label chip row, deterministic next-direction sentence, dashed footer disclaimer. Empty state mirrors the same shell.",
+      "outputs": [
+        "TopologyHandoffCard component",
+        "dx-th-* CSS family",
+        "data-state pill ramp",
+        "Next-direction sentence helper"
+      ],
+      "scope_out": [],
+      "dependencies": [
+        "V1BZ"
+      ],
+      "enables": [],
+      "source_refs": [
+        {
+          "path": "obsidian/stages/V1CA-diagnose-handoff-surface-polish.md",
+          "section": "Stage note",
+          "line_hint": "L1-L120",
+          "quote_or_summary": "V1CA landing notes"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "V1AZ",
+      "title": "Full SSH Transport (still planned)",
+      "status": "planned",
+      "arc_id": "topology_live_safety",
+      "summary": "Full SSH transport implementation behind the V1AX runner boundary. Still planned; safety boundary 'no live contact before gate' holds.",
+      "outputs": [],
+      "scope_out": [
+        "Anything that breaks the live gate"
+      ],
+      "dependencies": [
+        "V1AX"
+      ],
+      "enables": [],
+      "source_refs": [],
+      "confidence": "high"
     }
   ],
   "capability_map": [
@@ -2669,66 +3962,41 @@
     }
   ],
   "current_state": {
-    "last_landed_stage": "V1AY",
-    "last_landed_commit": "a029db8",
-    "latest_prep_commit": "af3908c",
-    "repo_clean": true,
-    "summary": "Production edge is V1AY (Core Graph Renderer v1). V1AX shipped the Discovery Foundation v1 immediately before (target profile + read-only planner + transport-deferred runner boundary). HEAD a029db8; worktree clean prior to this project-map refresh. Graph renderer is the first honest SVG consumer of V1AS GraphReadyTopologyView via a pure adapter; Babylon stays reserved for a future 3D variant.",
+    "last_landed_stage": "V1CA",
+    "last_landed_commit": "2b68510",
+    "latest_prep_commit": "2b68510",
+    "repo_clean": false,
+    "summary": "Production edge is V1CA (Diagnose Handoff Surface Polish). V1BZ shipped the first Topology → Diagnose handoff (typed payload contract + CTA + receiving stub) and V1CA polished the receiving panel to match Anthracite visual law. Between V1AY and V1CA the rig acquired: durable environment persistence (V1BO), topology env selector (V1BP), persisted node positions (V1BQ), archive/restore (V1BR), icon-as-frame glyphs (V1BR-HF/V1BS), fabricator quality (V1BT), device state layer (V1BU), link state layer (V1BV), legend + affected-only (V1BW), affected path incident focus (V1BX), topology source contract (V1BY + HF1/HF2 header consolidation), Diagnose handoff (V1BZ → V1CA). Hardware inspection theatre (V1BD-V1BI) and the blueprint topology canvas (V1BF-V1BN) landed mid-arc. Fabricator Foundation (D4A) seeded the lab engine that the topology source contract now reads.",
     "safe_next_candidates": [
-      "V1AZ full SSH transport implementation behind the V1AX runner boundary",
-      "Credential reference contract for V1AZ targets",
-      "Evidence drilldown from selected edge in V1AY renderer",
-      "Babylon 3D variant of the graph renderer behind a toggle"
+      "Wire Topology CTA into the imported-evidence branch (currently only the simulated/blueprint canvas surfaces it)",
+      "Replace V1CA stub's deterministic next-direction sentence with an honest hypothesis ranking once a diagnose engine lands",
+      "Persist `topology_handoff` across reloads (current state lives only in App.tsx session memory)",
+      "Add a 'Return to Topology' affordance from the Diagnose handoff card",
+      "Promote V1BY source kind into an operator-visible filter on the topology legend",
+      "Extend fabricator scenarios beyond Micro/Branch/Campus/Datacenter/Metro"
     ]
   },
   "next_candidates": [
     {
-      "id": "V1AZ",
-      "title": "Full SSH transport implementation behind V1AX runner boundary",
-      "type": "candidate",
-      "why_next": "V1AX shipped the target profile + read-only planner + transport-deferred runner. V1AZ plugs a real SSH transport behind the same DiscoveryRunOutcome boundary so attempts can return a Captured outcome instead of TransportDeferred. V1AT planner and V1AR managed evidence store stay the only valid paths into evidence.",
-      "scope_in": [
-        "one-platform read-only SSH transport (likely IOS-XE first)",
-        "credential reference contract (no plain secrets in DiscoveryTarget)",
-        "explicit operator confirm gate before device contact",
-        "raw-output handoff to V1AP / V1AQ -> V1AR managed store",
-        "honest Captured / Failed outcomes added to DiscoveryRunOutcome"
-      ],
-      "scope_out": [
-        "polling or background scheduler",
-        "multi-target sweeps",
-        "write or configure commands of any kind",
-        "fuzzy resolution",
-        "non-V1AT-planned commands",
-        "graph renderer changes"
-      ],
-      "depends_on": [
-        "V1AX",
-        "V1AT",
-        "V1AP",
-        "V1AQ",
-        "V1AR"
-      ],
-      "risks": [
-        "must refuse when V1AT readiness is not ready",
-        "credential handling must not regress to in-target secrets",
-        "transport library choice needs Bujar approval per dependency policy"
-      ],
-      "source_refs": [
-        {
-          "path": "docs/architecture/DISCOVERY_FOUNDATION_V1.md",
-          "section": "What V1AY can build on this / next candidates",
-          "line_hint": "future-stage section",
-          "quote_or_summary": "V1AZ transport driver behind the V1AX runner boundary"
-        },
-        {
-          "path": "docs/architecture/TOPOLOGY_ENGINE_BOUNDARY.md",
-          "section": "V1AT future hook",
-          "line_hint": "L1295-L1301",
-          "quote_or_summary": "future drivers consult planner before contact"
-        }
-      ],
-      "confidence": "medium"
+      "id": "V1CB",
+      "title": "Hypothesis Strip (replaces V1CA next-direction stub)",
+      "arc_id": "topology_state_layers_arc",
+      "status": "planned",
+      "summary": "Replace the deterministic next-direction sentence in the V1CA Diagnose stub with a real ranked-hypothesis strip backed by an honest diagnose engine."
+    },
+    {
+      "id": "imported_branch_handoff_cta",
+      "title": "Topology CTA on the imported-evidence branch",
+      "arc_id": "topology_state_layers_arc",
+      "status": "planned",
+      "summary": "Surface the Open in Diagnose CTA from the imported (non-simulated) topology branch as well, not just the Blueprint canvas."
+    },
+    {
+      "id": "persistent_handoff",
+      "title": "Persist Topology handoff payload across reloads",
+      "arc_id": "topology_state_layers_arc",
+      "status": "planned",
+      "summary": "Current V1BZ handoff lives only in App.tsx session memory. Future stage persists last-handoff per environment so reloads keep context."
     }
   ],
   "deferred_or_left_undone": [
