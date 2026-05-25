@@ -649,3 +649,51 @@
 .blueprint-topology[data-affected-only="true"] .bt-edge.is-active[data-state="healthy"] {
   opacity: 1;
 }
+
+/* V1BX — affected focus visualisation. When a node is selected and its
+ * neighbourhood contains non-healthy items, the directly-connected
+ * affected edges + affected neighbour nodes get a subtle emphasis.
+ * Cyan selection still wins on the selected node itself. */
+
+.bt-edge[data-focus="affected"] {
+  stroke-width: 1.75;
+  opacity: 1;
+}
+
+.bt-node[data-focus="affected-neighbor"] .bt-node-state-ring {
+  stroke-width: 4;
+}
+
+/* Affected-only cooperation: focused affected items keep full opacity
+ * even when their state is healthy (rare but possible — e.g. a link
+ * with no state set yet on a focused subgraph). The main case:
+ * focus rules over the global healthy-fade. */
+.blueprint-topology[data-affected-only="true"] .bt-edge[data-focus="affected"] {
+  opacity: 1;
+}
+.blueprint-topology[data-affected-only="true"] .bt-node[data-focus="affected-neighbor"] {
+  opacity: 1;
+}
+
+/* Passport focus summary block — sits below the state row, above the
+ * hardware passport detail. Matches the existing .bt-passport-row
+ * visual law: monospace, blue-grey borders, calm pills. */
+.bt-passport-focus {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--topo-line-4);
+}
+.bt-passport-focus-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--topo-ink-3);
+  margin-bottom: 4px;
+}
+.bt-passport-focus-names {
+  margin-top: 6px;
+  font-family: var(--topo-font-mono);
+  font-size: 10px;
+  color: var(--topo-ink-2);
+  word-break: break-all;
+}

@@ -1184,3 +1184,209 @@ describe("BlueprintTopologyCanvas — V1BW legend + affected-only", () => {
     expect(screen.getByTestId("bt-legend-link-healthy")).toHaveTextContent("1");
   });
 });
+
+describe("BlueprintTopologyCanvas — V1BX affected focus", () => {
+  it("renders affected-focus block in passport when neighbour is non-healthy", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "warning" as const },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const },
+      ],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    expect(screen.getByTestId("bt-passport-focus")).toBeInTheDocument();
+  });
+
+  it("shows worst state in focus block", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "warning" as const },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const },
+      ],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    const focus = screen.getByTestId("bt-passport-focus");
+    expect(within(focus).getByText("Warning")).toBeInTheDocument();
+  });
+
+  it("shows affected link count in focus block", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n3", "router"), operational_state: "healthy" as const },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "warning" as const },
+        { ...makeEdge("e2", "n1", "n3"), operational_state: "healthy" as const },
+      ],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    expect(screen.getByTestId("bt-passport-focus-link-count")).toHaveTextContent("1");
+  });
+
+  it("shows affected neighbour count in focus block", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "warning" as const },
+        { ...makeNode("n3", "router"), operational_state: "degraded" as const },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const },
+        { ...makeEdge("e2", "n1", "n3"), operational_state: "healthy" as const },
+      ],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    expect(screen.getByTestId("bt-passport-focus-neighbor-count")).toHaveTextContent("2");
+  });
+
+  it("does not render focus block when selection is healthy with no affected items", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const },
+      ],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    expect(screen.queryByTestId("bt-passport-focus")).not.toBeInTheDocument();
+  });
+
+  it("marks affected edges with data-focus attribute", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n3", "router"), operational_state: "healthy" as const },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "warning" as const },
+        { ...makeEdge("e2", "n1", "n3"), operational_state: "healthy" as const },
+      ],
+    );
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    const affectedEdge = container.querySelector('[data-testid="bt-edge-e1"]');
+    expect(affectedEdge?.getAttribute("data-focus")).toBe("affected");
+    const healthyEdge = container.querySelector('[data-testid="bt-edge-e2"]');
+    expect(healthyEdge?.getAttribute("data-focus")).toBeNull();
+  });
+
+  it("marks affected neighbours with data-focus attribute", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "warning" as const },
+        { ...makeNode("n3", "router"), operational_state: "healthy" as const },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const },
+        { ...makeEdge("e2", "n1", "n3"), operational_state: "healthy" as const },
+      ],
+    );
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    const affectedNode = container.querySelector('[data-testid="bt-node-n2"]');
+    expect(affectedNode?.getAttribute("data-focus")).toBe("affected-neighbor");
+    const healthyNode = container.querySelector('[data-testid="bt-node-n3"]');
+    expect(healthyNode?.getAttribute("data-focus")).toBeNull();
+  });
+
+  it("keeps affected neighbours at full opacity in affected-only mode", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "warning" as const },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const },
+      ],
+    );
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    // Toggle affected-only
+    const checkbox = screen.getByTestId("bt-legend-affected-input");
+    fireEvent.click(checkbox);
+    // Affected neighbour should have data-focus attribute
+    const affectedNode = container.querySelector('[data-testid="bt-node-n2"]');
+    expect(affectedNode?.getAttribute("data-focus")).toBe("affected-neighbor");
+  });
+
+  it("displays neighbour labels in focus block (capped at 3)", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "warning" as const, label: "dev-2" },
+        { ...makeNode("n3", "router"), operational_state: "warning" as const, label: "dev-3" },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const },
+        { ...makeEdge("e2", "n1", "n3"), operational_state: "healthy" as const },
+      ],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    const names = screen.getByTestId("bt-passport-focus-names");
+    expect(names.textContent).toContain("dev-2");
+    expect(names.textContent).toContain("dev-3");
+  });
+});

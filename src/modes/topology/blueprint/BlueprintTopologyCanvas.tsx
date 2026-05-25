@@ -59,6 +59,7 @@ import { TopologyEnvSelector } from "../TopologyEnvSelector";
 import { DEVICE_ICON, DEVICE_ICON_VIEWBOX } from "./deviceIcons";
 import type { LabOperationalState } from "../../../types/labEnvironment";
 import { TopologyStateLegend } from "./TopologyStateLegend";
+import { computeAffectedFocus, type AffectedFocus } from "./affectedFocus";
 import "./BlueprintTopologyCanvas.css";
 
 // V1BU — state to ring colour mapping
@@ -262,6 +263,8 @@ interface GlyphProps {
   // V1BL-F — initiated by Glyph's onPointerDown; parent runs the
   // window-level pointermove/up listeners that turn it into a drag.
   onNodeDragStart: (nodeId: string, clientX: number, clientY: number) => void;
+  // V1BX — this node is a neighbour in the selected node's affected focus.
+  focusAffected?: boolean;
 }
 
 function Glyph({
@@ -271,6 +274,7 @@ function Glyph({
   onSelect,
   onInspectIntent,
   onNodeDragStart,
+  focusAffected,
 }: GlyphProps): JSX.Element {
   const { node, family, x, y } = layout;
   const frame = FAMILY_FRAME[family];
@@ -309,6 +313,7 @@ function Glyph({
         data-density="dot"
         data-family={family}
         data-family-mini={family}
+        data-focus={focusAffected ? "affected-neighbor" : undefined}
       >
         {/* V1BS.hotfix-2 — invisible hit-target so outline-only dots
          * remain draggable / clickable / double-clickable at Metro
@@ -352,6 +357,7 @@ function Glyph({
       data-density={band}
       data-family={family}
       data-state={operationalState}
+      data-focus={focusAffected ? "affected-neighbor" : undefined}
     >
       <rect
         className="bt-node-state-ring"
@@ -422,11 +428,12 @@ interface EdgeProps {
   from: NodeLayout;
   to: NodeLayout;
   active: boolean;
+  focusAffected: boolean;
   scenario: ScenarioKind;
   band: DensityBand;
 }
 
-function Edge({ edge, from, to, active, scenario, band }: EdgeProps): JSX.Element {
+function Edge({ edge, from, to, active, focusAffected, scenario, band }: EdgeProps): JSX.Element {
   const route = routeEdge({ x: from.x, y: from.y }, { x: to.x, y: to.y }, {
     scenario,
     band,
@@ -438,6 +445,7 @@ function Edge({ edge, from, to, active, scenario, band }: EdgeProps): JSX.Elemen
       data-testid={`bt-edge-${edge.id}`}
       data-route-kind={route.kind}
       data-state={edge.operational_state ?? "healthy"}
+      data-focus={focusAffected ? "affected" : undefined}
     />
   );
 }
@@ -623,6 +631,15 @@ export function BlueprintTopologyCanvas({
     }
     return ids;
   }, [selectedId, view.edges]);
+
+  const affectedFocus: AffectedFocus = useMemo(
+    () => computeAffectedFocus({
+      selectedNodeId: selectedId,
+      nodes: view.nodes,
+      edges: view.edges,
+    }),
+    [selectedId, view.nodes, view.edges],
+  );
 
   const onSelect = useCallback((nodeId: string): void => {
     // V1BL-F — if this click was the tail of a drag, swallow it so
@@ -1172,6 +1189,7 @@ export function BlueprintTopologyCanvas({
                     from={from}
                     to={to}
                     active={activeEdgeIds.has(edge.id)}
+                    focusAffected={affectedFocus.affectedEdgeIds.has(edge.id)}
                     scenario={scenarioKind}
                     band={band}
                   />
@@ -1189,6 +1207,7 @@ export function BlueprintTopologyCanvas({
                   onSelect={onSelect}
                   onInspectIntent={onInspectIntent}
                   onNodeDragStart={onNodeDragStart}
+                  focusAffected={affectedFocus.affectedNeighborIds.has(l.node.id)}
                 />
               ))}
             </g>
@@ -1267,6 +1286,36 @@ export function BlueprintTopologyCanvas({
                 {formatState(selectedNode.operational_state ?? "healthy")}
               </strong>
             </div>
+
+            {affectedFocus.hasSelection &&
+              (affectedFocus.affectedEdgeIds.size > 0 || affectedFocus.affectedNeighborIds.size > 0) && (
+              <div className="bt-passport-focus" data-testid="bt-passport-focus">
+                <div className="bt-passport-focus-title">Affected focus</div>
+                <div className="bt-passport-row">
+                  <span>worst</span>
+                  <strong data-state={affectedFocus.worstState}>
+                    {formatState(affectedFocus.worstState)}
+                  </strong>
+                </div>
+                <div className="bt-passport-row">
+                  <span>links</span>
+                  <strong data-testid="bt-passport-focus-link-count">
+                    {affectedFocus.affectedEdgeIds.size}
+                  </strong>
+                </div>
+                <div className="bt-passport-row">
+                  <span>neighbours</span>
+                  <strong data-testid="bt-passport-focus-neighbor-count">
+                    {affectedFocus.affectedNeighborIds.size}
+                  </strong>
+                </div>
+                {affectedFocus.neighborLabels.length > 0 && (
+                  <div className="bt-passport-focus-names" data-testid="bt-passport-focus-names">
+                    {affectedFocus.neighborLabels.join(" · ")}
+                  </div>
+                )}
+              </div>
+            )}
 
             {selectedPassport && (
               <div
