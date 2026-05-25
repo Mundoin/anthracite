@@ -708,4 +708,156 @@ describe("networkLabEngine", () => {
       }
     });
   });
+
+  describe("V1BU — deterministic operational state", () => {
+    it("micro-lab: all devices should be healthy", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "micro-lab",
+        environment_id: "test-micro",
+        environment_name: "Test Micro",
+      });
+
+      for (const device of env.devices) {
+        expect(device.operational_state).toBe("healthy");
+      }
+    });
+
+    it("branch-office: branch-wap-02 should be warning, others healthy", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "branch-office",
+        environment_id: "test-branch",
+        environment_name: "Test Branch",
+      });
+
+      const wap02 = env.devices.find((d) => d.hostname === "branch-wap-02");
+      expect(wap02?.operational_state).toBe("warning");
+
+      const others = env.devices.filter((d) => d.hostname !== "branch-wap-02");
+      for (const device of others) {
+        expect(device.operational_state).toBe("healthy");
+      }
+    });
+
+    it("campus: has correct state distribution", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus",
+        environment_name: "Test Campus",
+      });
+
+      const dist04 = env.devices.find((d) => d.hostname === "campus-dist-04");
+      const acc08 = env.devices.find((d) => d.hostname === "campus-acc-08");
+      const wap02 = env.devices.find((d) => d.hostname === "campus-wap-02");
+
+      expect(dist04?.operational_state).toBe("warning");
+      expect(acc08?.operational_state).toBe("warning");
+      expect(wap02?.operational_state).toBe("maintenance");
+
+      const others = env.devices.filter(
+        (d) =>
+          d.hostname !== "campus-dist-04" &&
+          d.hostname !== "campus-acc-08" &&
+          d.hostname !== "campus-wap-02"
+      );
+      for (const device of others) {
+        expect(device.operational_state).toBe("healthy");
+      }
+    });
+
+    it("datacenter-pod: has correct state distribution", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "datacenter-pod",
+        environment_id: "test-dc",
+        environment_name: "Test DC",
+      });
+
+      const leaf04 = env.devices.find((d) => d.hostname === "dc-leaf-04");
+      const leaf12 = env.devices.find((d) => d.hostname === "dc-leaf-12");
+      const srv03 = env.devices.find((d) => d.hostname === "dc-srv-03");
+      const fw01 = env.devices.find((d) => d.hostname === "dc-fw-01");
+
+      expect(leaf04?.operational_state).toBe("warning");
+      expect(leaf12?.operational_state).toBe("degraded");
+      expect(srv03?.operational_state).toBe("warning");
+      expect(fw01?.operational_state).toBe("maintenance");
+
+      const nonSpecial = env.devices.filter(
+        (d) =>
+          d.hostname !== "dc-leaf-04" &&
+          d.hostname !== "dc-leaf-12" &&
+          d.hostname !== "dc-srv-03" &&
+          d.hostname !== "dc-fw-01"
+      );
+      for (const device of nonSpecial) {
+        expect(device.operational_state).toBe("healthy");
+      }
+    });
+
+    it("metro-mega-city: has correct state distribution", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "metro-mega-city",
+        environment_id: "test-metro",
+        environment_name: "Test Metro",
+      });
+
+      const stateMap = new Map([
+        ["metro-pe-03", "warning"],
+        ["metro-agg-07", "warning"],
+        ["metro-cpe-09", "warning"],
+        ["metro-agg-16", "warning"],
+        ["metro-cpe-02", "degraded"],
+        ["metro-cpe-11", "degraded"],
+        ["metro-isp-04", "down"],
+        ["metro-fw-03", "maintenance"],
+      ] as const);
+
+      for (const [hostname, expectedState] of stateMap) {
+        const device = env.devices.find((d) => d.hostname === hostname);
+        expect(device?.operational_state).toBe(expectedState);
+      }
+
+      // Count non-healthy states
+      const nonHealthy = env.devices.filter(
+        (d) => d.operational_state !== "healthy"
+      );
+      expect(nonHealthy).toHaveLength(8);
+    });
+
+    it("env-fab-demo: all devices should be healthy", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "micro-lab",
+        environment_id: "env-fab-demo",
+        environment_name: "Fabricator Demo",
+      });
+
+      for (const device of env.devices) {
+        expect(device.operational_state).toBe("healthy");
+      }
+    });
+
+    it("determinism: state assignment should be identical for same scenario", () => {
+      const env1 = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus-1",
+        environment_name: "Test Campus 1",
+      });
+
+      const env2 = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus-2",
+        environment_name: "Test Campus 2",
+      });
+
+      const getStateMap = (env: typeof env1) =>
+        new Map(env.devices.map((d) => [d.hostname, d.operational_state]));
+
+      const states1 = getStateMap(env1);
+      const states2 = getStateMap(env2);
+
+      for (const [hostname, state1] of states1) {
+        const state2 = states2.get(hostname);
+        expect(state2).toBe(state1);
+      }
+    });
+  });
 });

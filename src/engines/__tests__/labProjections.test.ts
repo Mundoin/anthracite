@@ -685,5 +685,77 @@ describe("labProjections", () => {
     });
   });
 
+  describe("V1BU — operational state projection", () => {
+    it("should preserve operational_state from lab device to fabricated device", () => {
+      const labEnv = createLabEnvironment({
+        devices: [
+          {
+            id: "lab-dev-001",
+            hostname: "router-001",
+            display_label: "router-001",
+            device_class: "router" as const,
+            vendor: "cisco" as const,
+            platform_id: "cisco-iosxe" as const,
+            os_family: "IOS XE",
+            management_ip: null,
+            loopback_ip: null,
+            site_id: null,
+            zone: null,
+            tags: [],
+            capabilities: [],
+            interfaces: [],
+            operational_state: "warning" as const,
+            provenance: "generated-lab" as const,
+            source_state: "lab" as const,
+          },
+        ],
+      });
+
+      const fabEnv = toFabricatorView(labEnv);
+      expect(fabEnv.devices[0]?.operational_state).toBe("warning");
+    });
+
+    it("should default to healthy when operational_state is undefined", () => {
+      const labEnv = createLabEnvironment({
+        devices: [
+          {
+            id: "lab-dev-001",
+            hostname: "router-001",
+            display_label: "router-001",
+            device_class: "router" as const,
+            vendor: "cisco" as const,
+            platform_id: "cisco-iosxe" as const,
+            os_family: "IOS XE",
+            management_ip: null,
+            loopback_ip: null,
+            site_id: null,
+            zone: null,
+            tags: [],
+            capabilities: [],
+            interfaces: [],
+            provenance: "generated-lab" as const,
+            source_state: "lab" as const,
+          },
+        ],
+      });
+
+      const fabEnv = toFabricatorView(labEnv);
+      expect(fabEnv.devices[0]?.operational_state).toBe("healthy");
+    });
+
+    it("should project multiple state values correctly", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "datacenter-pod",
+        environment_id: "test-dc",
+        environment_name: "Test DC",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const states = new Set(fabEnv.devices.map((d) => d.operational_state));
+
+      expect(states.has("healthy")).toBe(true);
+      expect(states.size).toBeGreaterThan(1);
+    });
+  });
 
 });

@@ -8,6 +8,8 @@
  * Doctrine: DataSourceState "demo" — see src/types/dataSource.ts.
  */
 
+import type { LabOperationalState } from "./labEnvironment";
+
 export type FabricatedProvenance = "fabricated";
 
 export type FabricatedDeviceSource = "fabricated";
@@ -19,6 +21,7 @@ export interface FabricatedDevice {
   readonly vendor: string;
   readonly platform: string;
   readonly role_hint: string;
+  readonly operational_state?: LabOperationalState;  // V1BU — device operational condition
   readonly source: FabricatedDeviceSource;
 }
 

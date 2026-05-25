@@ -40,6 +40,7 @@ export function toFabricatorView(labEnv: LabEnvironment): FabricatorEnvironment 
     vendor: d.vendor,
     platform: d.platform_id,
     role_hint: deriveRoleHint(d),
+    operational_state: d.operational_state ?? "healthy",
     source: "fabricated" as const,
   }));
 

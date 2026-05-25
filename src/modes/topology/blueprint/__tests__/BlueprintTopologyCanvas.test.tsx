@@ -891,3 +891,122 @@ describe("BlueprintTopologyCanvas — V1BR soft device colors", () => {
     expect(familyCode?.textContent).toBe("?");
   });
 });
+
+describe("BlueprintTopologyCanvas — V1BU state visualisation", () => {
+  it("renders node with data-state attribute when operational_state is set", () => {
+    const node = makeNode("n01", "edge router", "edge-01");
+    const nodeWithState: GraphReadyTopologyNode = {
+      ...node,
+      operational_state: "warning",
+    };
+    const view = makeView([nodeWithState], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const nodeEl = container.querySelector('[data-testid="bt-node-n01"]');
+    expect(nodeEl?.getAttribute("data-state")).toBe("warning");
+  });
+
+  it("defaults to healthy state when operational_state is not set", () => {
+    const view = makeView([makeNode("n01", "edge router", "edge-01")], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const nodeEl = container.querySelector('[data-testid="bt-node-n01"]');
+    expect(nodeEl?.getAttribute("data-state")).toBe("healthy");
+  });
+
+  it("renders different state values (warning, degraded, down, maintenance, unknown)", () => {
+    const states: GraphReadyTopologyNode[] = [
+      { ...makeNode("n01", "router"), operational_state: "warning" },
+      { ...makeNode("n02", "router"), operational_state: "degraded" },
+      { ...makeNode("n03", "router"), operational_state: "down" },
+      { ...makeNode("n04", "router"), operational_state: "maintenance" },
+      { ...makeNode("n05", "router"), operational_state: "unknown" },
+    ];
+    const view = makeView(states, []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+
+    expect(container.querySelector('[data-testid="bt-node-n01"]')?.getAttribute("data-state")).toBe("warning");
+    expect(container.querySelector('[data-testid="bt-node-n02"]')?.getAttribute("data-state")).toBe("degraded");
+    expect(container.querySelector('[data-testid="bt-node-n03"]')?.getAttribute("data-state")).toBe("down");
+    expect(container.querySelector('[data-testid="bt-node-n04"]')?.getAttribute("data-state")).toBe("maintenance");
+    expect(container.querySelector('[data-testid="bt-node-n05"]')?.getAttribute("data-state")).toBe("unknown");
+  });
+
+  it("displays state in passport row when node is selected", () => {
+    const nodeWithState: GraphReadyTopologyNode = {
+      ...makeNode("n01", "edge router", "edge-01"),
+      operational_state: "warning",
+    };
+    const view = makeView([nodeWithState], []);
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n01"));
+    const stateRow = screen.getByTestId("bt-passport-state-row");
+    expect(stateRow).toBeInTheDocument();
+    expect(stateRow).toHaveTextContent(/state/i);
+    expect(stateRow).toHaveTextContent("Warning");
+  });
+
+  it("passport state row shows correct formatted state text", () => {
+    const testCases: Array<[string, string]> = [
+      ["healthy", "Healthy"],
+      ["warning", "Warning"],
+      ["degraded", "Degraded"],
+      ["down", "Down"],
+      ["maintenance", "Maintenance"],
+      ["unknown", "Unknown"],
+    ];
+
+    for (const [state, display] of testCases) {
+      const nodeWithState: GraphReadyTopologyNode = {
+        ...makeNode("n01", "router"),
+        operational_state: state as GraphReadyTopologyNode["operational_state"],
+      };
+      const view = makeView([nodeWithState], []);
+      const { unmount } = render(
+        withActive(
+          fakeActive(),
+          <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+        ),
+      );
+      fireEvent.click(screen.getByTestId("bt-node-n01"));
+      const stateRow = screen.getByTestId("bt-passport-state-row");
+      expect(stateRow).toHaveTextContent(display);
+      unmount();
+    }
+  });
+
+  it("passport state text has data-state attribute for CSS styling", () => {
+    const nodeWithState: GraphReadyTopologyNode = {
+      ...makeNode("n01", "router"),
+      operational_state: "degraded",
+    };
+    const view = makeView([nodeWithState], []);
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n01"));
+    const stateStrong = screen.getByTestId("bt-passport-state-row").querySelector("strong");
+    expect(stateStrong?.getAttribute("data-state")).toBe("degraded");
+  });
+});

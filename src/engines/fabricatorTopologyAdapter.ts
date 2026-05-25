@@ -46,6 +46,7 @@ export function toGraphReadyTopologyView(
     platform_id: d.platform,
     role_hint: d.role_hint,
     layer: "inventory",
+    operational_state: d.operational_state ?? "healthy",
   }));
 
   const edges: GraphReadyTopologyEdge[] = env.links.map((l) => ({

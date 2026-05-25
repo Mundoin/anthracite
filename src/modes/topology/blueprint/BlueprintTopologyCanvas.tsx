@@ -33,7 +33,6 @@ import {
   FAMILY_FRAME,
   defaultProfileIdFor,
   pickDensityBand,
-  stateRingColor,
   type DensityBand,
   type NodeFamilyCode,
 } from "./blueprintGlyph";
@@ -58,7 +57,22 @@ import {
 import { routeEdge } from "./blueprintEdges";
 import { TopologyEnvSelector } from "../TopologyEnvSelector";
 import { DEVICE_ICON, DEVICE_ICON_VIEWBOX } from "./deviceIcons";
+import type { LabOperationalState } from "../../../types/labEnvironment";
 import "./BlueprintTopologyCanvas.css";
+
+// V1BU — state to ring colour mapping
+const LAB_STATE_TO_RING_COLOR: Record<LabOperationalState, string> = {
+  healthy: "var(--topo-ok)",
+  warning: "var(--topo-warn)",
+  degraded: "var(--topo-err)",
+  down: "var(--topo-critical)",
+  maintenance: "var(--topo-maint)",
+  unknown: "var(--topo-deferred)",
+};
+
+function formatState(state: LabOperationalState): string {
+  return state.charAt(0).toUpperCase() + state.slice(1);
+}
 
 export interface BlueprintTopologyCanvasProps {
   readonly view: GraphReadyTopologyView;
@@ -323,6 +337,9 @@ function Glyph({
   // silhouette). Bujar's contract: each device must show its name.
   const showLabel = true;
 
+  const operationalState = node.operational_state ?? "healthy";
+  const ringColor = LAB_STATE_TO_RING_COLOR[operationalState];
+
   return (
     <g
       className="bt-node"
@@ -333,6 +350,7 @@ function Glyph({
       data-testid={`bt-node-${node.id}`}
       data-density={band}
       data-family={family}
+      data-state={operationalState}
     >
       <rect
         className="bt-node-state-ring"
@@ -341,7 +359,7 @@ function Glyph({
         width={frame.w + 8}
         height={frame.h + 8}
         rx={frame.rx + 2}
-        stroke={stateRingColor("ok")}
+        stroke={ringColor}
       />
       {/* V1BS — invisible hit-target rect. Drives drag bbox, focus-ring
        * placement, click hit detection. The visible device shape is
@@ -1228,6 +1246,12 @@ export function BlueprintTopologyCanvas({
             <div className="bt-passport-row">
               <span>neighbours</span>
               <strong>{selectedNeighbours.length}</strong>
+            </div>
+            <div className="bt-passport-row" data-testid="bt-passport-state-row">
+              <span>state</span>
+              <strong data-state={selectedNode.operational_state ?? "healthy"}>
+                {formatState(selectedNode.operational_state ?? "healthy")}
+              </strong>
             </div>
 
             {selectedPassport && (

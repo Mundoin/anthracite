@@ -68,6 +68,14 @@ export type LabProvenance = "generated-lab" | "synthetic" | "fabricated";
 
 export type LabSourceState = "lab" | "demo" | "local";
 
+export type LabOperationalState =
+  | "healthy"
+  | "warning"
+  | "degraded"
+  | "down"
+  | "maintenance"
+  | "unknown";
+
 export interface LabInterface {
   readonly id: string;
   readonly name: string;                        // e.g. "GigabitEthernet0/0/0", "ether1", "vlan10"
@@ -94,6 +102,7 @@ export interface LabDevice {
   readonly tags: readonly string[];
   readonly capabilities: readonly string[];      // e.g. ["routing", "vlan", "ospf"]
   readonly interfaces: readonly LabInterface[];
+  readonly operational_state?: LabOperationalState;  // V1BU — device operational condition
   readonly provenance: LabProvenance;
   readonly source_state: LabSourceState;
 }

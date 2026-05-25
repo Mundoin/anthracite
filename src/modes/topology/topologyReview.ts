@@ -28,6 +28,7 @@ import type {
   TopologyNode,
   TopologyView,
 } from "../../types/topology";
+import type { LabOperationalState } from "../../types/labEnvironment";
 
 // ---------------------------------------------------------------------
 // Review model — operator-grade reshape of TopologyView.edges.
@@ -124,6 +125,7 @@ export interface GraphReadyTopologyNode {
   readonly platform_id: string | null;
   readonly role_hint: string;
   readonly layer: string;
+  readonly operational_state?: LabOperationalState;  // V1BU — device operational condition
 }
 
 export interface GraphReadyTopologyEdge {

@@ -39,6 +39,7 @@
   --topo-err:      #B83333;
   --topo-deferred: #9AA3AD;
   --topo-critical: #D32E2E;
+  --topo-maint:    #6B4FAB;  /* V1BU — maintenance state (muted violet) */
 
   /* V1BR — soft device node palette */
   --topo-node-fill:           #F1F6FB;  /* soft sky tint, replaces flat white where appropriate */
@@ -337,6 +338,29 @@
   stroke-width: 4;
 }
 
+/* V1BU — operational state ring colours via data-state attribute */
+.bt-node[data-state="warning"] .bt-node-state-ring {
+  stroke: var(--topo-warn);
+}
+
+.bt-node[data-state="degraded"] .bt-node-state-ring {
+  stroke: var(--topo-err);
+}
+
+.bt-node[data-state="down"] .bt-node-state-ring {
+  stroke: var(--topo-critical);
+  stroke-width: 4;
+}
+
+.bt-node[data-state="maintenance"] .bt-node-state-ring {
+  stroke: var(--topo-maint);
+  stroke-dasharray: 3 2;
+}
+
+.bt-node[data-state="unknown"] .bt-node-state-ring {
+  stroke: var(--topo-deferred);
+}
+
 .bt-node-focus-ring {
   fill: none;
   stroke: var(--topo-cyan);
@@ -456,6 +480,31 @@
   font-family: var(--topo-font-mono);
   font-weight: 500;
   text-align: right;
+}
+
+/* V1BU — operational state colours in passport row */
+.bt-passport-row strong[data-state="healthy"] {
+  color: var(--topo-ok);
+}
+
+.bt-passport-row strong[data-state="warning"] {
+  color: var(--topo-warn);
+}
+
+.bt-passport-row strong[data-state="degraded"] {
+  color: var(--topo-err);
+}
+
+.bt-passport-row strong[data-state="down"] {
+  color: var(--topo-critical);
+}
+
+.bt-passport-row strong[data-state="maintenance"] {
+  color: var(--topo-maint);
+}
+
+.bt-passport-row strong[data-state="unknown"] {
+  color: var(--topo-deferred);
 }
 
 .bt-passport-hw {

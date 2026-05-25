@@ -7,6 +7,7 @@ import type {
   LabVendor,
   LabEnvironmentCapabilityFlags,
   LabPlatformId,
+  LabOperationalState,
 } from "../types/labEnvironment";
 import type { IpAddressModel } from "../types/networkModel";
 import {
@@ -288,6 +289,46 @@ const SCENARIO_PREFIX_MAP: Record<string, string> = {
   "metro-mega-city": "metro",
 };
 
+// V1BU — Deterministic operational state mapping
+const SCENARIO_STATE_MAP: Record<string, Record<string, LabOperationalState>> = {
+  "micro-lab": {},  // all healthy
+  "branch-office": {
+    "branch-wap-02": "warning",
+  },
+  campus: {
+    "campus-dist-04": "warning",
+    "campus-acc-08": "warning",
+    "campus-wap-02": "maintenance",
+  },
+  "datacenter-pod": {
+    "dc-leaf-04": "warning",
+    "dc-leaf-12": "degraded",
+    "dc-srv-03": "warning",
+    "dc-fw-01": "maintenance",
+  },
+  "metro-mega-city": {
+    "metro-pe-03": "warning",
+    "metro-agg-07": "warning",
+    "metro-cpe-09": "warning",
+    "metro-agg-16": "warning",
+    "metro-cpe-02": "degraded",
+    "metro-cpe-11": "degraded",
+    "metro-isp-04": "down",
+    "metro-fw-03": "maintenance",
+  },
+};
+
+function deterministicState(
+  scenarioId: string,
+  hostname: string,
+): LabOperationalState {
+  const stateMap = SCENARIO_STATE_MAP[scenarioId];
+  if (!stateMap) {
+    return "healthy";
+  }
+  return stateMap[hostname] ?? "healthy";
+}
+
 function buildHostname(
   scenarioId: string,
   roleLabel: string,
@@ -368,6 +409,7 @@ export function generateLabEnvironment(
           override.device_class,
           addressPlan.management_ip_for(idx)
         ),
+        operational_state: deterministicState("env-fab-demo", override.hostname),
         provenance: "generated-lab" as const,
         source_state: "lab" as const,
       };
@@ -430,6 +472,7 @@ export function generateLabEnvironment(
             slot.device_class,
             addressPlan.management_ip_for(deviceIndex)
           ),
+          operational_state: deterministicState(input.scenario_id, hostname),
           provenance: "generated-lab" as const,
           source_state: "lab" as const,
         });
