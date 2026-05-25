@@ -87,7 +87,7 @@ export type OperationalState = "ok" | "warn" | "err" | "deferred" | "critical";
 
 export function stateRingColor(state: OperationalState): string {
   switch (state) {
-    case "ok": return "var(--topo-ok)";
+    case "ok": return "var(--topo-node-state-ok)";
     case "warn": return "var(--topo-warn)";
     case "err": return "var(--topo-err)";
     case "deferred": return "var(--topo-deferred)";

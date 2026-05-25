@@ -1,8 +1,8 @@
 # V1BR — Environment Archive State + Topology Device Color Polish
 
-**Date:** 2026-05-25
-**Status:** Implementation complete — pending Bujar manual verify
-**Validation:** typecheck clean · 2456/2456 tests pass · build clean
+**Date:** 2026-05-25 (Hotfix-1: 2026-05-25)
+**Status:** Implementation complete + hotfix applied — pending Bujar manual verify
+**Validation:** typecheck clean · 2459/2459 tests pass · build clean
 **Prior stages on main:** V1BO durability · V1BP topology selector · V1BQ persistent layout overrides
 
 ---
@@ -213,3 +213,135 @@ Net test count: 2445 → 2456 (+11).
 - **Recommendation:** Sonnet implementers reliable on contained color/CSS swaps and audits; require Opus integrator review on multi-condition UI filter logic and test rigor.
 
 Wait for Bujar manual verify before commit/push.
+
+---
+
+## Hotfix-1 — 2026-05-25
+
+**Trigger:** Bujar visual review: V1BR's color polish was not visually accepted. The frame fill stayed white, the faceplate stayed nearly-black, and the role label + hostname + OK state ring stayed graphite. Net effect: device read as "gray with a blue outline" rather than "blue device."
+
+**Acceptance bar:** When zoomed into any 2D topology node, the whole device must read BLUE at a glance.
+
+**Changes:**
+
+- New tokens (in `:root` of `BlueprintTopologyCanvas.css`):
+  - `--topo-node-frame-fill: #EAF1F8`
+  - `--topo-node-faceplate-fill: #2B4F78`
+  - `--topo-node-text-strong: #1E3A5A`
+  - `--topo-node-text: #2B4A6B`
+  - `--topo-node-state-ok: #5B7A93`
+- `.bt-node-frame` fill: `--topo-paper` → `--topo-node-frame-fill` (stroke-width: 1.25 → 1.5)
+- `.bt-node-faceplate` fill: `#0E1E2C` → `--topo-node-faceplate-fill`
+- `.bt-node-family-code` fill: `--topo-ink` → `--topo-node-text-strong`
+- `.bt-node-family-code--unk` fill: `--topo-node-unknown-stroke` → `--topo-node-text`
+- `.bt-node-label` fill: `--topo-ink-2` → `--topo-node-text`
+- `stateRingColor("ok")` in `blueprintGlyph.ts`: `--topo-ok` → `--topo-node-state-ok`
+- Hover lift on `.bt-node:hover .bt-node-frame` (stroke: `--topo-node-hover-stroke`, stroke-width: 1.75).
+
+**Preserved:** cyan selected ring, semantic alert colors, passport chrome, edge/grid styling, hardware inspect, env selector.
+
+**Validation:** typecheck + test + build all green. Test count: 2456 → 2459 (+3).
+
+**Files modified:**
+- `src/modes/topology/blueprint/BlueprintTopologyCanvas.css`
+- `src/modes/topology/blueprint/blueprintGlyph.ts`
+- `src/modes/topology/blueprint/__tests__/BlueprintTopologyCanvas.test.tsx`
+
+---
+
+## Hotfix-2 — 2026-05-25
+
+**Trigger:** Visual review after HF1: the "blue" Bujar wants is saturated per-family color, not a soft single-tone wash. Explicit contract:
+
+- Switches: `#2DBDBE` (teal)
+- Routers: `#0E72A0` (blue)
+- FW: `#2C8456` (green)
+
+**Acceptance bar:** Every device frame reads in its family color at a glance. Firewalls green, routers blue, switches teal. Labels readable on top.
+
+**Changes:**
+
+- New tokens in `:root` of `BlueprintTopologyCanvas.css`:
+  - `--topo-fam-fw: #2C8456` (firewall green)
+  - `--topo-fam-router: #0E72A0` (router blue — matches existing `--topo-cyan`)
+  - `--topo-fam-switch: #2DBDBE` (switch teal)
+  - `--topo-fam-server: #0E72A0` (SRV default — not in Bujar's three; defaults to router blue)
+  - `--topo-fam-stroke: rgba(0, 0, 0, 0.25)` (dark edge on saturated body)
+  - `--topo-fam-text: #FFFFFF` (role label on saturated body)
+  - `--topo-fam-text-soft: rgba(255, 255, 255, 0.85)` (hostname recessed)
+- Family-keyed CSS rules using existing `data-family={family}` attribute on `.bt-node`:
+  - `.bt-node[data-family="FW"] .bt-node-frame` → green fill
+  - `.bt-node[data-family="CORE-RT"|"EDGE-RT"] .bt-node-frame` → blue fill
+  - `.bt-node[data-family="ACC-SW"|"DIST-SW"|"WAP"] .bt-node-frame` → teal fill
+  - `.bt-node[data-family="SRV"] .bt-node-frame` → blue fill (default)
+  - `.bt-node-family-code` + `.bt-node-label` flip to white on saturated families
+  - `.bt-node-faceplate` becomes a white highlight strip on saturated families
+  - Hover lift: darker stroke on saturated families
+- Metro `DotMini()` in `BlueprintTopologyCanvas.tsx`: new `dotFamilyFill(family)` helper returns the saturated family token, so dense dots mirror the frame palette.
+
+**Family → color mapping:**
+
+| Family | Token | Hex | Role |
+|---|---|---|---|
+| FW | `--topo-fam-fw` | #2C8456 | Firewall |
+| CORE-RT | `--topo-fam-router` | #0E72A0 | Core router |
+| EDGE-RT | `--topo-fam-router` | #0E72A0 | Edge router |
+| ACC-SW | `--topo-fam-switch` | #2DBDBE | Access switch |
+| DIST-SW | `--topo-fam-switch` | #2DBDBE | Distribution switch |
+| WAP | `--topo-fam-switch` | #2DBDBE | Wireless AP |
+| SRV | `--topo-fam-server` | #0E72A0 | Server / endpoint |
+| UNK | `--topo-node-unknown-*` | (muted) | Unclassified |
+
+**Preserved:** cyan selected ring (still `--topo-cyan` #0E72A0 — collides with router fill, kept per contract); semantic alert colors; passport / header / env-selector chrome; archive logic; UNK muted blue-grey treatment.
+
+**Caveats:**
+- Router fill and selected ring share `#0E72A0`. Selected router ring will read close to the fill body. Acceptable per visual contract; revisit if selection affordance feels weak.
+- SRV defaults to router blue. Not in Bujar's three — flag to change to a 4th color if needed.
+- Faceplate strip became a white highlight on saturated families. The dark-navy `--topo-node-faceplate-fill` from HF1 stays for the `.bt-node-faceplate` default but is overridden per-family.
+
+**Validation:** typecheck clean · 2459/2459 tests pass · build clean (5.71s).
+
+**Files modified:**
+- `src/modes/topology/blueprint/BlueprintTopologyCanvas.css`
+- `src/modes/topology/blueprint/BlueprintTopologyCanvas.tsx`
+- `src/modes/topology/blueprint/__tests__/BlueprintTopologyCanvas.test.tsx`
+
+---
+
+## Hotfix-3 — 2026-05-25
+
+**Trigger:** Bujar visual review of HF2: disliked the saturated body FILL. Wants the device interior empty/white and ONLY the outline coloured per family. Existing "grey frame" needs to flip to the family colour as a stroke.
+
+**Acceptance bar:** Device interior is white/empty. The frame outline carries the family colour (FW green, routers blue, switches teal). No saturated fill.
+
+**Changes:**
+
+- `.bt-node-frame` reverted to empty body: `fill: var(--topo-paper)` (white), keeps default blue-grey stroke for UNK / default path.
+- Per-family rules flipped from `fill` to `stroke`:
+  - `.bt-node[data-family="FW"] .bt-node-frame` → `stroke: var(--topo-fam-fw)`, `stroke-width: 2`
+  - `.bt-node[data-family="CORE-RT" | "EDGE-RT"] .bt-node-frame` → `stroke: var(--topo-fam-router)`, `stroke-width: 2`
+  - `.bt-node[data-family="ACC-SW" | "DIST-SW" | "WAP"] .bt-node-frame` → `stroke: var(--topo-fam-switch)`, `stroke-width: 2`
+  - `.bt-node[data-family="SRV"] .bt-node-frame` → `stroke: var(--topo-fam-server)`, `stroke-width: 2`
+- Removed HF2 overrides:
+  - white-text overrides on `.bt-node-family-code` + `.bt-node-label` (text returns to HF1 dark-navy on white — legible on empty body)
+  - white-highlight strip override on `.bt-node-faceplate` (stays HF1 navy strip)
+- Hover lift: keeps family colour, bumps `stroke-width` from `2` → `2.5`.
+- `DotMini` (Metro dots): renamed helper to `dotFamilyStroke(family)`; idle body `fill="none"`, `stroke = family colour`, `stroke-width` bumped from `0.5` to `1.25`. Selected still flips to cyan ring with cyan fill.
+- Test updated: SRV idle dot now asserts `fill="none"` + `stroke="var(--topo-fam-server)"`.
+
+**Visual result:**
+- Frame body white, family-coloured outline reads at a glance.
+- Role label (EDGE-RT etc.) in deep navy on white — clean.
+- Hostname navy on white — clean.
+- Faceplate strip still a recessed navy bar (HF1).
+- Metro dots: coloured outline rings, empty interior.
+- Selected: cyan focus ring + frame stroke unchanged (still family colour) + cyan focus-ring overlay still distinct.
+
+**Preserved:** family→colour mapping unchanged from HF2; cyan selected ring; semantic alert colours; passport / header / env-selector chrome; archive logic.
+
+**Validation:** typecheck clean · 2459/2459 tests pass · build clean (5.67s).
+
+**Files modified:**
+- `src/modes/topology/blueprint/BlueprintTopologyCanvas.css`
+- `src/modes/topology/blueprint/BlueprintTopologyCanvas.tsx`
+- `src/modes/topology/blueprint/__tests__/BlueprintTopologyCanvas.test.tsx`

@@ -49,6 +49,22 @@
   --topo-node-dot-unknown:    #D4DEE8;  /* lighter sky for Metro dot unknown */
   --topo-node-hover-stroke:   #3F6582;  /* slightly darker blue-grey for hover */
 
+  /* V1BR.hotfix-1 — deepen device palette: frame fill, faceplate, text */
+  --topo-node-frame-fill:     #EAF1F8;  /* soft sky tint, replaces white frame fill */
+  --topo-node-faceplate-fill: #2B4F78;  /* blue-navy device bar, replaces nearly-black */
+  --topo-node-text-strong:    #1E3A5A;  /* deep navy for role label (EDGE-RT etc) */
+  --topo-node-text:           #2B4A6B;  /* navy for hostname label */
+  --topo-node-state-ok:       #5B7A93;  /* blue-grey state ring when OK (was graphite) */
+
+  /* V1BR.hotfix-2 — saturated per-family fills (Bujar contract). */
+  --topo-fam-fw:        #2C8456;  /* firewall — green */
+  --topo-fam-router:    #0E72A0;  /* CORE-RT, EDGE-RT — blue */
+  --topo-fam-switch:    #2DBDBE;  /* ACC-SW, DIST-SW, WAP — teal */
+  --topo-fam-server:    #0E72A0;  /* SRV — router blue (default; not in Bujar's three) */
+  --topo-fam-stroke:    rgba(0, 0, 0, 0.25);  /* dark contrast edge on saturated body */
+  --topo-fam-text:      #FFFFFF;  /* role label + hostname on saturated body */
+  --topo-fam-text-soft: rgba(255, 255, 255, 0.85);  /* hostname slightly recessed */
+
   /* typography */
   --topo-font-ui:   "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   --topo-font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
@@ -273,13 +289,43 @@
 }
 
 .bt-node-frame {
-  fill: var(--topo-paper);
-  stroke: var(--topo-node-stroke);
-  stroke-width: 1.25;
+  /* V1BS — invisible hit-target. The visible device shape is now the
+   * icon (icon-as-frame). Frame stays in the DOM for drag bbox,
+   * focus-ring anchor, click hit detection. */
+  fill: transparent;
+  stroke: none;
 }
 
 .bt-node-frame.is-virtual {
   stroke-dasharray: 2 1.5;
+}
+
+.bt-node:hover .bt-node-frame {
+  stroke: var(--topo-node-hover-stroke);
+  stroke-width: 1.75;
+}
+
+/* V1BS — family colour drives the icon stroke via `color` cascade.
+ * `.bt-node-icon` children use stroke="currentColor", so setting
+ * `color:` on the wrapping `.bt-node` paints the entire icon. */
+.bt-node[data-family="FW"]        { color: var(--topo-fam-fw); }
+.bt-node[data-family="CORE-RT"],
+.bt-node[data-family="EDGE-RT"]   { color: var(--topo-fam-router); }
+.bt-node[data-family="ACC-SW"],
+.bt-node[data-family="DIST-SW"],
+.bt-node[data-family="WAP"]       { color: var(--topo-fam-switch); }
+.bt-node[data-family="SRV"]       { color: var(--topo-fam-server); }
+.bt-node[data-family="UNK"]       { color: var(--topo-node-unknown-stroke); }
+
+/* V1BS — icon stroke override. Design Claude shipped icons at
+ * stroke-width="0.75"; bump at runtime so the family colour reads
+ * at our render size without re-cutting the source SVGs. */
+.bt-node-icon [data-network-icon],
+.bt-node-icon [vector-effect="non-scaling-stroke"] {
+  stroke-width: 1.5;
+}
+.bt-node:hover .bt-node-icon {
+  stroke-width: 1.75;
 }
 
 .bt-node-state-ring {
@@ -299,38 +345,48 @@
 }
 
 .bt-node-faceplate {
-  fill: var(--topo-fill-port, #0E1E2C);
+  fill: var(--topo-node-faceplate-fill);
   opacity: 0.8;
 }
 
 .bt-node-family-code {
-  fill: var(--topo-ink);
+  /* V1BS — icon carries device identity; the code label is a small
+   * recessed cue above the hostname, not the headline element. */
+  fill: var(--topo-node-text-strong);
   font-family: var(--topo-font-mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
+  font-size: 6.5px;
+  letter-spacing: 0.08em;
   text-anchor: middle;
-  dominant-baseline: central;
+  dominant-baseline: alphabetic;
   pointer-events: none;
   user-select: none;
+  opacity: 0.6;
 }
 
 /* V1BM.hotfix-1 — unknown family glyph face. Quiet `?` in muted ink
  * so the hostname label below the glyph stays the primary identifier. */
 .bt-node-family-code--unk {
-  fill: var(--topo-node-unknown-stroke);
+  fill: var(--topo-node-text);
   font-size: 13px;
   letter-spacing: 0;
   font-weight: 400;
 }
 
 .bt-node-label {
-  fill: var(--topo-ink-2);
+  fill: var(--topo-node-text);
   font-family: var(--topo-font-mono);
   font-size: 10px;
   text-anchor: middle;
   dominant-baseline: hanging;
   pointer-events: none;
   user-select: none;
+}
+
+/* V1BS.hotfix-2 — smaller hostname under Metro dot glyphs so the
+ * label fits without crowding adjacent nodes. */
+.bt-node-label--dot {
+  font-size: 7px;
+  opacity: 0.85;
 }
 
 .bt-node-dot {

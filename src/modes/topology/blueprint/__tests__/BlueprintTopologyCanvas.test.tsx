@@ -206,6 +206,123 @@ describe("BlueprintTopologyCanvas — selection", () => {
   });
 });
 
+describe("BlueprintTopologyCanvas — V1BR.hotfix-1 device palette", () => {
+  it("renders .bt-node-frame with the new frame-fill token applied", () => {
+    const view = makeView([makeNode("sw-01", "access switch", "sw-01")], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const frame = container.querySelector(".bt-node-frame");
+    expect(frame).toBeInTheDocument();
+    expect(frame?.getAttribute("class")).toContain("bt-node-frame");
+  });
+
+  it("renders .bt-node-family-code for known device families", () => {
+    const view = makeView([makeNode("edge", "edge router", "edge")], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const familyCode = container.querySelector(".bt-node-family-code");
+    expect(familyCode).toBeInTheDocument();
+    expect(familyCode?.textContent).toBe("EDGE-RT");
+  });
+
+  it("renders .bt-node-label with hostname text", () => {
+    const view = makeView([makeNode("rtr-cisco-001", "edge router", "rtr-cisco-001")], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const label = container.querySelector(".bt-node-label");
+    expect(label).toBeInTheDocument();
+    expect(label?.textContent).toBe("rtr-cisco-001");
+  });
+});
+
+describe("BlueprintTopologyCanvas — V1BS icon-as-frame", () => {
+  it("renders the family icon group inside each device node", () => {
+    const view = makeView(
+      [
+        makeNode("fw-1", "firewall", "fw-1"),
+        makeNode("core-1", "core router", "core-1"),
+        makeNode("edge-1", "edge router", "edge-1"),
+        makeNode("acc-1", "access switch", "acc-1"),
+      ],
+      [],
+    );
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+
+    expect(container.querySelector('[data-network-icon="fw"]')).toBeInTheDocument();
+    expect(container.querySelector('[data-network-icon="core-rt"]')).toBeInTheDocument();
+    expect(container.querySelector('[data-network-icon="edge-rt"]')).toBeInTheDocument();
+    expect(container.querySelector('[data-network-icon="acc-sw"]')).toBeInTheDocument();
+  });
+
+  it("hit-target frame stays in the DOM (drag/click rely on it)", () => {
+    const view = makeView([makeNode("sw-1", "access switch", "sw-1")], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const frame = container.querySelector(".bt-node-frame");
+    expect(frame).toBeInTheDocument();
+  });
+
+  it("dot-density nodes render an invisible hit-target frame for drag/click", () => {
+    const view = makeView(chainNodes(96, "router"), chainEdges(96));
+    const { container } = render(
+      withActive(
+        fakeActive({ scenarioId: "metro-backbone" }),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const dotNode = container.querySelector('[data-density="dot"]');
+    expect(dotNode).toBeInTheDocument();
+    expect(dotNode?.querySelector(".bt-node-frame")).toBeInTheDocument();
+  });
+
+  it("hostname labels render across all bands (full / faceplate / silhouette / dot)", () => {
+    // Mix scenario sizes to hit every band.
+    for (const count of [5, 20, 40, 96]) {
+      const view = makeView(chainNodes(count, "router"), chainEdges(count));
+      const { container, unmount } = render(
+        withActive(
+          fakeActive(),
+          <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+        ),
+      );
+      expect(container.querySelectorAll(".bt-node-label").length).toBeGreaterThan(0);
+      unmount();
+    }
+  });
+
+  it("UNK family renders its dashed icon group", () => {
+    const view = makeView([makeNode("mystery", "anything-else", "mystery")], []);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(container.querySelector('[data-network-icon="unk"]')).toBeInTheDocument();
+  });
+});
+
 describe("BlueprintTopologyCanvas — hardware passport (V1BG)", () => {
   it("renders passport facts for the selected node (access switch)", () => {
     const view = makeView([makeNode("sw-01", "access switch", "sw-01")], []);
@@ -538,7 +655,9 @@ describe("BlueprintTopologyCanvas — V1BL-A white drafting surface", () => {
       '[data-density="dot"][data-family-mini="SRV"] circle.bt-node-dot--srv',
     ) as SVGCircleElement | null;
     expect(idleDot).not.toBeNull();
-    expect(idleDot!.getAttribute("fill")).toBe("var(--topo-node-dot-known)");
+    // V1BR.hotfix-3 — Metro dots are outline-only; idle body fill is "none".
+    expect(idleDot!.getAttribute("fill")).toBe("none");
+    expect(idleDot!.getAttribute("stroke")).toBe("var(--topo-fam-server)");
 
     // After selection the same dot flips to cyan.
     fireEvent.click(screen.getByTestId("bt-node-n00"));
@@ -710,7 +829,9 @@ describe("BlueprintTopologyCanvas — density at scenario boundaries", () => {
     );
     expect(container.querySelector('[data-density="dot"]')).toBeTruthy();
     expect(container.querySelectorAll(".bt-node-faceplate").length).toBe(0);
-    expect(container.querySelectorAll(".bt-node-label").length).toBe(0);
+    // V1BS.hotfix-2 — hostname now renders at every band, including dot.
+    // Small variant class keeps the label from crowding Metro.
+    expect(container.querySelectorAll(".bt-node-label--dot").length).toBeGreaterThan(0);
   });
 });
 

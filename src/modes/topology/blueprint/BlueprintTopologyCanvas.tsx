@@ -57,6 +57,7 @@ import {
 // metro, straight for fallback / dot density.
 import { routeEdge } from "./blueprintEdges";
 import { TopologyEnvSelector } from "../TopologyEnvSelector";
+import { DEVICE_ICON, DEVICE_ICON_VIEWBOX } from "./deviceIcons";
 import "./BlueprintTopologyCanvas.css";
 
 export interface BlueprintTopologyCanvasProps {
@@ -107,6 +108,27 @@ function viewboxOf(layouts: NodeLayout[]): {
  * scenes (Metro 96) keep role identity. Shapes chosen to be visually
  * distinct at ~10 px and remain readable when many cluster together.
  */
+function dotFamilyStroke(family: NodeFamilyCode): string {
+  // V1BR.hotfix-3 — per-family dot OUTLINE colour. Body stays empty so the
+  // dense Metro view reads as colour-coded rings, not coloured blots.
+  switch (family) {
+    case "FW":
+      return "var(--topo-fam-fw)";
+    case "CORE-RT":
+    case "EDGE-RT":
+      return "var(--topo-fam-router)";
+    case "ACC-SW":
+    case "DIST-SW":
+    case "WAP":
+      return "var(--topo-fam-switch)";
+    case "SRV":
+      return "var(--topo-fam-server)";
+    case "UNK":
+    default:
+      return "var(--topo-node-unknown-stroke)";
+  }
+}
+
 function DotMini({
   family,
   selected,
@@ -114,9 +136,9 @@ function DotMini({
   family: NodeFamilyCode;
   selected: boolean;
 }): JSX.Element {
-  const fill = selected ? "var(--topo-cyan)" : "var(--topo-node-dot-known)";
-  const stroke = "var(--topo-node-stroke)";
-  const sw = selected ? 1.5 : 0.5;
+  const fill = selected ? "var(--topo-cyan)" : "none";
+  const stroke = selected ? "var(--topo-cyan)" : dotFamilyStroke(family);
+  const sw = selected ? 1.5 : 1.25;
   switch (family) {
     case "FW":
       return (
@@ -207,7 +229,7 @@ function DotMini({
         <circle
           className="bt-node-dot bt-node-dot--unk"
           r={selected ? 9 : 6}
-          fill={selected ? "var(--topo-cyan)" : "var(--topo-node-dot-unknown)"}
+          fill={selected ? "var(--topo-cyan)" : "none"}
           stroke={stroke}
           strokeWidth={sw}
           opacity={0.75}
@@ -270,16 +292,36 @@ function Glyph({
         onPointerDown={handlePointerDown}
         data-testid={`bt-node-${node.id}`}
         data-density="dot"
+        data-family={family}
         data-family-mini={family}
       >
+        {/* V1BS.hotfix-2 — invisible hit-target so outline-only dots
+         * remain draggable / clickable / double-clickable at Metro
+         * density. Without this, pointer events fall through the
+         * empty interiors of the V1BR.hf3 outline dots. */}
+        <rect
+          className="bt-node-frame"
+          x={-12}
+          y={-12}
+          width={24}
+          height={24}
+          rx={3}
+        />
         <DotMini family={family} selected={selected} />
+        {/* V1BS.hotfix-2 — hostname label at all densities. Smaller
+         * font for dot band so it doesn't crowd Metro. */}
+        <text className="bt-node-label bt-node-label--dot" x={0} y={14}>
+          {node.label}
+        </text>
         {selected && <circle className="bt-node-focus-ring" r={16} />}
       </g>
     );
   }
 
   const showFaceplate = band === "full" || band === "faceplate";
-  const showLabel = band === "full";
+  // V1BS.hotfix-2 — hostname visible on every band (full / faceplate /
+  // silhouette). Bujar's contract: each device must show its name.
+  const showLabel = true;
 
   return (
     <g
@@ -301,6 +343,9 @@ function Glyph({
         rx={frame.rx + 2}
         stroke={stateRingColor("ok")}
       />
+      {/* V1BS — invisible hit-target rect. Drives drag bbox, focus-ring
+       * placement, click hit detection. The visible device shape is
+       * the icon below, rendered icon-as-frame. */}
       <rect
         className="bt-node-frame"
         x={-frame.w / 2}
@@ -309,32 +354,31 @@ function Glyph({
         height={frame.h}
         rx={frame.rx}
       />
-      {showFaceplate && (
-        <rect
-          className="bt-node-faceplate"
-          x={-frame.w / 2 + 6}
-          y={frame.h / 2 - 7}
-          width={frame.w - 12}
-          height={3}
-        />
-      )}
-      {/* V1BM.hotfix-1 — quiet glyph face for unknown family. The
-       * giant `UNK` text competed with the hostname label below.
-       * For unknowns we render a small `?` in muted ink; the
-       * hostname remains the primary identifier. Known families
-       * (`ACC-SW`, `CORE-RT`, …) keep their family code. */}
-      <text
-        className={
-          family === "UNK"
-            ? "bt-node-family-code bt-node-family-code--unk"
-            : "bt-node-family-code"
-        }
-        x={0}
-        y={0}
-        data-family-glyph={family === "UNK" ? "unknown" : "known"}
+      {/* V1BS — icon-as-frame. Source viewBox is 64×64; we scale it onto
+       * the family frame w/h. Stroke inherits family colour via
+       * `currentColor` from `.bt-node[data-family=...]` in CSS. */}
+      <g
+        className="bt-node-icon"
+        transform={`translate(${-frame.w / 2} ${-frame.h / 2}) scale(${frame.w / DEVICE_ICON_VIEWBOX.w} ${frame.h / DEVICE_ICON_VIEWBOX.h})`}
       >
-        {family === "UNK" ? "?" : family}
-      </text>
+        {DEVICE_ICON[family]}
+      </g>
+      {/* V1BS — small family code label, sits just above the hostname.
+       * Icons are self-identifying so the code stays tiny + recessed. */}
+      {showFaceplate && (
+        <text
+          className={
+            family === "UNK"
+              ? "bt-node-family-code bt-node-family-code--unk"
+              : "bt-node-family-code"
+          }
+          x={0}
+          y={frame.h / 2 - 1}
+          data-family-glyph={family === "UNK" ? "unknown" : "known"}
+        >
+          {family === "UNK" ? "?" : family}
+        </text>
+      )}
       {showLabel && (
         <text className="bt-node-label" x={0} y={frame.h / 2 + 10}>
           {node.label}
