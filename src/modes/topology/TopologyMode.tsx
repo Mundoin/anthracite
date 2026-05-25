@@ -52,6 +52,7 @@ import { attachImportedSourceToTopologyView } from "./importedEvidenceTopologyAd
 import { buildImportedDemoTopologyView } from "./__fixtures__/importedDemoEvidence";
 import { CollectionTargetsPanel } from "./CollectionTargetsPanel";
 import { CollectionReceiptsPanel } from "./CollectionReceiptsPanel";
+import { CollectionDryRunPanel } from "./CollectionDryRunPanel";
 import "./TopologyMode.css";
 
 export interface TopologyModeProps {
@@ -1606,11 +1607,14 @@ export function TopologyMode({
   );
 
   const renderCollectionPlan = (): ReactNode => (
-    <LiveCollectionDryRunPanel
-      environmentId={topology.environmentId}
-      onPlan={onPlanLiveCollection}
-      onImportRawNeighborOutput={onImportRawNeighborOutput}
-    />
+    <>
+      <CollectionDryRunPanel />
+      <LiveCollectionDryRunPanel
+        environmentId={topology.environmentId}
+        onPlan={onPlanLiveCollection}
+        onImportRawNeighborOutput={onImportRawNeighborOutput}
+      />
+    </>
   );
 
   const renderReadiness = (): ReactNode =>
