@@ -104,6 +104,42 @@ describe("toGraphReadyTopologyView", () => {
     const b = toGraphReadyTopologyView(generateFabricatorEnvironment());
     expect(a).toEqual(b);
   });
+
+  it("V1BV — all edges have operational_state derived from endpoints", () => {
+    const env = generateFabricatorEnvironment();
+    const view = toGraphReadyTopologyView(env);
+    for (const edge of view.edges) {
+      expect(edge.operational_state).toBeDefined();
+      expect(["healthy", "warning", "degraded", "down", "maintenance", "unknown"]).toContain(
+        edge.operational_state,
+      );
+    }
+  });
+
+  it("V1BV — edge state reflects highest severity of endpoints", () => {
+    const env = generateFabricatorEnvironment();
+    const view = toGraphReadyTopologyView(env);
+    const nodeStates = new Map(view.nodes.map((n) => [n.id, n.operational_state ?? "healthy"]));
+
+    for (const edge of view.edges) {
+      const sourceState = nodeStates.get(edge.source_node_id) ?? "healthy";
+      const targetState = nodeStates.get(edge.target_node_id) ?? "healthy";
+
+      // V1BV severity precedence: down > degraded > warning > maintenance > unknown > healthy
+      const SEVERITY: Record<string, number> = {
+        healthy: 0,
+        unknown: 1,
+        maintenance: 2,
+        warning: 3,
+        degraded: 4,
+        down: 5,
+      };
+
+      const expectedState =
+        SEVERITY[sourceState] >= SEVERITY[targetState] ? sourceState : targetState;
+      expect(edge.operational_state).toBe(expectedState);
+    }
+  });
 });
 
 describe("buildFabricatorRenderGraph", () => {

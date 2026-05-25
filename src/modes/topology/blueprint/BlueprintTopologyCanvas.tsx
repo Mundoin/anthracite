@@ -436,6 +436,7 @@ function Edge({ edge, from, to, active, scenario, band }: EdgeProps): JSX.Elemen
       d={route.d}
       data-testid={`bt-edge-${edge.id}`}
       data-route-kind={route.kind}
+      data-state={edge.operational_state ?? "healthy"}
     />
   );
 }

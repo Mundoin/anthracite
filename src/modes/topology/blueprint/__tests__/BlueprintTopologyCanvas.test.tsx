@@ -1010,3 +1010,102 @@ describe("BlueprintTopologyCanvas — V1BU state visualisation", () => {
     expect(stateStrong?.getAttribute("data-state")).toBe("degraded");
   });
 });
+
+describe("BlueprintTopologyCanvas — V1BV edge state visualisation", () => {
+  it("renders edge with data-state='healthy' when both endpoints healthy", () => {
+    const nodes = [
+      { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+      { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+    ];
+    const edges = [
+      { ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const },
+    ];
+    const view = makeView(nodes, edges);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const edge = container.querySelector('[data-testid="bt-edge-e1"]');
+    expect(edge?.getAttribute("data-state")).toBe("healthy");
+  });
+
+  it("renders edge with data-state='warning' when one endpoint warning", () => {
+    const nodes = [
+      { ...makeNode("n1", "router"), operational_state: "warning" as const },
+      { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+    ];
+    const edges = [
+      { ...makeEdge("e1", "n1", "n2"), operational_state: "warning" as const },
+    ];
+    const view = makeView(nodes, edges);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const edge = container.querySelector('[data-testid="bt-edge-e1"]');
+    expect(edge?.getAttribute("data-state")).toBe("warning");
+  });
+
+  it("renders edge with data-state='degraded' when one endpoint degraded", () => {
+    const nodes = [
+      { ...makeNode("n1", "router"), operational_state: "degraded" as const },
+      { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+    ];
+    const edges = [
+      { ...makeEdge("e1", "n1", "n2"), operational_state: "degraded" as const },
+    ];
+    const view = makeView(nodes, edges);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const edge = container.querySelector('[data-testid="bt-edge-e1"]');
+    expect(edge?.getAttribute("data-state")).toBe("degraded");
+  });
+
+  it("renders edge with data-state='down' when one endpoint down", () => {
+    const nodes = [
+      { ...makeNode("n1", "router"), operational_state: "down" as const },
+      { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+    ];
+    const edges = [
+      { ...makeEdge("e1", "n1", "n2"), operational_state: "down" as const },
+    ];
+    const view = makeView(nodes, edges);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const edge = container.querySelector('[data-testid="bt-edge-e1"]');
+    expect(edge?.getAttribute("data-state")).toBe("down");
+  });
+
+  it("selection (is-active class) still applies on top of state colour", () => {
+    const nodes = [
+      { ...makeNode("n1", "router"), operational_state: "warning" as const },
+      { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+    ];
+    const edges = [
+      { ...makeEdge("e1", "n1", "n2"), operational_state: "warning" as const },
+    ];
+    const view = makeView(nodes, edges);
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    const edge = container.querySelector('[data-testid="bt-edge-e1"]');
+    expect(edge?.getAttribute("data-state")).toBe("warning");
+    expect(edge?.getAttribute("class")).toContain("is-active");
+  });
+});

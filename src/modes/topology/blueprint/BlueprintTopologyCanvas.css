@@ -282,6 +282,48 @@
   opacity: 1;
 }
 
+/* V1BV — link/edge state visualisation. Derived from endpoint device
+ * states via severity precedence (down > degraded > warning > maintenance
+ * > unknown > healthy). Selected edges keep their cyan `.is-active`
+ * accent on top of state colour. */
+
+.bt-edge[data-state="warning"] {
+  stroke: var(--topo-warn);
+  opacity: 0.95;
+}
+.bt-edge[data-state="degraded"] {
+  stroke: var(--topo-err);
+  stroke-width: 1.25;
+  opacity: 0.95;
+}
+.bt-edge[data-state="down"] {
+  stroke: var(--topo-critical);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  opacity: 0.95;
+}
+.bt-edge[data-state="maintenance"] {
+  stroke: var(--topo-maint);
+  stroke-dasharray: 3 2;
+  opacity: 0.9;
+}
+.bt-edge[data-state="unknown"] {
+  stroke: var(--topo-ink-4);
+  opacity: 0.7;
+}
+
+/* V1BV — selection cyan must still win over edge state colour.
+ * .bt-edge.is-active and .bt-edge[data-state=...] share specificity
+ * (0,2,0); re-assert the active block AFTER the state rules so source
+ * order picks selection. Also clear any state dash/width so the
+ * selected edge always reads as a solid cyan line. */
+.bt-edge.is-active {
+  stroke: var(--topo-cyan);
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+  opacity: 1;
+}
+
 /* glyph frame */
 .bt-node {
   /* V1BL-F — glyphs are pointer-draggable; `move` advertises that. */

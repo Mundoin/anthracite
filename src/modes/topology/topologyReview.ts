@@ -136,6 +136,7 @@ export interface GraphReadyTopologyEdge {
   readonly local_interface: string | null;
   readonly remote_interface: string | null;
   readonly evidence_count: number;
+  readonly operational_state?: LabOperationalState;  // V1BV — derived from endpoint device states
 }
 
 export interface GraphReadyTopologyView {

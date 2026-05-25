@@ -23,6 +23,8 @@ import type {
 import { generateFabricatorEnvironment } from "./fabricator";
 import { buildRenderGraph } from "../modes/topology/renderGraph";
 import type { RenderGraphModel } from "../modes/topology/renderGraph";
+import { deriveLinkState } from "../modes/topology/blueprint/linkState";
+import type { LabOperationalState } from "../types/labEnvironment";
 
 const FABRICATOR_TOPOLOGY_NOTE =
   "Fabricated topology — synthetic demo data. No live network contact.";
@@ -49,6 +51,12 @@ export function toGraphReadyTopologyView(
     operational_state: d.operational_state ?? "healthy",
   }));
 
+  // V1BV — build a map of node id → operational_state for edge derivation
+  const stateByNodeId = new Map<string, LabOperationalState>();
+  for (const n of nodes) {
+    if (n.operational_state) stateByNodeId.set(n.id, n.operational_state);
+  }
+
   const edges: GraphReadyTopologyEdge[] = env.links.map((l) => ({
     id: l.id,
     source_node_id: l.source_device_id,
@@ -57,6 +65,11 @@ export function toGraphReadyTopologyView(
     local_interface: null,
     remote_interface: null,
     evidence_count: 0,
+    // V1BV — derive link state from endpoint device states via severity precedence
+    operational_state: deriveLinkState(
+      stateByNodeId.get(l.source_device_id),
+      stateByNodeId.get(l.target_device_id),
+    ),
   }));
 
   return {
