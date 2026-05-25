@@ -54,6 +54,7 @@ import { CollectionTargetsPanel } from "./CollectionTargetsPanel";
 import { CollectionReceiptsPanel } from "./CollectionReceiptsPanel";
 import { CollectionDryRunPanel } from "./CollectionDryRunPanel";
 import { SingleDeviceCollectorPanel } from "./SingleDeviceCollectorPanel";
+import { InventoryTruthPanel } from "./InventoryTruthPanel";
 import "./TopologyMode.css";
 
 export interface TopologyModeProps {
@@ -1611,6 +1612,7 @@ export function TopologyMode({
     <>
       <CollectionDryRunPanel />
       <SingleDeviceCollectorPanel />
+      <InventoryTruthPanel />
       <LiveCollectionDryRunPanel
         environmentId={topology.environmentId}
         onPlan={onPlanLiveCollection}

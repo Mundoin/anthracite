@@ -1,0 +1,181 @@
+/* V1CG — Inventory Truth Surface styles. Mirrors V1CC/V1CD/V1CE/V1CF
+ * surface law. */
+
+.iv-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 12px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+  font-size: 12px;
+  color: var(--anth-text-2);
+  margin-top: 12px;
+}
+
+.iv-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.iv-panel-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.iv-panel-stub-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+
+.iv-panel-sub,
+.iv-empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+.iv-empty { font-style: italic; color: var(--anth-text-3); }
+
+.iv-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.iv-row {
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.iv-row-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.iv-row-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.iv-row-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid currentColor;
+  color: var(--anth-text-3);
+}
+.iv-row-pill[data-source-kind="imported"]   { color: #0E72A0; }
+.iv-row-pill[data-source-kind="live"]       { color: #b22323; }
+.iv-row-pill[data-source-kind="fabricated"] { color: #6b4fab; }
+.iv-row-pill[data-source-kind="demo"]       { color: #a26b18; }
+.iv-row-pill[data-source-kind="manual"]     { color: #5b7a93; }
+.iv-row-pill[data-source-kind="unknown"]    { color: var(--anth-text-3); font-style: italic; }
+.iv-row-pill[data-state="method"] { color: #5b7a93; }
+.iv-row-pill[data-state="state"]  { color: var(--anth-text-3); }
+.iv-row-pill[data-state="conf"]   { color: #3a6a4b; }
+
+.iv-row-grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 4px 14px;
+}
+.iv-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.iv-pair > dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--anth-text-3);
+}
+.iv-pair-val {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+.iv-pair-val--mono { font-family: var(--anth-font-mono, monospace); }
+
+.iv-muted { color: var(--anth-text-3); font-style: italic; }
+
+.iv-row-proof {
+  padding: 6px 8px;
+  border: 1px dashed var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+}
+.iv-row-proof-title {
+  margin: 0 0 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--anth-text-3);
+}
+.iv-row-proof-line {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--anth-text-2);
+}
+.iv-row-proof-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+}
+.iv-row-proof-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+.iv-proof-fact {
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-2);
+}
+.iv-proof-id,
+.iv-proof-receipt {
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-3);
+  font-size: 10px;
+}
+
+.iv-panel-foot {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--anth-border);
+  font-size: 11px;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+.iv-panel-foot code {
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-2);
+}
