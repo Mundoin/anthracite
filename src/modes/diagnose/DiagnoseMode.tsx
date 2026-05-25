@@ -30,6 +30,10 @@ import {
   type DiagnoseTriage,
 } from "./diagnoseTriage";
 import { DiagnoseTriagePanel } from "./DiagnoseTriagePanel";
+import {
+  formatHandoffSummary,
+  type DiagnoseHandoffPayload,
+} from "../topology/diagnoseHandoff";
 import "./DiagnoseMode.css";
 
 export interface DiagnoseModeProps {
@@ -43,6 +47,12 @@ export interface DiagnoseModeProps {
   /** D3T-P2A — Controlled tool tabs hosted in AppShell subnav. */
   readonly activeToolId?: string;
   readonly onToolChange?: (toolId: string) => void;
+  /**
+   * V1BZ — Topology → Diagnose handoff payload. When present, the
+   * Topology Handoff tool renders the picked node's affected scope
+   * as a read-only stub card.
+   */
+  readonly topologyHandoff?: DiagnoseHandoffPayload | null;
 }
 
 export const DIAGNOSE_DEFAULT_TOOL_ID = "findings";
@@ -50,6 +60,7 @@ export const DIAGNOSE_DEFAULT_TOOL_ID = "findings";
 export const DIAGNOSE_TOOL_META = [
   { id: "findings", label: "Findings" },
   { id: "triage", label: "Triage" },
+  { id: "topology_handoff", label: "Topology Handoff" },
   { id: "config_audit", label: "Config Audit" },
   { id: "troubleshoot", label: "Troubleshoot" },
   { id: "device_access", label: "Device Access" },
@@ -63,6 +74,7 @@ export function DiagnoseMode({
   triage = EMPTY_DIAGNOSE_TRIAGE,
   activeToolId,
   onToolChange,
+  topologyHandoff,
 }: DiagnoseModeProps): JSX.Element {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [internalActiveToolId, setInternalActiveToolId] = useState<string>(DIAGNOSE_DEFAULT_TOOL_ID);
@@ -212,6 +224,17 @@ export function DiagnoseMode({
       status: "available",
       role: "engine_analysis",
       render: () => <DiagnoseTriagePanel triage={triage} />,
+    },
+    {
+      id: "topology_handoff",
+      kind: "live",
+      label: "Topology Handoff",
+      description:
+        "Read-only stub. Surfaces the picked Topology node + its affected scope when the operator clicks Open in Diagnose. No troubleshooting engine yet.",
+      group: "primary",
+      status: "preview",
+      role: "engine_analysis",
+      render: () => <TopologyHandoffCard payload={topologyHandoff ?? null} />,
     },
     {
       id: "config_audit",
@@ -430,5 +453,131 @@ function CategoryChip({ category }: { readonly category: DiagnoseCategory }): JS
     >
       {DIAGNOSE_CATEGORY_LABELS[category]}
     </span>
+  );
+}
+
+/**
+ * V1BZ — Topology → Diagnose receiving stub. Renders the picked node,
+ * its operational state, the V1BY source/freshness context, and the
+ * V1BX affected scope (counts + neighbour labels). Read-only; no
+ * commands, no live collection. Intent: make the product path
+ * "see issue → focus affected → hand off to Diagnose" visible.
+ */
+interface TopologyHandoffCardProps {
+  readonly payload: DiagnoseHandoffPayload | null;
+}
+
+function TopologyHandoffCard({ payload }: TopologyHandoffCardProps): JSX.Element {
+  if (payload === null) {
+    return (
+      <section
+        className="dx-body dx-body--empty"
+        data-testid="dx-topology-handoff-empty"
+        aria-label="Topology handoff empty"
+        role="status"
+      >
+        <p>No Topology handoff received yet.</p>
+        <p className="dx-muted">
+          Open Topology, select a node, then click <code>Open in Diagnose ▸</code>{" "}
+          on its passport. This panel will show the picked node, its
+          operational state, source/freshness, and affected neighbourhood.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      className="dx-topology-handoff"
+      data-testid="dx-topology-handoff"
+      aria-label="Topology handoff"
+    >
+      <header className="dx-topology-handoff-header">
+        <h3 className="dx-topology-handoff-title" data-testid="dx-topology-handoff-title">
+          {payload.selected_label}
+        </h3>
+        <p className="dx-topology-handoff-summary" data-testid="dx-topology-handoff-summary">
+          {formatHandoffSummary(payload)}
+        </p>
+      </header>
+      <dl className="dx-topology-handoff-grid">
+        <div className="dx-topology-handoff-row">
+          <dt>Node id</dt>
+          <dd>
+            <code data-testid="dx-topology-handoff-node-id">
+              {payload.selected_node_id}
+            </code>
+          </dd>
+        </div>
+        <div className="dx-topology-handoff-row">
+          <dt>State</dt>
+          <dd
+            data-testid="dx-topology-handoff-state"
+            data-state={payload.selected_state}
+          >
+            {payload.selected_state}
+          </dd>
+        </div>
+        {payload.selected_role && (
+          <div className="dx-topology-handoff-row">
+            <dt>Role</dt>
+            <dd data-testid="dx-topology-handoff-role">{payload.selected_role}</dd>
+          </div>
+        )}
+        {payload.environment_id && (
+          <div className="dx-topology-handoff-row">
+            <dt>Environment</dt>
+            <dd>
+              <code data-testid="dx-topology-handoff-env">
+                {payload.environment_id}
+              </code>
+            </dd>
+          </div>
+        )}
+        <div className="dx-topology-handoff-row">
+          <dt>Source</dt>
+          <dd data-testid="dx-topology-handoff-source">
+            {payload.topology_source_kind ?? "unknown"} ·{" "}
+            {payload.topology_freshness ?? "unknown"}
+          </dd>
+        </div>
+        <div className="dx-topology-handoff-row">
+          <dt>Affected links</dt>
+          <dd data-testid="dx-topology-handoff-link-count">
+            {payload.affected_edge_ids.length}
+          </dd>
+        </div>
+        <div className="dx-topology-handoff-row">
+          <dt>Affected neighbours</dt>
+          <dd data-testid="dx-topology-handoff-neighbor-count">
+            {payload.affected_neighbor_ids.length}
+          </dd>
+        </div>
+        {payload.worst_state && (
+          <div className="dx-topology-handoff-row">
+            <dt>Worst</dt>
+            <dd
+              data-testid="dx-topology-handoff-worst"
+              data-state={payload.worst_state}
+            >
+              {payload.worst_state}
+            </dd>
+          </div>
+        )}
+      </dl>
+      {payload.affected_neighbor_labels.length > 0 && (
+        <section
+          className="dx-topology-handoff-neighbors"
+          data-testid="dx-topology-handoff-neighbors"
+        >
+          <h4 className="dx-topology-handoff-subheading">Neighbour labels</h4>
+          <p>{payload.affected_neighbor_labels.join(" · ")}</p>
+        </section>
+      )}
+      <p className="dx-muted dx-topology-handoff-stub-note">
+        Stub view (V1BZ). Full Diagnose workflow lands later — this panel
+        only proves the topology → diagnose handoff path.
+      </p>
+    </section>
   );
 }

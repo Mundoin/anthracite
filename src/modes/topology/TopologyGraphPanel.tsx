@@ -18,16 +18,20 @@ import { TopologyGraphSurface } from "./TopologyGraphSurface";
 import { TopologyGraphInspector } from "./TopologyGraphInspector";
 import { RenderGraphSourceBadge } from "./RenderGraphSourceBadge";
 import { HardwareInspectReceiver } from "./inspect/HardwareInspectReceiver";
+import type { DiagnoseHandoffPayload } from "./diagnoseHandoff";
 import "./TopologyGraphPanel.css";
 
 export interface TopologyGraphPanelProps {
   readonly view: GraphReadyTopologyView;
   readonly data_source: RenderGraphDataSource;
+  /** V1BZ — Diagnose handoff seam forwarded into the Blueprint canvas. */
+  readonly onOpenDiagnose?: (payload: DiagnoseHandoffPayload) => void;
 }
 
 export function TopologyGraphPanel({
   view,
   data_source,
+  onOpenDiagnose,
 }: TopologyGraphPanelProps): JSX.Element {
   const [selection, setSelection] = useState<RenderGraphSelection | null>(null);
 
@@ -59,7 +63,7 @@ export function TopologyGraphPanel({
       >
         <div className="tg-content tg-content--blueprint">
           <HardwareInspectReceiver
-            canvasProps={{ view, dataSource: data_source }}
+            canvasProps={{ view, dataSource: data_source, onOpenDiagnose }}
           />
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { DiagnoseMode } from "../DiagnoseMode";
+import type { DiagnoseHandoffPayload } from "../../topology/diagnoseHandoff";
 import type { DiscoverySourceView } from "../../../data/discoverySource";
 import type { TopologySourceView } from "../../../data/topologySource";
 import type { DiscoveryDeviceRecord } from "../../../types/discovery";
@@ -246,4 +247,97 @@ describe("DiagnoseMode — render", () => {
     expect(screen.getByTestId("dx-evidence-0")).toBeInTheDocument();
   });
 
+});
+
+describe("DiagnoseMode — V1BZ Topology handoff stub", () => {
+  function handoffSample(over: Partial<DiagnoseHandoffPayload> = {}): DiagnoseHandoffPayload {
+    return {
+      source: "topology",
+      environment_id: "env-fab",
+      topology_source_kind: "fabricated",
+      topology_freshness: "static",
+      selected_node_id: "n1",
+      selected_label: "edge-01",
+      selected_state: "warning",
+      selected_role: "edge router",
+      affected_neighbor_ids: ["n2"],
+      affected_neighbor_labels: ["dist-02"],
+      affected_edge_ids: ["e1"],
+      worst_state: "warning",
+      counts_by_state: {
+        healthy: 0,
+        warning: 1,
+        degraded: 0,
+        down: 0,
+        maintenance: 0,
+        unknown: 0,
+      },
+      ...over,
+    };
+  }
+
+  it("renders empty stub when no handoff is provided", () => {
+    render(
+      <DiagnoseMode
+        discovery={discoveryEmpty()}
+        topology={topologyEmpty()}
+        activeToolId="topology_handoff"
+        onToolChange={() => {}}
+      />,
+    );
+    expect(screen.getByTestId("dx-topology-handoff-empty")).toBeInTheDocument();
+  });
+
+  it("renders handoff card with selected node + source/freshness + affected counts", () => {
+    render(
+      <DiagnoseMode
+        discovery={discoveryEmpty()}
+        topology={topologyEmpty()}
+        activeToolId="topology_handoff"
+        onToolChange={() => {}}
+        topologyHandoff={handoffSample()}
+      />,
+    );
+    expect(screen.getByTestId("dx-topology-handoff-title")).toHaveTextContent(
+      "edge-01",
+    );
+    expect(screen.getByTestId("dx-topology-handoff-node-id")).toHaveTextContent(
+      "n1",
+    );
+    expect(screen.getByTestId("dx-topology-handoff-state")).toHaveTextContent(
+      "warning",
+    );
+    expect(screen.getByTestId("dx-topology-handoff-source")).toHaveTextContent(
+      "fabricated · static",
+    );
+    expect(
+      screen.getByTestId("dx-topology-handoff-link-count"),
+    ).toHaveTextContent("1");
+    expect(
+      screen.getByTestId("dx-topology-handoff-neighbor-count"),
+    ).toHaveTextContent("1");
+    expect(screen.getByTestId("dx-topology-handoff-worst")).toHaveTextContent(
+      "warning",
+    );
+    expect(
+      screen.getByTestId("dx-topology-handoff-neighbors"),
+    ).toHaveTextContent("dist-02");
+  });
+
+  it("includes a summary string built from the payload", () => {
+    render(
+      <DiagnoseMode
+        discovery={discoveryEmpty()}
+        topology={topologyEmpty()}
+        activeToolId="topology_handoff"
+        onToolChange={() => {}}
+        topologyHandoff={handoffSample()}
+      />,
+    );
+    const summary = screen.getByTestId("dx-topology-handoff-summary");
+    expect(summary).toHaveTextContent("edge-01");
+    expect(summary).toHaveTextContent("Warning");
+    expect(summary).toHaveTextContent("1 link");
+    expect(summary).toHaveTextContent("1 neighbour");
+  });
 });

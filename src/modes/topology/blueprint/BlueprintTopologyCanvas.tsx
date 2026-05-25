@@ -64,6 +64,10 @@ import {
   formatSourceProvenance,
   type TopologySourceInfo,
 } from "../topologySource";
+import {
+  buildDiagnoseHandoffFromAffectedFocus,
+  type DiagnoseHandoffPayload,
+} from "../diagnoseHandoff";
 import "./BlueprintTopologyCanvas.css";
 
 // V1BU — state to ring colour mapping
@@ -91,6 +95,13 @@ export interface BlueprintTopologyCanvasProps {
    * of auto-destroying the active inspection.
    */
   readonly inspectingNodeId?: string | null;
+  /**
+   * V1BZ — Diagnose handoff seam. When provided, the passport renders
+   * an "Open in Diagnose" CTA that delivers a deterministic payload
+   * built from the selected node + V1BX affected focus + V1BY source
+   * contract. Parent owns the mode switch.
+   */
+  readonly onOpenDiagnose?: (payload: DiagnoseHandoffPayload) => void;
 }
 
 const VIEWBOX_PAD = 64;
@@ -513,6 +524,7 @@ export function BlueprintTopologyCanvas({
   dataSource,
   onInspect,
   inspectingNodeId,
+  onOpenDiagnose,
 }: BlueprintTopologyCanvasProps): JSX.Element {
   const lifecycle = useContext(EnvironmentLifecycleContext);
   const active = lifecycle?.active ?? null;
@@ -1068,6 +1080,23 @@ export function BlueprintTopologyCanvas({
     dispatchInspect(selectedId, "cta");
   }, [selectedId, dispatchInspect]);
 
+  // V1BZ — Diagnose handoff CTA. Builds the payload from the live
+  // selection + affected-focus + V1BY source contract, then hands it
+  // upward via `onOpenDiagnose`. No-op when the callback is absent or
+  // selection is empty.
+  const onOpenDiagnoseClick = useCallback((): void => {
+    if (!selectedId || !onOpenDiagnose) return;
+    const sel = layoutById.get(selectedId);
+    if (!sel) return;
+    const payload = buildDiagnoseHandoffFromAffectedFocus({
+      view,
+      selectedNode: sel.node,
+      affectedFocus,
+      environmentId: active?.environment_id ?? view.environment_id ?? undefined,
+    });
+    onOpenDiagnose(payload);
+  }, [selectedId, onOpenDiagnose, layoutById, view, affectedFocus, active]);
+
   const envName =
     active?.name ?? view.environment_id ?? "(no active environment)";
   // V1BY-HF2 — env selector is the single environment identity when more
@@ -1403,6 +1432,24 @@ export function BlueprintTopologyCanvas({
             >
               {showSwitchHint ? "Re-inspect Hardware ▸" : "Inspect Hardware ▸"}
             </button>
+
+            {onOpenDiagnose && (
+              <button
+                type="button"
+                className={
+                  affectedFocus.hasSelection &&
+                  (affectedFocus.affectedEdgeIds.size > 0 ||
+                    affectedFocus.affectedNeighborIds.size > 0)
+                    ? "bt-diagnose-cta is-strong"
+                    : "bt-diagnose-cta"
+                }
+                data-testid="bt-diagnose-cta"
+                onClick={onOpenDiagnoseClick}
+                aria-label={`Open ${selectedNode.label} in Diagnose`}
+              >
+                Open in Diagnose ▸
+              </button>
+            )}
           </div>
         )}
       </div>

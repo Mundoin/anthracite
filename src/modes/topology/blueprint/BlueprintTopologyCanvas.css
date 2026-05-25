@@ -642,6 +642,40 @@
   outline: none;
 }
 
+/* V1BZ — Diagnose handoff CTA. Mirrors the Inspect Hardware CTA visual
+ * law so the two actions read as a calm pair. When the V1BX affected
+ * focus has affected items, the .is-strong variant lifts the colour to
+ * the deep cyan ink so the operator's eye lands on it. */
+.bt-diagnose-cta {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: var(--topo-paper);
+  color: var(--topo-ink-2);
+  border: 1px solid var(--topo-line-4);
+  border-radius: 2px;
+  font-family: var(--topo-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+}
+
+.bt-diagnose-cta.is-strong {
+  color: var(--topo-cyan-deep);
+  border-color: var(--topo-cyan);
+}
+
+.bt-diagnose-cta:hover,
+.bt-diagnose-cta:focus-visible {
+  background: var(--topo-cyan-soft);
+  color: var(--topo-cyan-deep);
+  border-color: var(--topo-cyan);
+  outline: none;
+}
+
 /* V1BW — affected-only fade. When toggled on, healthy nodes + edges drop
  * to low opacity so affected items pop. Selected items keep full opacity
  * via the focus-ring + .is-active rules (which carry their own visual

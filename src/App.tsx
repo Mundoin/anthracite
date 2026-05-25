@@ -81,6 +81,7 @@ import {
   TOPOLOGY_TOOL_META,
   TOPOLOGY_DEFAULT_TOOL_ID,
 } from "./modes/topology/TopologyMode";
+import type { DiagnoseHandoffPayload } from "./modes/topology/diagnoseHandoff";
 import {
   DiagnoseMode,
   DIAGNOSE_TOOL_META,
@@ -300,6 +301,11 @@ function AppMain(): JSX.Element {
   const [diagnoseActiveTool, setDiagnoseActiveTool] = useState<string>(DIAGNOSE_DEFAULT_TOOL_ID);
   const [discoveryActiveTool, setDiscoveryActiveTool] = useState<string>(DISCOVERY_DEFAULT_TOOL_ID);
   const [topologyActiveTool, setTopologyActiveTool] = useState<string>(TOPOLOGY_DEFAULT_TOOL_ID);
+  // V1BZ — Diagnose handoff payload from Topology. Persists across the
+  // mode switch so the Diagnose receiving stub can render the picked
+  // node + its affected scope.
+  const [topologyHandoff, setTopologyHandoff] =
+    useState<DiagnoseHandoffPayload | null>(null);
   const [environmentsActiveTool, setEnvironmentsActiveTool] = useState<EnvironmentsToolId>(ENVIRONMENTS_DEFAULT_TOOL_ID);
   const [envs, setEnvs] = useState<readonly Environment[]>([]);
   const [active, setActive] = useState<Environment | null>(null);
@@ -1232,6 +1238,13 @@ function AppMain(): JSX.Element {
           lastMutation={topologyLastMutation}
           activeToolId={topologyActiveTool}
           onToolChange={setTopologyActiveTool}
+          onOpenDiagnose={(payload) => {
+            // V1BZ — Topology → Diagnose handoff. Store payload, route
+            // operator to the Diagnose stub tool, then switch modes.
+            setTopologyHandoff(payload);
+            setDiagnoseActiveTool("topology_handoff");
+            setActiveMode("diagnose");
+          }}
         />
       </AppShell>
     );
@@ -1265,6 +1278,7 @@ function AppMain(): JSX.Element {
           triage={diagnoseTriage}
           activeToolId={diagnoseActiveTool}
           onToolChange={setDiagnoseActiveTool}
+          topologyHandoff={topologyHandoff}
         />
       </AppShell>
     );

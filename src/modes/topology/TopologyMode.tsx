@@ -47,6 +47,7 @@ import {
 } from "./topologyReview";
 import { TopologyGraphPanel } from "./TopologyGraphPanel";
 import type { RenderGraphDataSource } from "./renderGraph";
+import type { DiagnoseHandoffPayload } from "./diagnoseHandoff";
 import "./TopologyMode.css";
 
 export interface TopologyModeProps {
@@ -72,6 +73,11 @@ export interface TopologyModeProps {
   /** D3T-P2B — Controlled tool tabs hosted in AppShell subnav. */
   readonly activeToolId?: string;
   readonly onToolChange?: (toolId: string) => void;
+  /**
+   * V1BZ — Diagnose handoff seam. Threaded through to the Blueprint
+   * canvas; parent (App) drives mode switch + payload state.
+   */
+  readonly onOpenDiagnose?: (payload: DiagnoseHandoffPayload) => void;
 }
 
 export const TOPOLOGY_DEFAULT_TOOL_ID = "graph_map";
@@ -1234,6 +1240,7 @@ export function TopologyMode({
   onEvidenceImportEvent,
   activeToolId: externalActiveToolId,
   onToolChange,
+  onOpenDiagnose,
 }: TopologyModeProps): JSX.Element {
   const [internalActiveToolId, setInternalActiveToolId] = useState<string>(TOPOLOGY_DEFAULT_TOOL_ID);
   const isControlled = externalActiveToolId !== undefined && onToolChange !== undefined;
@@ -1335,6 +1342,7 @@ export function TopologyMode({
           <TopologyGraphPanel
             view={labView}
             data_source={LAB_RENDER_DATA_SOURCE}
+            onOpenDiagnose={onOpenDiagnose}
           />
         </section>
       ) : topology.view === null ? (

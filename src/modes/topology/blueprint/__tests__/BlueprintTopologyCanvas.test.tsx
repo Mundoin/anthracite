@@ -1502,6 +1502,128 @@ describe("BlueprintTopologyCanvas — V1BY-HF1 consolidated provenance group", (
   });
 });
 
+describe("BlueprintTopologyCanvas — V1BZ Diagnose handoff CTA", () => {
+  it("CTA is hidden when onOpenDiagnose is not provided", () => {
+    const view = makeView([makeNode("n1", "router")], []);
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    expect(screen.queryByTestId("bt-diagnose-cta")).toBeNull();
+  });
+
+  it("CTA renders inside passport when a node is selected and callback is provided", () => {
+    const view = makeView([makeNode("n1", "router")], []);
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas
+          view={view}
+          dataSource="simulated"
+          onOpenDiagnose={() => {}}
+        />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    expect(screen.getByTestId("bt-diagnose-cta")).toBeInTheDocument();
+  });
+
+  it("CTA is absent when no node is selected", () => {
+    const view = makeView([makeNode("n1", "router")], []);
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas
+          view={view}
+          dataSource="simulated"
+          onOpenDiagnose={() => {}}
+        />,
+      ),
+    );
+    expect(screen.queryByTestId("bt-diagnose-cta")).toBeNull();
+  });
+
+  it("clicking the CTA invokes onOpenDiagnose with a payload", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "edge router", "edge-01"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "warning" as const },
+      ],
+      [{ ...makeEdge("e1", "n1", "n2"), operational_state: "warning" as const }],
+    );
+    const calls: unknown[] = [];
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas
+          view={view}
+          dataSource="simulated"
+          onOpenDiagnose={(p) => calls.push(p)}
+        />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    fireEvent.click(screen.getByTestId("bt-diagnose-cta"));
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({
+      source: "topology",
+      selected_node_id: "n1",
+      selected_label: "edge-01",
+      affected_neighbor_ids: ["n2"],
+      affected_edge_ids: ["e1"],
+    });
+  });
+
+  it("CTA carries is-strong variant when affected scope is non-empty", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "warning" as const },
+      ],
+      [{ ...makeEdge("e1", "n1", "n2"), operational_state: "warning" as const }],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas
+          view={view}
+          dataSource="simulated"
+          onOpenDiagnose={() => {}}
+        />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    const cta = screen.getByTestId("bt-diagnose-cta");
+    expect(cta.className).toContain("is-strong");
+  });
+
+  it("CTA is calm (no is-strong) for healthy selection with no affected scope", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+      ],
+      [{ ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const }],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas
+          view={view}
+          dataSource="simulated"
+          onOpenDiagnose={() => {}}
+        />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    const cta = screen.getByTestId("bt-diagnose-cta");
+    expect(cta.className).not.toContain("is-strong");
+  });
+});
+
 describe("BlueprintTopologyCanvas — V1BY affectedFocus sourceKind plumbing", () => {
   it("passes view.source.kind into computeAffectedFocus and affects focus computation", async () => {
     const { createFabricatedTopologySourceInfo } = await import("../../topologySource");

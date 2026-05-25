@@ -1,0 +1,63 @@
+
+/* V1BZ — Topology → Diagnose handoff stub card. Read-only surface
+ * proving the path: select node → affected scope → open in Diagnose. */
+.dx-topology-handoff {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dx-topology-handoff-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dx-topology-handoff-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.dx-topology-handoff-summary {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+.dx-topology-handoff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 18px;
+  margin: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--anth-line-4, #2A2F36);
+  border-bottom: 1px solid var(--anth-line-4, #2A2F36);
+}
+.dx-topology-handoff-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+.dx-topology-handoff-row > dt {
+  color: var(--anth-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+.dx-topology-handoff-row > dd {
+  margin: 0;
+  font-family: var(--anth-font-mono, monospace);
+}
+.dx-topology-handoff-neighbors {
+  font-size: 12px;
+}
+.dx-topology-handoff-subheading {
+  margin: 0 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--anth-text-3);
+}
+.dx-topology-handoff-stub-note {
+  font-size: 11px;
+}
+
