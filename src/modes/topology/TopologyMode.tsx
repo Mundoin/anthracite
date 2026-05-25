@@ -51,6 +51,7 @@ import type { DiagnoseHandoffPayload } from "./diagnoseHandoff";
 import { attachImportedSourceToTopologyView } from "./importedEvidenceTopologyAdapter";
 import { buildImportedDemoTopologyView } from "./__fixtures__/importedDemoEvidence";
 import { CollectionTargetsPanel } from "./CollectionTargetsPanel";
+import { CollectionReceiptsPanel } from "./CollectionReceiptsPanel";
 import "./TopologyMode.css";
 
 export interface TopologyModeProps {
@@ -89,6 +90,7 @@ export const TOPOLOGY_TOOL_META = [
   { id: "graph_map", label: "Graph / Map" },
   { id: "evidence_import", label: "Evidence Import" },
   { id: "targets", label: "Targets" },
+  { id: "receipts", label: "Receipts" },
   { id: "collection_plan", label: "Collection Plan" },
   { id: "readiness", label: "Readiness" },
   // V1BL — relabel from "3D / Canvas" so operators stop reading this
@@ -1665,6 +1667,17 @@ export function TopologyMode({
       status: "preview",
       role: "live_collection",
       render: () => <CollectionTargetsPanel />,
+    },
+    {
+      id: "receipts",
+      kind: "live",
+      label: "Receipts",
+      description:
+        "V1CD — Typed proof of import and (future) live runs. Aligned with V1BY source kinds; references V1CC target ids.",
+      group: "evidence",
+      status: "preview",
+      role: "evidence",
+      render: () => <CollectionReceiptsPanel />,
     },
     {
       id: "collection_plan",

@@ -1,0 +1,276 @@
+/* V1CD — Collection Receipts panel styles. Mirrors V1CC + Diagnose
+ * surface law: bordered panel, mono titles, calm pills, no bold
+ * value/labels mixing. */
+
+.cr-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 12px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.cr-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.cr-panel-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.cr-panel-stub-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+
+.cr-panel-sub,
+.cr-panel-audit {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+.cr-panel-audit { font-size: 11px; color: var(--anth-text-3); }
+
+.cr-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cr-card {
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cr-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cr-card-head-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cr-card-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.cr-card-method {
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 11px;
+  color: var(--anth-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cr-card-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid currentColor;
+  color: var(--anth-text-3);
+}
+.cr-card-pill[data-state="ok"]      { color: #3a6a4b; }
+.cr-card-pill[data-state="issues"]  { color: #8a2f2f; }
+.cr-card-pill[data-source-kind="imported"]   { color: #0E72A0; }
+.cr-card-pill[data-source-kind="live"]       { color: #b22323; }
+.cr-card-pill[data-source-kind="fabricated"] { color: #6b4fab; }
+.cr-card-pill[data-source-kind="demo"]       { color: #a26b18; }
+.cr-card-pill[data-source-kind="manual"]     { color: #5b7a93; }
+.cr-card-pill[data-source-kind="unknown"]    { color: var(--anth-text-3); }
+.cr-card-pill[data-freshness="fresh"]    { color: #3a6a4b; }
+.cr-card-pill[data-freshness="stale"]    { color: #a26b18; }
+.cr-card-pill[data-freshness="static"]   { color: #5b7a93; }
+.cr-card-pill[data-freshness="unknown"]  { color: var(--anth-text-3); font-style: italic; }
+
+.cr-card-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-2);
+}
+
+.cr-rows {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 14px;
+}
+.cr-row { display: contents; }
+.cr-row > dt {
+  color: var(--anth-text-3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  align-self: center;
+}
+.cr-row > dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.cr-chip {
+  display: inline-block;
+  padding: 1px 8px;
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 11px;
+  color: var(--anth-text-2);
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg);
+}
+
+.cr-muted {
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+
+.cr-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 6px 0;
+  border-top: 1px dashed var(--anth-border);
+  border-bottom: 1px dashed var(--anth-border);
+}
+.cr-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.cr-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--anth-text-3);
+}
+.cr-stat-value {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+.cr-stat--ok .cr-stat-value   { color: #3a6a4b; }
+.cr-stat--rej .cr-stat-value  { color: #a26b18; }
+.cr-stat--fail .cr-stat-value { color: #8a2f2f; }
+
+.cr-evidence {
+  font-size: 11px;
+}
+.cr-evidence > summary {
+  cursor: pointer;
+  color: var(--anth-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+  padding: 4px 0;
+}
+.cr-evidence ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cr-evidence li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+  padding: 4px 6px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+}
+.cr-evidence li[data-status="accepted"] { border-left: 3px solid #3a6a4b; }
+.cr-evidence li[data-status="rejected"] { border-left: 3px solid #a26b18; }
+.cr-evidence li[data-status="failed"]   { border-left: 3px solid #8a2f2f; }
+
+.cr-evidence-status {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cr-evidence-status[data-status="accepted"] { color: #3a6a4b; }
+.cr-evidence-status[data-status="rejected"] { color: #a26b18; }
+.cr-evidence-status[data-status="failed"]   { color: #8a2f2f; }
+
+.cr-evidence-id {
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+.cr-evidence-fact,
+.cr-evidence-source,
+.cr-evidence-conf {
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-3);
+}
+.cr-evidence-message {
+  font-style: italic;
+  color: var(--anth-text-2);
+}
+
+.cr-card-warns,
+.cr-card-errs,
+.cr-card-issues {
+  margin: 0;
+  padding: 6px 8px;
+  list-style: disc inside;
+  font-size: 11px;
+}
+.cr-card-warns {
+  background: rgba(162, 107, 24, 0.06);
+  border: 1px solid #a26b18;
+  color: #a26b18;
+}
+.cr-card-errs,
+.cr-card-issues {
+  background: rgba(138, 47, 47, 0.06);
+  border: 1px solid #8a2f2f;
+  color: #8a2f2f;
+}
+
+.cr-panel-foot {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--anth-border);
+  font-size: 11px;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
