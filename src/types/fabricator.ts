@@ -18,7 +18,7 @@ export interface FabricatedDevice {
   readonly name: string;
   readonly vendor: string;
   readonly platform: string;
-  readonly role_hint: "device";
+  readonly role_hint: string;
   readonly source: FabricatedDeviceSource;
 }
 

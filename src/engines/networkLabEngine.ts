@@ -26,50 +26,276 @@ export interface GenerateLabEnvironmentInput {
   readonly seed_override?: string;
 }
 
-interface DeviceComposition {
+interface DeviceSlot {
+  readonly role_label: string;
   readonly device_class: LabDeviceClass;
   readonly vendor: LabVendor;
   readonly count: number;
+  readonly site_id?: string;
+  readonly zone?: string;
 }
 
-const SCENARIO_COMPOSITIONS: Record<string, readonly DeviceComposition[]> = {
+const SCENARIO_COMPOSITIONS: Record<string, readonly DeviceSlot[]> = {
   "micro-lab": [
-    { device_class: "router", vendor: "cisco", count: 2 },
-    { device_class: "router", vendor: "juniper", count: 1 },
+    {
+      role_label: "rtr",
+      device_class: "router",
+      vendor: "cisco",
+      count: 2,
+      site_id: "micro-001",
+      zone: "lab",
+    },
+    {
+      role_label: "rtr",
+      device_class: "router",
+      vendor: "juniper",
+      count: 1,
+      site_id: "micro-001",
+      zone: "lab",
+    },
   ],
   "branch-office": [
-    { device_class: "firewall", vendor: "fortinet", count: 1 },
-    { device_class: "router", vendor: "cisco", count: 1 },
-    { device_class: "switch", vendor: "cisco", count: 1 },
-    { device_class: "home_gateway", vendor: "avm", count: 1 },
-    { device_class: "access_point", vendor: "aruba", count: 2 },
-    { device_class: "camera", vendor: "axis", count: 1 },
-    { device_class: "endpoint", vendor: "generic", count: 1 },
+    {
+      role_label: "fw",
+      device_class: "firewall",
+      vendor: "fortinet",
+      count: 1,
+      site_id: "branch-001",
+      zone: "edge",
+    },
+    {
+      role_label: "edge",
+      device_class: "router",
+      vendor: "cisco",
+      count: 1,
+      site_id: "branch-001",
+      zone: "edge",
+    },
+    {
+      role_label: "acc",
+      device_class: "switch",
+      vendor: "cisco",
+      count: 1,
+      site_id: "branch-001",
+      zone: "access",
+    },
+    {
+      role_label: "cpe",
+      device_class: "home_gateway",
+      vendor: "avm",
+      count: 1,
+      site_id: "branch-001",
+      zone: "access",
+    },
+    {
+      role_label: "wap",
+      device_class: "access_point",
+      vendor: "aruba",
+      count: 2,
+      site_id: "branch-001",
+      zone: "wifi",
+    },
+    {
+      role_label: "cam",
+      device_class: "camera",
+      vendor: "axis",
+      count: 1,
+      site_id: "branch-001",
+      zone: "wifi",
+    },
+    {
+      role_label: "srv",
+      device_class: "endpoint",
+      vendor: "generic",
+      count: 1,
+      site_id: "branch-001",
+      zone: "access",
+    },
   ],
   campus: [
-    { device_class: "router", vendor: "cisco", count: 2 },
-    { device_class: "switch", vendor: "cisco", count: 4 },
-    { device_class: "switch", vendor: "arista", count: 12 },
-    { device_class: "firewall", vendor: "fortinet", count: 2 },
-    { device_class: "access_point", vendor: "aruba", count: 2 },
-    { device_class: "camera", vendor: "axis", count: 2 },
+    {
+      role_label: "core",
+      device_class: "router",
+      vendor: "cisco",
+      count: 2,
+      site_id: "campus-001",
+      zone: "core",
+    },
+    {
+      role_label: "dist",
+      device_class: "switch",
+      vendor: "cisco",
+      count: 4,
+      site_id: "campus-001",
+      zone: "distribution",
+    },
+    {
+      role_label: "acc",
+      device_class: "switch",
+      vendor: "arista",
+      count: 12,
+      site_id: "campus-001",
+      zone: "access",
+    },
+    {
+      role_label: "fw",
+      device_class: "firewall",
+      vendor: "fortinet",
+      count: 2,
+      site_id: "campus-001",
+      zone: "edge",
+    },
+    {
+      role_label: "wap",
+      device_class: "access_point",
+      vendor: "aruba",
+      count: 2,
+      site_id: "campus-001",
+      zone: "wifi",
+    },
+    {
+      role_label: "cam",
+      device_class: "camera",
+      vendor: "axis",
+      count: 2,
+      site_id: "campus-001",
+      zone: "wifi",
+    },
   ],
   "datacenter-pod": [
-    { device_class: "switch", vendor: "arista", count: 20 }, // 4 spine + 16 leaf
-    { device_class: "server", vendor: "generic", count: 8 },
-    { device_class: "firewall", vendor: "fortinet", count: 2 },
-    { device_class: "router", vendor: "cisco", count: 2 },
+    {
+      role_label: "spine",
+      device_class: "switch",
+      vendor: "arista",
+      count: 4,
+      site_id: "dc-001",
+      zone: "fabric",
+    },
+    {
+      role_label: "leaf",
+      device_class: "switch",
+      vendor: "arista",
+      count: 16,
+      site_id: "dc-001",
+      zone: "fabric",
+    },
+    {
+      role_label: "srv",
+      device_class: "server",
+      vendor: "generic",
+      count: 8,
+      site_id: "dc-001",
+      zone: "compute",
+    },
+    {
+      role_label: "fw",
+      device_class: "firewall",
+      vendor: "fortinet",
+      count: 2,
+      site_id: "dc-001",
+      zone: "edge",
+    },
+    {
+      role_label: "edge",
+      device_class: "router",
+      vendor: "cisco",
+      count: 2,
+      site_id: "dc-001",
+      zone: "edge",
+    },
   ],
   "metro-mega-city": [
-    { device_class: "router", vendor: "cisco", count: 16 },
-    { device_class: "router", vendor: "juniper", count: 16 },
-    { device_class: "switch", vendor: "arista", count: 32 },
-    { device_class: "router", vendor: "mikrotik", count: 16 },
-    { device_class: "isp_edge", vendor: "isp", count: 8 },
-    { device_class: "firewall", vendor: "fortinet", count: 4 },
-    { device_class: "firewall", vendor: "paloalto", count: 4 },
+    {
+      role_label: "core",
+      device_class: "router",
+      vendor: "cisco",
+      count: 8,
+      site_id: "metro-core",
+      zone: "backbone",
+    },
+    {
+      role_label: "core",
+      device_class: "router",
+      vendor: "juniper",
+      count: 8,
+      site_id: "metro-core",
+      zone: "backbone",
+    },
+    {
+      role_label: "pe",
+      device_class: "router",
+      vendor: "cisco",
+      count: 8,
+      site_id: "metro-pe",
+      zone: "pe",
+    },
+    {
+      role_label: "pe",
+      device_class: "router",
+      vendor: "juniper",
+      count: 8,
+      site_id: "metro-pe",
+      zone: "pe",
+    },
+    {
+      role_label: "agg",
+      device_class: "switch",
+      vendor: "arista",
+      count: 32,
+      site_id: "metro-agg",
+      zone: "aggregation",
+    },
+    {
+      role_label: "cpe",
+      device_class: "router",
+      vendor: "mikrotik",
+      count: 16,
+      site_id: "metro-cpe",
+      zone: "cpe",
+    },
+    {
+      role_label: "isp",
+      device_class: "isp_edge",
+      vendor: "isp",
+      count: 8,
+      site_id: "metro-isp",
+      zone: "isp",
+    },
+    {
+      role_label: "fw",
+      device_class: "firewall",
+      vendor: "fortinet",
+      count: 4,
+      site_id: "metro-edge",
+      zone: "edge",
+    },
+    {
+      role_label: "fw",
+      device_class: "firewall",
+      vendor: "paloalto",
+      count: 4,
+      site_id: "metro-edge",
+      zone: "edge",
+    },
   ],
 };
+
+const SCENARIO_PREFIX_MAP: Record<string, string> = {
+  "micro-lab": "micro",
+  "branch-office": "branch",
+  campus: "campus",
+  "datacenter-pod": "dc",
+  "metro-mega-city": "metro",
+};
+
+function buildHostname(
+  scenarioId: string,
+  roleLabel: string,
+  roleLabelCounter: number
+): string {
+  const prefix = SCENARIO_PREFIX_MAP[scenarioId] || scenarioId;
+  return `${prefix}-${roleLabel}-${roleLabelCounter.toString().padStart(2, "0")}`;
+}
 
 // Special env-fab-demo overrides
 const FAB_DEMO_OVERRIDES = {
@@ -161,29 +387,47 @@ export function generateLabEnvironment(
       site_count: 1,
     });
 
-    for (const comp of composition) {
-      for (let i = 0; i < comp.count; i++) {
-        const preset = requirePreset(comp.device_class, comp.vendor);
+    // Track per-role_label counters for scenario-aware hostname generation
+    const roleLabelCounters = new Map<string, number>();
+
+    for (const slot of composition) {
+      for (let i = 0; i < slot.count; i++) {
+        const preset = requirePreset(slot.device_class, slot.vendor);
         const deviceId = `lab-dev-${String(deviceIndex + 1).padStart(3, "0")}`;
+
+        // Increment and get the counter for this role_label
+        const currentCount = (roleLabelCounters.get(slot.role_label) ?? 0) + 1;
+        roleLabelCounters.set(slot.role_label, currentCount);
+
+        const hostname = buildHostname(input.scenario_id, slot.role_label, currentCount);
+
+        // Build tags, including fabric-tier for datacenter spine/leaf
+        const tags: string[] = [slot.role_label];
+        if (input.scenario_id === "datacenter-pod" && slot.role_label === "spine") {
+          tags.push("fabric-tier:spine");
+        }
+        if (input.scenario_id === "datacenter-pod" && slot.role_label === "leaf") {
+          tags.push("fabric-tier:leaf");
+        }
 
         devices.push({
           id: deviceId,
-          hostname: `${preset.hostname_prefix}-${String(deviceIndex + 1).padStart(3, "0")}`,
-          display_label: `${preset.hostname_prefix}-${String(deviceIndex + 1).padStart(3, "0")}`,
-          device_class: comp.device_class,
-          vendor: comp.vendor,
+          hostname,
+          display_label: hostname,
+          device_class: slot.device_class,
+          vendor: slot.vendor,
           platform_id: preset.platform_id,
           os_family: preset.os_family,
           management_ip: addressPlan.management_ip_for(deviceIndex),
           loopback_ip: addressPlan.loopback_ip_for(deviceIndex),
-          site_id: null,
-          zone: null,
-          tags: [],
+          site_id: slot.site_id ?? null,
+          zone: slot.zone ?? null,
+          tags,
           capabilities: preset.default_capabilities,
           interfaces: buildInterfaces(
             deviceId,
             preset,
-            comp.device_class,
+            slot.device_class,
             addressPlan.management_ip_for(deviceIndex)
           ),
           provenance: "generated-lab" as const,

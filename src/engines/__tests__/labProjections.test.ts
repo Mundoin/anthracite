@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { toFabricatorView } from "../labProjections";
+import { generateLabEnvironment } from "../networkLabEngine";
 import type { LabEnvironment } from "../../types/labEnvironment";
 
 const createLabEnvironment = (overrides: Partial<LabEnvironment> = {}): LabEnvironment => ({
@@ -265,12 +266,18 @@ describe("labProjections", () => {
       expect(view.devices[1]?.platform).toBe("juniper-junos");
     });
 
-    it("should set role_hint to device for all devices", () => {
+    it("derives role_hint from device_class + hostname tokens (V1BT)", () => {
+      // V1BT changed toFabricatorView to derive a richer role_hint
+      // so blueprintIdentity can classify the topology cleanly.
+      // The default lab device is a router with hostname `router-001`
+      // (no scenario role token), so deriveRoleHint returns the
+      // generic `"router"` label — already enough for familyOf to
+      // resolve EDGE-RT.
       const labEnv = createLabEnvironment();
       const view = toFabricatorView(labEnv);
 
       for (const device of view.devices) {
-        expect(device.role_hint).toBe("device");
+        expect(device.role_hint).toBe("router");
       }
     });
 
@@ -473,4 +480,210 @@ describe("labProjections", () => {
       );
     });
   });
+
+  // ----- V1BT deriveRoleHint classification -----
+
+  describe("deriveRoleHint — firewall", () => {
+    it("should classify firewall devices", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus",
+        environment_name: "Test Campus",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const fwDevices = fabEnv.devices.filter((d) => d.name.includes("-fw-"));
+
+      expect(fwDevices.length).toBeGreaterThan(0);
+      for (const fw of fwDevices) {
+        expect(fw.role_hint).toBe("firewall");
+      }
+    });
+  });
+
+  describe("deriveRoleHint — routers", () => {
+    it("should classify core routers by hostname pattern", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus",
+        environment_name: "Test Campus",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const coreRtrs = fabEnv.devices.filter((d) => d.name.includes("-core-"));
+
+      expect(coreRtrs.length).toBeGreaterThan(0);
+      for (const rtr of coreRtrs) {
+        expect(rtr.role_hint).toContain("core");
+      }
+    });
+
+    it("should classify edge routers by hostname pattern", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "branch-office",
+        environment_id: "test-branch",
+        environment_name: "Test Branch",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const edgeRtrs = fabEnv.devices.filter((d) => d.name.includes("-edge-"));
+
+      expect(edgeRtrs.length).toBeGreaterThan(0);
+      for (const rtr of edgeRtrs) {
+        expect(rtr.role_hint).toContain("edge");
+      }
+    });
+
+    it("should classify PE routers", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "metro-mega-city",
+        environment_id: "test-metro",
+        environment_name: "Test Metro",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const peRtrs = fabEnv.devices.filter((d) => d.name.includes("-pe-"));
+
+      expect(peRtrs.length).toBeGreaterThan(0);
+      for (const rtr of peRtrs) {
+        expect(rtr.role_hint).toContain("edge");
+      }
+    });
+  });
+
+  describe("deriveRoleHint — switches", () => {
+    it("should classify spine switches", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "datacenter-pod",
+        environment_id: "test-dc",
+        environment_name: "Test DC",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const spineSw = fabEnv.devices.filter((d) => d.name.includes("-spine-"));
+
+      expect(spineSw.length).toBeGreaterThan(0);
+      for (const sw of spineSw) {
+        expect(sw.role_hint).toContain("core");
+      }
+    });
+
+    it("should classify leaf switches", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "datacenter-pod",
+        environment_id: "test-dc",
+        environment_name: "Test DC",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const leafSw = fabEnv.devices.filter((d) => d.name.includes("-leaf-"));
+
+      expect(leafSw.length).toBeGreaterThan(0);
+      for (const sw of leafSw) {
+        expect(sw.role_hint).toContain("access");
+      }
+    });
+
+    it("should classify distribution switches", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus",
+        environment_name: "Test Campus",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const distSw = fabEnv.devices.filter((d) => d.name.includes("-dist-"));
+
+      expect(distSw.length).toBeGreaterThan(0);
+      for (const sw of distSw) {
+        expect(sw.role_hint).toContain("distribution");
+      }
+    });
+
+    it("should classify access switches", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus",
+        environment_name: "Test Campus",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const accSw = fabEnv.devices.filter((d) => d.name.includes("-acc-"));
+
+      expect(accSw.length).toBeGreaterThan(0);
+      for (const sw of accSw) {
+        expect(sw.role_hint).toContain("access");
+      }
+    });
+  });
+
+  describe("deriveRoleHint — wireless", () => {
+    it("should classify wireless APs", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "branch-office",
+        environment_id: "test-branch",
+        environment_name: "Test Branch",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const waps = fabEnv.devices.filter((d) => d.name.includes("-wap-"));
+
+      expect(waps.length).toBeGreaterThan(0);
+      for (const wap of waps) {
+        expect(wap.role_hint).toBe("wireless ap");
+      }
+    });
+  });
+
+  describe("deriveRoleHint — endpoints", () => {
+    it("should classify servers", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "datacenter-pod",
+        environment_id: "test-dc",
+        environment_name: "Test DC",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const srvs = fabEnv.devices.filter((d) => d.name.includes("-srv-"));
+
+      expect(srvs.length).toBeGreaterThan(0);
+      for (const srv of srvs) {
+        expect(srv.role_hint).toBe("server");
+      }
+    });
+
+    it("should classify cameras", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus",
+        environment_name: "Test Campus",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const cams = fabEnv.devices.filter((d) => d.name.includes("-cam-"));
+
+      expect(cams.length).toBeGreaterThan(0);
+      for (const cam of cams) {
+        expect(cam.role_hint).toBe("endpoint");
+      }
+    });
+
+    it("should classify endpoints", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "branch-office",
+        environment_id: "test-branch",
+        environment_name: "Test Branch",
+      });
+
+      const fabEnv = toFabricatorView(env);
+      const eps = fabEnv.devices.filter((d) => d.name.includes("-srv-"));
+
+      expect(eps.length).toBeGreaterThan(0);
+      for (const ep of eps) {
+        expect(ep.role_hint).toBe("server");
+      }
+    });
+  });
+
+
 });

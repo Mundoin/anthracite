@@ -538,4 +538,174 @@ describe("networkLabEngine", () => {
       expect(typeof env.scenario_name).toBe("string");
     });
   });
+
+  describe("V1BT — scenario-aware hostnames", () => {
+    it("micro-lab: should generate scenario-prefixed rtr hostnames", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "micro-lab",
+        environment_id: "test-micro",
+        environment_name: "Test Micro",
+      });
+
+      expect(env.devices[0]?.hostname).toBe("micro-rtr-01");
+      expect(env.devices[1]?.hostname).toBe("micro-rtr-02");
+      expect(env.devices[2]?.hostname).toBe("micro-rtr-03");
+    });
+
+    it("branch-office: should have diverse role-based hostnames", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "branch-office",
+        environment_id: "test-branch",
+        environment_name: "Test Branch",
+      });
+
+      const hostnames = env.devices.map((d) => d.hostname);
+      expect(hostnames).toContain("branch-fw-01");
+      expect(hostnames).toContain("branch-edge-01");
+      expect(hostnames).toContain("branch-acc-01");
+      expect(hostnames).toContain("branch-cpe-01");
+      expect(hostnames).toContain("branch-wap-01");
+      expect(hostnames).toContain("branch-wap-02");
+      expect(hostnames).toContain("branch-cam-01");
+      expect(hostnames).toContain("branch-srv-01");
+    });
+
+    it("campus: should have distinct hostnames per role", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus",
+        environment_name: "Test Campus",
+      });
+
+      const hostnames = env.devices.map((d) => d.hostname);
+      expect(hostnames).toContain("campus-core-01");
+      expect(hostnames).toContain("campus-core-02");
+      expect(hostnames).toContain("campus-dist-01");
+      expect(hostnames).toContain("campus-dist-04");
+      expect(hostnames).toContain("campus-acc-01");
+      expect(hostnames).toContain("campus-acc-12");
+      expect(hostnames).toContain("campus-fw-01");
+      expect(hostnames).toContain("campus-fw-02");
+      expect(hostnames).toContain("campus-wap-01");
+      expect(hostnames).toContain("campus-cam-01");
+    });
+
+    it("datacenter-pod: should distinguish spine and leaf by hostname", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "datacenter-pod",
+        environment_id: "test-dc",
+        environment_name: "Test DC",
+      });
+
+      const hostnames = env.devices.map((d) => d.hostname);
+      expect(hostnames).toContain("dc-spine-01");
+      expect(hostnames).toContain("dc-spine-04");
+      expect(hostnames).toContain("dc-leaf-01");
+      expect(hostnames).toContain("dc-leaf-16");
+      expect(hostnames).toContain("dc-srv-01");
+      expect(hostnames).toContain("dc-srv-08");
+      expect(hostnames).toContain("dc-fw-01");
+      expect(hostnames).toContain("dc-edge-01");
+    });
+
+    it("metro-mega-city: should scale counters per role", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "metro-mega-city",
+        environment_id: "test-metro",
+        environment_name: "Test Metro",
+      });
+
+      const hostnames = env.devices.map((d) => d.hostname);
+      expect(hostnames).toContain("metro-core-01");
+      expect(hostnames).toContain("metro-core-16");
+      expect(hostnames).toContain("metro-pe-01");
+      expect(hostnames).toContain("metro-pe-16");
+      expect(hostnames).toContain("metro-agg-01");
+      expect(hostnames).toContain("metro-agg-32");
+      expect(hostnames).toContain("metro-cpe-01");
+      expect(hostnames).toContain("metro-cpe-16");
+      expect(hostnames).toContain("metro-isp-01");
+      expect(hostnames).toContain("metro-fw-01");
+      expect(hostnames).toContain("metro-fw-08");
+    });
+  });
+
+  describe("V1BT — site/zone metadata", () => {
+    it("branch-office: every device should have site_id", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "branch-office",
+        environment_id: "test-branch",
+        environment_name: "Test Branch",
+      });
+
+      for (const device of env.devices) {
+        expect(device.site_id).toBe("branch-001");
+      }
+    });
+
+    it("campus: should have devices in all zones", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus",
+        environment_name: "Test Campus",
+      });
+
+      const zones = new Set(env.devices.map((d) => d.zone));
+      expect(zones.has("core")).toBe(true);
+      expect(zones.has("distribution")).toBe(true);
+      expect(zones.has("access")).toBe(true);
+      expect(zones.has("edge")).toBe(true);
+      expect(zones.has("wifi")).toBe(true);
+    });
+
+    it("datacenter-pod: spine/leaf devices should have fabric-tier tags", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "datacenter-pod",
+        environment_id: "test-dc",
+        environment_name: "Test DC",
+      });
+
+      const spineDevices = env.devices.filter((d) => d.hostname.includes("-spine-"));
+      const leafDevices = env.devices.filter((d) => d.hostname.includes("-leaf-"));
+
+      for (const spine of spineDevices) {
+        expect(spine.tags).toContain("fabric-tier:spine");
+      }
+
+      for (const leaf of leafDevices) {
+        expect(leaf.tags).toContain("fabric-tier:leaf");
+      }
+    });
+
+    it("metro-mega-city: should have diverse site_ids", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "metro-mega-city",
+        environment_id: "test-metro",
+        environment_name: "Test Metro",
+      });
+
+      const siteIds = new Set(env.devices.map((d) => d.site_id).filter(Boolean));
+      expect(siteIds.has("metro-core")).toBe(true);
+      expect(siteIds.has("metro-pe")).toBe(true);
+      expect(siteIds.has("metro-agg")).toBe(true);
+      expect(siteIds.has("metro-cpe")).toBe(true);
+      expect(siteIds.has("metro-isp")).toBe(true);
+      expect(siteIds.has("metro-edge")).toBe(true);
+    });
+
+    it("all devices should have role_label in tags", () => {
+      const env = generateLabEnvironment({
+        scenario_id: "campus",
+        environment_id: "test-campus",
+        environment_name: "Test Campus",
+      });
+
+      for (const device of env.devices) {
+        const hasRoleLabel = device.tags.some((tag) =>
+          ["core", "dist", "acc", "fw", "wap", "cam"].includes(tag)
+        );
+        expect(hasRoleLabel).toBe(true);
+      }
+    });
+  });
 });

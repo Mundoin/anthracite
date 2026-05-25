@@ -1,9 +1,37 @@
-import type { LabEnvironment } from "../types/labEnvironment";
+import type { LabEnvironment, LabDevice } from "../types/labEnvironment";
 import type {
   FabricatorEnvironment,
   FabricatedDevice,
   FabricatedLink,
 } from "../types/fabricator";
+
+function deriveRoleHint(d: LabDevice): string {
+  const h = d.hostname.toLowerCase();
+
+  // Match strongest signal first
+  if (d.device_class === "firewall") return "firewall";
+  if (d.device_class === "access_point") return "wireless ap";
+  if (d.device_class === "server" || d.device_class === "endpoint") return "server";
+  if (d.device_class === "camera") return "endpoint";
+  if (d.device_class === "isp_edge") return "isp edge router";
+  if (d.device_class === "home_gateway") return "edge router cpe";
+
+  if (d.device_class === "router") {
+    if (h.includes("-core-") || h.includes("-spine-")) return "core router";
+    if (h.includes("-pe-") || h.includes("-edge-")) return "edge router";
+    if (h.includes("-cpe-")) return "edge router cpe";
+    return "router";
+  }
+
+  if (d.device_class === "switch") {
+    if (h.includes("-spine-")) return "core switch";
+    if (h.includes("-leaf-") || h.includes("-acc-")) return "access switch";
+    if (h.includes("-dist-") || h.includes("-agg-")) return "distribution switch";
+    return "switch";
+  }
+
+  return "device";
+}
 
 export function toFabricatorView(labEnv: LabEnvironment): FabricatorEnvironment {
   const devices: FabricatedDevice[] = labEnv.devices.map((d) => ({
@@ -11,7 +39,7 @@ export function toFabricatorView(labEnv: LabEnvironment): FabricatorEnvironment 
     name: d.hostname,
     vendor: d.vendor,
     platform: d.platform_id,
-    role_hint: "device",
+    role_hint: deriveRoleHint(d),
     source: "fabricated" as const,
   }));
 
