@@ -53,6 +53,7 @@ import { buildImportedDemoTopologyView } from "./__fixtures__/importedDemoEviden
 import { CollectionTargetsPanel } from "./CollectionTargetsPanel";
 import { CollectionReceiptsPanel } from "./CollectionReceiptsPanel";
 import { CollectionDryRunPanel } from "./CollectionDryRunPanel";
+import { SingleDeviceCollectorPanel } from "./SingleDeviceCollectorPanel";
 import "./TopologyMode.css";
 
 export interface TopologyModeProps {
@@ -1609,6 +1610,7 @@ export function TopologyMode({
   const renderCollectionPlan = (): ReactNode => (
     <>
       <CollectionDryRunPanel />
+      <SingleDeviceCollectorPanel />
       <LiveCollectionDryRunPanel
         environmentId={topology.environmentId}
         onPlan={onPlanLiveCollection}
