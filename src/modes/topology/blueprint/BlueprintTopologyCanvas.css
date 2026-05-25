@@ -627,3 +627,25 @@
   background: var(--topo-cyan-soft);
   outline: none;
 }
+
+/* V1BW — affected-only fade. When toggled on, healthy nodes + edges drop
+ * to low opacity so affected items pop. Selected items keep full opacity
+ * via the focus-ring + .is-active rules (which carry their own visual
+ * weight). Hit-testing stays enabled — drag, click, double-click still
+ * work on faded items because we only fade, never `display: none`. */
+
+.blueprint-topology[data-affected-only="true"] .bt-node[data-state="healthy"] {
+  opacity: 0.18;
+}
+.blueprint-topology[data-affected-only="true"] .bt-edge[data-state="healthy"] {
+  opacity: 0.10;
+}
+/* Selection wins: re-assert full opacity on the selected node group AND
+ * on edges that carry .is-active. The selected glyph + active edges
+ * stay readable in affected-only mode. */
+.blueprint-topology[data-affected-only="true"] .bt-node[data-state="healthy"]:has(.bt-node-focus-ring) {
+  opacity: 1;
+}
+.blueprint-topology[data-affected-only="true"] .bt-edge.is-active[data-state="healthy"] {
+  opacity: 1;
+}

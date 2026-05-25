@@ -58,6 +58,7 @@ import { routeEdge } from "./blueprintEdges";
 import { TopologyEnvSelector } from "../TopologyEnvSelector";
 import { DEVICE_ICON, DEVICE_ICON_VIEWBOX } from "./deviceIcons";
 import type { LabOperationalState } from "../../../types/labEnvironment";
+import { TopologyStateLegend } from "./TopologyStateLegend";
 import "./BlueprintTopologyCanvas.css";
 
 // V1BU — state to ring colour mapping
@@ -938,6 +939,10 @@ export function BlueprintTopologyCanvas({
   // stays glued to the selected glyph after layout changes.
   const [resizeTick, setResizeTick] = useState(0);
 
+  // V1BW — legend toggle: when true, healthy nodes + edges fade to low
+  // opacity so affected items pop. Selection state always wins.
+  const [affectedOnly, setAffectedOnly] = useState<boolean>(false);
+
   useEffect(() => {
     const wrap = canvasWrapRef.current;
     if (!wrap || typeof ResizeObserver === "undefined") return;
@@ -1082,6 +1087,7 @@ export function BlueprintTopologyCanvas({
       data-testid="blueprint-topology"
       data-density={band}
       data-node-count={layouts.length}
+      data-affected-only={affectedOnly ? "true" : "false"}
     >
       {view.nodes.length === 0 && (
         <div
@@ -1188,6 +1194,13 @@ export function BlueprintTopologyCanvas({
             </g>
           </g>
         </svg>
+
+        {/* V1BW — topology state legend */}
+        <TopologyStateLegend
+          view={view}
+          affectedOnly={affectedOnly}
+          onToggleAffectedOnly={setAffectedOnly}
+        />
 
         {/* V1BL-B — canvas navigation strip */}
         <div className="bt-nav" data-testid="bt-nav" aria-label="Canvas navigation">

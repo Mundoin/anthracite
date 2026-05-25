@@ -1109,3 +1109,78 @@ describe("BlueprintTopologyCanvas — V1BV edge state visualisation", () => {
     expect(edge?.getAttribute("class")).toContain("is-active");
   });
 });
+
+describe("BlueprintTopologyCanvas — V1BW legend + affected-only", () => {
+  it("mounts legend in canvas", () => {
+    const view = makeView(
+      [makeNode("n1", "router")],
+      [],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(screen.getByTestId("bt-legend")).toBeInTheDocument();
+  });
+
+  it("sets data-affected-only attribute on root section", () => {
+    const view = makeView(
+      [makeNode("n1", "router")],
+      [],
+    );
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const root = container.querySelector("[data-testid='blueprint-topology']");
+    expect(root?.getAttribute("data-affected-only")).toBe("false");
+  });
+
+  it("toggles data-affected-only when checkbox fires", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "warning" as const },
+        { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+      ],
+      [],
+    );
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    const checkbox = screen.getByTestId("bt-legend-affected-input");
+    expect(container.querySelector("[data-testid='blueprint-topology']")?.getAttribute("data-affected-only")).toBe("false");
+    fireEvent.click(checkbox);
+    expect(container.querySelector("[data-testid='blueprint-topology']")?.getAttribute("data-affected-only")).toBe("true");
+  });
+
+  it("displays correct counts in legend for mixed state view", () => {
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "warning" as const },
+        { ...makeNode("n2", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n3", "switch"), operational_state: "healthy" as const },
+      ],
+      [
+        { ...makeEdge("e1", "n1", "n2"), operational_state: "warning" as const },
+        { ...makeEdge("e2", "n2", "n3"), operational_state: "healthy" as const },
+      ],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(screen.getByTestId("bt-legend-device-warning")).toHaveTextContent("1");
+    expect(screen.getByTestId("bt-legend-device-healthy")).toHaveTextContent("2");
+    expect(screen.getByTestId("bt-legend-link-warning")).toHaveTextContent("1");
+    expect(screen.getByTestId("bt-legend-link-healthy")).toHaveTextContent("1");
+  });
+});
