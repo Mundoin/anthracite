@@ -50,6 +50,7 @@ import type { RenderGraphDataSource } from "./renderGraph";
 import type { DiagnoseHandoffPayload } from "./diagnoseHandoff";
 import { attachImportedSourceToTopologyView } from "./importedEvidenceTopologyAdapter";
 import { buildImportedDemoTopologyView } from "./__fixtures__/importedDemoEvidence";
+import { CollectionTargetsPanel } from "./CollectionTargetsPanel";
 import "./TopologyMode.css";
 
 export interface TopologyModeProps {
@@ -87,6 +88,7 @@ export const TOPOLOGY_DEFAULT_TOOL_ID = "graph_map";
 export const TOPOLOGY_TOOL_META = [
   { id: "graph_map", label: "Graph / Map" },
   { id: "evidence_import", label: "Evidence Import" },
+  { id: "targets", label: "Targets" },
   { id: "collection_plan", label: "Collection Plan" },
   { id: "readiness", label: "Readiness" },
   // V1BL — relabel from "3D / Canvas" so operators stop reading this
@@ -1652,6 +1654,17 @@ export function TopologyMode({
       status: "available",
       role: "evidence",
       render: renderEvidenceImport,
+    },
+    {
+      id: "targets",
+      kind: "live",
+      label: "Targets",
+      description:
+        "V1CC — Typed read-only collection target model (preview). No live contact yet; receipts land in V1CD; single-device collector in V1CE/V1CF.",
+      group: "discovery",
+      status: "preview",
+      role: "live_collection",
+      render: () => <CollectionTargetsPanel />,
     },
     {
       id: "collection_plan",

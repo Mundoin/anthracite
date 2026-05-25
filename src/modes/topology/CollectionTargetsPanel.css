@@ -1,0 +1,202 @@
+/* V1CC — Collection Targets panel styles. Mirrors the calm Diagnose
+ * surface law: bordered panel, mono titles, uppercase chips, no bold
+ * value/labels mixing. */
+
+.ct-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 12px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.ct-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.ct-panel-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.ct-panel-stub-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+
+.ct-panel-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.ct-panel-audit {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-3);
+}
+
+.ct-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ct-card {
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ct-card[data-enabled="false"] {
+  opacity: 0.7;
+}
+
+.ct-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ct-card-head-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ct-card-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.ct-card-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid currentColor;
+  color: var(--anth-text-3);
+}
+
+.ct-card-pill[data-state="ok"]      { color: #3a6a4b; }
+.ct-card-pill[data-state="issues"]  { color: #8a2f2f; }
+.ct-card-pill[data-state="ro"]      { color: #0E72A0; }
+.ct-card-pill[data-state="disabled"]{ color: #a26b18; }
+
+.ct-card-id {
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 11px;
+  color: var(--anth-text-3);
+}
+
+.ct-card-desc {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-2);
+}
+
+.ct-rows {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 14px;
+}
+
+.ct-row {
+  display: contents;
+}
+
+.ct-row > dt {
+  color: var(--anth-text-3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  align-self: center;
+}
+
+.ct-row > dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  font-size: 12px;
+  font-family: var(--anth-font-mono, monospace);
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.ct-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 11px;
+  color: var(--anth-text-2);
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg);
+}
+
+.ct-chip-key {
+  color: var(--anth-text-3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ct-chip-val {
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+.ct-muted {
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+
+.ct-card-issues {
+  margin: 0;
+  padding: 6px 8px;
+  list-style: disc inside;
+  background: rgba(138, 47, 47, 0.06);
+  border: 1px solid #8a2f2f;
+  font-size: 11px;
+  color: #8a2f2f;
+}
+
+.ct-card-issues strong {
+  font-weight: 600;
+}
+
+.ct-panel-foot {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--anth-border);
+  font-size: 11px;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
