@@ -25,6 +25,7 @@ import { buildRenderGraph } from "../modes/topology/renderGraph";
 import type { RenderGraphModel } from "../modes/topology/renderGraph";
 import { deriveLinkState } from "../modes/topology/blueprint/linkState";
 import type { LabOperationalState } from "../types/labEnvironment";
+import { createFabricatedTopologySourceInfo } from "../modes/topology/topologySource";
 
 const FABRICATOR_TOPOLOGY_NOTE =
   "Fabricated topology — synthetic demo data. No live network contact.";
@@ -78,6 +79,10 @@ export function toGraphReadyTopologyView(
     edges: Object.freeze(edges) as readonly GraphReadyTopologyEdge[],
     renderer_attached: false,
     note: FABRICATOR_TOPOLOGY_NOTE,
+    source: createFabricatedTopologySourceInfo({
+      environment_id: env.environment_id,
+      environment_name: env.name,
+    }),
   };
 }
 

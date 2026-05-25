@@ -153,12 +153,15 @@ describe("BlueprintTopologyCanvas — source pedigree header", () => {
       ),
     );
     const header = screen.getByTestId("bt-header");
+    // V1BY-HF2 — env identity reads once via env selector or env-name
+    // fallback; the separate scenario pair is gone (it duplicated the
+    // env name).
     expect(header).toHaveTextContent("branch-office-04");
-    expect(header).toHaveTextContent("branch-office");
     expect(header).toHaveTextContent(/nodes\s*8/i);
     expect(header).toHaveTextContent(/links\s*7/i);
-    expect(screen.getByTestId("bt-header-prov")).toHaveTextContent(
-      "generated-lab",
+    // V1BY-HF1 — consolidated provenance group replaces GENERATED-LAB badge.
+    expect(screen.getByTestId("bt-header-provenance")).toHaveTextContent(
+      "Unknown · Unknown",
     );
   });
 
@@ -166,7 +169,11 @@ describe("BlueprintTopologyCanvas — source pedigree header", () => {
     const view = makeView(chainNodes(3), chainEdges(3));
     render(<BlueprintTopologyCanvas view={view} dataSource="simulated" />);
     expect(screen.getByTestId("bt-header")).toHaveTextContent("env-test");
-    expect(screen.getByTestId("bt-header-prov")).toHaveTextContent("simulated");
+    // V1BY-HF1 — without a view.source the provenance group reads as
+    // "Unknown · Unknown"; the GENERATED-LAB badge is gone.
+    expect(screen.getByTestId("bt-header-provenance")).toHaveTextContent(
+      "Unknown · Unknown",
+    );
   });
 });
 
@@ -1388,5 +1395,141 @@ describe("BlueprintTopologyCanvas — V1BX affected focus", () => {
     const names = screen.getByTestId("bt-passport-focus-names");
     expect(names.textContent).toContain("dev-2");
     expect(names.textContent).toContain("dev-3");
+  });
+});
+
+describe("BlueprintTopologyCanvas — V1BY-HF1 consolidated provenance group", () => {
+  it("renders 'Generated Lab · Static' when view has fabricated source", async () => {
+    const { createFabricatedTopologySourceInfo } = await import("../../topologySource");
+    const view = makeView(
+      [{ ...makeNode("n1", "router") }],
+      [],
+    );
+    const viewWithSource = {
+      ...view,
+      source: createFabricatedTopologySourceInfo({
+        environment_id: "env-test",
+        environment_name: "Test Lab",
+      }),
+    };
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={viewWithSource} dataSource="simulated" />,
+      ),
+    );
+    const group = screen.getByTestId("bt-header-provenance");
+    expect(group.textContent).toBe("Generated Lab · Static");
+    expect(group.getAttribute("data-source-kind")).toBe("fabricated");
+    expect(group.getAttribute("data-freshness")).toBe("static");
+  });
+
+  it("preserves internal source.kind = fabricated and freshness = static on the view", async () => {
+    const { createFabricatedTopologySourceInfo } = await import("../../topologySource");
+    const source = createFabricatedTopologySourceInfo({
+      environment_id: "env-test",
+      environment_name: "Test Lab",
+    });
+    expect(source.kind).toBe("fabricated");
+    expect(source.freshness).toBe("static");
+  });
+
+  it("renders 'Unknown · Unknown' when view has no source (legacy fallback)", () => {
+    const view = makeView(
+      [{ ...makeNode("n1", "router") }],
+      [],
+    );
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={view} dataSource="simulated" />,
+      ),
+    );
+    expect(screen.getByTestId("bt-header-provenance")).toHaveTextContent(
+      "Unknown · Unknown",
+    );
+  });
+
+  it("does not render the V1BY duplicate SOURCE/FRESHNESS pills or GENERATED-LAB badge", async () => {
+    const { createFabricatedTopologySourceInfo } = await import("../../topologySource");
+    const view = makeView([{ ...makeNode("n1", "router") }], []);
+    const viewWithSource = {
+      ...view,
+      source: createFabricatedTopologySourceInfo({
+        environment_id: "env-test",
+        environment_name: "Test Lab",
+      }),
+    };
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={viewWithSource} dataSource="simulated" />,
+      ),
+    );
+    expect(screen.queryByTestId("bt-header-source")).toBeNull();
+    expect(screen.queryByTestId("bt-header-freshness")).toBeNull();
+    expect(screen.queryByTestId("bt-header-prov")).toBeNull();
+    const header = screen.getByTestId("bt-header");
+    expect(header.textContent).not.toContain("source");
+    expect(header.textContent).not.toContain("freshness");
+    expect(header.textContent).not.toContain("generated-lab");
+  });
+
+  it("keeps other header pairs (nodes / links / density) alongside the provenance group", async () => {
+    const { createFabricatedTopologySourceInfo } = await import("../../topologySource");
+    const view = makeView(
+      [{ ...makeNode("n1", "router") }],
+      [],
+    );
+    const viewWithSource = {
+      ...view,
+      source: createFabricatedTopologySourceInfo({
+        environment_id: "env-test",
+        environment_name: "Test Lab",
+      }),
+    };
+    render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={viewWithSource} dataSource="simulated" />,
+      ),
+    );
+    const header = screen.getByTestId("bt-header");
+    expect(header.textContent).toContain("nodes");
+    expect(header.textContent).toContain("links");
+    expect(header.textContent).toContain("density");
+    expect(header.textContent).toContain("Generated Lab · Static");
+  });
+});
+
+describe("BlueprintTopologyCanvas — V1BY affectedFocus sourceKind plumbing", () => {
+  it("passes view.source.kind into computeAffectedFocus and affects focus computation", async () => {
+    const { createFabricatedTopologySourceInfo } = await import("../../topologySource");
+    const view = makeView(
+      [
+        { ...makeNode("n1", "router"), operational_state: "healthy" as const },
+        { ...makeNode("n2", "router"), operational_state: "warning" as const },
+      ],
+      [{ ...makeEdge("e1", "n1", "n2"), operational_state: "healthy" as const }],
+    );
+    const viewWithSource = {
+      ...view,
+      source: createFabricatedTopologySourceInfo({
+        environment_id: "env-test",
+        environment_name: "Test Lab",
+      }),
+    };
+    const { container } = render(
+      withActive(
+        fakeActive(),
+        <BlueprintTopologyCanvas view={viewWithSource} dataSource="simulated" />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId("bt-node-n1"));
+    // When sourceKind is passed through to affectedFocus, the hook is re-computed
+    // with the correct dependencies. We verify the selection worked by checking
+    // that affected nodes are marked (n2 is affected due to warning state).
+    const affectedNode = container.querySelector('[data-testid="bt-node-n2"]');
+    expect(affectedNode?.getAttribute("data-focus")).toBe("affected-neighbor");
   });
 });

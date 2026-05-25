@@ -18,6 +18,7 @@ import type {
   GraphReadyTopologyEdge,
 } from "../topologyReview";
 import type { LabOperationalState } from "../../../types/labEnvironment";
+import type { TopologySourceKind } from "../topologySource";
 
 export const FOCUS_SEVERITY: Record<LabOperationalState, number> = {
   healthy: 0,
@@ -36,6 +37,7 @@ export interface AffectedFocusInput {
   readonly selectedNodeId: string | null;
   readonly nodes: readonly GraphReadyTopologyNode[];
   readonly edges: readonly GraphReadyTopologyEdge[];
+  readonly sourceKind?: TopologySourceKind;   // V1BY
 }
 
 export interface AffectedFocus {
@@ -48,6 +50,7 @@ export interface AffectedFocus {
   readonly worstState: LabOperationalState;
   readonly countsByState: Record<LabOperationalState, number>;
   readonly neighborLabels: readonly string[];   // human-friendly, capped at 3 for passport
+  readonly sourceKind?: TopologySourceKind;   // V1BY
 }
 
 const EMPTY_FOCUS: AffectedFocus = {
@@ -60,11 +63,12 @@ const EMPTY_FOCUS: AffectedFocus = {
   worstState: "healthy",
   countsByState: { healthy: 0, warning: 0, degraded: 0, down: 0, maintenance: 0, unknown: 0 },
   neighborLabels: [],
+  sourceKind: undefined,   // V1BY
 };
 
 export function computeAffectedFocus(input: AffectedFocusInput): AffectedFocus {
-  const { selectedNodeId, nodes, edges } = input;
-  if (!selectedNodeId) return EMPTY_FOCUS;
+  const { selectedNodeId, nodes, edges, sourceKind } = input;
+  if (!selectedNodeId) return { ...EMPTY_FOCUS, sourceKind };
 
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
   const selected = nodeById.get(selectedNodeId);
@@ -134,5 +138,6 @@ export function computeAffectedFocus(input: AffectedFocusInput): AffectedFocus {
     worstState,
     countsByState,
     neighborLabels,
+    sourceKind,   // V1BY
   };
 }

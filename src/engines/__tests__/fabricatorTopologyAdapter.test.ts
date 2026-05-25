@@ -184,3 +184,44 @@ describe("buildFabricatorRenderGraph", () => {
     expect(a).toEqual(b);
   });
 });
+
+describe("V1BY — source contract on view", () => {
+  it("generated view has source.kind === 'fabricated'", () => {
+    const view = toGraphReadyTopologyView(generateFabricatorEnvironment());
+    expect(view.source?.kind).toBe("fabricated");
+  });
+
+  it("generated view has source.freshness === 'static'", () => {
+    const view = toGraphReadyTopologyView(generateFabricatorEnvironment());
+    expect(view.source?.freshness).toBe("static");
+  });
+
+  it("generated view has source.producer === 'fabricator/0.1.0'", () => {
+    const view = toGraphReadyTopologyView(generateFabricatorEnvironment());
+    expect(view.source?.producer).toBe("fabricator/0.1.0");
+  });
+
+  it("source.environment_id equals env's environment_id", () => {
+    const env = generateFabricatorEnvironment();
+    const view = toGraphReadyTopologyView(env);
+    expect(view.source?.environment_id).toBe(env.environment_id);
+  });
+
+  it("source.generated_at is deterministic 'lab-deterministic' literal", () => {
+    const view = toGraphReadyTopologyView(generateFabricatorEnvironment());
+    expect(view.source?.generated_at).toBe("lab-deterministic");
+  });
+
+  it("source.label includes environment name", () => {
+    const env = generateFabricatorEnvironment();
+    const view = toGraphReadyTopologyView(env);
+    expect(view.source?.label).toContain(env.name);
+  });
+
+  it("is deterministic: two calls on same env produce equal source objects", () => {
+    const env = generateFabricatorEnvironment();
+    const a = toGraphReadyTopologyView(env);
+    const b = toGraphReadyTopologyView(env);
+    expect(a.source).toEqual(b.source);
+  });
+});

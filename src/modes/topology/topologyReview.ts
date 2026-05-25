@@ -29,6 +29,7 @@ import type {
   TopologyView,
 } from "../../types/topology";
 import type { LabOperationalState } from "../../types/labEnvironment";
+import type { TopologySourceInfo } from "./topologySource";
 
 // ---------------------------------------------------------------------
 // Review model — operator-grade reshape of TopologyView.edges.
@@ -145,6 +146,7 @@ export interface GraphReadyTopologyView {
   readonly edges: readonly GraphReadyTopologyEdge[];
   readonly renderer_attached: false;
   readonly note: string;
+  readonly source?: TopologySourceInfo;   // V1BY — source-neutral provenance
 }
 
 // ---------------------------------------------------------------------

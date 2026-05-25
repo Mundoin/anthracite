@@ -340,5 +340,64 @@ describe("affectedFocus", () => {
       expect(result.worstState).toBe("healthy");
       expect(result.affectedNeighborIds.size).toBe(0);
     });
+
+    // V1BY — sourceKind passthrough
+    it("passes sourceKind through when provided", () => {
+      const nodes = [
+        mockNode("a"),
+        mockNode("b"),
+      ];
+      const edges = [mockEdge("e1", "a", "b")];
+
+      const input: AffectedFocusInput = {
+        selectedNodeId: "a",
+        nodes,
+        edges,
+        sourceKind: "fabricated",   // V1BY
+      };
+
+      const result = computeAffectedFocus(input);
+
+      expect(result.sourceKind).toBe("fabricated");
+    });
+
+    it("has sourceKind undefined when omitted", () => {
+      const nodes = [
+        mockNode("a"),
+        mockNode("b"),
+      ];
+      const edges = [mockEdge("e1", "a", "b")];
+
+      const input: AffectedFocusInput = {
+        selectedNodeId: "a",
+        nodes,
+        edges,
+        // sourceKind omitted
+      };
+
+      const result = computeAffectedFocus(input);
+
+      expect(result.sourceKind).toBeUndefined();
+    });
+
+    it("preserves sourceKind even when no selection", () => {
+      const nodes = [
+        mockNode("a"),
+        mockNode("b"),
+      ];
+      const edges = [mockEdge("e1", "a", "b")];
+
+      const input: AffectedFocusInput = {
+        selectedNodeId: null,   // no selection
+        nodes,
+        edges,
+        sourceKind: "demo",
+      };
+
+      const result = computeAffectedFocus(input);
+
+      expect(result.hasSelection).toBe(false);
+      expect(result.sourceKind).toBe("demo");
+    });
   });
 });

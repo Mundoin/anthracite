@@ -60,6 +60,10 @@ import { DEVICE_ICON, DEVICE_ICON_VIEWBOX } from "./deviceIcons";
 import type { LabOperationalState } from "../../../types/labEnvironment";
 import { TopologyStateLegend } from "./TopologyStateLegend";
 import { computeAffectedFocus, type AffectedFocus } from "./affectedFocus";
+import {
+  formatSourceProvenance,
+  type TopologySourceInfo,
+} from "../topologySource";
 import "./BlueprintTopologyCanvas.css";
 
 // V1BU — state to ring colour mapping
@@ -637,8 +641,9 @@ export function BlueprintTopologyCanvas({
       selectedNodeId: selectedId,
       nodes: view.nodes,
       edges: view.edges,
+      sourceKind: view.source?.kind,   // V1BY
     }),
-    [selectedId, view.nodes, view.edges],
+    [selectedId, view.nodes, view.edges, view.source?.kind],
   );
 
   const onSelect = useCallback((nodeId: string): void => {
@@ -1065,11 +1070,14 @@ export function BlueprintTopologyCanvas({
 
   const envName =
     active?.name ?? view.environment_id ?? "(no active environment)";
-  const scenarioId =
-    (active?.lab_payload as { scenario_id?: string } | undefined)?.scenario_id ??
-    null;
-  const provenance = active?.provenance ?? null;
-  const provenanceLabel = provenance ?? dataSource;
+  // V1BY-HF2 — env selector is the single environment identity when more
+  // than one env is visible. Otherwise fall back to a plain env-name rail
+  // item so the rail always carries an identity anchor.
+  const hasEnvSelector = (lifecycle?.visible_environments?.length ?? 0) >= 2;
+  // V1BY-HF1 — dataSource prop kept on the interface for callers but the
+  // visible GENERATED-LAB badge is gone; the consolidated provenance group
+  // now reads from view.source.
+  void dataSource;
 
   const selectedNode = selectedId ? layoutById.get(selectedId)?.node ?? null : null;
   const selectedFamily = selectedId ? layoutById.get(selectedId)?.family ?? null : null;
@@ -1119,34 +1127,50 @@ export function BlueprintTopologyCanvas({
           </span>
         </div>
       )}
+      {/* V1BY-HF2 — uniform metadata rail. Single CSS class family
+       * (.bt-header-item) drives every visible element: env selector
+       * (or env-name fallback), node/link/density counts, and the
+       * consolidated provenance group. No bold labels, no bold values,
+       * one font-size + weight + letter-spacing across the rail. The
+       * separate left env title and the duplicate scenario pair are
+       * gone — env identity reads from the selector (or its fallback)
+       * once. */}
       <header className="bt-header" data-testid="bt-header">
-        <span className="bt-header-name">{envName}</span>
-        {scenarioId && (
-          <span className="bt-header-pair">
-            <span>scenario</span>
-            <strong>{scenarioId}</strong>
+        {hasEnvSelector ? (
+          <TopologyEnvSelector />
+        ) : (
+          <span
+            className="bt-header-item bt-header-item--env"
+            data-testid="bt-header-env"
+          >
+            {envName}
           </span>
         )}
-        <span className="bt-header-pair">
-          <span>nodes</span>
-          <strong>{view.nodes.length}</strong>
+        <span className="bt-header-item">
+          <span className="bt-header-item__label">nodes</span>
+          <span className="bt-header-item__value">{view.nodes.length}</span>
         </span>
-        <span className="bt-header-pair">
-          <span>links</span>
-          <strong>{view.edges.length}</strong>
+        <span className="bt-header-item">
+          <span className="bt-header-item__label">links</span>
+          <span className="bt-header-item__value">{view.edges.length}</span>
         </span>
-        <span className="bt-header-pair">
-          <span>density</span>
-          <strong>{band}</strong>
+        <span className="bt-header-item">
+          <span className="bt-header-item__label">density</span>
+          <span className="bt-header-item__value">{band}</span>
         </span>
-        <span
-          className="bt-header-prov"
-          data-prov={provenanceLabel}
-          data-testid="bt-header-prov"
-        >
-          {provenanceLabel}
-        </span>
-        <TopologyEnvSelector />
+        {(() => {
+          const sourceInfo: TopologySourceInfo | undefined = view.source;
+          return (
+            <span
+              className="bt-header-item bt-header-item--provenance"
+              data-testid="bt-header-provenance"
+              data-source-kind={sourceInfo?.kind ?? "unknown"}
+              data-freshness={sourceInfo?.freshness ?? "unknown"}
+            >
+              {formatSourceProvenance(sourceInfo)}
+            </span>
+          );
+        })()}
       </header>
 
       <div
