@@ -278,3 +278,252 @@
   color: var(--anth-text-3);
   font-style: italic;
 }
+
+/* V1CA — Diagnose Topology Handoff surface.
+ * Polished receiving panel for the Topology → Diagnose handoff payload.
+ * Mirrors the rest of Diagnose: bordered panel, calm header, state pill,
+ * stacked dl rows, mini stat strip, neighbour-label chip row, subtle
+ * footer disclaimer. No new design tokens; reuses --anth-* ramp. */
+
+.dx-th {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg-2, var(--anth-bg));
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.dx-th--empty {
+  gap: 8px;
+}
+
+.dx-th-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--anth-border);
+}
+
+.dx-th-head-left {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dx-th-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--anth-text-1, var(--anth-text-2));
+  font-family: var(--anth-font-mono, monospace);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.dx-th-stub-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+
+.dx-th-summary {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.dx-th-empty-line {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.dx-th-empty-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--anth-text-3);
+  line-height: 1.5;
+}
+
+.dx-th-empty-hint code {
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 11px;
+  color: var(--anth-text-2);
+}
+
+.dx-th-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dx-th-block-head {
+  margin: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--anth-text-3);
+  font-weight: 600;
+}
+
+.dx-th-rows {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 3px 14px;
+}
+
+.dx-th-row {
+  display: contents;
+}
+
+.dx-th-row > dt {
+  color: var(--anth-text-3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  align-self: center;
+}
+
+.dx-th-row > dd {
+  margin: 0;
+  color: var(--anth-text-1, var(--anth-text-2));
+  font-size: 12px;
+  font-family: var(--anth-font-mono, monospace);
+}
+
+.dx-th-row code {
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 11px;
+  color: var(--anth-text-1, var(--anth-text-2));
+}
+
+/* state pill — pairs label + colour ramp. Borrows ramp from the topology
+ * state tokens so the same orange/red/violet read as one app-wide law. */
+.dx-th-state-pill {
+  display: inline-block;
+  padding: 1px 8px;
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--anth-border);
+  color: var(--anth-text-2);
+  background: var(--anth-bg);
+}
+
+.dx-th-state-pill[data-state="healthy"] {
+  color: #3a6a4b;
+  border-color: #3a6a4b;
+}
+.dx-th-state-pill[data-state="warning"] {
+  color: #a26b18;
+  border-color: #a26b18;
+}
+.dx-th-state-pill[data-state="degraded"] {
+  color: #8a2f2f;
+  border-color: #8a2f2f;
+}
+.dx-th-state-pill[data-state="down"] {
+  color: #b22323;
+  border-color: #b22323;
+  font-weight: 600;
+}
+.dx-th-state-pill[data-state="maintenance"] {
+  color: #6b4fab;
+  border-color: #6b4fab;
+}
+.dx-th-state-pill[data-state="unknown"] {
+  color: var(--anth-text-3);
+  border-color: var(--anth-text-3);
+  font-style: italic;
+}
+
+.dx-th-affected-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dx-th-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 96px;
+}
+
+.dx-th-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--anth-text-3);
+}
+
+.dx-th-stat-value {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  color: var(--anth-text-1, var(--anth-text-2));
+  font-family: var(--anth-font-mono, monospace);
+}
+
+.dx-th-neighbours {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dx-th-neighbours-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--anth-text-3);
+}
+
+.dx-th-chip-row {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.dx-th-chip {
+  display: inline-block;
+  padding: 1px 8px;
+  font-family: var(--anth-font-mono, monospace);
+  font-size: 11px;
+  color: var(--anth-text-2);
+  border: 1px solid var(--anth-border);
+  background: var(--anth-bg);
+}
+
+.dx-th-next-line {
+  margin: 0;
+  font-size: 12px;
+  color: var(--anth-text-2);
+}
+
+.dx-th-affected[data-affected="false"] .dx-th-stat-value {
+  color: var(--anth-text-3);
+}
+
+.dx-th-foot {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--anth-border);
+  font-size: 11px;
+  color: var(--anth-text-3);
+  font-style: italic;
+}
+

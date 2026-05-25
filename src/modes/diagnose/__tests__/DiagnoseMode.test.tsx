@@ -324,6 +324,59 @@ describe("DiagnoseMode — V1BZ Topology handoff stub", () => {
     ).toHaveTextContent("dist-02");
   });
 
+  it("V1CA — state pill carries data-state attribute so colour ramp can apply", () => {
+    render(
+      <DiagnoseMode
+        discovery={discoveryEmpty()}
+        topology={topologyEmpty()}
+        activeToolId="topology_handoff"
+        onToolChange={() => {}}
+        topologyHandoff={handoffSample()}
+      />,
+    );
+    const pill = screen.getByTestId("dx-topology-handoff-state");
+    expect(pill.getAttribute("data-state")).toBe("warning");
+    const worst = screen.getByTestId("dx-topology-handoff-worst");
+    expect(worst.getAttribute("data-state")).toBe("warning");
+  });
+
+  it("V1CA — surfaces a next-direction line built from affected scope", () => {
+    render(
+      <DiagnoseMode
+        discovery={discoveryEmpty()}
+        topology={topologyEmpty()}
+        activeToolId="topology_handoff"
+        onToolChange={() => {}}
+        topologyHandoff={handoffSample()}
+      />,
+    );
+    const next = screen.getByTestId("dx-topology-handoff-next");
+    expect(next.textContent).toContain("1 affected neighbour");
+    expect(next.textContent).toContain("1 affected link");
+  });
+
+  it("V1CA — next-direction line is calm when no affected scope", () => {
+    const calm = handoffSample({
+      selected_state: "healthy",
+      affected_neighbor_ids: [],
+      affected_neighbor_labels: [],
+      affected_edge_ids: [],
+      worst_state: undefined,
+    });
+    render(
+      <DiagnoseMode
+        discovery={discoveryEmpty()}
+        topology={topologyEmpty()}
+        activeToolId="topology_handoff"
+        onToolChange={() => {}}
+        topologyHandoff={calm}
+      />,
+    );
+    expect(
+      screen.getByTestId("dx-topology-handoff-next"),
+    ).toHaveTextContent(/no affected neighbourhood/i);
+  });
+
   it("includes a summary string built from the payload", () => {
     render(
       <DiagnoseMode

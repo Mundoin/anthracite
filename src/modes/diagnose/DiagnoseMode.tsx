@@ -471,113 +471,175 @@ function TopologyHandoffCard({ payload }: TopologyHandoffCardProps): JSX.Element
   if (payload === null) {
     return (
       <section
-        className="dx-body dx-body--empty"
+        className="dx-th dx-th--empty"
         data-testid="dx-topology-handoff-empty"
         aria-label="Topology handoff empty"
         role="status"
       >
-        <p>No Topology handoff received yet.</p>
-        <p className="dx-muted">
-          Open Topology, select a node, then click <code>Open in Diagnose ▸</code>{" "}
-          on its passport. This panel will show the picked node, its
-          operational state, source/freshness, and affected neighbourhood.
+        <header className="dx-th-head">
+          <h3 className="dx-th-title">Topology Handoff</h3>
+          <span className="dx-th-stub-tag">stub · v0</span>
+        </header>
+        <p className="dx-th-empty-line">No Topology handoff received yet.</p>
+        <p className="dx-th-empty-hint">
+          Open <strong>Topology</strong>, select a node, then click{" "}
+          <code>Open in Diagnose&nbsp;▸</code> in its passport. This panel
+          will show the picked device, its operational state,
+          source/freshness, and affected neighbourhood.
         </p>
       </section>
     );
   }
 
+  const hasAffected =
+    payload.affected_edge_ids.length > 0 ||
+    payload.affected_neighbor_ids.length > 0;
+  const nextDirection = hasAffected
+    ? `Inspect ${payload.affected_neighbor_ids.length} affected neighbour${payload.affected_neighbor_ids.length === 1 ? "" : "s"} along ${payload.affected_edge_ids.length} affected link${payload.affected_edge_ids.length === 1 ? "" : "s"}.`
+    : "No affected neighbourhood — start with the selected device.";
+
   return (
     <section
-      className="dx-topology-handoff"
+      className="dx-th"
       data-testid="dx-topology-handoff"
       aria-label="Topology handoff"
     >
-      <header className="dx-topology-handoff-header">
-        <h3 className="dx-topology-handoff-title" data-testid="dx-topology-handoff-title">
-          {payload.selected_label}
-        </h3>
-        <p className="dx-topology-handoff-summary" data-testid="dx-topology-handoff-summary">
-          {formatHandoffSummary(payload)}
-        </p>
-      </header>
-      <dl className="dx-topology-handoff-grid">
-        <div className="dx-topology-handoff-row">
-          <dt>Node id</dt>
-          <dd>
-            <code data-testid="dx-topology-handoff-node-id">
-              {payload.selected_node_id}
-            </code>
-          </dd>
-        </div>
-        <div className="dx-topology-handoff-row">
-          <dt>State</dt>
-          <dd
-            data-testid="dx-topology-handoff-state"
+      <header className="dx-th-head">
+        <div className="dx-th-head-left">
+          <h3
+            className="dx-th-title"
+            data-testid="dx-topology-handoff-title"
+          >
+            {payload.selected_label}
+          </h3>
+          <span
+            className="dx-th-state-pill"
             data-state={payload.selected_state}
+            data-testid="dx-topology-handoff-state"
           >
             {payload.selected_state}
-          </dd>
+          </span>
         </div>
-        {payload.selected_role && (
-          <div className="dx-topology-handoff-row">
-            <dt>Role</dt>
-            <dd data-testid="dx-topology-handoff-role">{payload.selected_role}</dd>
-          </div>
-        )}
-        {payload.environment_id && (
-          <div className="dx-topology-handoff-row">
-            <dt>Environment</dt>
+        <span className="dx-th-stub-tag">stub · v0</span>
+      </header>
+
+      <p
+        className="dx-th-summary"
+        data-testid="dx-topology-handoff-summary"
+      >
+        {formatHandoffSummary(payload)}
+      </p>
+
+      <section className="dx-th-block dx-th-identity">
+        <h4 className="dx-th-block-head">Identity</h4>
+        <dl className="dx-th-rows">
+          <div className="dx-th-row">
+            <dt>Node id</dt>
             <dd>
-              <code data-testid="dx-topology-handoff-env">
-                {payload.environment_id}
+              <code data-testid="dx-topology-handoff-node-id">
+                {payload.selected_node_id}
               </code>
             </dd>
           </div>
-        )}
-        <div className="dx-topology-handoff-row">
-          <dt>Source</dt>
-          <dd data-testid="dx-topology-handoff-source">
-            {payload.topology_source_kind ?? "unknown"} ·{" "}
-            {payload.topology_freshness ?? "unknown"}
-          </dd>
-        </div>
-        <div className="dx-topology-handoff-row">
-          <dt>Affected links</dt>
-          <dd data-testid="dx-topology-handoff-link-count">
-            {payload.affected_edge_ids.length}
-          </dd>
-        </div>
-        <div className="dx-topology-handoff-row">
-          <dt>Affected neighbours</dt>
-          <dd data-testid="dx-topology-handoff-neighbor-count">
-            {payload.affected_neighbor_ids.length}
-          </dd>
-        </div>
-        {payload.worst_state && (
-          <div className="dx-topology-handoff-row">
-            <dt>Worst</dt>
-            <dd
-              data-testid="dx-topology-handoff-worst"
-              data-state={payload.worst_state}
-            >
-              {payload.worst_state}
+          {payload.selected_role && (
+            <div className="dx-th-row">
+              <dt>Role</dt>
+              <dd data-testid="dx-topology-handoff-role">
+                {payload.selected_role}
+              </dd>
+            </div>
+          )}
+          {payload.environment_id && (
+            <div className="dx-th-row">
+              <dt>Environment</dt>
+              <dd>
+                <code data-testid="dx-topology-handoff-env">
+                  {payload.environment_id}
+                </code>
+              </dd>
+            </div>
+          )}
+          <div className="dx-th-row">
+            <dt>Source</dt>
+            <dd data-testid="dx-topology-handoff-source">
+              {payload.topology_source_kind ?? "unknown"} ·{" "}
+              {payload.topology_freshness ?? "unknown"}
             </dd>
           </div>
+        </dl>
+      </section>
+
+      <section
+        className="dx-th-block dx-th-affected"
+        data-affected={hasAffected ? "true" : "false"}
+      >
+        <h4 className="dx-th-block-head">Affected scope</h4>
+        <div className="dx-th-affected-stats">
+          <span className="dx-th-stat">
+            <span className="dx-th-stat-label">Links</span>
+            <span
+              className="dx-th-stat-value"
+              data-testid="dx-topology-handoff-link-count"
+            >
+              {payload.affected_edge_ids.length}
+            </span>
+          </span>
+          <span className="dx-th-stat">
+            <span className="dx-th-stat-label">Neighbours</span>
+            <span
+              className="dx-th-stat-value"
+              data-testid="dx-topology-handoff-neighbor-count"
+            >
+              {payload.affected_neighbor_ids.length}
+            </span>
+          </span>
+          {payload.worst_state && (
+            <span className="dx-th-stat dx-th-stat--worst">
+              <span className="dx-th-stat-label">Worst</span>
+              <span
+                className="dx-th-state-pill"
+                data-state={payload.worst_state}
+                data-testid="dx-topology-handoff-worst"
+              >
+                {payload.worst_state}
+              </span>
+            </span>
+          )}
+        </div>
+        {payload.affected_neighbor_labels.length > 0 && (
+          <div
+            className="dx-th-neighbours"
+            data-testid="dx-topology-handoff-neighbors"
+          >
+            <span className="dx-th-neighbours-label">Neighbour labels</span>
+            <ul className="dx-th-chip-row">
+              {payload.affected_neighbor_labels.map((lbl, idx) => (
+                <li
+                  key={`${lbl}-${idx}`}
+                  className="dx-th-chip"
+                >
+                  {lbl}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
-      </dl>
-      {payload.affected_neighbor_labels.length > 0 && (
-        <section
-          className="dx-topology-handoff-neighbors"
-          data-testid="dx-topology-handoff-neighbors"
+      </section>
+
+      <section className="dx-th-block dx-th-next">
+        <h4 className="dx-th-block-head">Next direction</h4>
+        <p
+          className="dx-th-next-line"
+          data-testid="dx-topology-handoff-next"
         >
-          <h4 className="dx-topology-handoff-subheading">Neighbour labels</h4>
-          <p>{payload.affected_neighbor_labels.join(" · ")}</p>
-        </section>
-      )}
-      <p className="dx-muted dx-topology-handoff-stub-note">
-        Stub view (V1BZ). Full Diagnose workflow lands later — this panel
-        only proves the topology → diagnose handoff path.
-      </p>
+          {nextDirection}
+        </p>
+      </section>
+
+      <footer className="dx-th-foot">
+        Handoff preview. Full Diagnose workflow (config audit, hypothesis
+        ranking, path trace) lands in later stages.
+      </footer>
     </section>
   );
 }
