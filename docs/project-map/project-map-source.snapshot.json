@@ -4575,5 +4575,374 @@
       "V1W",
       "parser-lab prep corpora"
     ]
+  },
+  "roadmap": {
+    "anchor_commit": "2b68510",
+    "anchor_summary": "stage-v1ca: polish diagnose topology handoff surface",
+    "endgame": {
+      "one_line": "Anthracite is the read-only network truth workstation that turns live access and imported evidence into topology, diagnosis, and safe-change preparation.",
+      "customer_sentence": "Anthracite gives network engineers a trusted operating desk that turns read-only network evidence into live topology, affected-path understanding, diagnosis, and safe-change preparation.",
+      "investor_sentence": "Anthracite is the trust layer between network reality and network automation.",
+      "expensive_questions": [
+        "What do I actually have?",
+        "What is connected to what?",
+        "What is broken, risky, stale, or unknown?",
+        "What should I safely investigate or change next?"
+      ],
+      "product_loop": "Read-only access → evidence receipts → inventory truth → topology truth → affected-path understanding → Diagnose explanation → Assessment → Safe action preparation"
+    },
+    "lanes": [
+      {
+        "id": "truth_acquisition",
+        "title": "Lane 1 — Truth Acquisition",
+        "goal": "Anthracite can collect or ingest facts without manual config hand-curation.",
+        "includes": [
+          "Read-only credential model",
+          "Device contact safety",
+          "SSH / SNMP / API collection shell",
+          "Imported evidence adapter",
+          "Parser / receipt ingestion",
+          "Neighbour discovery",
+          "Collection receipts",
+          "Evidence history"
+        ]
+      },
+      {
+        "id": "truth_model",
+        "title": "Lane 2 — Truth Model",
+        "goal": "Anthracite can explain why it believes a device, link, state, or risk exists.",
+        "includes": [
+          "Source-neutral topology contract",
+          "Inventory model",
+          "Node / edge confidence",
+          "Evidence provenance",
+          "Source / freshness",
+          "State derivation",
+          "Source merge",
+          "Conflict handling",
+          "Drift / risk / blast-radius model"
+        ]
+      },
+      {
+        "id": "operator_workflow",
+        "title": "Lane 3 — Operator Workflow",
+        "goal": "Anthracite turns truth into operator decisions.",
+        "includes": [
+          "Topology operating desk",
+          "Affected focus",
+          "Diagnose handoff",
+          "Diagnose explanation",
+          "Assessment output",
+          "Safe-change prep",
+          "Future automation handoff"
+        ]
+      }
+    ],
+    "campaigns": [
+      {
+        "id": "week_1",
+        "title": "Week 1 — First Real Evidence Loop",
+        "theme": "Move beyond Fabricator-only truth.",
+        "goal": "Imported or read-only collected facts can enter the same topology/source pipeline as generated labs.",
+        "items": [
+          {
+            "id": "V1CB",
+            "title": "V1CB — Imported Evidence → Topology Adapter",
+            "why": "Proves Anthracite is not only a generated-lab toy.",
+            "acceptance": "Imported evidence renders on the same Topology canvas path as Fabricator. Topology shows source as Imported. Affected focus and Diagnose handoff still work."
+          },
+          {
+            "id": "V1CC",
+            "title": "V1CC — Read-Only Collection Target Model",
+            "why": "Enterprise customers give constrained access, not zip files of configs.",
+            "acceptance": "Operator can define a read-only discovery target model without running live collection yet. Credential reference, not plaintext."
+          },
+          {
+            "id": "V1CD",
+            "title": "V1CD — Collection Receipt Model",
+            "why": "Enterprise trust comes from evidence, not magic.",
+            "acceptance": "Imported topology and future live collection can both attach receipts (what / source / when / method / accepted / rejected / confidence / freshness)."
+          },
+          {
+            "id": "V1CE",
+            "title": "V1CE — Live Collector Dry-Run Shell",
+            "why": "Bridge from model to field execution. No real risky device contact yet.",
+            "acceptance": "Anthracite can say: 'If run, I would contact these devices with these read-only methods and produce these receipt types.' No polling daemon, no scheduler, no background loop."
+          }
+        ]
+      },
+      {
+        "id": "month_1",
+        "title": "Month 1 — Read-Only Discovery MVP",
+        "theme": "Anthracite starts proving truth from access.",
+        "goal": "Credible demo where Anthracite uses imported evidence and first read-only collection paths to build inventory/topology and open Diagnose context.",
+        "items": [
+          {
+            "id": "M1",
+            "title": "M1 — Imported Evidence Topology Complete",
+            "notes": [
+              "Parser receipts to nodes",
+              "Neighbour evidence to edges",
+              "Evidence references on node / link",
+              "Source label: Imported",
+              "Fallback handling for partial evidence"
+            ]
+          },
+          {
+            "id": "M2",
+            "title": "M2 — Read-Only Collection Skeleton",
+            "notes": [
+              "Target model",
+              "Collection plan",
+              "Credential reference",
+              "Run request",
+              "Receipt object",
+              "No destructive methods"
+            ]
+          },
+          {
+            "id": "M3",
+            "title": "M3 — First Single-Device Collector",
+            "notes": [
+              "One device, read-only command or SNMP",
+              "Fixture-backed first, optional field smoke after",
+              "Facts: hostname, vendor/platform, interfaces, neighbour output, basic reachability, software/version"
+            ]
+          },
+          {
+            "id": "M4",
+            "title": "M4 — Inventory Truth Surface",
+            "notes": [
+              "Hostname / vendor / platform / role",
+              "Source / last observed / confidence / state",
+              "Evidence link",
+              "Devices mode becomes useful, not decorative"
+            ]
+          },
+          {
+            "id": "M5",
+            "title": "M5 — Diagnose Explanation Seed",
+            "notes": [
+              "Upgrade Diagnose from handoff display to first explanation",
+              "Deterministic examples (warning device, affected links, worst state, source kind, next check)",
+              "No AI required — deterministic first"
+            ]
+          },
+          {
+            "id": "M6",
+            "title": "M6 — Assessment Summary v0",
+            "notes": [
+              "Environment + inventory + topology + affected + stale/unknown + recommendations + source/freshness summary",
+              "HTML first; PDF later"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "month_2",
+        "title": "Month 2 — Trust, Scale, Source Merge",
+        "theme": "Anthracite becomes believable for bigger environments.",
+        "goal": "Merge imported/live/fabricated evidence, show confidence, explain provenance, remain usable at larger scale.",
+        "items": [
+          {
+            "id": "M2.1",
+            "title": "M2.1 — Multi-Source Merge v0",
+            "answers": "Why does Anthracite believe this device/link exists?",
+            "notes": [
+              "Source priority",
+              "Merge identity",
+              "Conflict handling",
+              "Duplicate detection",
+              "Confidence scoring"
+            ]
+          },
+          {
+            "id": "M2.2",
+            "title": "M2.2 — Evidence Drilldown",
+            "answers": "Show me the proof.",
+            "notes": [
+              "Source / timestamp / receipt / method / confidence / raw snippet"
+            ]
+          },
+          {
+            "id": "M2.3",
+            "title": "M2.3 — Freshness Aging",
+            "answers": "How old is this truth?",
+            "notes": [
+              "fresh / stale / static / unknown",
+              "last observed / generated at / imported at"
+            ]
+          },
+          {
+            "id": "M2.4",
+            "title": "M2.4 — Collection Run History",
+            "answers": "What happened during collection?",
+            "notes": [
+              "run id / target / status / started / finished / facts collected / failures / receipts"
+            ]
+          },
+          {
+            "id": "M2.5",
+            "title": "M2.5 — Topology Scale Pass",
+            "answers": "Can this survive real enterprise size?",
+            "notes": [
+              "100+ / 500+ / 1000+",
+              "density modes",
+              "cluster handling",
+              "search/find",
+              "state filtering",
+              "source filtering"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "month_3",
+        "title": "Month 3 — Diagnose + Safe Action",
+        "theme": "Anthracite moves from truth to decision.",
+        "goal": "Engineer can select a problem, understand why it matters, see evidence, and prepare safe next action.",
+        "items": [
+          {
+            "id": "M3.1",
+            "title": "M3.1 — Diagnose Explanation Engine v0",
+            "notes": [
+              "Inputs: selected device/link, state, source, affected focus, evidence, freshness",
+              "Outputs: likely issue category, affected scope, evidence summary, next checks, confidence"
+            ]
+          },
+          {
+            "id": "M3.2",
+            "title": "M3.2 — Path Trace / Blast Radius v0",
+            "answers": "What is the blast area?",
+            "notes": [
+              "Selected affected path",
+              "Dependent neighbours",
+              "Critical links",
+              "Isolation candidates",
+              "Upstream / downstream context"
+            ]
+          },
+          {
+            "id": "M3.3",
+            "title": "M3.3 — Config Drift / Baseline Check v0",
+            "answers": "What changed or violates baseline?",
+            "notes": [
+              "Use imported / live config evidence",
+              "Expected vs observed",
+              "Missing neighbour config",
+              "Interface shutdown / mismatch",
+              "Protocol hints"
+            ]
+          },
+          {
+            "id": "M3.4",
+            "title": "M3.4 — Recommendation Cards",
+            "answers": "What should I do next?",
+            "notes": [
+              "Verify interface status on X",
+              "Inspect neighbour Y",
+              "Check stale source",
+              "Collect fresh evidence",
+              "Compare config section",
+              "Prepare change intent"
+            ]
+          },
+          {
+            "id": "M3.5",
+            "title": "M3.5 — Safe Change Preparation",
+            "answers": "If I need to fix this, how do I do it safely?",
+            "notes": [
+              "Change intent draft",
+              "Affected devices",
+              "Pre-checks",
+              "Rollback notes",
+              "Validation checklist",
+              "Config snippet later"
+            ]
+          }
+        ]
+      }
+    ],
+    "next_ten_stages": [
+      {
+        "id": "V1CB",
+        "title": "V1CB — Imported Evidence → Topology Adapter"
+      },
+      {
+        "id": "V1CC",
+        "title": "V1CC — Read-Only Collection Target Model"
+      },
+      {
+        "id": "V1CD",
+        "title": "V1CD — Collection Receipt Model"
+      },
+      {
+        "id": "V1CE",
+        "title": "V1CE — Live Collector Dry-Run Shell"
+      },
+      {
+        "id": "V1CF-NEW",
+        "title": "V1CF — Single-Device Read-Only Collector v0"
+      },
+      {
+        "id": "V1CG-NEW",
+        "title": "V1CG — Inventory Truth Surface"
+      },
+      {
+        "id": "V1CH",
+        "title": "V1CH — Source Merge + Confidence v0"
+      },
+      {
+        "id": "V1CI",
+        "title": "V1CI — Evidence Drilldown v0"
+      },
+      {
+        "id": "V1CJ",
+        "title": "V1CJ — Diagnose Explanation Seed"
+      },
+      {
+        "id": "V1CK",
+        "title": "V1CK — Assessment Summary v0"
+      }
+    ],
+    "customer_demos": [
+      {
+        "id": "demo_1",
+        "title": "Demo 1 — Truth from Imported Evidence",
+        "summary": "Import existing parser/neighbour evidence. Anthracite builds topology and shows source/provenance."
+      },
+      {
+        "id": "demo_2",
+        "title": "Demo 2 — Truth from Read-Only Access",
+        "summary": "Define a read-only target. Run collection plan. Produce inventory/topology facts with receipts."
+      },
+      {
+        "id": "demo_3",
+        "title": "Demo 3 — Operational Understanding",
+        "summary": "Select affected node. Anthracite highlights affected links/neighbours. Open Diagnose. Diagnose explains the local situation."
+      },
+      {
+        "id": "demo_4",
+        "title": "Demo 4 — Assessment",
+        "summary": "Generate a report: inventory, topology, affected areas, stale/unknown items, recommendations."
+      }
+    ],
+    "anti_distractions": [
+      "Icon perfection",
+      "Tiny typography fights",
+      "Endless generated-lab polish",
+      "Fake automation",
+      "Full AI reasoning before deterministic explanations",
+      "PDF before HTML assessment works",
+      "Massive live polling before single-shot collection works"
+    ],
+    "focus_keywords": [
+      "read-only truth",
+      "evidence",
+      "topology",
+      "diagnose",
+      "assessment",
+      "safe action"
+    ]
   }
 }

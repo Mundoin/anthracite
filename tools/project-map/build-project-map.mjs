@@ -760,6 +760,253 @@ code { font-family: var(--apm-mono); font-size: 12px; }
   .apm-swimlane { grid-template-columns: 1fr; }
   .apm-swimlane-label { border-right: 0; border-bottom: 1px dashed var(--apm-line); padding-right: 0; padding-bottom: 4px; }
 }
+
+/* ---- Roadmap view ---- */
+.apm-roadmap-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--apm-line);
+  background: var(--apm-bg-2, var(--apm-bg));
+  margin-bottom: 16px;
+}
+.apm-roadmap-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  align-items: center;
+  font-size: 12px;
+}
+.apm-roadmap-count { color: var(--apm-text-3); }
+.apm-roadmap-count strong { color: var(--apm-text-1, var(--apm-text-2)); margin-right: 4px; font-size: 14px; }
+.apm-roadmap-count--done strong { color: #3a6a4b; }
+.apm-roadmap-count--prog strong { color: #a26b18; }
+.apm-roadmap-count--plan strong { color: var(--apm-text-3); }
+.apm-roadmap-count--pct strong { color: #0E72A0; }
+.apm-roadmap-actions { margin-left: auto; display: flex; gap: 6px; }
+.apm-roadmap-btn {
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid var(--apm-line);
+  background: transparent;
+  color: var(--apm-text-2);
+  cursor: pointer;
+}
+.apm-roadmap-btn:hover { background: var(--apm-bg-3, var(--apm-line)); }
+.apm-roadmap-bar {
+  position: relative;
+  height: 6px;
+  border: 1px solid var(--apm-line);
+  background: var(--apm-bg);
+  overflow: hidden;
+}
+.apm-roadmap-bar-done {
+  position: absolute; top: 0; left: 0; bottom: 0;
+  background: #3a6a4b;
+}
+.apm-roadmap-bar-prog {
+  position: absolute; top: 0; bottom: 0;
+  left: 0;
+  background: #a26b18;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  margin-left: 0;
+}
+.apm-roadmap-bar-done + .apm-roadmap-bar-prog {
+  /* prog overlays after done — JS sets widths separately; visually layered */
+}
+
+.apm-roadmap-block,
+.apm-roadmap-campaign,
+.apm-roadmap-endgame,
+.apm-roadmap-tail {
+  border: 1px solid var(--apm-line);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: var(--apm-bg-2, var(--apm-bg));
+}
+
+.apm-roadmap-section-head {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--apm-text-2);
+  font-weight: 600;
+}
+
+.apm-roadmap-endgame-line {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--apm-text-1, var(--apm-text-2));
+}
+.apm-roadmap-endgame-sub {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--apm-text-2);
+}
+.apm-roadmap-endgame-questions {
+  margin: 6px 0 6px 18px;
+  padding: 0;
+  font-size: 12px;
+  color: var(--apm-text-2);
+}
+.apm-roadmap-endgame-questions li { margin: 2px 0; }
+.apm-roadmap-endgame-loop {
+  margin: 8px 0 0;
+  font-size: 11px;
+  font-family: var(--apm-font-mono, monospace);
+  color: var(--apm-text-3);
+  padding: 6px 8px;
+  background: var(--apm-bg);
+  border: 1px dashed var(--apm-line);
+}
+
+.apm-roadmap-lanes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.apm-roadmap-lane {
+  border: 1px solid var(--apm-line);
+  padding: 10px 12px;
+  background: var(--apm-bg);
+}
+.apm-roadmap-lane-title {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--apm-text-1, var(--apm-text-2));
+}
+.apm-roadmap-lane-goal {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: var(--apm-text-2);
+}
+.apm-roadmap-lane-includes {
+  margin: 0 0 0 16px;
+  padding: 0;
+  font-size: 11px;
+  color: var(--apm-text-2);
+}
+.apm-roadmap-lane-includes li { margin: 1px 0; }
+
+.apm-roadmap-campaign-head { margin-bottom: 8px; }
+.apm-roadmap-campaign-theme,
+.apm-roadmap-campaign-goal {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--apm-text-2);
+}
+
+.apm-roadmap-item {
+  display: block;
+  border: 1px solid var(--apm-line);
+  padding: 8px 12px;
+  margin: 6px 0;
+  background: var(--apm-bg);
+  cursor: pointer;
+  transition: background 80ms, border-color 80ms;
+  outline: none;
+}
+.apm-roadmap-item:hover,
+.apm-roadmap-item:focus-visible {
+  background: var(--apm-bg-3, var(--apm-line));
+  border-color: var(--apm-text-3);
+}
+
+.apm-roadmap-item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.apm-roadmap-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--apm-text-3);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--apm-text-3);
+  background: var(--apm-bg);
+}
+.apm-roadmap-item-title {
+  flex: 1;
+  font-weight: 500;
+  color: var(--apm-text-1, var(--apm-text-2));
+}
+.apm-roadmap-state {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+}
+.apm-roadmap-state--planned { color: var(--apm-text-3); }
+.apm-roadmap-state--in_progress { color: #a26b18; }
+.apm-roadmap-state--done { color: #3a6a4b; }
+
+.apm-roadmap-item--done {
+  background: rgba(58, 106, 75, 0.06);
+  border-left: 3px solid #3a6a4b;
+}
+.apm-roadmap-item--done .apm-roadmap-tick {
+  color: #3a6a4b;
+  border-color: #3a6a4b;
+}
+.apm-roadmap-item--done .apm-roadmap-item-title {
+  text-decoration: line-through;
+  text-decoration-color: rgba(58, 106, 75, 0.5);
+  color: var(--apm-text-3);
+}
+.apm-roadmap-item--in_progress {
+  background: rgba(162, 107, 24, 0.06);
+  border-left: 3px solid #a26b18;
+}
+.apm-roadmap-item--in_progress .apm-roadmap-tick {
+  color: #a26b18;
+  border-color: #a26b18;
+}
+
+.apm-roadmap-item-body {
+  margin: 6px 0 0 28px;
+  font-size: 11px;
+  color: var(--apm-text-2);
+}
+.apm-roadmap-item-body p { margin: 2px 0; }
+.apm-roadmap-item-label {
+  color: var(--apm-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+.apm-roadmap-item-notes {
+  margin: 4px 0 0 18px;
+  padding: 0;
+}
+.apm-roadmap-item-notes li { margin: 1px 0; }
+
+.apm-roadmap-list { display: flex; flex-direction: column; }
+
+.apm-roadmap-focus-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.apm-roadmap-focus-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-family: var(--apm-font-mono, monospace);
+  color: var(--apm-text-2);
+  border: 1px solid var(--apm-line);
+  background: var(--apm-bg);
+}
 `;
 
 // JS — vanilla, no framework. Reads embedded JSON, renders 7 views,
@@ -782,6 +1029,7 @@ const JS = `
 
   const VIEWS = [
     { id: 'arcs',       label: 'Arc Timeline' },
+    { id: 'roadmap',    label: 'Roadmap' },
     { id: 'deps',       label: 'Dependency Map' },
     { id: 'caps',       label: 'Capability Matrix' },
     { id: 'deferred',   label: 'Deferred / Left Undone' },
@@ -789,6 +1037,30 @@ const JS = `
     { id: 'questions',  label: 'Open Questions' },
     { id: 'evidence',   label: 'Evidence / Sources' },
   ];
+
+  // V1CA — Roadmap localStorage persistence. Each clickable item flips
+  // between 'planned', 'in_progress', and 'done'. Stored under one key
+  // so a reload restores progress.
+  const ROADMAP_STORAGE_KEY = 'anthracite-roadmap-progress-v1';
+  function loadRoadmapProgress() {
+    try {
+      const raw = localStorage.getItem(ROADMAP_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  }
+  function saveRoadmapProgress(p) {
+    try { localStorage.setItem(ROADMAP_STORAGE_KEY, JSON.stringify(p)); } catch {}
+  }
+  function nextRoadmapState(curr) {
+    if (curr === 'done') return 'planned';
+    if (curr === 'in_progress') return 'done';
+    return 'in_progress';
+  }
+  function roadmapStateLabel(s) {
+    if (s === 'done') return 'done';
+    if (s === 'in_progress') return 'in progress';
+    return 'planned';
+  }
 
   const state = {
     view: 'arcs',
@@ -940,6 +1212,7 @@ const JS = `
     const root = clear(document.getElementById('apm-main'));
     switch (state.view) {
       case 'arcs':      return renderArcsView(root);
+      case 'roadmap':   return renderRoadmapView(root);
       case 'deps':      return renderDepsView(root);
       case 'caps':      return renderCapsView(root);
       case 'deferred':  return renderDeferredView(root);
@@ -947,6 +1220,239 @@ const JS = `
       case 'questions': return renderQuestionsView(root);
       case 'evidence':  return renderEvidenceView(root);
     }
+  }
+
+  // V1CA — 3-month roadmap with clickable per-item progress. Items
+  // cycle: planned → in_progress → done → planned. State persists
+  // in localStorage; reload restores progress.
+  function renderRoadmapView(root) {
+    const rm = data.roadmap || null;
+    if (!rm) {
+      root.appendChild(el('p', { class: 'apm-view-sub' },
+        'No roadmap defined in the source JSON.'));
+      return;
+    }
+
+    let progress = loadRoadmapProgress();
+
+    const allItems = [];
+    (rm.campaigns || []).forEach(c => (c.items || []).forEach(it => allItems.push(it.id)));
+    (rm.next_ten_stages || []).forEach(it => allItems.push(it.id));
+    (rm.customer_demos || []).forEach(it => allItems.push(it.id));
+    (rm.anti_distractions || []).forEach((_, idx) => allItems.push('avoid-' + idx));
+
+    function totals() {
+      let done = 0, prog = 0, plan = 0;
+      allItems.forEach(id => {
+        const s = progress[id] || 'planned';
+        if (s === 'done') done++;
+        else if (s === 'in_progress') prog++;
+        else plan++;
+      });
+      return { done, prog, plan, total: allItems.length };
+    }
+
+    function toggle(id) {
+      progress[id] = nextRoadmapState(progress[id] || 'planned');
+      saveRoadmapProgress(progress);
+      renderRoadmapView(clear(document.getElementById('apm-main')));
+    }
+
+    function resetAll() {
+      if (!confirm('Reset all roadmap progress?')) return;
+      progress = {};
+      saveRoadmapProgress(progress);
+      renderRoadmapView(clear(document.getElementById('apm-main')));
+    }
+
+    function markAllDone() {
+      if (!confirm('Mark every roadmap item as done?')) return;
+      allItems.forEach(id => { progress[id] = 'done'; });
+      saveRoadmapProgress(progress);
+      renderRoadmapView(clear(document.getElementById('apm-main')));
+    }
+
+    function clickableItem(id, title, extras) {
+      const s = progress[id] || 'planned';
+      const item = el('div', {
+        class: 'apm-roadmap-item apm-roadmap-item--' + s,
+        role: 'button',
+        tabindex: '0',
+        title: 'Click to cycle: planned → in progress → done',
+        onclick: () => toggle(id),
+        onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(id); } },
+      });
+      const head = el('div', { class: 'apm-roadmap-item-head' },
+        el('span', { class: 'apm-roadmap-tick' }, s === 'done' ? '✓' : (s === 'in_progress' ? '◐' : '○')),
+        el('span', { class: 'apm-roadmap-item-title' }, title),
+        el('span', { class: 'apm-roadmap-state apm-roadmap-state--' + s }, roadmapStateLabel(s)),
+      );
+      item.appendChild(head);
+      if (extras) item.appendChild(extras);
+      return item;
+    }
+
+    // Header strip
+    const header = el('section', { class: 'apm-roadmap-header' });
+    header.appendChild(el('h2', { class: 'apm-view-heading' }, 'Roadmap'));
+    header.appendChild(el('p', { class: 'apm-view-sub' },
+      'Anthracite V1 — 3-month product roadmap. Anchor: ',
+      el('code', {}, rm.anchor_commit || ''),
+      ' ', rm.anchor_summary || '',
+      '. Click any item to cycle planned → in progress → done. Progress is stored locally in this browser.'));
+
+    const t = totals();
+    const counts = el('div', { class: 'apm-roadmap-counts' });
+    counts.appendChild(el('span', { class: 'apm-roadmap-count apm-roadmap-count--done' },
+      el('strong', {}, String(t.done)), ' done'));
+    counts.appendChild(el('span', { class: 'apm-roadmap-count apm-roadmap-count--prog' },
+      el('strong', {}, String(t.prog)), ' in progress'));
+    counts.appendChild(el('span', { class: 'apm-roadmap-count apm-roadmap-count--plan' },
+      el('strong', {}, String(t.plan)), ' planned'));
+    counts.appendChild(el('span', { class: 'apm-roadmap-count' },
+      el('strong', {}, String(t.total)), ' total'));
+    const pct = t.total === 0 ? 0 : Math.round((t.done / t.total) * 100);
+    counts.appendChild(el('span', { class: 'apm-roadmap-count apm-roadmap-count--pct' },
+      el('strong', {}, pct + '%'), ' complete'));
+    const actions = el('div', { class: 'apm-roadmap-actions' },
+      el('button', { class: 'apm-roadmap-btn', type: 'button', onclick: markAllDone }, 'Mark all done'),
+      el('button', { class: 'apm-roadmap-btn', type: 'button', onclick: resetAll }, 'Reset progress'),
+    );
+    counts.appendChild(actions);
+    header.appendChild(counts);
+
+    // Progress bar
+    const bar = el('div', { class: 'apm-roadmap-bar' });
+    bar.appendChild(el('div', {
+      class: 'apm-roadmap-bar-done',
+      style: 'width:' + (t.total ? (t.done / t.total) * 100 : 0) + '%',
+    }));
+    bar.appendChild(el('div', {
+      class: 'apm-roadmap-bar-prog',
+      style: 'width:' + (t.total ? (t.prog / t.total) * 100 : 0) + '%',
+    }));
+    header.appendChild(bar);
+    root.appendChild(header);
+
+    // Endgame card
+    if (rm.endgame) {
+      const card = el('section', { class: 'apm-roadmap-endgame' });
+      card.appendChild(el('h3', { class: 'apm-roadmap-section-head' }, 'Endgame'));
+      card.appendChild(el('p', { class: 'apm-roadmap-endgame-line' }, rm.endgame.one_line || ''));
+      if (rm.endgame.customer_sentence) {
+        card.appendChild(el('p', { class: 'apm-roadmap-endgame-sub' },
+          el('strong', {}, 'Customer: '), rm.endgame.customer_sentence));
+      }
+      if (rm.endgame.investor_sentence) {
+        card.appendChild(el('p', { class: 'apm-roadmap-endgame-sub' },
+          el('strong', {}, 'Investor: '), rm.endgame.investor_sentence));
+      }
+      if (Array.isArray(rm.endgame.expensive_questions)) {
+        const ul = el('ul', { class: 'apm-roadmap-endgame-questions' });
+        rm.endgame.expensive_questions.forEach(q => ul.appendChild(el('li', {}, q)));
+        card.appendChild(ul);
+      }
+      if (rm.endgame.product_loop) {
+        card.appendChild(el('p', { class: 'apm-roadmap-endgame-loop' }, rm.endgame.product_loop));
+      }
+      root.appendChild(card);
+    }
+
+    // Lanes
+    if (Array.isArray(rm.lanes) && rm.lanes.length > 0) {
+      const lanesSec = el('section', { class: 'apm-roadmap-block' });
+      lanesSec.appendChild(el('h3', { class: 'apm-roadmap-section-head' }, 'Three Product Lanes'));
+      const lanesGrid = el('div', { class: 'apm-roadmap-lanes' });
+      rm.lanes.forEach(lane => {
+        const laneCard = el('div', { class: 'apm-roadmap-lane' });
+        laneCard.appendChild(el('h4', { class: 'apm-roadmap-lane-title' }, lane.title || lane.id));
+        if (lane.goal) laneCard.appendChild(el('p', { class: 'apm-roadmap-lane-goal' },
+          el('strong', {}, 'Goal: '), lane.goal));
+        if (Array.isArray(lane.includes)) {
+          const ul = el('ul', { class: 'apm-roadmap-lane-includes' });
+          lane.includes.forEach(i => ul.appendChild(el('li', {}, i)));
+          laneCard.appendChild(ul);
+        }
+        lanesGrid.appendChild(laneCard);
+      });
+      lanesSec.appendChild(lanesGrid);
+      root.appendChild(lanesSec);
+    }
+
+    // Campaigns + items
+    (rm.campaigns || []).forEach(c => {
+      const camp = el('section', { class: 'apm-roadmap-campaign' });
+      const head = el('header', { class: 'apm-roadmap-campaign-head' });
+      head.appendChild(el('h3', { class: 'apm-roadmap-section-head' }, c.title || c.id));
+      if (c.theme) head.appendChild(el('p', { class: 'apm-roadmap-campaign-theme' },
+        el('strong', {}, 'Theme: '), c.theme));
+      if (c.goal) head.appendChild(el('p', { class: 'apm-roadmap-campaign-goal' },
+        el('strong', {}, 'Goal: '), c.goal));
+      camp.appendChild(head);
+      (c.items || []).forEach(it => {
+        const extras = el('div', { class: 'apm-roadmap-item-body' });
+        if (it.why) extras.appendChild(el('p', {},
+          el('strong', { class: 'apm-roadmap-item-label' }, 'Why: '), it.why));
+        if (it.acceptance) extras.appendChild(el('p', {},
+          el('strong', { class: 'apm-roadmap-item-label' }, 'Acceptance: '), it.acceptance));
+        if (it.answers) extras.appendChild(el('p', {},
+          el('strong', { class: 'apm-roadmap-item-label' }, 'Answers: '), it.answers));
+        if (Array.isArray(it.notes) && it.notes.length > 0) {
+          const ul = el('ul', { class: 'apm-roadmap-item-notes' });
+          it.notes.forEach(n => ul.appendChild(el('li', {}, n)));
+          extras.appendChild(ul);
+        }
+        camp.appendChild(clickableItem(it.id, it.title || it.id, extras));
+      });
+      root.appendChild(camp);
+    });
+
+    // Next 10 stages
+    if (Array.isArray(rm.next_ten_stages) && rm.next_ten_stages.length > 0) {
+      const sec = el('section', { class: 'apm-roadmap-block' });
+      sec.appendChild(el('h3', { class: 'apm-roadmap-section-head' }, 'Next 10 Stages'));
+      sec.appendChild(el('p', { class: 'apm-view-sub' },
+        'Concrete near-term execution order. Click to track.'));
+      const list = el('div', { class: 'apm-roadmap-list' });
+      rm.next_ten_stages.forEach(it => {
+        list.appendChild(clickableItem(it.id, it.title || it.id, null));
+      });
+      sec.appendChild(list);
+      root.appendChild(sec);
+    }
+
+    // Customer demos
+    if (Array.isArray(rm.customer_demos) && rm.customer_demos.length > 0) {
+      const sec = el('section', { class: 'apm-roadmap-block' });
+      sec.appendChild(el('h3', { class: 'apm-roadmap-section-head' }, 'Customer Demo Paths'));
+      rm.customer_demos.forEach(d => {
+        const extras = d.summary ? el('p', { class: 'apm-roadmap-item-body' }, d.summary) : null;
+        sec.appendChild(clickableItem(d.id, d.title || d.id, extras));
+      });
+      root.appendChild(sec);
+    }
+
+    // Anti-distractions
+    if (Array.isArray(rm.anti_distractions) && rm.anti_distractions.length > 0) {
+      const sec = el('section', { class: 'apm-roadmap-block' });
+      sec.appendChild(el('h3', { class: 'apm-roadmap-section-head' }, 'Anti-Distractions'));
+      sec.appendChild(el('p', { class: 'apm-view-sub' },
+        'Items to avoid spending too long on. Toggle when consciously deprioritised.'));
+      rm.anti_distractions.forEach((line, idx) => {
+        sec.appendChild(clickableItem('avoid-' + idx, line, null));
+      });
+      root.appendChild(sec);
+    }
+
+    // Focus keywords + one-liners
+    const tail = el('section', { class: 'apm-roadmap-tail' });
+    if (Array.isArray(rm.focus_keywords) && rm.focus_keywords.length > 0) {
+      const chips = el('div', { class: 'apm-roadmap-focus-chips' });
+      rm.focus_keywords.forEach(k => chips.appendChild(el('span', { class: 'apm-roadmap-focus-chip' }, k)));
+      tail.appendChild(el('h4', { class: 'apm-roadmap-section-head' }, 'Focus'));
+      tail.appendChild(chips);
+    }
+    root.appendChild(tail);
   }
 
   function renderArcsView(root) {
