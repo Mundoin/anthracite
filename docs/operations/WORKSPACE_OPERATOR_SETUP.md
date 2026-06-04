@@ -73,10 +73,7 @@ Logic:
 Tracked source inputs:
 
 - Code/docs roots: `src/`, `src-tauri/`, `docs/`, `obsidian/`
-- Curated `.agents/` subpaths only: `.agents/README.md`,
-  `.agents/learnings/`, `.agents/patterns/`, `.agents/findings/`,
-  `.agents/decisions/`, `.agents/planning-rules/`, `.agents/council/`,
-  `.agents/runs/`
+
 - Top-level config/docs: `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`,
   `tsconfig.json`, `tsconfig.node.json`, `vite.config.ts`, `AGENTS.md`,
   `CLAUDE.md`, `PRODUCT.md`, `GOALS.md`, `README.md`

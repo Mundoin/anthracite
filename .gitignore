@@ -29,16 +29,11 @@ pnpm-debug.log*
 .env
 .env.*.local
 
-# --- AgentOps (.agents/ is a tracked markdown wiki — ignore only runtime state) ---
-# Keep tracked: .agents/README.md, decisions/, findings/, learnings/, patterns/,
-#   planning-rules/, runs/, council/, handoff/ — these are version-controlled.
-# Ignore: daemon activation, caches, scratch, logs.
-.agents/daemon/
-.agents/cache/
-.agents/.cache/
-.agents/tmp/
-.agents/**/*.tmp
-.agents/**/*.log
+# AgentOps / AO runtime state
+# AO owns this directory locally. Durable knowledge is promoted into tracked
+# docs/operations/, obsidian/, AGENTS.md, CLAUDE.md, GOALS.md, or PRODUCT.md.
+/.agents/
+.agents/
 
 # --- Graphify generated artifacts ---
 graphify-out/
@@ -55,29 +50,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# AgentOps session artifacts
-
-# AgentOps session artifacts
-
 # Local Claude runtime settings
 .claude/
-
-# --- AgentOps churn / runtime / auto-generated state ---
-.agents/ao/
-.agents/knowledge/
-.agents/pool/
-.agents/defrag/
-.agents/signals/
-.agents/handoff/stop-*.md
-.agents/handoff/auto-*.json
-.agents/learnings/2026-*.md
-.agents/**/*.jsonl
-
-# AgentOps session artifacts
-/.agents/
-
-# AgentOps session artifacts
-.agents/
 
 # Local Obsidian workspace state
 obsidian/.obsidian/
