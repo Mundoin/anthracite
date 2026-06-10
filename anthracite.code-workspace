@@ -40,13 +40,13 @@
       {
         "splitTerminals": [
           {
-            "name": "Anthracite — APP RUNNER",
+            "name": "Anthracite - App / Git",
             "commands": [
               "Set-Location 'D:\\Repos\\anthracite'",
               "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
               "powershell -ExecutionPolicy Bypass -File .\\tools\\workspace-status.ps1",
               "powershell -ExecutionPolicy Bypass -File .\\tools\\graphify-freshness.ps1",
-              "Write-Host 'App runner ready. Start manually with: pnpm tauri:dev'"
+              "Write-Host 'Repo ready. Dev: pnpm tauri:dev'"
             ]
           }
         ]
@@ -54,7 +54,7 @@
       {
         "splitTerminals": [
           {
-            "name": "Anthracite — AO DAEMON",
+            "name": "Anthracite - AO Daemon",
             "commands": [
               "Set-Location 'D:\\Repos\\anthracite'",
               "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
@@ -67,12 +67,10 @@
       {
         "splitTerminals": [
           {
-            "name": "Anthracite — CLAUDE CODE",
+            "name": "Anthracite - Start Lean",
             "commands": [
               "Set-Location 'D:\\Repos\\anthracite'",
-              "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
-              "powershell -ExecutionPolicy Bypass -File .\\tools\\workspace-status.ps1",
-              "Write-Host 'Claude terminal ready. Start manually with: claude'"
+              "powershell -NoProfile -ExecutionPolicy Bypass -File .\\tools\\opencode\\start-anthracite-lean-hidden.ps1"
             ]
           }
         ]
@@ -80,12 +78,10 @@
       {
         "splitTerminals": [
           {
-            "name": "Anthracite — CODEX ADMIN",
+            "name": "Anthracite - Service Status",
             "commands": [
               "Set-Location 'D:\\Repos\\anthracite'",
-              "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
-              "powershell -ExecutionPolicy Bypass -File .\\tools\\workspace-status.ps1",
-              "Write-Host 'Codex terminal ready. Start manually with: codex'"
+              "powershell -NoProfile -ExecutionPolicy Bypass -File .\\tools\\opencode\\status-anthracite-opencode.ps1"
             ]
           }
         ]
@@ -93,12 +89,11 @@
       {
         "splitTerminals": [
           {
-            "name": "Anthracite — DEEPSEEK CLI",
+            "name": "Anthracite - OpenCode Lean",
             "commands": [
               "Set-Location 'D:\\Repos\\anthracite'",
-              "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
-              "powershell -ExecutionPolicy Bypass -File .\\tools\\workspace-status.ps1",
-              "Write-Host 'DeepSeek terminal ready. Start manually with your DeepSeek CLI command.'"
+              "Write-Host 'Lean OpenCode: cheap/no OMO'",
+              "Write-Host '.\\tools\\opencode\\attach-anthracite-lean.ps1'"
             ]
           }
         ]
@@ -106,13 +101,24 @@
       {
         "splitTerminals": [
           {
-            "name": "Anthracite — GITHUB / GIT ADMIN",
+            "name": "Anthracite - OpenCode OMO",
+            "commands": [
+              "Set-Location 'D:\\Repos\\anthracite'",
+              "Write-Host 'OMO OpenCode: heavy/server-side OMO routing'",
+              "Write-Host '.\\tools\\opencode\\attach-anthracite-omo.ps1'"
+            ]
+          }
+        ]
+      },
+      {
+        "splitTerminals": [
+          {
+            "name": "Anthracite - Codex / Claude",
             "commands": [
               "Set-Location 'D:\\Repos\\anthracite'",
               "& 'D:\\Repos\\anthracite\\.venv\\Scripts\\Activate.ps1'",
-              "git status --short",
-              "gh --version",
-              "Write-Host 'GitHub/Git admin terminal ready. Run git/gh commands manually.'"
+              "powershell -ExecutionPolicy Bypass -File .\\tools\\workspace-status.ps1",
+              "Write-Host 'Codex/Claude ready. Start manually: codex or claude'"
             ]
           }
         ]

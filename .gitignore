@@ -64,3 +64,6 @@ HANDOFF.md
 .codex/
 # Stray Windows redirect artifact.
 nul
+
+# OpenCode hidden server runtime state (PIDs, logs, start logs)
+.services/
