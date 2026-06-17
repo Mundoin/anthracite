@@ -1,33 +1,31 @@
-# CLAUDE.md — Anthracite (Claude contract)
+# CLAUDE.md - Anthracite (Claude contract)
 
-> Pair file: [`AGENTS.md`](./AGENTS.md). Keep both in sync — asymmetry is a bug.
-> See parent `D:\Repos\CLAUDE.md` for the cross-repo partnership protocol.
+> Pair file: [`AGENTS.md`](./AGENTS.md). Keep both in sync - asymmetry is a
+> bug.
 
 ## Identity
 
-This is **Anthracite v1** — a fresh build at `D:\Repos\anthracite`.
+This is **Anthracite v1** - a fresh build at `/home/bujar/Repos/anthracite`.
 Not a migration. Not an extraction. The old PyQt repo at `D:\Repos\_NEXUS`
 and the `ObsidianAnthracite` vault are reference truth, never sources of code.
 
-Current stage: **V1B — Source of Truth and Architecture Map**
-(V1A complete; Agent Operating Layer gate green —
-see `docs/operations/AGENT_OPERATING_LAYER.md`).
+Current stage: **V1B - Source of Truth and Architecture Map**.
 
-## Source of Truth (read first)
+## Source of Truth
 
 Before proposing any stage, plan, PR, or refactor, read:
 
-- `docs/architecture/ANTHRACITE_V1_SOURCE_OF_TRUTH.md` — doctrine.
-- `docs/architecture/MODES_AND_ENGINES_MAP.md` — modes ↔ engines.
-- `docs/architecture/ENGINE_AND_API_BOUNDARIES.md` — engine roster.
-- `docs/architecture/BUILD_SEQUENCE.md` — dependency order.
-- `docs/design/INDUSTRIAL_VISUAL_LAW.md` — visual law + screenshot gate.
-- `docs/architecture/STACK_DECISION_TAURI_PROBATION.md` — stack contract.
+- `docs/architecture/ANTHRACITE_V1_SOURCE_OF_TRUTH.md`
+- `docs/architecture/MODES_AND_ENGINES_MAP.md`
+- `docs/architecture/ENGINE_AND_API_BOUNDARIES.md`
+- `docs/architecture/BUILD_SEQUENCE.md`
+- `docs/design/INDUSTRIAL_VISUAL_LAW.md`
+- `docs/architecture/STACK_DECISION_TAURI_PROBATION.md`
 
 Claude's rules under this doctrine:
 
 1. Read `ANTHRACITE_V1_SOURCE_OF_TRUTH.md` before proposing stages.
-2. Never invent modes — the mode set is fixed there.
+2. Never invent modes - the mode set is fixed there.
 3. Never assume product structure beyond these docs.
 4. Never create Claude/Codex prompts unless Bujar asks.
 5. Every stage proposal must name the source-of-truth sections it obeys.
@@ -35,88 +33,64 @@ Claude's rules under this doctrine:
 7. Modes are surfaces over engines. No mode-private engine for shared
    capability.
 
-## Roles (Anthracite V1 Agent Operating Layer)
+## Roles
 
-- **Bujar** — product owner, final judge, sole commit/push authority.
-- **Claude** = **main coding agent**. Architecture, Tauri / React /
-  TypeScript / Babylon / Rust implementation, major refactors,
-  product-shaping decisions.
-- **Codex** = **admin / operations agent**. Repo status, Graphify refresh,
-  AO health checks, validation scripts, handoff packaging, generated-report
-  sanity, low-risk docs/index upkeep, repo hygiene. Codex preserves Claude
-  for higher-value coding.
+- **Bujar** - product owner, final judge, sole commit/push authority.
+- **Claude** - main coding agent. Architecture, Tauri / React / TypeScript /
+  Babylon / Rust implementation, major refactors, product-shaping decisions.
+- **Codex** - admin / operations agent. Repo status, Graphify refresh,
+  validation scripts, generated-report sanity, low-risk docs/index upkeep,
+  repo hygiene.
 
- Gate: V1 product coding (V1B+) starts only when
-`tools/ops-readiness.ps1` reports **READY**.
+## Stack
 
-## Stack (locked)
-
-- Tauri **2** + Rust (edition 2021, MSRV 1.77)
+- Tauri 2 + Rust (edition 2021, MSRV 1.77)
 - React 18 + TypeScript 5
 - Vite 5
 - Babylon.js 7
 - pnpm 11
-- Windows-first
+- Windows-first product development, with current repo ops performed from the
+  local shell on Linux/CachyOS
 
-## Guidelines  (Claude)
+## Guidelines
 
-1. **No Python.**  without permission. 
-2. **No PyQt.** without permission 
-3. **No Three.js.** Babylon.js owns all scene rendering.
-4. **Product truth lives in `ObsidianAnthracite` and in this repo's `PRODUCT.md`.
-5. **Never `git push` without explicit instruction.**
-6. **deps with Bujar approval.**
-7. **Always read `obsidian/ANTHRACITE_INDEX.md` before deep architectural work.**
+1. No Python.
+2. No PyQt.
+3. No Three.js. Babylon.js owns all scene rendering.
+4. Product truth lives in `ObsidianAnthracite` and this repo's `PRODUCT.md`.
+5. Never push without explicit instruction.
+6. Dependencies need Bujar approval.
+7. Always read `obsidian/ANTHRACITE_INDEX.md` before deep architectural work.
 
 ## Operating Posture
 
-Source of truth for *why* this rig is built
-the way it is:
-- Panel composition, cockpit information architecture.
-- Topology semantics (information vs live; 2D vs 3D selectability).
-- Sentinel / Cortex / Forge boundaries.
-- Decision records under `obsidian/decisions/`.
-- Long-form narrative in `PRODUCT.md` and stage notes.
+Source of truth for why this rig is built the way it is:
+
+- panel composition, cockpit information architecture
+- topology semantics (information vs live; 2D vs 3D selectability)
+- Sentinel / Cortex / Forge boundaries
+- decision records under `obsidian/decisions/`
+- long-form narrative in `PRODUCT.md` and stage notes
 
 ## Local Helpers
 
-- Repo workflow, 
-- Repo-local validation / review / readiness agents live in `.claude/agents/`.
-- `graphify` writes `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md`; those outputs are ignored in `.gitignore`.
+- Repo workflow, setup friction, and validation helpers live in `tools/`.
+- `graphify` writes `graphify-out/graph.json` and
+  `graphify-out/GRAPH_REPORT.md`; those outputs are ignored in `.gitignore`.
 
-When in doubt about setup / ops / pipelines → defer to `AGENTS.md`.
-When in doubt about intent / structure → `CLAUDE.md` wins.
+When in doubt about setup / ops / pipelines -> defer to `AGENTS.md`.
+When in doubt about intent / structure -> `CLAUDE.md` wins.
 
-## V1A Acceptance (this stage)
+## V1A Acceptance
 
-- App scaffold launches: title bar + 3 placeholder panels + center Babylon canvas.
+- App scaffold launches: title bar + 3 placeholder panels + center Babylon
+  canvas.
 - Dark cockpit theme baseline applied.
-- `pnpm typecheck`, `pnpm build`, `cargo check` (in `src-tauri/`) all green.
-- Docs present: `README.md`, `PRODUCT.md`, `GOALS.md`, `AGENTS.md`, `CLAUDE.md`.
+- `pnpm typecheck`, `pnpm build`, and `cargo check` all green.
+- Docs present: `README.md`, `PRODUCT.md`, `GOALS.md`, `AGENTS.md`,
+  `CLAUDE.md`.
 - Obsidian vault skeleton present under `obsidian/`.
-- `.agents/` initialized but git-ignored.
 - No topology logic, no Sentinel logic, no Cortex logic, no Forge logic.
-
-## AO (AgentOps) Usage
-
-This rig owns its own `.agents/`. Parent `D:\Repos\` does not.
-
-Per-rig commands Claude uses freely:
-
-- `/status` — start meaningful sessions here.
-- `/inject` — pull relevant `.agents/` knowledge into context.
-- `/research <question>` — read-only investigation.
-- `/plan <scope>` — before multi-path or risky stages.
-- `/pre-mortem <scope>` — before topology / clean-room / parity-affecting moves.
-- `/review` — before commit when diff carries risk.
-- `/retro` — after surprises or stage boundaries.
-- `/handoff` — at session boundaries.
-
-Heavy commands (`/rpi`, `/crank`, `/evolve`, `/autodev`, `/swarm`, `/codex-team`)
-require an explicit stage scope from Bujar.
-
-When AO is used, Claude reports whether useful `.agents/` evidence was created
-or reused. AO should *reduce* operator tax, not become ceremony.
 
 ## Obsidian Vault Discipline
 
@@ -126,7 +100,7 @@ or reused. AO should *reduce* operator tax, not become ceremony.
 - Agent-specific running notes live under `obsidian/agents/`.
 - Chronological build log under `obsidian/build-log/`.
 
-Claude updates the vault as part of the work — never as a separate "doc pass".
+Claude updates the vault as part of the work - never as a separate doc pass.
 
 ## File Layout
 
@@ -134,38 +108,27 @@ See [`README.md`](./README.md). That diagram is canon.
 
 ## Pointers
 
-- Parent contract: `D:\Repos\CLAUDE.md`.
-- Global Claude rules: `~/.claude/CLAUDE.md`.
+- Parent contract: `/home/bujar/Repos/CLAUDE.md`.
 - Product truth: `PRODUCT.md`.
 - Fitness spec: `GOALS.md`.
 - Codex contract: `AGENTS.md`.
 
-## AgentOps Knowledge Flywheel
-
-Knowledge compounds automatically across sessions:
-
-- **MEMORY.md** is auto-loaded by your AI coding tool every session
-- **Session hooks** extract learnings, update MEMORY.md, and prune stale knowledge
-- **Skills** invoke flywheel commands at the right moments (no manual ao commands needed)
-
-Verify the flywheel any time:
-
-```bash
-ao flywheel status    # escape velocity check
-ao status             # current knowledge inventory
-```
 ## graphify
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
-
-When the user types `/graphify`, invoke the `skill` tool with `skill: "graphify"` before doing anything else.
+This project has a knowledge graph at `graphify-out/` with god nodes,
+community structure, and cross-file relationships.
 
 Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
 
+- For codebase questions, first run `graphify query "<question>"` when
+  `graphify-out/graph.json` exists.
+- Use `graphify path "<A>" "<B>"` for relationships.
+- Use `graphify explain "<concept>"` for focused concepts.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead
+  of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when
+  query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current.
 
 ## Project Map
 
@@ -176,12 +139,19 @@ Anthracite has a generated project map for planning and stage orientation.
 - Generated visual: `docs/project-map/anthracite-project-map.html`
 
 Claude role:
-- Check the project map or its source before proposing a major stage, roadmap turn, architecture fork, or next-arc decision.
-- Use it to understand what is landed, current, prep-only, deferred, halted, and still open for Bujar/Vale decision.
-- After landing a stage or changing roadmap/safety/deferred boundaries, mention whether the project-map source should be refreshed.
-- Treat the generated HTML as a visual readout, not the product source of truth.
-- Keep project-map refreshes separate from product implementation commits unless Bujar explicitly asks to bundle them.
-- When source data changes and Bujar wants the visual refreshed, regenerate with:
+
+- Check the project map or its source before proposing a major stage,
+  roadmap turn, architecture fork, or next-arc decision.
+- Use it to understand what is landed, current, prep-only, deferred, halted,
+  and still open for Bujar/Vale decision.
+- After landing a stage or changing roadmap/safety/deferred boundaries, mention
+  whether the project-map source should be refreshed.
+- Treat the generated HTML as a visual readout, not the product source of
+  truth.
+- Keep project-map refreshes separate from product implementation commits
+  unless Bujar explicitly asks to bundle them.
+- When source data changes and Bujar wants the visual refreshed, regenerate
+  with:
 
 ```powershell
 node tools/project-map/build-project-map.mjs

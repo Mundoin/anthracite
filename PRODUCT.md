@@ -33,9 +33,9 @@ disconnected scripts. Wants one cockpit that breathes with the network.
    reusable artifacts (playbooks, scripts, change sets).
 5. **Obsidian memory.** Markdown-first project memory. Decisions, stages,
    agent notes, build log — all browsable, all greppable.
-6. **AO / Claude / Codex automation.** Agentic loop is first-class. AgentOps
-   handles fitness gates and knowledge consolidation; Claude and Codex are
-   partner agents in the operator's day.
+6. **Claude / Codex workflow.** Deterministic repo checks, Graphify refresh,
+   docs, and validation keep the operator loop predictable while Claude and
+   Codex stay in their lanes.
 
 ## Anti-Pillars
 
@@ -57,7 +57,7 @@ disconnected scripts. Wants one cockpit that breathes with the network.
 
 | Stage | Name                          | Output |
 |-------|-------------------------------|--------|
-| V1A   | Ground Zero Repo Factory      | Empty cockpit, scaffold, tooling, **Agent Operating Layer gate**. **← current** |
+| V1A   | Ground Zero Repo Factory      | Empty cockpit, scaffold, tooling. **← current** |
 | V1B   | Topology Engine               | Babylon graph, layers, switchable 2D/3D |
 | V1C   | Sentinel Skeleton             | Event surface, anomaly hooks |
 | V1D   | Cortex Skeleton               | Local LLM bridge, memory wiring |

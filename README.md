@@ -3,7 +3,7 @@
 > Local-first network intelligence **workstation** for network engineers.
 > Mode-based operator surface. Deterministic engines. Industrial Windows feel.
 
-Stage **V1B — Source of Truth and Architecture Map**. Fresh build from scratch.
+Stage **V1B - Source of Truth and Architecture Map**. Fresh build from scratch.
 Not a migration.
 
 > **Doctrine.** Read `docs/architecture/ANTHRACITE_V1_SOURCE_OF_TRUTH.md` first.
@@ -48,16 +48,16 @@ Not a migration.
 
 ## Quickstart
 
-```powershell
+```bash
 pnpm install
 pnpm tauri:dev       # full desktop app
-# — or —
+# or
 pnpm dev             # web-only preview at http://localhost:1420
 ```
 
 Other scripts:
 
-```powershell
+```bash
 pnpm typecheck       # tsc --noEmit
 pnpm lint            # ESLint
 pnpm build           # frontend build only
@@ -81,13 +81,10 @@ anthracite/
 ├─ obsidian/                Project memory / knowledge vault
 │  ├─ ANTHRACITE_INDEX.md
 │  ├─ stages/  decisions/  agents/  build-log/
-├─ .agents/                 AgentOps per-rig state (git-ignored)
-├─ tools/                   PowerShell automation
-│  ├─ status.ps1
-│  └─ validate.ps1
+├─ tools/                   Repo automation and validation helpers
 ├─ AGENTS.md                Codex ops contract
 ├─ CLAUDE.md                Claude architecture contract
-├─ GOALS.md                 Fitness spec (AO)
+├─ GOALS.md                 Fitness spec
 ├─ PRODUCT.md               Product truth
 └─ README.md                This file
 ```
