@@ -8,14 +8,14 @@
 
 ## Mission
 
-Build Anthracite - a living network intelligence cockpit - from ground zero on
+Build Anthracite - a living network intelligence surface - from ground zero on
 a Tauri + React + Babylon.js + Rust stack. Topology-first. Local-first.
-Windows-first.
+Linux/CachyOS-first for current repo workflow.
 
 ## North Stars
 
 - Topology is the crown jewel - every stage strengthens it.
-- Cockpit launches and renders cleanly on Windows on every commit.
+- The app/surface launches and renders cleanly on the current workstation.
 - The repo is navigable from `README.md` alone.
 - Obsidian memory keeps pace with code - every stage produces a stage doc.
 

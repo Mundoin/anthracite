@@ -1,13 +1,13 @@
 # CLAUDE.md - Anthracite (Claude contract)
 
-> Pair file: [`AGENTS.md`](./AGENTS.md). Keep both in sync - asymmetry is a
-> bug.
+> Pair file: [`AGENTS.md`](./AGENTS.md). Keep both aligned; asymmetry is a bug.
 
 ## Identity
 
-This is **Anthracite v1** - a fresh build at `/home/bujar/Repos/anthracite`.
-Not a migration. Not an extraction. The old PyQt repo at `D:\Repos\_NEXUS`
-and the `ObsidianAnthracite` vault are reference truth, never sources of code.
+Anthracite v1 is a fresh build at `/home/bujar/Repos/anthracite`. It is a
+local-first network intelligence desktop application. The old PyQt repo at
+`D:\Repos\_NEXUS` and the `ObsidianAnthracite` vault are legacy reference truth
+only, never current code sources.
 
 Current stage: **V1B - Source of Truth and Architecture Map**.
 
@@ -49,8 +49,8 @@ Claude's rules under this doctrine:
 - Vite 5
 - Babylon.js 7
 - pnpm 11
-- Windows-first product development, with current repo ops performed from the
-  local shell on Linux/CachyOS
+- Linux/CachyOS product development with current repo ops performed from the
+  local shell on `/home/bujar/Repos/anthracite`
 
 ## Guidelines
 
@@ -64,9 +64,9 @@ Claude's rules under this doctrine:
 
 ## Operating Posture
 
-Source of truth for why this rig is built the way it is:
+Source of truth for why this surface is built the way it is:
 
-- panel composition, cockpit information architecture
+- panel composition
 - topology semantics (information vs live; 2D vs 3D selectability)
 - Sentinel / Cortex / Forge boundaries
 - decision records under `obsidian/decisions/`
@@ -75,6 +75,8 @@ Source of truth for why this rig is built the way it is:
 ## Local Helpers
 
 - Repo workflow, setup friction, and validation helpers live in `tools/`.
+- Use `ws dev anthracite status`, `check`, `full`, `dev`, `claude`, `codex`,
+  and `opencode` when they help with orientation or execution.
 - `graphify` writes `graphify-out/graph.json` and
   `graphify-out/GRAPH_REPORT.md`; those outputs are ignored in `.gitignore`.
 
@@ -85,7 +87,7 @@ When in doubt about intent / structure -> `CLAUDE.md` wins.
 
 - App scaffold launches: title bar + 3 placeholder panels + center Babylon
   canvas.
-- Dark cockpit theme baseline applied.
+- Dark industrial baseline applied.
 - `pnpm typecheck`, `pnpm build`, and `cargo check` all green.
 - Docs present: `README.md`, `PRODUCT.md`, `GOALS.md`, `AGENTS.md`,
   `CLAUDE.md`.
@@ -124,10 +126,10 @@ Rules:
   `graphify-out/graph.json` exists.
 - Use `graphify path "<A>" "<B>"` for relationships.
 - Use `graphify explain "<concept>"` for focused concepts.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead
+- If `graphify-out/wiki/index.md` exists, use it for broad navigation instead
   of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when
-  query/path/explain do not surface enough context.
+- Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review or
+  when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current.
 
 ## Project Map
@@ -140,8 +142,8 @@ Anthracite has a generated project map for planning and stage orientation.
 
 Claude role:
 
-- Check the project map or its source before proposing a major stage,
-  roadmap turn, architecture fork, or next-arc decision.
+- Check the project map or its source before proposing a major stage, roadmap
+  turn, architecture fork, or next-arc decision.
 - Use it to understand what is landed, current, prep-only, deferred, halted,
   and still open for Bujar/Vale decision.
 - After landing a stage or changing roadmap/safety/deferred boundaries, mention
@@ -153,6 +155,6 @@ Claude role:
 - When source data changes and Bujar wants the visual refreshed, regenerate
   with:
 
-```powershell
+```bash
 node tools/project-map/build-project-map.mjs
 ```
